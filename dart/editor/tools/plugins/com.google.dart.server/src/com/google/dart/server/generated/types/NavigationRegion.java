@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -38,12 +41,12 @@ public class NavigationRegion {
   /**
    * The offset of the region from which the user can navigate.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the region from which the user can navigate.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The elements to which the given region is bound. By opening the declaration of the elements,
@@ -54,7 +57,7 @@ public class NavigationRegion {
   /**
    * Constructor for {@link NavigationRegion}.
    */
-  public NavigationRegion(int offset, int length, List<Element> targets) {
+  public NavigationRegion(Integer offset, Integer length, List<Element> targets) {
     this.offset = offset;
     this.length = length;
     this.targets = targets;
@@ -75,14 +78,14 @@ public class NavigationRegion {
   /**
    * The length of the region from which the user can navigate.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the region from which the user can navigate.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
@@ -92,6 +95,18 @@ public class NavigationRegion {
    */
   public List<Element> getTargets() {
     return targets;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    JsonArray jsonArrayTargets = new JsonArray();
+    for(Element elt : targets) {
+      jsonArrayTargets.add(elt.toJson());
+    }
+    jsonObject.add("targets", jsonArrayTargets);
+    return jsonObject;
   }
 
   @Override

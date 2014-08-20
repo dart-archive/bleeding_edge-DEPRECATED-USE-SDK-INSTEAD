@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -76,6 +79,13 @@ public class OverriddenMember {
    */
   public Element getElement() {
     return element;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("element", element.toJson());
+    jsonObject.addProperty("className", className);
+    return jsonObject;
   }
 
   @Override

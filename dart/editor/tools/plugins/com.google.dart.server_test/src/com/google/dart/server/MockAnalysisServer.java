@@ -32,7 +32,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
+  public void analysis_getHover(String file, Integer offset, GetHoverConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -67,7 +67,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer) {
+  public void completion_getSuggestions(String file, Integer offset, GetSuggestionsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -92,23 +92,24 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
+  public void edit_getAssists(String file, Integer offset, Integer length,
+      GetAssistsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void edit_getAvailableRefactorings(String file, int offset, int length,
+  public void edit_getAvailableRefactorings(String file, Integer offset, Integer length,
       GetAvailableRefactoringsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void edit_getFixes(String file, int offset, GetFixesConsumer consumer) {
+  public void edit_getFixes(String file, Integer offset, GetFixesConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void edit_getRefactoring(String kindId, String file, int offset, int length,
+  public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length,
       Boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
     throw new UnsupportedOperationException();
   }
@@ -119,7 +120,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void search_findElementReferences(String file, int offset, Boolean includePotential,
+  public void search_findElementReferences(String file, Integer offset, Boolean includePotential,
       FindElementReferencesConsumer consumer) {
     throw new UnsupportedOperationException();
   }
@@ -141,7 +142,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer) {
+  public void search_getTypeHierarchy(String file, Integer offset, GetTypeHierarchyConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

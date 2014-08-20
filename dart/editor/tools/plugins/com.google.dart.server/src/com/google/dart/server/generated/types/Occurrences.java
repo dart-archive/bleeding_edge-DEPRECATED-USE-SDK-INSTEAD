@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -43,17 +46,17 @@ public class Occurrences {
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  private final int[] offsets;
+  private final Integer[] offsets;
 
   /**
    * The length of the name of the referenced element.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * Constructor for {@link Occurrences}.
    */
-  public Occurrences(Element element, int[] offsets, int length) {
+  public Occurrences(Element element, Integer[] offsets, Integer length) {
     this.element = element;
     this.offsets = offsets;
     this.length = length;
@@ -81,15 +84,27 @@ public class Occurrences {
   /**
    * The length of the name of the referenced element.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  public int[] getOffsets() {
+  public Integer[] getOffsets() {
     return offsets;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("element", element.toJson());
+    JsonArray jsonArrayOffsets = new JsonArray();
+    for(Integer elt : offsets) {
+      jsonArrayOffsets.add(new JsonPrimitive(elt));
+    }
+    jsonObject.add("offsets", jsonArrayOffsets);
+    jsonObject.addProperty("length", length);
+    return jsonObject;
   }
 
   @Override

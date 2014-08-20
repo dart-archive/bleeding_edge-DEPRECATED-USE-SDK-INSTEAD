@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -76,6 +79,17 @@ public class SourceFileEdit {
    */
   public String getFile() {
     return file;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("file", file);
+    JsonArray jsonArrayEdits = new JsonArray();
+    for(SourceEdit elt : edits) {
+      jsonArrayEdits.add(elt.toJson());
+    }
+    jsonObject.add("edits", jsonArrayEdits);
+    return jsonObject;
   }
 
   @Override

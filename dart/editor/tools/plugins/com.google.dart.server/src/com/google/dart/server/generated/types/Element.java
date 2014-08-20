@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -72,7 +75,7 @@ public class Element {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  private final int flags;
+  private final Integer flags;
 
   /**
    * The parameter list for the element. If the element is not a method or function this field will
@@ -90,7 +93,7 @@ public class Element {
   /**
    * Constructor for {@link Element}.
    */
-  public Element(String kind, String name, Location location, int flags, String parameters, String returnType) {
+  public Element(String kind, String name, Location location, Integer flags, String parameters, String returnType) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -124,7 +127,7 @@ public class Element {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  public int getFlags() {
+  public Integer getFlags() {
     return flags;
   }
 
@@ -188,6 +191,23 @@ public class Element {
 
   public boolean isTopLevelOrStatic() {
     return (flags & TOP_LEVEL_STATIC) != 0;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("name", name);
+    if (location != null) {
+      jsonObject.add("location", location.toJson());
+    }
+    jsonObject.addProperty("flags", flags);
+    if (parameters != null) {
+      jsonObject.addProperty("parameters", parameters);
+    }
+    if (returnType != null) {
+      jsonObject.addProperty("returnType", returnType);
+    }
+    return jsonObject;
   }
 
   @Override

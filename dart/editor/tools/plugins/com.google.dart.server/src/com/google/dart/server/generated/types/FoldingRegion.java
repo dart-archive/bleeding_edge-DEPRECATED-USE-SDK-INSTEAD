@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -43,17 +46,17 @@ public class FoldingRegion {
   /**
    * The offset of the region to be folded.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the region to be folded.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * Constructor for {@link FoldingRegion}.
    */
-  public FoldingRegion(String kind, int offset, int length) {
+  public FoldingRegion(String kind, Integer offset, Integer length) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
@@ -81,15 +84,23 @@ public class FoldingRegion {
   /**
    * The length of the region to be folded.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be folded.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    return jsonObject;
   }
 
   @Override

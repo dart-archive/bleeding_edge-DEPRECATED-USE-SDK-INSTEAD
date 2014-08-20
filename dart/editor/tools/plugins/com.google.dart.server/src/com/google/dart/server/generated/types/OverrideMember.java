@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -38,12 +41,12 @@ public class OverrideMember {
   /**
    * The offset of the name of the overriding member.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the name of the overriding member.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The member inherited from a superclass that is overridden by the overriding member. The field is
@@ -61,7 +64,7 @@ public class OverrideMember {
   /**
    * Constructor for {@link OverrideMember}.
    */
-  public OverrideMember(int offset, int length, OverriddenMember superclassMember, List<OverriddenMember> interfaceMembers) {
+  public OverrideMember(Integer offset, Integer length, OverriddenMember superclassMember, List<OverriddenMember> interfaceMembers) {
     this.offset = offset;
     this.length = length;
     this.superclassMember = superclassMember;
@@ -92,14 +95,14 @@ public class OverrideMember {
   /**
    * The length of the name of the overriding member.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the name of the overriding member.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
@@ -110,6 +113,23 @@ public class OverrideMember {
    */
   public OverriddenMember getSuperclassMember() {
     return superclassMember;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    if (superclassMember != null) {
+      jsonObject.add("superclassMember", superclassMember.toJson());
+    }
+    if (interfaceMembers != null) {
+      JsonArray jsonArrayInterfaceMembers = new JsonArray();
+      for(OverriddenMember elt : interfaceMembers) {
+        jsonArrayInterfaceMembers.add(elt.toJson());
+      }
+      jsonObject.add("interfaceMembers", jsonArrayInterfaceMembers);
+    }
+    return jsonObject;
   }
 
   @Override

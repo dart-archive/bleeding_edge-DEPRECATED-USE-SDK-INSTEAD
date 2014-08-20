@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -110,6 +113,19 @@ public class SearchResult {
    */
   public List<Element> getPath() {
     return path;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("location", location.toJson());
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("isPotential", isPotential);
+    JsonArray jsonArrayPath = new JsonArray();
+    for(Element elt : path) {
+      jsonArrayPath.add(elt.toJson());
+    }
+    jsonObject.add("path", jsonArrayPath);
+    return jsonObject;
   }
 
   @Override

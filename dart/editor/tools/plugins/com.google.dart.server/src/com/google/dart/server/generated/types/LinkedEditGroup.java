@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -47,7 +50,7 @@ public class LinkedEditGroup {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * Pre-computed suggestions for what every region might want to be changed to.
@@ -57,7 +60,7 @@ public class LinkedEditGroup {
   /**
    * Constructor for {@link LinkedEditGroup}.
    */
-  public LinkedEditGroup(List<Position> positions, int length, List<LinkedEditSuggestion> suggestions) {
+  public LinkedEditGroup(List<Position> positions, Integer length, List<LinkedEditSuggestion> suggestions) {
     this.positions = positions;
     this.length = length;
     this.suggestions = suggestions;
@@ -78,7 +81,7 @@ public class LinkedEditGroup {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
@@ -94,6 +97,22 @@ public class LinkedEditGroup {
    */
   public List<LinkedEditSuggestion> getSuggestions() {
     return suggestions;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    JsonArray jsonArrayPositions = new JsonArray();
+    for(Position elt : positions) {
+      jsonArrayPositions.add(elt.toJson());
+    }
+    jsonObject.add("positions", jsonArrayPositions);
+    jsonObject.addProperty("length", length);
+    JsonArray jsonArraySuggestions = new JsonArray();
+    for(LinkedEditSuggestion elt : suggestions) {
+      jsonArraySuggestions.add(elt.toJson());
+    }
+    jsonObject.add("suggestions", jsonArraySuggestions);
+    return jsonObject;
   }
 
   @Override

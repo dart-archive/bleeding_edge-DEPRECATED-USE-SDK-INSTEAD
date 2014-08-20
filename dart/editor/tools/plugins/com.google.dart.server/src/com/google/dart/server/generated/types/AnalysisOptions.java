@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -121,6 +124,26 @@ public class AnalysisOptions {
    */
   public Boolean getGenerateHints() {
     return generateHints;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    if (enableAsync != null) {
+      jsonObject.addProperty("enableAsync", enableAsync);
+    }
+    if (enableDeferredLoading != null) {
+      jsonObject.addProperty("enableDeferredLoading", enableDeferredLoading);
+    }
+    if (enableEnums != null) {
+      jsonObject.addProperty("enableEnums", enableEnums);
+    }
+    if (generateDart2jsHints != null) {
+      jsonObject.addProperty("generateDart2jsHints", generateDart2jsHints);
+    }
+    if (generateHints != null) {
+      jsonObject.addProperty("generateHints", generateHints);
+    }
+    return jsonObject;
   }
 
   @Override

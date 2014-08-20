@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -43,17 +46,17 @@ public class HighlightRegion {
   /**
    * The offset of the region to be highlighted.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the region to be highlighted.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * Constructor for {@link HighlightRegion}.
    */
-  public HighlightRegion(String type, int offset, int length) {
+  public HighlightRegion(String type, Integer offset, Integer length) {
     this.type = type;
     this.offset = offset;
     this.length = length;
@@ -74,14 +77,14 @@ public class HighlightRegion {
   /**
    * The length of the region to be highlighted.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be highlighted.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
@@ -90,6 +93,14 @@ public class HighlightRegion {
    */
   public String getType() {
     return type;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("type", type);
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    return jsonObject;
   }
 
   @Override

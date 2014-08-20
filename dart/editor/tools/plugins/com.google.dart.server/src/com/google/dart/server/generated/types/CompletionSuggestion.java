@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -57,12 +60,12 @@ public class CompletionSuggestion {
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
-  private final int selectionOffset;
+  private final Integer selectionOffset;
 
   /**
    * The number of characters that should be selected after insertion.
    */
-  private final int selectionLength;
+  private final Integer selectionLength;
 
   /**
    * True if the suggested element is deprecated.
@@ -115,13 +118,13 @@ public class CompletionSuggestion {
    * The number of required parameters for the function or method being suggested. This field is
    * omitted if the parameterNames field is omitted.
    */
-  private final int requiredParameterCount;
+  private final Integer requiredParameterCount;
 
   /**
    * The number of positional parameters for the function or method being suggested. This field is
    * omitted if the parameterNames field is omitted.
    */
-  private final int positionalParameterCount;
+  private final Integer positionalParameterCount;
 
   /**
    * The name of the optional parameter being suggested. This field is omitted if the suggestion is
@@ -138,7 +141,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, Boolean isDeprecated, Boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, int positionalParameterCount, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, String relevance, String completion, Integer selectionOffset, Integer selectionLength, Boolean isDeprecated, Boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -275,7 +278,7 @@ public class CompletionSuggestion {
    * The number of positional parameters for the function or method being suggested. This field is
    * omitted if the parameterNames field is omitted.
    */
-  public int getPositionalParameterCount() {
+  public Integer getPositionalParameterCount() {
     return positionalParameterCount;
   }
 
@@ -290,7 +293,7 @@ public class CompletionSuggestion {
    * The number of required parameters for the function or method being suggested. This field is
    * omitted if the parameterNames field is omitted.
    */
-  public int getRequiredParameterCount() {
+  public Integer getRequiredParameterCount() {
     return requiredParameterCount;
   }
 
@@ -305,7 +308,7 @@ public class CompletionSuggestion {
   /**
    * The number of characters that should be selected after insertion.
    */
-  public int getSelectionLength() {
+  public Integer getSelectionLength() {
     return selectionLength;
   }
 
@@ -313,8 +316,58 @@ public class CompletionSuggestion {
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
-  public int getSelectionOffset() {
+  public Integer getSelectionOffset() {
     return selectionOffset;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("relevance", relevance);
+    jsonObject.addProperty("completion", completion);
+    jsonObject.addProperty("selectionOffset", selectionOffset);
+    jsonObject.addProperty("selectionLength", selectionLength);
+    jsonObject.addProperty("isDeprecated", isDeprecated);
+    jsonObject.addProperty("isPotential", isPotential);
+    if (docSummary != null) {
+      jsonObject.addProperty("docSummary", docSummary);
+    }
+    if (docComplete != null) {
+      jsonObject.addProperty("docComplete", docComplete);
+    }
+    if (declaringType != null) {
+      jsonObject.addProperty("declaringType", declaringType);
+    }
+    if (returnType != null) {
+      jsonObject.addProperty("returnType", returnType);
+    }
+    if (parameterNames != null) {
+      JsonArray jsonArrayParameterNames = new JsonArray();
+      for(String elt : parameterNames) {
+        jsonArrayParameterNames.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("parameterNames", jsonArrayParameterNames);
+    }
+    if (parameterTypes != null) {
+      JsonArray jsonArrayParameterTypes = new JsonArray();
+      for(String elt : parameterTypes) {
+        jsonArrayParameterTypes.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("parameterTypes", jsonArrayParameterTypes);
+    }
+    if (requiredParameterCount != null) {
+      jsonObject.addProperty("requiredParameterCount", requiredParameterCount);
+    }
+    if (positionalParameterCount != null) {
+      jsonObject.addProperty("positionalParameterCount", positionalParameterCount);
+    }
+    if (parameterName != null) {
+      jsonObject.addProperty("parameterName", parameterName);
+    }
+    if (parameterType != null) {
+      jsonObject.addProperty("parameterType", parameterType);
+    }
+    return jsonObject;
   }
 
   @Override

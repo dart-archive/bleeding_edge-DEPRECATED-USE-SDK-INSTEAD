@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -76,6 +79,17 @@ public class ErrorFixes {
    */
   public List<SourceChange> getFixes() {
     return fixes;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("error", error.toJson());
+    JsonArray jsonArrayFixes = new JsonArray();
+    for(SourceChange elt : fixes) {
+      jsonArrayFixes.add(elt.toJson());
+    }
+    jsonObject.add("fixes", jsonArrayFixes);
+    return jsonObject;
   }
 
   @Override

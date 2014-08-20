@@ -182,8 +182,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertNotNull(hovers[0]);
-    assertEquals(22, hovers[0].getOffset());
-    assertEquals(5, hovers[0].getLength());
+    assertEquals(new Integer(22), hovers[0].getOffset());
+    assertEquals(new Integer(5), hovers[0].getLength());
     assertEquals("myLibrary", hovers[0].getContainingLibraryName());
     assertEquals("/path/to/lib", hovers[0].getContainingLibraryPath());
     assertEquals("some dartdoc", hovers[0].getDartdoc());
@@ -341,10 +341,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("name0", element.getName());
         Location location = element.getLocation();
         assertEquals("/test2.dart", location.getFile());
-        assertEquals(3, location.getOffset());
-        assertEquals(4, location.getLength());
-        assertEquals(5, location.getStartLine());
-        assertEquals(6, location.getStartColumn());
+        assertEquals(new Integer(3), location.getOffset());
+        assertEquals(new Integer(4), location.getLength());
+        assertEquals(new Integer(5), location.getStartLine());
+        assertEquals(new Integer(6), location.getStartColumn());
         assertFalse(element.isAbstract());
         assertFalse(element.isConst());
         assertFalse(element.isDeprecated());
@@ -360,10 +360,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("_name1", element.getName());
         Location location = element.getLocation();
         assertEquals("/test3.dart", location.getFile());
-        assertEquals(7, location.getOffset());
-        assertEquals(8, location.getLength());
-        assertEquals(9, location.getStartLine());
-        assertEquals(10, location.getStartColumn());
+        assertEquals(new Integer(7), location.getOffset());
+        assertEquals(new Integer(8), location.getLength());
+        assertEquals(new Integer(9), location.getStartLine());
+        assertEquals(new Integer(10), location.getStartColumn());
         assertTrue(element.isAbstract());
         assertTrue(element.isConst());
         assertTrue(element.isDeprecated());
@@ -415,10 +415,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name0", element.getName());
       Location location = element.getLocation();
       assertEquals("/test2.dart", location.getFile());
-      assertEquals(7, location.getOffset());
-      assertEquals(8, location.getLength());
-      assertEquals(9, location.getStartLine());
-      assertEquals(10, location.getStartColumn());
+      assertEquals(new Integer(7), location.getOffset());
+      assertEquals(new Integer(8), location.getLength());
+      assertEquals(new Integer(9), location.getStartLine());
+      assertEquals(new Integer(10), location.getStartColumn());
       assertTrue(element.isAbstract());
       assertTrue(element.isConst());
       assertTrue(element.isDeprecated());
@@ -489,10 +489,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("name0", element.getName());
     Location location = element.getLocation();
     assertEquals("/test2.dart", location.getFile());
-    assertEquals(3, location.getOffset());
-    assertEquals(4, location.getLength());
-    assertEquals(5, location.getStartLine());
-    assertEquals(6, location.getStartColumn());
+    assertEquals(new Integer(3), location.getOffset());
+    assertEquals(new Integer(4), location.getLength());
+    assertEquals(new Integer(5), location.getStartLine());
+    assertEquals(new Integer(6), location.getStartColumn());
     assertTrue(element.isAbstract());
     assertTrue(element.isConst());
     assertTrue(element.isDeprecated());
@@ -512,10 +512,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("_name1", childElement.getName());
     location = childElement.getLocation();
     assertEquals("/test3.dart", location.getFile());
-    assertEquals(9, location.getOffset());
-    assertEquals(10, location.getLength());
-    assertEquals(11, location.getStartLine());
-    assertEquals(12, location.getStartColumn());
+    assertEquals(new Integer(9), location.getOffset());
+    assertEquals(new Integer(10), location.getLength());
+    assertEquals(new Integer(11), location.getStartLine());
+    assertEquals(new Integer(12), location.getStartColumn());
 
     assertFalse(childElement.isAbstract());
     assertFalse(childElement.isConst());
@@ -2295,10 +2295,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name1", element.getName());
       Location location = element.getLocation();
       assertEquals("/test1.dart", location.getFile());
-      assertEquals(1, location.getOffset());
-      assertEquals(2, location.getLength());
-      assertEquals(3, location.getStartLine());
-      assertEquals(4, location.getStartColumn());
+      assertEquals(new Integer(1), location.getOffset());
+      assertEquals(new Integer(2), location.getLength());
+      assertEquals(new Integer(3), location.getStartLine());
+      assertEquals(new Integer(4), location.getStartColumn());
       assertTrue(element.isAbstract());
       assertTrue(element.isConst());
       assertTrue(element.isDeprecated());
@@ -2316,10 +2316,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name2", element.getName());
       Location location = element.getLocation();
       assertEquals("/test2.dart", location.getFile());
-      assertEquals(5, location.getOffset());
-      assertEquals(6, location.getLength());
-      assertEquals(7, location.getStartLine());
-      assertEquals(8, location.getStartColumn());
+      assertEquals(new Integer(5), location.getOffset());
+      assertEquals(new Integer(6), location.getLength());
+      assertEquals(new Integer(7), location.getStartLine());
+      assertEquals(new Integer(8), location.getStartColumn());
       assertFalse(element.isAbstract());
       assertFalse(element.isConst());
       assertFalse(element.isDeprecated());
@@ -2338,10 +2338,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("name3", childItem.getBestName());
         Location location = element.getLocation();
         assertEquals("/test3.dart", location.getFile());
-        assertEquals(9, location.getOffset());
-        assertEquals(10, location.getLength());
-        assertEquals(11, location.getStartLine());
-        assertEquals(12, location.getStartColumn());
+        assertEquals(new Integer(9), location.getOffset());
+        assertEquals(new Integer(10), location.getLength());
+        assertEquals(new Integer(11), location.getStartLine());
+        assertEquals(new Integer(12), location.getStartColumn());
       }
       assertNull(childItem.getDisplayName());
       assertNull(childItem.getMemberElement());
@@ -2648,10 +2648,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   private void assertLocation(Location location, String file, int offset, int length,
       int startLine, int startColumn) {
     assertEquals(file, location.getFile());
-    assertEquals(offset, location.getOffset());
-    assertEquals(length, location.getLength());
-    assertEquals(startLine, location.getStartLine());
-    assertEquals(startColumn, location.getStartColumn());
+    assertEquals(new Integer(offset), location.getOffset());
+    assertEquals(new Integer(length), location.getLength());
+    assertEquals(new Integer(startLine), location.getStartLine());
+    assertEquals(new Integer(startColumn), location.getStartColumn());
   }
 
   /**

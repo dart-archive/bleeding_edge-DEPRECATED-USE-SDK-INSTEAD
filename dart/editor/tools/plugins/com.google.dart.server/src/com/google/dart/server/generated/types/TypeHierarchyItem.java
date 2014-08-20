@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -58,30 +61,30 @@ public class TypeHierarchyItem {
    * The index of the item representing the superclass of this class. This field will be omitted if
    * this item represents the class Object.
    */
-  private final int superclass;
+  private final Integer superclass;
 
   /**
    * The indexes of the items representing the interfaces implemented by this class. The list will be
    * empty if there are no implemented interfaces.
    */
-  private final int[] interfaces;
+  private final Integer[] interfaces;
 
   /**
    * The indexes of the items representing the mixins referenced by this class. The list will be
    * empty if there are no classes mixed in to this class.
    */
-  private final int[] mixins;
+  private final Integer[] mixins;
 
   /**
    * The indexes of the items representing the subtypes of this class. The list will be empty if
    * there are no subtypes or if this item represents a supertype of the pivot type.
    */
-  private final int[] subclasses;
+  private final Integer[] subclasses;
 
   /**
    * Constructor for {@link TypeHierarchyItem}.
    */
-  public TypeHierarchyItem(Element classElement, String displayName, Element memberElement, int superclass, int[] interfaces, int[] mixins, int[] subclasses) {
+  public TypeHierarchyItem(Element classElement, String displayName, Element memberElement, Integer superclass, Integer[] interfaces, Integer[] mixins, Integer[] subclasses) {
     this.classElement = classElement;
     this.displayName = displayName;
     this.memberElement = memberElement;
@@ -127,7 +130,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the interfaces implemented by this class. The list will be
    * empty if there are no implemented interfaces.
    */
-  public int[] getInterfaces() {
+  public Integer[] getInterfaces() {
     return interfaces;
   }
 
@@ -144,7 +147,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the mixins referenced by this class. The list will be
    * empty if there are no classes mixed in to this class.
    */
-  public int[] getMixins() {
+  public Integer[] getMixins() {
     return mixins;
   }
 
@@ -152,7 +155,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the subtypes of this class. The list will be empty if
    * there are no subtypes or if this item represents a supertype of the pivot type.
    */
-  public int[] getSubclasses() {
+  public Integer[] getSubclasses() {
     return subclasses;
   }
 
@@ -160,8 +163,38 @@ public class TypeHierarchyItem {
    * The index of the item representing the superclass of this class. This field will be omitted if
    * this item represents the class Object.
    */
-  public int getSuperclass() {
+  public Integer getSuperclass() {
     return superclass;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("classElement", classElement.toJson());
+    if (displayName != null) {
+      jsonObject.addProperty("displayName", displayName);
+    }
+    if (memberElement != null) {
+      jsonObject.add("memberElement", memberElement.toJson());
+    }
+    if (superclass != null) {
+      jsonObject.addProperty("superclass", superclass);
+    }
+    JsonArray jsonArrayInterfaces = new JsonArray();
+    for(Integer elt : interfaces) {
+      jsonArrayInterfaces.add(new JsonPrimitive(elt));
+    }
+    jsonObject.add("interfaces", jsonArrayInterfaces);
+    JsonArray jsonArrayMixins = new JsonArray();
+    for(Integer elt : mixins) {
+      jsonArrayMixins.add(new JsonPrimitive(elt));
+    }
+    jsonObject.add("mixins", jsonArrayMixins);
+    JsonArray jsonArraySubclasses = new JsonArray();
+    for(Integer elt : subclasses) {
+      jsonArraySubclasses.add(new JsonPrimitive(elt));
+    }
+    jsonObject.add("subclasses", jsonArraySubclasses);
+    return jsonObject;
   }
 
   @Override

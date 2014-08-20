@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -124,6 +127,18 @@ public class AnalysisError {
    */
   public String getType() {
     return type;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("severity", severity);
+    jsonObject.addProperty("type", type);
+    jsonObject.add("location", location.toJson());
+    jsonObject.addProperty("message", message);
+    if (correction != null) {
+      jsonObject.addProperty("correction", correction);
+    }
+    return jsonObject;
   }
 
   @Override

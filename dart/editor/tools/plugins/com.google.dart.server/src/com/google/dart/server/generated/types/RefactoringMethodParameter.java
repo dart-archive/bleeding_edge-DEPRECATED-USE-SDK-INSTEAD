@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -126,6 +129,20 @@ public class RefactoringMethodParameter {
    */
   public String getType() {
     return type;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    if (id != null) {
+      jsonObject.addProperty("id", id);
+    }
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("type", type);
+    jsonObject.addProperty("name", name);
+    if (parameters != null) {
+      jsonObject.addProperty("parameters", parameters);
+    }
+    return jsonObject;
   }
 
   @Override

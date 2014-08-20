@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -38,12 +41,12 @@ public class SourceEdit {
   /**
    * The offset of the region to be modified.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the region to be modified.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The code that is to replace the specified region in the original code.
@@ -64,7 +67,7 @@ public class SourceEdit {
   /**
    * Constructor for {@link SourceEdit}.
    */
-  public SourceEdit(int offset, int length, String replacement, String id) {
+  public SourceEdit(Integer offset, Integer length, String replacement, String id) {
     this.offset = offset;
     this.length = length;
     this.replacement = replacement;
@@ -100,14 +103,14 @@ public class SourceEdit {
   /**
    * The length of the region to be modified.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be modified.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
@@ -116,6 +119,17 @@ public class SourceEdit {
    */
   public String getReplacement() {
     return replacement;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    jsonObject.addProperty("replacement", replacement);
+    if (id != null) {
+      jsonObject.addProperty("id", id);
+    }
+    return jsonObject;
   }
 
   @Override

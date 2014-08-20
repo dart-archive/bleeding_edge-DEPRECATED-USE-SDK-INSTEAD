@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -45,12 +48,12 @@ public class Outline {
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the element.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The children of the node. The field will be omitted if the node has no children.
@@ -60,7 +63,7 @@ public class Outline {
   /**
    * Constructor for {@link Outline}.
    */
-  public Outline(Element element, int offset, int length, List<Outline> children) {
+  public Outline(Element element, Integer offset, Integer length, List<Outline> children) {
     this.element = element;
     this.offset = offset;
     this.length = length;
@@ -97,7 +100,7 @@ public class Outline {
   /**
    * The length of the element.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
@@ -106,8 +109,23 @@ public class Outline {
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.add("element", element.toJson());
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    if (children != null) {
+      JsonArray jsonArrayChildren = new JsonArray();
+      for(Outline elt : children) {
+        jsonArrayChildren.add(elt.toJson());
+      }
+      jsonObject.add("children", jsonArrayChildren);
+    }
+    return jsonObject;
   }
 
   @Override

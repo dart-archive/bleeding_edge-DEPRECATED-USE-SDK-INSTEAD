@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -43,27 +46,27 @@ public class Location {
   /**
    * The offset of the range.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the range.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The one-based index of the line containing the first character of the range.
    */
-  private final int startLine;
+  private final Integer startLine;
 
   /**
    * The one-based index of the column containing the first character of the range.
    */
-  private final int startColumn;
+  private final Integer startColumn;
 
   /**
    * Constructor for {@link Location}.
    */
-  public Location(String file, int offset, int length, int startLine, int startColumn) {
+  public Location(String file, Integer offset, Integer length, Integer startLine, Integer startColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
@@ -95,29 +98,39 @@ public class Location {
   /**
    * The length of the range.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
   /**
    * The offset of the range.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
   /**
    * The one-based index of the column containing the first character of the range.
    */
-  public int getStartColumn() {
+  public Integer getStartColumn() {
     return startColumn;
   }
 
   /**
    * The one-based index of the line containing the first character of the range.
    */
-  public int getStartLine() {
+  public Integer getStartLine() {
     return startLine;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("file", file);
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    jsonObject.addProperty("startLine", startLine);
+    jsonObject.addProperty("startColumn", startColumn);
+    return jsonObject;
   }
 
   @Override

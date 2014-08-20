@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import com.google.dart.server.utilities.general.ObjectUtilities;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -39,13 +42,13 @@ public class HoverInformation {
    * The offset of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  private final int offset;
+  private final Integer offset;
 
   /**
    * The length of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  private final int length;
+  private final Integer length;
 
   /**
    * The path to the defining compilation unit of the library in which the referenced element is
@@ -99,7 +102,7 @@ public class HoverInformation {
   /**
    * Constructor for {@link HoverInformation}.
    */
-  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType) {
+  public HoverInformation(Integer offset, Integer length, String containingLibraryPath, String containingLibraryName, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -176,7 +179,7 @@ public class HoverInformation {
    * The length of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  public int getLength() {
+  public Integer getLength() {
     return length;
   }
 
@@ -184,7 +187,7 @@ public class HoverInformation {
    * The offset of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  public int getOffset() {
+  public Integer getOffset() {
     return offset;
   }
 
@@ -210,6 +213,37 @@ public class HoverInformation {
    */
   public String getStaticType() {
     return staticType;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("length", length);
+    if (containingLibraryPath != null) {
+      jsonObject.addProperty("containingLibraryPath", containingLibraryPath);
+    }
+    if (containingLibraryName != null) {
+      jsonObject.addProperty("containingLibraryName", containingLibraryName);
+    }
+    if (dartdoc != null) {
+      jsonObject.addProperty("dartdoc", dartdoc);
+    }
+    if (elementDescription != null) {
+      jsonObject.addProperty("elementDescription", elementDescription);
+    }
+    if (elementKind != null) {
+      jsonObject.addProperty("elementKind", elementKind);
+    }
+    if (parameter != null) {
+      jsonObject.addProperty("parameter", parameter);
+    }
+    if (propagatedType != null) {
+      jsonObject.addProperty("propagatedType", propagatedType);
+    }
+    if (staticType != null) {
+      jsonObject.addProperty("staticType", staticType);
+    }
+    return jsonObject;
   }
 
   @Override
