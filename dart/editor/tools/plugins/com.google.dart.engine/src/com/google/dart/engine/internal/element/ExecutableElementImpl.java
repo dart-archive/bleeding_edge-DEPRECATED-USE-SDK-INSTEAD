@@ -167,6 +167,15 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   /**
+   * Set whether this method's body is asynchronous to correspond to the given value.
+   * 
+   * @param isAsynchronous {@code true} if the method's body is asynchronous
+   */
+  public void setAsynchronous(boolean isAsynchronous) {
+    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
+  /**
    * Set the functions defined within this executable element to the given functions.
    * 
    * @param functions the functions defined within this executable element
@@ -176,6 +185,15 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
       ((FunctionElementImpl) function).setEnclosingElement(this);
     }
     this.functions = functions;
+  }
+
+  /**
+   * Set whether this method's body is a generator to correspond to the given value.
+   * 
+   * @param isGenerator {@code true} if the method's body is a generator
+   */
+  public void setGenerator(boolean isGenerator) {
+    setModifier(Modifier.GENERATOR, isGenerator);
   }
 
   /**

@@ -3680,6 +3680,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_async() throws Exception {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(analysisContext.getAnalysisOptions());
+    options.setEnableAsync(true);
+    resetWithOptions(options);
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "class A {",
+        "  Future<int> m() async {",
+        "    return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_dynamic() throws Exception {
     Source source = addSource(createSource(//
         "class TypeError {}",

@@ -5074,6 +5074,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
    */
   private boolean checkForReturnOfInvalidType(Expression returnExpression, Type expectedReturnType) {
+    if (enclosingFunction == null) {
+      return false;
+    }
     Type staticReturnType = getStaticType(returnExpression);
     if (expectedReturnType.isVoid()) {
       if (staticReturnType.isVoid() || staticReturnType.isDynamic() || staticReturnType.isBottom()) {
@@ -5087,8 +5090,23 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           enclosingFunction.getDisplayName());
       return true;
     }
-    boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-    if (isStaticAssignable) {
+    if (enclosingFunction.isAsynchronous() && !enclosingFunction.isGenerator()) {
+      // TODO(brianwilkerson) Figure out how to get the type "Future" so that we can build the type
+      // we need to test against.
+//      InterfaceType impliedType = "Future<" + flatten(staticReturnType) + ">"
+//      if (impliedType.isAssignableTo(expectedReturnType)) {
+//        return false;
+//      }
+//      errorReporter.reportTypeErrorForNode(
+//          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+//          returnExpression,
+//          impliedType,
+//          expectedReturnType.getDisplayName(),
+//          enclosingFunction.getDisplayName());
+//      return true;
+      return false;
+    }
+    if (staticReturnType.isAssignableTo(expectedReturnType)) {
       return false;
     }
     errorReporter.reportTypeErrorForNode(
@@ -5643,6 +5661,25 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Return the flattened version of the given type, as defined by the specification: <blockquote>
+   * Let <i>flatten(T) = flatten(S)</i> if <i>T = Future&lt;S&gt;</i>, and <i>T</i> otherwise.
+   * </blockquote>
+   * 
+   * @param type the type to be flattened
+   * @return the flattened version of the given type
+   */
+  private Type flatten(Type type) {
+    while (isFuture(type)) {
+      Type[] arguments = ((InterfaceType) type).getTypeArguments();
+      if (arguments.length != 1) {
+        return type;
+      }
+      type = arguments[0];
+    }
+    return type;
+  }
+
+  /**
    * Return the error code that should be used when the given class references itself directly.
    * 
    * @param classElt the class that references itself
@@ -5873,6 +5910,30 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           FunctionElement.CALL_METHOD_NAME,
           currentLibrary);
       return callMethod != null;
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} if the given type represents the class {@code Future} from the
+   * {@code dart:async} library.
+   * 
+   * @param type the type to be tested
+   * @return {@code true} if the given type represents the class {@code Future} from the
+   *         {@code dart:async} library
+   */
+  private boolean isFuture(Type type) {
+    if (type instanceof InterfaceType) {
+      InterfaceType interfaceType = (InterfaceType) type;
+      if (interfaceType.getName().equals("Future")) {
+        ClassElement element = interfaceType.getElement();
+        if (element != null) {
+          LibraryElement library = element.getLibrary();
+          if (library.getName().equals("dart.async")) {
+            return true;
+          }
+        }
+      }
     }
     return false;
   }

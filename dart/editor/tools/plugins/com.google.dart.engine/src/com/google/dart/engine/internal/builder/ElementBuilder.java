@@ -289,6 +289,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       inFunction = wasInFunction;
     }
 
+    FunctionBody body = node.getBody();
     SimpleIdentifier constructorName = node.getName();
     ConstructorElementImpl element = new ConstructorElementImpl(constructorName);
     if (node.getFactoryKeyword() != null) {
@@ -299,6 +300,12 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
     element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
     element.setConst(node.getConstKeyword() != null);
+    if (body.isAsynchronous()) {
+      element.setAsynchronous(true);
+    }
+    if (body.isGenerator()) {
+      element.setGenerator(true);
+    }
 
     currentHolder.addConstructor(element);
     node.setElement(element);
@@ -442,6 +449,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
         inFunction = wasInFunction;
       }
 
+      FunctionBody body = expression.getBody();
       Token property = node.getPropertyKeyword();
       if (property == null) {
         SimpleIdentifier functionName = node.getName();
@@ -450,6 +458,12 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
         element.setLabels(holder.getLabels());
         element.setLocalVariables(holder.getLocalVariables());
         element.setParameters(holder.getParameters());
+        if (body.isAsynchronous()) {
+          element.setAsynchronous(true);
+        }
+        if (body.isGenerator()) {
+          element.setGenerator(true);
+        }
 
         if (inFunction) {
           Block enclosingBlock = node.getAncestor(Block.class);
@@ -483,6 +497,12 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
           getter.setFunctions(holder.getFunctions());
           getter.setLabels(holder.getLabels());
           getter.setLocalVariables(holder.getLocalVariables());
+          if (body.isAsynchronous()) {
+            getter.setAsynchronous(true);
+          }
+          if (body.isGenerator()) {
+            getter.setGenerator(true);
+          }
 
           getter.setVariable(variable);
           getter.setGetter(true);
@@ -498,6 +518,12 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
           setter.setLabels(holder.getLabels());
           setter.setLocalVariables(holder.getLocalVariables());
           setter.setParameters(holder.getParameters());
+          if (body.isAsynchronous()) {
+            setter.setAsynchronous(true);
+          }
+          if (body.isGenerator()) {
+            setter.setGenerator(true);
+          }
 
           setter.setVariable(variable);
           setter.setSetter(true);
@@ -526,11 +552,18 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       inFunction = wasInFunction;
     }
 
+    FunctionBody body = node.getBody();
     FunctionElementImpl element = new FunctionElementImpl(node.getBeginToken().getOffset());
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());
     element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
+    if (body.isAsynchronous()) {
+      element.setAsynchronous(true);
+    }
+    if (body.isGenerator()) {
+      element.setGenerator(true);
+    }
     if (inFunction) {
       Block enclosingBlock = node.getAncestor(Block.class);
       if (enclosingBlock != null) {
@@ -622,6 +655,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
 
       boolean isStatic = node.isStatic();
       Token property = node.getPropertyKeyword();
+      FunctionBody body = node.getBody();
       if (property == null) {
         SimpleIdentifier methodName = node.getName();
         String nameOfMethod = methodName.getName();
@@ -636,6 +670,12 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
         element.setLocalVariables(holder.getLocalVariables());
         element.setParameters(holder.getParameters());
         element.setStatic(isStatic);
+        if (body.isAsynchronous()) {
+          element.setAsynchronous(true);
+        }
+        if (body.isGenerator()) {
+          element.setGenerator(true);
+        }
 
         currentHolder.addMethod(element);
         methodName.setStaticElement(element);
@@ -656,10 +696,15 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
           getter.setFunctions(holder.getFunctions());
           getter.setLabels(holder.getLabels());
           getter.setLocalVariables(holder.getLocalVariables());
+          if (body.isAsynchronous()) {
+            getter.setAsynchronous(true);
+          }
+          if (body.isGenerator()) {
+            getter.setGenerator(true);
+          }
 
           getter.setVariable(field);
-          getter.setAbstract(node.getBody() instanceof EmptyFunctionBody
-              && node.getExternalKeyword() == null);
+          getter.setAbstract(body instanceof EmptyFunctionBody && node.getExternalKeyword() == null);
           getter.setGetter(true);
           getter.setStatic(isStatic);
           field.setGetter(getter);
@@ -672,9 +717,15 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
           setter.setLabels(holder.getLabels());
           setter.setLocalVariables(holder.getLocalVariables());
           setter.setParameters(holder.getParameters());
+          if (body.isAsynchronous()) {
+            setter.setAsynchronous(true);
+          }
+          if (body.isGenerator()) {
+            setter.setGenerator(true);
+          }
 
           setter.setVariable(field);
-          setter.setAbstract(node.getBody() instanceof EmptyFunctionBody
+          setter.setAbstract(body instanceof EmptyFunctionBody
               && !matches(node.getExternalKeyword(), Keyword.EXTERNAL));
           setter.setSetter(true);
           setter.setStatic(isStatic);
