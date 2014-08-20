@@ -27,8 +27,6 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -323,7 +321,10 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (this == type || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
       return true;
     } else if ((type instanceof UnionType)) {
-      throw new NotImplementedException("No known use case");
+      return ((UnionTypeImpl) type).internalUnionTypeIsMoreSpecificThan(
+          this,
+          withDynamic,
+          visitedTypePairs);
     } else if (!(type instanceof FunctionType)) {
       return false;
     } else if (this.equals(type)) {

@@ -130,8 +130,24 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
   @Override
   protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
-    // I can't think of any reason to use [isMoreSpecificThan] for union types.
-    throw new NotImplementedException("No known use case.");
+    // TODO(collinsn): what version of subtyping do we want?
+    //
+    // The more unsound version: any.
+    /*
+    for (Type t : types) {
+      if (((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+        return true;
+      }
+    }
+    return false;
+    */
+    // The less unsound version: all.
+    for (Type t : types) {
+      if (!((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
@@ -160,8 +176,33 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
   }
 
   /**
-   * The super type test for union types is uniform in non-union subtypes. So, other
-   * {@code TypeImpl}s can call this method to implement @ internalIsSubtypeOf} for union types.
+   * The more-specific-than test for union types on the RHS is uniform in non-union LHSs. So, other
+   * {@code TypeImpl}s can call this method to implement {@code internalIsMoreSpecificThan} for
+   * union types.
+   * 
+   * @param type
+   * @param visitedTypePairs
+   * @return true if {@code type} is more specific than this union type
+   */
+  protected boolean internalUnionTypeIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    // This implementation does not make sense when [type] is a union type, at least
+    // for the "less unsound" version of [internalIsMoreSpecificThan] above.
+    if (type instanceof UnionType) {
+      throw new IllegalArgumentException("Only non-union types are supported.");
+    }
+
+    for (Type t : types) {
+      if (((TypeImpl) type).internalIsMoreSpecificThan(t, withDynamic, visitedTypePairs)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * The supertype test for union types is uniform in non-union subtypes. So, other {@code TypeImpl}
+   * s can call this method to implement {@code internalIsSubtypeOf} for union types.
    * 
    * @param type
    * @param visitedTypePairs

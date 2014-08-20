@@ -34,8 +34,6 @@ import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -698,7 +696,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (type == DynamicTypeImpl.getInstance()) {
       return true;
     } else if ((type instanceof UnionType)) {
-      throw new NotImplementedException("No known use case");
+      return ((UnionTypeImpl) type).internalUnionTypeIsMoreSpecificThan(
+          this,
+          withDynamic,
+          visitedTypePairs);
     } else if (!(type instanceof InterfaceType)) {
       return false;
     }

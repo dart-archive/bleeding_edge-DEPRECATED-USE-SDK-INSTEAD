@@ -1645,18 +1645,15 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_substitute_equal() {
-    ClassElementImpl classA = classElement("A");
-    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
-
-    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
-    type.setTypeArguments(new Type[] {parameter});
-
+    ClassElement classAE = classElement("A", "E");
+    InterfaceType typeAE = classAE.getType();
     InterfaceType argumentType = classElement("B").getType();
+    Type[] args = {argumentType};
+    Type[] params = {classAE.getTypeParameters()[0].getType()};
+    InterfaceType typeAESubbed = typeAE.substitute(args, params);
 
-    InterfaceType result = type.substitute(new Type[] {argumentType}, new Type[] {parameter});
-    assertEquals(classA, result.getElement());
-    Type[] resultArguments = result.getTypeArguments();
+    assertEquals(classAE, typeAESubbed.getElement());
+    Type[] resultArguments = typeAESubbed.getTypeArguments();
     assertLength(1, resultArguments);
     assertEquals(argumentType, resultArguments[0]);
   }
@@ -1675,6 +1672,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_substitute_notEqual() {
+    // The [test_substitute_equals] above has a slightly higher level implementation.
     ClassElementImpl classA = classElement("A");
     TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
 

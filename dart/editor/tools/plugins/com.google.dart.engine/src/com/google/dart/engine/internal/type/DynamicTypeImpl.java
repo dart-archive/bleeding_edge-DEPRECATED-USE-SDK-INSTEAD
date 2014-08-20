@@ -17,9 +17,6 @@ import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.UnionType;
-
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Set;
 
@@ -94,8 +91,6 @@ public class DynamicTypeImpl extends TypeImpl {
     // T is S
     if (this == type) {
       return true;
-    } else if ((type instanceof UnionType)) {
-      throw new NotImplementedException("No known use case");
     }
 
     // else

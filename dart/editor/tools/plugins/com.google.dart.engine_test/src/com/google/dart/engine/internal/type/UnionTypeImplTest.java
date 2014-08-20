@@ -16,14 +16,11 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.internal.element.ClassElementImpl;
-import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 
-import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
 
@@ -79,6 +76,42 @@ public class UnionTypeImplTest extends EngineTestCase {
     assertTrue(uA.equals(typeA));
   }
 
+  public void test_isMoreSpecificThan_allElementsOnLHSAreSubtypesOfSomeElementOnRHS() {
+    // Unions are subtypes when all elements are subtypes
+    assertTrue(uAB.isMoreSpecificThan(uA));
+    assertTrue(uAB.isMoreSpecificThan(typeA));
+  }
+
+  public void test_isMoreSpecificThan_element() {
+    // Elements of union are sub types
+    assertTrue(typeA.isMoreSpecificThan(uAB));
+    assertTrue(typeB.isMoreSpecificThan(uAB));
+  }
+
+  public void test_isMoreSpecificThan_notSubtypeOfAnyElement() {
+    // Types that are not subtypes of elements are not subtypes
+    assertFalse(typeA.isMoreSpecificThan(uB));
+  }
+
+  public void test_isMoreSpecificThan_reflexivity() {
+    for (Type u : us) {
+      assertTrue(u.isMoreSpecificThan(u));
+    }
+  }
+
+  // This tests the more strict (less unsound) subtype semantics for union types.
+  // It will break if we change to the less strict definition of subtyping.
+  public void test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
+    // Unions are not subtypes when some element is not a subtype
+    assertFalse(uAB.isMoreSpecificThan(uB));
+    assertFalse(uAB.isMoreSpecificThan(typeB));
+  }
+
+  public void test_isMoreSpecificThan_subtypeOfSomeElement() {
+    // Subtypes of elements are sub types
+    assertTrue(typeB.isMoreSpecificThan(uA));
+  }
+
   public void test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS() {
     // Unions are subtypes when all elements are subtypes
     assertTrue(uAB.isSubtypeOf(uA));
@@ -115,15 +148,6 @@ public class UnionTypeImplTest extends EngineTestCase {
     assertTrue(typeB.isSubtypeOf(uA));
   }
 
-  public void test_isSuperTypeOfUnionType_function() {
-    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
-    ClassElement a = classElement("A");
-    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
-    Type uAT = UnionTypeImpl.union(uA, t);
-    assertTrue(t.isSubtypeOf(uAT));
-    assertFalse(t.isSubtypeOf(uAB));
-  }
-
   public void test_nestedUnionsCollapse() {
     UnionType u = (UnionType) UnionTypeImpl.union(uAB, typeA);
     for (Type t : u.getElements()) {
@@ -143,25 +167,39 @@ public class UnionTypeImplTest extends EngineTestCase {
 
   public void test_substitute() {
     // Based on [InterfaceTypeImplTest.test_substitute_equal].
-    ClassElementImpl classA = classElement("A");
-    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
-    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
-    InterfaceType argumentType = classElement("B").getType();
-    Type args[] = {argumentType};
-    Type params[] = {parameter};
-    type.setTypeArguments(params);
-    Type result = type.substitute(args, params);
+    ClassElement classAE = classElement("A", "E");
+    InterfaceType typeAE = classAE.getType();
+    Type[] args = {typeB};
+    Type[] params = {classAE.getTypeParameters()[0].getType()};
+    Type typeAESubbed = typeAE.substitute(args, params);
 
-    assertFalse(type.equals(result));
+    assertFalse(typeAE.equals(typeAESubbed));
     assertEquals(
-        UnionTypeImpl.union(typeA, type).substitute(args, params),
-        UnionTypeImpl.union(typeA, result));
+        UnionTypeImpl.union(typeA, typeAE).substitute(args, params),
+        UnionTypeImpl.union(typeA, typeAESubbed));
   }
 
   public void test_toString_singleton() {
     // Singleton unions collapse to the the single type.
     assertEquals("A", uA.toString());
+  }
+
+  public void test_unionTypeIsLessSpecificThan_function() {
+    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    Type uAT = UnionTypeImpl.union(uA, t);
+    assertTrue(t.isMoreSpecificThan(uAT));
+    assertFalse(t.isMoreSpecificThan(uAB));
+  }
+
+  public void test_unionTypeIsSuperTypeOf_function() {
+    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    Type uAT = UnionTypeImpl.union(uA, t);
+    assertTrue(t.isSubtypeOf(uAT));
+    assertFalse(t.isSubtypeOf(uAB));
   }
 
   @Override
