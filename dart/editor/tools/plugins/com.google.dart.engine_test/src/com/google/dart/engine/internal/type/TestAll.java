@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(FunctionTypeImplTest.class);
     suite.addTestSuite(InterfaceTypeImplTest.class);
     suite.addTestSuite(TypeParameterTypeImplTest.class);
+    suite.addTestSuite(UnionTypeImplTest.class);
     suite.addTestSuite(VoidTypeImplTest.class);
     return suite;
   }
