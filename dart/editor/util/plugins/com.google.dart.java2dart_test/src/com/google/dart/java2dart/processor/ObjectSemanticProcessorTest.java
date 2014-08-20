@@ -798,6 +798,23 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Set_equals() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Set",
+        "public class Test {",
+        "  public boolean main(Set a, Set b) {",
+        "    return a.equals(b);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool main(Set a, Set b) => javaSetEquals(a, b);",
+        "}");
+  }
+
   public void test_String_charAt() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

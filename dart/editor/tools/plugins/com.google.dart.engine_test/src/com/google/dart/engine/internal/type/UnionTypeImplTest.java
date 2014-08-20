@@ -22,22 +22,20 @@ import com.google.dart.engine.type.UnionType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
 
-import junit.framework.AssertionFailedError;
-
 import java.util.Set;
 
 public class UnionTypeImplTest extends EngineTestCase {
+  private ClassElement classA;
+  private InterfaceType typeA;
+  private ClassElement classB;
+  private InterfaceType typeB;
 
-  private ClassElement classA = classElement("A");
-  private InterfaceType typeA = classA.getType();
-  private ClassElement classB = classElement("B", typeA);
-  private InterfaceType typeB = classB.getType();
+  private Type uA;
+  private Type uB;
+  private Type uAB;
+  private Type uBA;
 
-  private Type uA = UnionTypeImpl.union(typeA);
-  private Type uB = UnionTypeImpl.union(typeB);
-  private Type uAB = UnionTypeImpl.union(typeA, typeB);
-  private Type uBA = UnionTypeImpl.union(typeB, typeA);
-  private Type[] us = {uA, uB, uAB, uBA};
+  private Type[] us;
 
   public void fail_isSubtypeOf_element() {
     // Elements of union are sub types
@@ -63,7 +61,7 @@ public class UnionTypeImplTest extends EngineTestCase {
     } catch (IllegalArgumentException e) {
       return;
     }
-    throw new AssertionFailedError("Expected illegal argument exception.");
+    fail("Expected illegal argument exception.");
   }
 
   public void test_equality_beingASubtypeOfAnElementIsNotSufficient() {
@@ -116,7 +114,7 @@ public class UnionTypeImplTest extends EngineTestCase {
     UnionType u = (UnionType) UnionTypeImpl.union(uAB, typeA);
     for (Type t : u.getElements()) {
       if (t instanceof UnionType) {
-        throw new AssertionFailedError("Expected only non-union types but found " + t + "!");
+        fail("Expected only non-union types but found " + t + "!");
       }
     }
   }
@@ -132,5 +130,21 @@ public class UnionTypeImplTest extends EngineTestCase {
   public void test_toString_singleton() {
     // Singleton unions collapse to the the single type.
     assertEquals("A", uA.toString());
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    classA = classElement("A");
+    typeA = classA.getType();
+    classB = classElement("B", typeA);
+    typeB = classB.getType();
+
+    uA = UnionTypeImpl.union(typeA);
+    uB = UnionTypeImpl.union(typeB);
+    uAB = UnionTypeImpl.union(typeA, typeB);
+    uBA = UnionTypeImpl.union(typeB, typeA);
+
+    us = new Type[] {uA, uB, uAB, uBA};
   }
 }

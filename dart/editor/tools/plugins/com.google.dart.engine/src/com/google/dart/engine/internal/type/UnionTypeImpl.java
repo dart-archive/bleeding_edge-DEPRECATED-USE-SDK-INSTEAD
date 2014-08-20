@@ -17,6 +17,7 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
 
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -84,6 +85,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     }
   }
 
+  @DartExpressionBody("_types")
   @Override
   public Set<Type> getElements() {
     return Collections.unmodifiableSet(this.types);

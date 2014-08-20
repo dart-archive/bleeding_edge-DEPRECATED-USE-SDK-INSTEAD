@@ -350,7 +350,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
             replaceNode(parent, binaryExpression(target, TokenType.BANG_EQ, args.get(0)));
           } else {
-            replaceNode(node, binaryExpression(target, TokenType.EQ_EQ, args.get(0)));
+            if (isMethodInClass(node, "equals", "java.util.Set")) {
+              replaceNode(node, methodInvocation("javaSetEquals", target, args.get(0)));
+            } else {
+              replaceNode(node, binaryExpression(target, TokenType.EQ_EQ, args.get(0)));
+            }
           }
           return null;
         }
