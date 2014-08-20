@@ -3,8 +3,6 @@ package com.google.dart.tools.ui.instrumentation;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
@@ -98,50 +96,6 @@ public class UIInstrumentation {
     public UIInstrumentationBuilder metric(String name, String[] value) {
       builder.metric(name, value);
       return this;
-    }
-
-    @Override
-    public void record(CompilationUnit cu) {
-
-      metric("CompilationUnit-LastModified", cu.getModificationStamp());
-      data("CompilationUnit-Name", cu.getElementName());
-      //Try and extract the source code
-      String source = null;
-      try {
-        metric("CompilationUnit-hasUnsavedChanges", String.valueOf(cu.hasUnsavedChanges()));
-
-        source = cu.getSource();
-      } catch (DartModelException e) {
-      } //discard this, it doesn't necessarily indicate a real problem
-      //we just won't be able to capture much about this compilation unit
-
-      if (source != null) {
-        metric("CompilationUnit-SourceLength", source.length());
-        data("CompilationUnit-Source", source);
-      }
-    }
-
-    @Override
-    public void record(CompilationUnit[] cus) {
-      record(cus, null);
-    }
-
-    @Override
-    public void record(CompilationUnit[] cus, String collectionName) {
-      if (collectionName != null) {
-        metric("CompilationUnits", collectionName);
-      }
-
-      if (cus == null) {
-        metric("CompilationUnits", "null");
-        return;
-      }
-
-      metric("CompilationUnits-Length", cus.length);
-
-      for (CompilationUnit cu : cus) {
-        record(cu);
-      }
     }
 
     @Override
