@@ -30,19 +30,19 @@ public class EnumMemberBuilderTest extends EngineTestCase {
 
     ClassElement enumElement = buildElement(enumDeclaration);
     FieldElement[] fields = enumElement.getFields();
-    assertLength(6, fields);
+    assertLength(5, fields);
 
-    FieldElement constant = fields[3];
+    FieldElement constant = fields[2];
     assertNotNull(constant);
     assertEquals(firstName, constant.getName());
     assertTrue(constant.isStatic());
 
-    constant = fields[4];
+    constant = fields[3];
     assertNotNull(constant);
     assertEquals(secondName, constant.getName());
     assertTrue(constant.isStatic());
 
-    constant = fields[5];
+    constant = fields[4];
     assertNotNull(constant);
     assertEquals(thirdName, constant.getName());
     assertTrue(constant.isStatic());
@@ -54,7 +54,7 @@ public class EnumMemberBuilderTest extends EngineTestCase {
 
     ClassElement enumElement = buildElement(enumDeclaration);
     FieldElement[] fields = enumElement.getFields();
-    assertLength(4, fields);
+    assertLength(3, fields);
 
     FieldElement field = fields[0];
     assertNotNull(field);
@@ -64,17 +64,11 @@ public class EnumMemberBuilderTest extends EngineTestCase {
 
     field = fields[1];
     assertNotNull(field);
-    assertEquals("_name", field.getName());
-    assertFalse(field.isStatic());
-    assertTrue(field.isSynthetic());
-
-    field = fields[2];
-    assertNotNull(field);
     assertEquals("values", field.getName());
     assertTrue(field.isStatic());
     assertTrue(field.isSynthetic());
 
-    FieldElement constant = fields[3];
+    FieldElement constant = fields[2];
     assertNotNull(constant);
     assertEquals(firstName, constant.getName());
     assertTrue(constant.isStatic());

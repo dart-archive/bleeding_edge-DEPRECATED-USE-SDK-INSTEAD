@@ -28,7 +28,6 @@ import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.object.IntState;
-import com.google.dart.engine.internal.object.StringState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -71,7 +70,6 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
     ArrayList<FieldElement> fields = new ArrayList<FieldElement>();
     ArrayList<PropertyAccessorElement> getters = new ArrayList<PropertyAccessorElement>();
     InterfaceType intType = typeProvider.getIntType();
-    InterfaceType stringType = typeProvider.getStringType();
 
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
@@ -80,13 +78,6 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
     indexField.setType(intType);
     fields.add(indexField);
     getters.add(createGetter(indexField));
-
-    String nameFieldName = "_name";
-    FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
-    nameField.setFinal(true);
-    nameField.setSynthetic(true);
-    nameField.setType(stringType);
-    fields.add(nameField);
 
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.setStatic(true);
@@ -106,11 +97,11 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
       constantField.setStatic(true);
       constantField.setConst(true);
       constantField.setType(enumType);
+      //
+      // Create a value for the constant.
+      //
       HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
       fieldMap.put(indexFieldName, new DartObjectImpl(intType, new IntState(BigInteger.valueOf(i))));
-      fieldMap.put(
-          nameFieldName,
-          new DartObjectImpl(stringType, new StringState(constantName.getName())));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
       constantField.setEvaluationResult(new ValidResult(value));
       fields.add(constantField);
