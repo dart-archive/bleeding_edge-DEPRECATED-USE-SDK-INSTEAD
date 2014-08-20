@@ -14,7 +14,7 @@
 package editor;
 
 import com.google.common.base.Joiner;
-import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.ui.test.driver.Operation;

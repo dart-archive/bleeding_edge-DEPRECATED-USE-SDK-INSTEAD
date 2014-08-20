@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString.Style;
@@ -48,35 +47,6 @@ public class ColoredDartElementLabels {
       return string.append(decorated.substring(originalStart + label.length()), color);
     }
     return string; // no change
-  }
-
-  /**
-   * Appends the label for a compilation unit to a {@link ColoredString}. Considers the CU_* flags.
-   * 
-   * @param cu The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'CU_' are considered.
-   * @param result The buffer to append the resulting label to.
-   */
-  public static void getCompilationUnitLabel(CompilationUnit cu, long flags, ColoredString result) {
-//    if (getFlag(flags, DartElementLabels.CU_QUALIFIED)) {
-//      IPackageFragment pack = (IPackageFragment) cu.getParent();
-//      if (!pack.isDefaultPackage()) {
-//        getPackageFragmentLabel(pack, (flags & QUALIFIER_FLAGS), result);
-//        result.append('.');
-//      }
-//    }
-
-    result.append(cu.getElementName());
-
-    if (getFlag(flags, DartElementLabels.CU_POST_QUALIFIED)) {
-      int offset = result.length();
-      result.append(DartElementLabels.CONCAT_STRING);
-//      getPackageFragmentLabel((IPackageFragment) cu.getParent(), flags
-//          & QUALIFIER_FLAGS, result);
-      if (getFlag(flags, COLORIZE)) {
-        result.colorize(offset, result.length() - offset, QUALIFIER_STYLE);
-      }
-    }
   }
 
   /**

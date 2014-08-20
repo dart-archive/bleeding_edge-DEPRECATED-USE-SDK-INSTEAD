@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.buffer;
 
-import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.OpenableElement;

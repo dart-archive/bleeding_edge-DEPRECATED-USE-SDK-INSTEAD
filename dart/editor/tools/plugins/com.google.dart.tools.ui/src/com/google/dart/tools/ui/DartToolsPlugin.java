@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentProvider;
-import com.google.dart.tools.ui.internal.text.editor.WorkingCopyManager;
 import com.google.dart.tools.ui.internal.text.folding.JavaFoldingStructureProviderRegistry;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
@@ -449,7 +448,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   private TypeFilter typeFilter;
-  private WorkingCopyManager workingCopyManager;
 
   @Deprecated
   private ICompilationUnitDocumentProvider compilationUnitDocumentProvider;
@@ -786,14 +784,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     return typeFilter;
   }
 
-  public synchronized WorkingCopyManager getWorkingCopyManager() {
-    if (workingCopyManager == null) {
-      ICompilationUnitDocumentProvider provider = getCompilationUnitDocumentProvider();
-      workingCopyManager = new WorkingCopyManager(provider);
-    }
-    return workingCopyManager;
-  }
-
   /**
    * Resets the Java editor text hovers contributed to the workbench.
    * <p>
@@ -859,11 +849,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       if (astProvider != null) {
         astProvider.dispose();
         astProvider = null;
-      }
-
-      if (workingCopyManager != null) {
-        workingCopyManager.shutdown();
-        workingCopyManager = null;
       }
 
       if (compilationUnitDocumentProvider != null) {

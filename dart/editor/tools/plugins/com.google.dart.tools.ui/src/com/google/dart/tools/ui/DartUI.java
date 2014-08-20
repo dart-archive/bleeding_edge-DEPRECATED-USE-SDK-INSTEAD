@@ -497,15 +497,6 @@ public final class DartUI {
 //  }
 
   /**
-   * Returns the working copy manager for the Dart UI plug-in.
-   * 
-   * @return the working copy manager for the Dart UI plug-in
-   */
-  public static IWorkingCopyManager getWorkingCopyManager() {
-    return DartToolsPlugin.getDefault().getWorkingCopyManager();
-  }
-
-  /**
    * Eclipse StyledText becomes very slow (practically hangs) when it attempts to render a long line
    * with many style ranges. We need to check for this and avoid creating styles.
    * <p>

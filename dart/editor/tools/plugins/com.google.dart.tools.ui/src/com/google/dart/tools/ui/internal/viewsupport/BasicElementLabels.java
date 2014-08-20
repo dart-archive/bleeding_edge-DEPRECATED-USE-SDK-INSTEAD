@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.DartElementLabels;
 
 import org.eclipse.core.resources.IResource;
@@ -50,17 +49,6 @@ public class BasicElementLabels {
   public static String getDartElementName(String name) {
     // TODO(scheglov) inline this no-op method later
     return name;
-  }
-
-  /**
-   * Returns a label for a type root name which is a file name.
-   * 
-   * @param unit the {@link CompilationUnit}
-   * @return the label of the resource name.
-   */
-  public static String getFileName(CompilationUnit unit) {
-    // TODO(scheglov) inline this method later
-    return unit.getElementName();
   }
 
   /**

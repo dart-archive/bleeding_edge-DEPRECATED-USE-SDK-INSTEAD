@@ -15,7 +15,7 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;

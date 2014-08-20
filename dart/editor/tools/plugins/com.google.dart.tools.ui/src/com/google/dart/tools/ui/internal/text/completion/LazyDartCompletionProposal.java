@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
@@ -460,8 +459,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
 
   protected FormatterPrefs getFormatterPrefs() {
     if (fFormatterPrefs == null) {
-      CompilationUnit cu = null;
-      fFormatterPrefs = new FormatterPrefs(cu == null ? null : cu.getDartProject());
+      fFormatterPrefs = new FormatterPrefs(null);
     }
     return fFormatterPrefs;
   }
