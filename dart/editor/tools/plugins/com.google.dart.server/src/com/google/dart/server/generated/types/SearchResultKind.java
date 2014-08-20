@@ -49,6 +49,11 @@ public class SearchResultKind {
   public static final String REFERENCE = "REFERENCE";
 
   /**
+   * Some other kind of search result.
+   */
+  public static final String UNKNOWN = "UNKNOWN";
+
+  /**
    * A reference to a field, parameter or variable where it is being written.
    */
   public static final String WRITE = "WRITE";
