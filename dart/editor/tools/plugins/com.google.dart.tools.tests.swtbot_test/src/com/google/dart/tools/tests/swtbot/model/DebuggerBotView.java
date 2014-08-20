@@ -29,6 +29,7 @@ import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
+import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.eclipse.ui.part.PageBook;
 import org.hamcrest.Matcher;
 
@@ -48,7 +49,11 @@ public class DebuggerBotView extends AbstractBotView {
   }
 
   public void close() {
-    // TODO(messick): Make close() also terminate the debugger and remove the stack.
+    try {
+      bot.menu("Run").menu("Terminate").click();
+    } catch (TimeoutException ex) {
+      // If the debugger isn't running, that's fine.
+    }
     debugger().close();
   }
 

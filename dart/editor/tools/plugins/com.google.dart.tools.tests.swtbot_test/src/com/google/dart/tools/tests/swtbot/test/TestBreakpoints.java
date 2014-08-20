@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.utils.TableCollection;
+import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -42,8 +43,12 @@ public class TestBreakpoints extends EditorTestHarness {
 
   @AfterClass
   public static void tearDownTest() {
-    EditorBotWindow main = new EditorBotWindow(bot);
-    main.menu("File").menu("Close All").click();
+    try {
+      EditorBotWindow main = new EditorBotWindow(bot);
+      main.menu("File").menu("Close All").click();
+    } catch (TimeoutException ex) {
+      // If we get here, we don't care about exceptions.
+    }
   }
 
   @Test
