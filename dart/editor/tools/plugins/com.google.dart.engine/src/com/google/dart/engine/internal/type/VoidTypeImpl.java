@@ -19,8 +19,6 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.type.VoidType;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.util.Set;
 
 /**
@@ -83,9 +81,10 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @Override
   protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
-    if ((type instanceof UnionType)) {
-      throw new NotImplementedException("No known use case");
+    if (type instanceof UnionType) {
+      return ((UnionTypeImpl) type).internalUnionTypeIsSuperTypeOf(this, visitedTypePairs);
     }
+
     // The only subtype relations that pertain to void are therefore:
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).

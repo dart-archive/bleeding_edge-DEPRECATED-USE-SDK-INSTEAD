@@ -588,6 +588,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     } else if (this == type || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
       return true;
+    } else if (type instanceof UnionType) {
+      return ((UnionTypeImpl) type).internalUnionTypeIsSuperTypeOf(this, visitedTypePairs);
     } else if (!(type instanceof FunctionType)) {
       return false;
     } else if (this.equals(type)) {

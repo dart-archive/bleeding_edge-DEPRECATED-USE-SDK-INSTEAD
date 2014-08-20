@@ -718,6 +718,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     } else if (type instanceof TypeParameterType) {
       return false;
+    } else if (type instanceof UnionType) {
+      return ((UnionTypeImpl) type).internalUnionTypeIsSuperTypeOf(this, visitedTypePairs);
     } else if (type instanceof FunctionType) {
       // This implementation assumes transitivity
       // for function type subtyping on the RHS, but a literal reading

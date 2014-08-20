@@ -16,11 +16,13 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.functionElement;
 
 import java.util.Set;
 
@@ -36,18 +38,6 @@ public class UnionTypeImplTest extends EngineTestCase {
   private Type uBA;
 
   private Type[] us;
-
-  public void fail_isSubtypeOf_element() {
-    // Elements of union are sub types
-    assertTrue(typeA.isSubtypeOf(uAB));
-    assertTrue(typeB.isSubtypeOf(uAB));
-  }
-
-  public void fail_isSubtypeOf_reflexivity() {
-    for (Type u : us) {
-      assertTrue(u.isSubtypeOf(u));
-    }
-  }
 
   public void fail_toString_pair() {
     Type u = UnionTypeImpl.union(typeA, typeB);
@@ -92,9 +82,21 @@ public class UnionTypeImplTest extends EngineTestCase {
     assertTrue(uAB.isSubtypeOf(typeA));
   }
 
+  public void test_isSubtypeOf_element() {
+    // Elements of union are sub types
+    assertTrue(typeA.isSubtypeOf(uAB));
+    assertTrue(typeB.isSubtypeOf(uAB));
+  }
+
   public void test_isSubtypeOf_notSubtypeOfAnyElement() {
     // Types that are not subtypes of elements are not subtypes
     assertFalse(typeA.isSubtypeOf(uB));
+  }
+
+  public void test_isSubtypeOf_reflexivity() {
+    for (Type u : us) {
+      assertTrue(u.isSubtypeOf(u));
+    }
   }
 
   // This tests the more strict (less unsound) subtype semantics for union types.
@@ -108,6 +110,15 @@ public class UnionTypeImplTest extends EngineTestCase {
   public void test_isSubtypeOf_subtypeOfSomeElement() {
     // Subtypes of elements are sub types
     assertTrue(typeB.isSubtypeOf(uA));
+  }
+
+  public void test_isSuperTypeOfUnionType_function() {
+    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    Type uAT = UnionTypeImpl.union(uA, t);
+    assertTrue(t.isSubtypeOf(uAT));
+    assertFalse(t.isSubtypeOf(uAB));
   }
 
   public void test_nestedUnionsCollapse() {

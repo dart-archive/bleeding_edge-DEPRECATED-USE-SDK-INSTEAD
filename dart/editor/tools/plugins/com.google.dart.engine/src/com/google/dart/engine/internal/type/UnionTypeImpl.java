@@ -167,8 +167,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
    * @param visitedTypePairs
    * @return true if this union type is a super type of {@code type}
    */
-  // TODO(collinsn): call this in all other [TypeImpls] when RHS type is a union type.
-  protected boolean internalIsSuperTypeOf(Type type, Set<TypePair> visitedTypePairs) {
+  protected boolean internalUnionTypeIsSuperTypeOf(Type type, Set<TypePair> visitedTypePairs) {
     // This implementation does not make sense when [type] is a union type, at least
     // for the "less unsound" version of [internalIsSubtypeOf] above.
     if (type instanceof UnionType) {
