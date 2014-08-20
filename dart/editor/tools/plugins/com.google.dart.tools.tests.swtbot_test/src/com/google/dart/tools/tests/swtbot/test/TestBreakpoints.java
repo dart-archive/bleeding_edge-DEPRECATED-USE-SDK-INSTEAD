@@ -61,7 +61,7 @@ public class TestBreakpoints extends EditorTestHarness {
     FilesBotView files = main.filesView();
     files.tree().setFocus();
     bot.menu("Run").menu("Run").click();
-    editor.waitMillis(500);
+    editor.waitMillis(1000); // Launching can be really slow on the bots
     DebuggerBotView debugger = new DebuggerBotView(bot);
     DebuggerStackBotView stack = debugger.stackView();
     TableCollection selection = stack.selection();
