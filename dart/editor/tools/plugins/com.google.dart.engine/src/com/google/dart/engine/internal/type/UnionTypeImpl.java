@@ -21,6 +21,8 @@ import com.google.dart.engine.utilities.translation.DartExpressionBody;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -81,30 +83,28 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     } else if (this == other) {
       return true;
     } else {
-      return this.types.equals(((UnionType) other).getElements());
+      return types.equals(((UnionType) other).getElements());
     }
   }
 
   @DartExpressionBody("_types")
   @Override
   public Set<Type> getElements() {
-    return Collections.unmodifiableSet(this.types);
+    return Collections.unmodifiableSet(types);
   }
 
   @Override
   public int hashCode() {
-    return this.types.hashCode();
+    return types.hashCode();
   }
 
   @Override
   public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
-    // I can't think of any reason to substitute into a union type, since
-    // they should only appear at the top level and not be be nested inside
-    // other types.
-    //
-    // If there were a reason, then the implementation is to form a new union type
-    // by mapping the substitution over the elements of this union type.
-    throw new NotImplementedException("No known use case.");
+    Collection<Type> out = new ArrayList<Type>();
+    for (Type t : types) {
+      out.add(t.substitute(argumentTypes, parameterTypes));
+    }
+    return union(out.toArray(new Type[out.size()]));
   }
 
   @Override
@@ -143,7 +143,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     //
     // The more unsound version: any.
     /*
-    for (Type t : this.types) {
+    for (Type t : types) {
       if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
         return true;
       }
@@ -151,7 +151,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     return false;
     */
     // The less unsound version: all.
-    for (Type t : this.types) {
+    for (Type t : types) {
       if (!((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
         return false;
       }
@@ -174,7 +174,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
       throw new IllegalArgumentException("Only non-union types are supported.");
     }
 
-    for (Type t : this.types) {
+    for (Type t : types) {
       if (((TypeImpl) type).internalIsSubtypeOf(t, visitedTypePairs)) {
         return true;
       }

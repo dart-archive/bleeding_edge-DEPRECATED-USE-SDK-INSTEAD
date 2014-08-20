@@ -16,11 +16,14 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
 
@@ -136,6 +139,24 @@ public class UnionTypeImplTest extends EngineTestCase {
     assertTrue(elements.contains(typeA));
     assertTrue(elements.contains(typeB));
     assertTrue(elements.size() == 2);
+  }
+
+  public void test_substitute() {
+    // Based on [InterfaceTypeImplTest.test_substitute_equal].
+    ClassElementImpl classA = classElement("A");
+    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
+    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
+    InterfaceType argumentType = classElement("B").getType();
+    Type args[] = {argumentType};
+    Type params[] = {parameter};
+    type.setTypeArguments(params);
+    Type result = type.substitute(args, params);
+
+    assertFalse(type.equals(result));
+    assertEquals(
+        UnionTypeImpl.union(typeA, type).substitute(args, params),
+        UnionTypeImpl.union(typeA, result));
   }
 
   public void test_toString_singleton() {
