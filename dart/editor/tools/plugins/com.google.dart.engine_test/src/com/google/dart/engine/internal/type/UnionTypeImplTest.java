@@ -39,12 +39,6 @@ public class UnionTypeImplTest extends EngineTestCase {
 
   private Type[] us;
 
-  public void fail_toString_pair() {
-    Type u = UnionTypeImpl.union(typeA, typeB);
-    String s = u.toString();
-    assertTrue(s.equals("{A,B}") || s.equals("{B,A}"));
-  }
-
   public void test_emptyUnionsNotAllowed() {
     try {
       UnionTypeImpl.union();
@@ -177,6 +171,12 @@ public class UnionTypeImplTest extends EngineTestCase {
     assertEquals(
         UnionTypeImpl.union(typeA, typeAE).substitute(args, params),
         UnionTypeImpl.union(typeA, typeAESubbed));
+  }
+
+  public void test_toString_pair() {
+    String s = uAB.toString();
+    assertTrue(s.equals("{A,B}") || s.equals("{B,A}"));
+    assertEquals(s, uAB.getDisplayName());
   }
 
   public void test_toString_singleton() {

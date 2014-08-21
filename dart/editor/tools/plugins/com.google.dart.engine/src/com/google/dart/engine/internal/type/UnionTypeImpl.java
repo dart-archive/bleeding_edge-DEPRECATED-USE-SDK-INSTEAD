@@ -69,9 +69,8 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
    * @param types
    */
   private UnionTypeImpl(Set<Type> types) {
-    // TODO(collinsn): a union type does not correspond to an element, but it may have a name.
-    // I'm not sure what the "name" means. If it's the same as {@code toString()} here, then
-    // I should define it.
+    // The element is null because union types are not associated with program elements.
+    // We make the name null because that's what [FunctionTypeImpl] uses when the element is null.
     super(null, null);
     this.types = types;
   }
@@ -85,6 +84,19 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     } else {
       return types.equals(((UnionType) other).getElements());
     }
+  }
+
+  @Override
+  public String getDisplayName() {
+    StringBuilder builder = new StringBuilder();
+    String prefix = "{";
+    for (Type t : types) {
+      builder.append(prefix);
+      builder.append(t.getDisplayName());
+      prefix = ",";
+    }
+    builder.append("}");
+    return builder.toString();
   }
 
   @DartExpressionBody("_types")
@@ -105,6 +117,17 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
       out.add(t.substitute(argumentTypes, parameterTypes));
     }
     return union(out.toArray(new Type[out.size()]));
+  }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    String prefix = "{";
+    for (Type t : types) {
+      builder.append(prefix);
+      ((TypeImpl) t).appendTo(builder);
+      prefix = ",";
+    }
+    builder.append("}");
   }
 
   @Override
