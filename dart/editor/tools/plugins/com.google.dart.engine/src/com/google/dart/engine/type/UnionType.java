@@ -35,16 +35,13 @@ import java.util.Set;
 // - no value ever has union type.
 // - they are never components of other types (e.g., never have [G<X|Y>]).
 //
-// With this in mind, I'm inclined to not make [UnionType] a subtype of [Type]. However,
-// that causes problems if we want to make the propagated type a union type, since
-// much existing code depends on the propagated type being a [Type].  But it
-// might be more sane to make the propagated type always be a union type, which
-// we can reduce to a [Type] by taking lubs (singleton is a special but common case
-// where a union type is equivalent to a [Type], independent of the definition of lub).
-//
-// On the other hand, by making [UnionType] a [Type], we can more easily do
-// more type related things with it in the future.  For example, if we were doing type
-// inference for functions, then we might infer that a function retured a union type.
+// With this in mind, I was initially inclined to not make [UnionType] a subtype of [Type].
+// However, that causes problems if we want to make the propagated type a union type, since
+// much existing code depends on the propagated type being a [Type].
+// Moreover, by making [UnionType] a [Type], we can more easily do
+// other type-related things with it in the future.  For example, if we were doing type
+// inference for functions, then we might infer that a function returned a union type.  So,
+// [UnionType extends Type].
 public interface UnionType extends Type {
   /**
    * @return an immutable view of the types in this union type.

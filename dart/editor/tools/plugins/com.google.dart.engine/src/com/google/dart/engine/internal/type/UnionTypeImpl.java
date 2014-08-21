@@ -19,8 +19,6 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.translation.DartExpressionBody;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -132,22 +130,12 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
 
   @Override
   protected boolean internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
-    // TODO(collinsn): I understand why we have the [visitedElementPairs] 
-    // in subtyping definitions: the user code could have inheritance loops, e.g.
-    //
-    //   class A extends B {}
-    //   class B extends A {}
-    //
-    // However, I don't see how a type equality comparison could cause a loop, since type
-    // equality should be structural. For example, we have
-    //
-    //   G<X1,...,Xm> = H<Y1,...,Yn>
-    //
-    // when [G = H /\ m = n /\ for all i. Xi = Yi]. Assuming there is no way to build
-    // loopy generics (which would break [toString()]), each of the equality comparisons
-    // above are on something structurally smaller.
-    throw new NotImplementedException(
-        "I don't believe there is any concern about infinite loops in type equality comparisons.");
+    // Since union types are immutable, I don't think it's
+    // possible to construct a self-referential union type. Of course, a self-referential
+    // non-union type could intermediate through a union type, but since union types
+    // don't occur in user programs this is not a problem we expect to run into any time
+    // soon.
+    return this.equals(object);
   }
 
   @Override
