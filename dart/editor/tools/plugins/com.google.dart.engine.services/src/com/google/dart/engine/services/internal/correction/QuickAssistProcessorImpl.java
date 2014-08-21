@@ -309,7 +309,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     if (value == null) {
       return;
     }
-    Type type = value.getStaticType();
+    Type type = value.getBestType();
     // prepare Type source
     String typeSource;
     if (type instanceof InterfaceType) {
