@@ -49,7 +49,9 @@ public class RefactoringProblem {
   private final String message;
 
   /**
-   * The location of the problem being represented.
+   * The location of the problem being represented. This field is omitted unless there is a specific
+   * location associated with the problem (such as a location where an element being renamed will be
+   * shadowed).
    */
   private final Location location;
 
@@ -75,7 +77,9 @@ public class RefactoringProblem {
   }
 
   /**
-   * The location of the problem being represented.
+   * The location of the problem being represented. This field is omitted unless there is a specific
+   * location associated with the problem (such as a location where an element being renamed will be
+   * shadowed).
    */
   public Location getLocation() {
     return location;
@@ -99,7 +103,9 @@ public class RefactoringProblem {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("severity", severity);
     jsonObject.addProperty("message", message);
-    jsonObject.add("location", location.toJson());
+    if (location != null) {
+      jsonObject.add("location", location.toJson());
+    }
     return jsonObject;
   }
 
