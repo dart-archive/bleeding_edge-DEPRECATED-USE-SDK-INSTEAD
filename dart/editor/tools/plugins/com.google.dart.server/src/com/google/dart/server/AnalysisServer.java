@@ -274,7 +274,7 @@ public interface AnalysisServer {
    *
    * Get the changes required to perform a refactoring.
    *
-   * @param kindId The identifier of the kind of refactoring to be performed.
+   * @param kind The kind of refactoring to be performed.
    * @param file The file containing the code involved in the refactoring.
    * @param offset The offset of the region involved in the refactoring.
    * @param length The length of the region involved in the refactoring.
@@ -286,7 +286,7 @@ public interface AnalysisServer {
    *         omitted if the refactoring does not require any options or if the values of those
    *         options are not known.
    */
-  public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length, Boolean validateOnly, Object options, GetRefactoringConsumer consumer);
+  public void edit_getRefactoring(String kind, String file, Integer offset, Integer length, Boolean validateOnly, Object options, GetRefactoringConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
