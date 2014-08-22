@@ -54,6 +54,5 @@ Export-Package: com.google.dart.compiler,
  com.google.dart.tools.core.utilities.net,
  com.google.dart.tools.core.utilities.performance,
  com.google.dart.tools.core.utilities.resource,
- com.google.dart.tools.core.utilities.yaml,
- com.google.dart.tools.core.workingcopy
+ com.google.dart.tools.core.utilities.yaml
 Bundle-Activator: com.google.dart.tools.core.DartCore

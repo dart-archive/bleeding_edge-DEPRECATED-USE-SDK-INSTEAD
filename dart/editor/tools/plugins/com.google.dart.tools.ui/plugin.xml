@@ -2543,11 +2543,6 @@
 <!-- -->
    </extension>
 
-   <!-- define a working copy owner for the editor -->
-   <extension point="com.google.dart.tools.core.workingCopyOwner">
-      <owner class="com.google.dart.tools.ui.internal.text.editor.DocumentWorkingCopyOwner"/>
-   </extension>
-   
    <extension point="org.eclipse.ui.startup">
       <startup class="com.google.dart.tools.ui.DartUIStartup"/>
    </extension>

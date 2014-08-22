@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-   <extension-point id="workingCopyOwner" name="Working Copy Owner" schema="schema/workingCopyOwner.exsd"/>
    <extension-point id="buildParticipants" name="Build Participants" schema="schema/buildParticipants.exsd"/>
    <extension-point id="instrumentationLogger" name="Instrumentation Logger" schema="schema/instrumentationLogger.exsd"/>
    

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.tools.core.model.CodeAssistElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -54,13 +53,6 @@ public class SelectionConverter {
 
   public static DartElement[] codeResolve(DartEditor editor, DartElement input,
       ITextSelection selection) throws DartModelException {
-    if (input instanceof CodeAssistElement) {
-      DartElement[] elements = ((CodeAssistElement) input).codeSelect(selection.getOffset()
-          + selection.getLength(), 0);
-      if (elements.length > 0) {
-        return elements;
-      }
-    }
     return EMPTY_RESULT;
   }
 
