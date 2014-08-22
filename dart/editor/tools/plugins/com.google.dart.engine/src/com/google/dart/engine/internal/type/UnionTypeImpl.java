@@ -20,7 +20,6 @@ import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.translation.DartExpressionBody;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -110,7 +109,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
 
   @Override
   public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
-    Collection<Type> out = new ArrayList<Type>();
+    ArrayList<Type> out = new ArrayList<Type>();
     for (Type t : types) {
       out.add(t.substitute(argumentTypes, parameterTypes));
     }
