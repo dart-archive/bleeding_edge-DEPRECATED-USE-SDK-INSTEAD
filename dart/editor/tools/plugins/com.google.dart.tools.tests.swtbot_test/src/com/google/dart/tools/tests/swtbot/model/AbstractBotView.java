@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -125,6 +126,49 @@ abstract public class AbstractBotView {
   }
 
   /**
+   * Creates an event.
+   * 
+   * @return an event that encapsulates {@link #widget} and {@link #display}. Subclasses may
+   *         override to set other event properties.
+   */
+  protected Event createEvent() {
+    Event event = new Event();
+    event.time = (int) System.currentTimeMillis();
+    return event;
+  }
+
+  /**
+   * Create a mouse event
+   * 
+   * @param x the x co-ordinate of the mouse event
+   * @param y the y co-ordinate of the mouse event
+   * @param button the mouse button that was clicked
+   * @param stateMask the state of the keyboard modifier keys
+   * @param count the number of times the mouse was clicked
+   * @return an event that encapsulates {@link #widget} and {@link #display}
+   */
+  protected Event createMouseEvent(int x, int y, int button, int stateMask, int count) {
+    Event event = createEvent();
+    event.x = x;
+    event.y = y;
+    event.button = button;
+    event.stateMask = stateMask;
+    event.count = count;
+    return event;
+  }
+
+  /**
+   * Create a selection event with a particular state mask
+   * 
+   * @param stateMask the state of the keyboard modifier keys
+   */
+  protected Event createSelectionEvent(int stateMask) {
+    Event event = createEvent();
+    event.stateMask = stateMask;
+    return event;
+  }
+
+  /**
    * Create a SWTBot for the parent of the given <code>widget</code>.
    * 
    * @param widget a Composite or ToolItem
@@ -142,6 +186,40 @@ abstract public class AbstractBotView {
       }
     });
     return new SWTBot(parent);
+  }
+
+  /**
+   * Sends a non-blocking notification of the specified type to the widget.
+   * 
+   * @param eventType the type of event
+   * @param createEvent the event to be sent to the {@link #widget}
+   * @param widget the widget to send the event to
+   */
+  protected void notify(final int eventType, final Event createEvent, final Widget widget) {
+    createEvent.type = eventType;
+    UIThreadRunnable.asyncExec(new VoidResult() {
+      @Override
+      public void run() {
+        widget.notifyListeners(eventType, createEvent);
+      }
+    });
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        // do nothing, just wait for sync.
+      }
+    });
+  }
+
+  /**
+   * Sends a non-blocking notification of the specified type to the widget.
+   * 
+   * @param eventType the event type
+   * @param widget the widget to send the event to
+   * @see Widget#notifyListeners(int, Event)
+   */
+  protected void notify(int eventType, Widget widget) {
+    notify(eventType, createEvent(), widget);
   }
 
   abstract protected String viewName();

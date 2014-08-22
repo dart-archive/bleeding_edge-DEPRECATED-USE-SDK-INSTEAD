@@ -31,6 +31,7 @@ import org.junit.runners.Suite;
     TestFindText.class, //
     TestBreakpoints.class, //
     TestExtractMethod.class, //
+    TestDartDocDoubleClick.class, //
 //
 })
 public final class TestAll {

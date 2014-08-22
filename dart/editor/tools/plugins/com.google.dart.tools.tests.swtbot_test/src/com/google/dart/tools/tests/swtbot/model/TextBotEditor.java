@@ -23,6 +23,9 @@ import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -73,6 +76,16 @@ public class TextBotEditor extends AbstractBotView {
   public TextBotEditor(SWTWorkbenchBot bot, String title) {
     super(bot);
     this.title = title;
+  }
+
+  /**
+   * Double-click on the text at given coordinates. Assumes text on given line has no font changes.
+   * 
+   * @param x the x co-ordinate of the click (1-based)
+   * @param y the y co-ordinate of the click (1-based)
+   */
+  public void doubleClick(int line, int col, boolean... focused) {
+    doubleClickXY(measureLineToColumn(line, col), convertLineToVerticalOffset(line) - 5);
   }
 
   /**
@@ -207,19 +220,8 @@ public class TextBotEditor extends AbstractBotView {
         final Canvas c = w;
         Object outer = ReflectionUtils.getFieldObject(c, "this$0");
         if (outer.getClass().getSimpleName().startsWith("AnnotationRulerColumn")) {
-          UIThreadRunnable.syncExec(new VoidResult() {
-            @Override
-            public void run() {
-              Event event = new Event();
-              event.x = 0;
-              event.y = y;
-              event.button = 1;
-              event.count = 2;
-              event.type = SWT.MouseDoubleClick;
-              event.widget = c;
-              c.notifyListeners(SWT.MouseDoubleClick, event);
-            }
-          });
+          Event event = createMouseEvent(0, y, 1, SWT.NONE, 2);
+          notify(SWT.MouseDoubleClick, event, w);
           break;
         }
       }
@@ -243,6 +245,27 @@ public class TextBotEditor extends AbstractBotView {
     });
   }
 
+  private void doubleClickXY(int x, int y) {
+    SWTBotEclipseEditor editor = editor();
+    StyledText widget = editor.getStyledText().widget;
+    notify(SWT.MouseEnter, widget);
+    notify(SWT.MouseMove, widget);
+    notify(SWT.Activate, widget);
+    notify(SWT.FocusIn, widget);
+    notify(SWT.MouseDown, createMouseEvent(x, y, 1, SWT.NONE, 1), widget);
+    // StyledText needs a MouseUp to clear previous selection
+    notify(SWT.MouseUp, createMouseEvent(x, y, 1, SWT.NONE, 1), widget);
+    notify(SWT.Selection, createSelectionEvent(SWT.BUTTON1), widget);
+    // StyledText does not respond to MouseDoubleClick; use MouseDown with count=2
+    notify(SWT.MouseDown, createMouseEvent(x, y, 1, SWT.NONE, 2), widget);
+    notify(SWT.MouseUp, createMouseEvent(x, y, 1, SWT.NONE, 1), widget);
+    notify(SWT.MouseHover, widget);
+    notify(SWT.MouseMove, widget);
+    notify(SWT.MouseExit, widget);
+    notify(SWT.Deactivate, widget);
+    notify(SWT.FocusOut, widget);
+  }
+
   @SuppressWarnings("unused")
   private IEditorReference editorReference() {
     // TODO for reference only; probably want to use SWTBotView
@@ -257,6 +280,24 @@ public class TextBotEditor extends AbstractBotView {
           }
         }
         return null;
+      }
+    });
+  }
+
+  private int measureLineToColumn(final int lineNo, final int colNo) {
+    // lineNo, colNo are 1-based
+    final SWTBotEclipseEditor editor = editor();
+    return UIThreadRunnable.syncExec(new IntResult() {
+      @Override
+      public Integer run() {
+        StyledText text = editor.getStyledText().widget;
+        GC gc = new GC(text.getShell());
+        gc.setFont(text.getFont());
+        String line = text.getLine(lineNo - 1);
+        line = line.substring(0, colNo - 1);
+        Point ext = gc.textExtent(line);
+        gc.dispose();
+        return ext.x;
       }
     });
   }
