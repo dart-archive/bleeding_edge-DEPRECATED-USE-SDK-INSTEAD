@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class RefactoringProblem {
 
-  /**
-   * An empty array of {@link RefactoringProblem}s.
-   */
   public static final RefactoringProblem[] EMPTY_ARRAY = new RefactoringProblem[0];
+
+  public static final List<RefactoringProblem> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The severity of the problem being represented.
@@ -74,6 +78,25 @@ public class RefactoringProblem {
         ObjectUtilities.equals(other.location, location);
     }
     return false;
+  }
+
+  public static RefactoringProblem fromJson(JsonObject jsonObject) {
+    String severity = jsonObject.get("severity").getAsString();
+    String message = jsonObject.get("message").getAsString();
+    Location location = jsonObject.get("location") == null ? null : Location.fromJson(jsonObject.get("location").getAsJsonObject());
+    return new RefactoringProblem(severity, message, location);
+  }
+
+  public static List<RefactoringProblem> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<RefactoringProblem> list = new ArrayList<RefactoringProblem>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

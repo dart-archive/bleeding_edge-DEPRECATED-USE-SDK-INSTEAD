@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class FoldingRegion {
 
-  /**
-   * An empty array of {@link FoldingRegion}s.
-   */
   public static final FoldingRegion[] EMPTY_ARRAY = new FoldingRegion[0];
+
+  public static final List<FoldingRegion> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The kind of the region.
@@ -72,6 +76,25 @@ public class FoldingRegion {
         other.length == length;
     }
     return false;
+  }
+
+  public static FoldingRegion fromJson(JsonObject jsonObject) {
+    String kind = jsonObject.get("kind").getAsString();
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    return new FoldingRegion(kind, offset, length);
+  }
+
+  public static List<FoldingRegion> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<FoldingRegion> list = new ArrayList<FoldingRegion>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

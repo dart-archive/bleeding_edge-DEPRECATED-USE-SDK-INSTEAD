@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -40,10 +45,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ChangeContentOverlay {
 
-  /**
-   * An empty array of {@link ChangeContentOverlay}s.
-   */
   public static final ChangeContentOverlay[] EMPTY_ARRAY = new ChangeContentOverlay[0];
+
+  public static final List<ChangeContentOverlay> EMPTY_LIST = Lists.newArrayList();
 
   private final String type;
 
@@ -69,6 +73,24 @@ public class ChangeContentOverlay {
         ObjectUtilities.equals(other.edits, edits);
     }
     return false;
+  }
+
+  public static ChangeContentOverlay fromJson(JsonObject jsonObject) {
+    String type = jsonObject.get("type").getAsString();
+    List<SourceEdit> edits = SourceEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
+    return new ChangeContentOverlay(type, edits);
+  }
+
+  public static List<ChangeContentOverlay> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<ChangeContentOverlay> list = new ArrayList<ChangeContentOverlay>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

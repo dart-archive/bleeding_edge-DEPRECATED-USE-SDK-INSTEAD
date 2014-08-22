@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,10 +39,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class AnalysisOptions {
 
-  /**
-   * An empty array of {@link AnalysisOptions}s.
-   */
   public static final AnalysisOptions[] EMPTY_ARRAY = new AnalysisOptions[0];
+
+  public static final List<AnalysisOptions> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * True if the client wants to enable support for the proposed async feature.
@@ -88,6 +92,27 @@ public class AnalysisOptions {
         ObjectUtilities.equals(other.generateHints, generateHints);
     }
     return false;
+  }
+
+  public static AnalysisOptions fromJson(JsonObject jsonObject) {
+    Boolean enableAsync = jsonObject.get("enableAsync") == null ? null : jsonObject.get("enableAsync").getAsBoolean();
+    Boolean enableDeferredLoading = jsonObject.get("enableDeferredLoading") == null ? null : jsonObject.get("enableDeferredLoading").getAsBoolean();
+    Boolean enableEnums = jsonObject.get("enableEnums") == null ? null : jsonObject.get("enableEnums").getAsBoolean();
+    Boolean generateDart2jsHints = jsonObject.get("generateDart2jsHints") == null ? null : jsonObject.get("generateDart2jsHints").getAsBoolean();
+    Boolean generateHints = jsonObject.get("generateHints") == null ? null : jsonObject.get("generateHints").getAsBoolean();
+    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, generateDart2jsHints, generateHints);
+  }
+
+  public static List<AnalysisOptions> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<AnalysisOptions> list = new ArrayList<AnalysisOptions>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,10 +42,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class RemoveContentOverlay {
 
-  /**
-   * An empty array of {@link RemoveContentOverlay}s.
-   */
   public static final RemoveContentOverlay[] EMPTY_ARRAY = new RemoveContentOverlay[0];
+
+  public static final List<RemoveContentOverlay> EMPTY_LIST = Lists.newArrayList();
 
   private final String type;
 
@@ -59,6 +63,23 @@ public class RemoveContentOverlay {
         ObjectUtilities.equals(other.type, type);
     }
     return false;
+  }
+
+  public static RemoveContentOverlay fromJson(JsonObject jsonObject) {
+    String type = jsonObject.get("type").getAsString();
+    return new RemoveContentOverlay(type);
+  }
+
+  public static List<RemoveContentOverlay> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<RemoveContentOverlay> list = new ArrayList<RemoveContentOverlay>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   public String getType() {

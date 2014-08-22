@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class SourceEdit {
 
-  /**
-   * An empty array of {@link SourceEdit}s.
-   */
   public static final SourceEdit[] EMPTY_ARRAY = new SourceEdit[0];
+
+  public static final List<SourceEdit> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The offset of the region to be modified.
@@ -85,6 +89,26 @@ public class SourceEdit {
         ObjectUtilities.equals(other.id, id);
     }
     return false;
+  }
+
+  public static SourceEdit fromJson(JsonObject jsonObject) {
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    String replacement = jsonObject.get("replacement").getAsString();
+    String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
+    return new SourceEdit(offset, length, replacement, id);
+  }
+
+  public static List<SourceEdit> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<SourceEdit> list = new ArrayList<SourceEdit>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

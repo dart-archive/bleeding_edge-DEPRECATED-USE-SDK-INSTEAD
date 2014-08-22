@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,10 +39,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class CompletionSuggestion {
 
-  /**
-   * An empty array of {@link CompletionSuggestion}s.
-   */
   public static final CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
+
+  public static final List<CompletionSuggestion> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The kind of element being suggested.
@@ -185,6 +189,39 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.parameterType, parameterType);
     }
     return false;
+  }
+
+  public static CompletionSuggestion fromJson(JsonObject jsonObject) {
+    String kind = jsonObject.get("kind").getAsString();
+    String relevance = jsonObject.get("relevance").getAsString();
+    String completion = jsonObject.get("completion").getAsString();
+    Integer selectionOffset = jsonObject.get("selectionOffset").getAsInt();
+    Integer selectionLength = jsonObject.get("selectionLength").getAsInt();
+    Boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
+    Boolean isPotential = jsonObject.get("isPotential").getAsBoolean();
+    String docSummary = jsonObject.get("docSummary") == null ? null : jsonObject.get("docSummary").getAsString();
+    String docComplete = jsonObject.get("docComplete") == null ? null : jsonObject.get("docComplete").getAsString();
+    String declaringType = jsonObject.get("declaringType") == null ? null : jsonObject.get("declaringType").getAsString();
+    String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
+    List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
+    List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
+    Integer requiredParameterCount = jsonObject.get("requiredParameterCount") == null ? null : jsonObject.get("requiredParameterCount").getAsInt();
+    Integer positionalParameterCount = jsonObject.get("positionalParameterCount") == null ? null : jsonObject.get("positionalParameterCount").getAsInt();
+    String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
+    String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
+    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, returnType, parameterNames, parameterTypes, requiredParameterCount, positionalParameterCount, parameterName, parameterType);
+  }
+
+  public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<CompletionSuggestion> list = new ArrayList<CompletionSuggestion>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

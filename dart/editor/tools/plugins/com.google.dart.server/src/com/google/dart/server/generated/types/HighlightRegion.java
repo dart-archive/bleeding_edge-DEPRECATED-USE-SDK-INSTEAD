@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class HighlightRegion {
 
-  /**
-   * An empty array of {@link HighlightRegion}s.
-   */
   public static final HighlightRegion[] EMPTY_ARRAY = new HighlightRegion[0];
+
+  public static final List<HighlightRegion> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The type of highlight associated with the region.
@@ -72,6 +76,25 @@ public class HighlightRegion {
         other.length == length;
     }
     return false;
+  }
+
+  public static HighlightRegion fromJson(JsonObject jsonObject) {
+    String type = jsonObject.get("type").getAsString();
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    return new HighlightRegion(type, offset, length);
+  }
+
+  public static List<HighlightRegion> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<HighlightRegion> list = new ArrayList<HighlightRegion>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

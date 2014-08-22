@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class Element {
 
-  /**
-   * An empty array of {@link Element}s.
-   */
   public static final Element[] EMPTY_ARRAY = new Element[0];
+
+  public static final List<Element> EMPTY_LIST = Lists.newArrayList();
 
   private static final int ABSTRACT = 0x01;
 
@@ -115,6 +119,28 @@ public class Element {
         ObjectUtilities.equals(other.returnType, returnType);
     }
     return false;
+  }
+
+  public static Element fromJson(JsonObject jsonObject) {
+    String kind = jsonObject.get("kind").getAsString();
+    String name = jsonObject.get("name").getAsString();
+    Location location = jsonObject.get("location") == null ? null : Location.fromJson(jsonObject.get("location").getAsJsonObject());
+    Integer flags = jsonObject.get("flags").getAsInt();
+    String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
+    String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
+    return new Element(kind, name, location, flags, parameters, returnType);
+  }
+
+  public static List<Element> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<Element> list = new ArrayList<Element>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

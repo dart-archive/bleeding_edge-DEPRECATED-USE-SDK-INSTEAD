@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class OverriddenMember {
 
-  /**
-   * An empty array of {@link OverriddenMember}s.
-   */
   public static final OverriddenMember[] EMPTY_ARRAY = new OverriddenMember[0];
+
+  public static final List<OverriddenMember> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The element that is being overridden.
@@ -65,6 +69,24 @@ public class OverriddenMember {
         ObjectUtilities.equals(other.className, className);
     }
     return false;
+  }
+
+  public static OverriddenMember fromJson(JsonObject jsonObject) {
+    Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
+    String className = jsonObject.get("className").getAsString();
+    return new OverriddenMember(element, className);
+  }
+
+  public static List<OverriddenMember> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<OverriddenMember> list = new ArrayList<OverriddenMember>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

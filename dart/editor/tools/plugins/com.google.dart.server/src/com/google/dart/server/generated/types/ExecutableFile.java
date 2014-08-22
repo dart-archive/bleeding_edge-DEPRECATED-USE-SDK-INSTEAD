@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ExecutableFile {
 
-  /**
-   * An empty array of {@link ExecutableFile}s.
-   */
   public static final ExecutableFile[] EMPTY_ARRAY = new ExecutableFile[0];
+
+  public static final List<ExecutableFile> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The path of the executable file.
@@ -65,6 +69,24 @@ public class ExecutableFile {
         ObjectUtilities.equals(other.offset, offset);
     }
     return false;
+  }
+
+  public static ExecutableFile fromJson(JsonObject jsonObject) {
+    String file = jsonObject.get("file").getAsString();
+    String offset = jsonObject.get("offset").getAsString();
+    return new ExecutableFile(file, offset);
+  }
+
+  public static List<ExecutableFile> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<ExecutableFile> list = new ArrayList<ExecutableFile>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

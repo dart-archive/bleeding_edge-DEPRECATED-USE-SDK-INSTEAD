@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class HoverInformation {
 
-  /**
-   * An empty array of {@link HoverInformation}s.
-   */
   public static final HoverInformation[] EMPTY_ARRAY = new HoverInformation[0];
+
+  public static final List<HoverInformation> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The offset of the range of characters that encompases the cursor position and has the same hover
@@ -132,6 +136,32 @@ public class HoverInformation {
         ObjectUtilities.equals(other.staticType, staticType);
     }
     return false;
+  }
+
+  public static HoverInformation fromJson(JsonObject jsonObject) {
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    String containingLibraryPath = jsonObject.get("containingLibraryPath") == null ? null : jsonObject.get("containingLibraryPath").getAsString();
+    String containingLibraryName = jsonObject.get("containingLibraryName") == null ? null : jsonObject.get("containingLibraryName").getAsString();
+    String dartdoc = jsonObject.get("dartdoc") == null ? null : jsonObject.get("dartdoc").getAsString();
+    String elementDescription = jsonObject.get("elementDescription") == null ? null : jsonObject.get("elementDescription").getAsString();
+    String elementKind = jsonObject.get("elementKind") == null ? null : jsonObject.get("elementKind").getAsString();
+    String parameter = jsonObject.get("parameter") == null ? null : jsonObject.get("parameter").getAsString();
+    String propagatedType = jsonObject.get("propagatedType") == null ? null : jsonObject.get("propagatedType").getAsString();
+    String staticType = jsonObject.get("staticType") == null ? null : jsonObject.get("staticType").getAsString();
+    return new HoverInformation(offset, length, containingLibraryPath, containingLibraryName, dartdoc, elementDescription, elementKind, parameter, propagatedType, staticType);
+  }
+
+  public static List<HoverInformation> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<HoverInformation> list = new ArrayList<HoverInformation>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

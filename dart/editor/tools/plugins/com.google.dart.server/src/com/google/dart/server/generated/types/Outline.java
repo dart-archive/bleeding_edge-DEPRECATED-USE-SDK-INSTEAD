@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class Outline {
 
-  /**
-   * An empty array of {@link Outline}s.
-   */
   public static final Outline[] EMPTY_ARRAY = new Outline[0];
+
+  public static final List<Outline> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * A description of the element represented by this node.
@@ -81,6 +85,26 @@ public class Outline {
         ObjectUtilities.equals(other.children, children);
     }
     return false;
+  }
+
+  public static Outline fromJson(JsonObject jsonObject) {
+    Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    List<Outline> children = jsonObject.get("children") == null ? null : Outline.fromJsonArray(jsonObject.get("children").getAsJsonArray());
+    return new Outline(element, offset, length, children);
+  }
+
+  public static List<Outline> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<Outline> list = new ArrayList<Outline>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

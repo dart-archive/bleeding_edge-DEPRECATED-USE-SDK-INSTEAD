@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class RefactoringMethodParameter {
 
-  /**
-   * An empty array of {@link RefactoringMethodParameter}s.
-   */
   public static final RefactoringMethodParameter[] EMPTY_ARRAY = new RefactoringMethodParameter[0];
+
+  public static final List<RefactoringMethodParameter> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The unique identifier of the parameter. Clients may omit this field for the parameters they want
@@ -90,6 +94,27 @@ public class RefactoringMethodParameter {
         ObjectUtilities.equals(other.parameters, parameters);
     }
     return false;
+  }
+
+  public static RefactoringMethodParameter fromJson(JsonObject jsonObject) {
+    String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
+    String kind = jsonObject.get("kind").getAsString();
+    String type = jsonObject.get("type").getAsString();
+    String name = jsonObject.get("name").getAsString();
+    String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
+    return new RefactoringMethodParameter(id, kind, type, name, parameters);
+  }
+
+  public static List<RefactoringMethodParameter> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<RefactoringMethodParameter> list = new ArrayList<RefactoringMethodParameter>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class SourceFileEdit {
 
-  /**
-   * An empty array of {@link SourceFileEdit}s.
-   */
   public static final SourceFileEdit[] EMPTY_ARRAY = new SourceFileEdit[0];
+
+  public static final List<SourceFileEdit> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The file containing the code to be modified.
@@ -65,6 +69,24 @@ public class SourceFileEdit {
         ObjectUtilities.equals(other.edits, edits);
     }
     return false;
+  }
+
+  public static SourceFileEdit fromJson(JsonObject jsonObject) {
+    String file = jsonObject.get("file").getAsString();
+    List<SourceEdit> edits = SourceEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
+    return new SourceFileEdit(file, edits);
+  }
+
+  public static List<SourceFileEdit> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<SourceFileEdit> list = new ArrayList<SourceFileEdit>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

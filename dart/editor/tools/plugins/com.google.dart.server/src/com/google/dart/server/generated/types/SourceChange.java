@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class SourceChange {
 
-  /**
-   * An empty array of {@link SourceChange}s.
-   */
   public static final SourceChange[] EMPTY_ARRAY = new SourceChange[0];
+
+  public static final List<SourceChange> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * A human-readable description of the change to be applied.
@@ -79,6 +83,26 @@ public class SourceChange {
         ObjectUtilities.equals(other.selection, selection);
     }
     return false;
+  }
+
+  public static SourceChange fromJson(JsonObject jsonObject) {
+    String message = jsonObject.get("message").getAsString();
+    List<SourceFileEdit> edits = SourceFileEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
+    List<LinkedEditGroup> linkedEditGroups = LinkedEditGroup.fromJsonArray(jsonObject.get("linkedEditGroups").getAsJsonArray());
+    Position selection = jsonObject.get("selection") == null ? null : Position.fromJson(jsonObject.get("selection").getAsJsonObject());
+    return new SourceChange(message, edits, linkedEditGroups, selection);
+  }
+
+  public static List<SourceChange> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<SourceChange> list = new ArrayList<SourceChange>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

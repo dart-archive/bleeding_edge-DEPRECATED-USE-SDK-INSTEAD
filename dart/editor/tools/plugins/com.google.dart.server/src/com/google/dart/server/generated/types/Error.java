@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,10 +39,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class Error {
 
-  /**
-   * An empty array of {@link Error}s.
-   */
   public static final Error[] EMPTY_ARRAY = new Error[0];
+
+  public static final List<Error> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * A code that uniquely identifies the error that occurred.
@@ -74,6 +78,25 @@ public class Error {
         ObjectUtilities.equals(other.data, data);
     }
     return false;
+  }
+
+  public static Error fromJson(JsonObject jsonObject) {
+    String code = jsonObject.get("code").getAsString();
+    String message = jsonObject.get("message").getAsString();
+    Object data = jsonObject.get("data") == null ? null : jsonObject.get("data").getAsJsonArray();
+    return new Error(code, message, data);
+  }
+
+  public static List<Error> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<Error> list = new ArrayList<Error>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**

@@ -19,10 +19,15 @@ package com.google.dart.server.generated.types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,10 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class OverrideMember {
 
-  /**
-   * An empty array of {@link OverrideMember}s.
-   */
   public static final OverrideMember[] EMPTY_ARRAY = new OverrideMember[0];
+
+  public static final List<OverrideMember> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The offset of the name of the overriding member.
@@ -82,6 +86,26 @@ public class OverrideMember {
         ObjectUtilities.equals(other.interfaceMembers, interfaceMembers);
     }
     return false;
+  }
+
+  public static OverrideMember fromJson(JsonObject jsonObject) {
+    Integer offset = jsonObject.get("offset").getAsInt();
+    Integer length = jsonObject.get("length").getAsInt();
+    OverriddenMember superclassMember = jsonObject.get("superclassMember") == null ? null : OverriddenMember.fromJson(jsonObject.get("superclassMember").getAsJsonObject());
+    List<OverriddenMember> interfaceMembers = jsonObject.get("interfaceMembers") == null ? null : OverriddenMember.fromJsonArray(jsonObject.get("interfaceMembers").getAsJsonArray());
+    return new OverrideMember(offset, length, superclassMember, interfaceMembers);
+  }
+
+  public static List<OverrideMember> fromJsonArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return EMPTY_LIST;
+    }
+    ArrayList<OverrideMember> list = new ArrayList<OverrideMember>(jsonArray.size());
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      list.add(fromJson(iterator.next().getAsJsonObject()));
+    }
+    return list;
   }
 
   /**
