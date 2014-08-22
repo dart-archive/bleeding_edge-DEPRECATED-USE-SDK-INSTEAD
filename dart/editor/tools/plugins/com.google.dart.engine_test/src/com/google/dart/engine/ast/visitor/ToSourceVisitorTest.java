@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
@@ -960,6 +961,38 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("get f() {}", functionDeclaration(null, Keyword.GET, "f", functionExpression()));
   }
 
+  public void test_visitFunctionDeclaration_local_blockBody() {
+    FunctionDeclaration f = functionDeclaration(null, null, "f", functionExpression());
+    FunctionDeclarationStatement fStatement = new FunctionDeclarationStatement(f);
+    assertSource(
+        "main() {f() {} 42;}",
+        functionDeclaration(
+            null,
+            null,
+            "main",
+            functionExpression(
+                formalParameterList(),
+                blockFunctionBody(fStatement, expressionStatement(integer(42))))));
+  }
+
+  public void test_visitFunctionDeclaration_local_expressionBody() {
+    FunctionDeclaration f = functionDeclaration(
+        null,
+        null,
+        "f",
+        functionExpression(formalParameterList(), expressionFunctionBody(integer(1))));
+    FunctionDeclarationStatement fStatement = new FunctionDeclarationStatement(f);
+    assertSource(
+        "main() {f() => 1; 2;}",
+        functionDeclaration(
+            null,
+            null,
+            "main",
+            functionExpression(
+                formalParameterList(),
+                blockFunctionBody(fStatement, expressionStatement(integer(2))))));
+  }
+
   public void test_visitFunctionDeclaration_normal() {
     assertSource("f() {}", functionDeclaration(null, null, "f", functionExpression()));
   }
@@ -975,7 +1008,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitFunctionDeclarationStatement() {
-    assertSource("f() {};", functionDeclarationStatement(null, null, "f", functionExpression()));
+    assertSource("f() {}", functionDeclarationStatement(null, null, "f", functionExpression()));
   }
 
   public void test_visitFunctionExpression() {

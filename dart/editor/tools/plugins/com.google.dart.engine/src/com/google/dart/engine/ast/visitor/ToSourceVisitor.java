@@ -478,7 +478,6 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visitNode(node.getFunctionDeclaration());
-    writer.print(';');
     return null;
   }
 
