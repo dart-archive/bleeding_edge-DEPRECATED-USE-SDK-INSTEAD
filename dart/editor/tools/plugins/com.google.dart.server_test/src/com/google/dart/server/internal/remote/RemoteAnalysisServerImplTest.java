@@ -16,40 +16,39 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.server.AnalysisOptions;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionRelevance;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
-import com.google.dart.server.ErrorFixes;
-import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
-import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.HighlightType;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
-import com.google.dart.server.ServerStatus;
-import com.google.dart.server.SourceChange;
-import com.google.dart.server.SourceEdit;
-import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisOptions;
+import com.google.dart.server.generated.types.AnalysisService;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.ChangeContentOverlay;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverriddenMember;
+import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.dart.server.generated.types.ServerService;
+import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
@@ -59,7 +58,10 @@ import com.google.gson.JsonParser;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link RemoteAnalysisServerImpl}, for integration tests which actually uses the
@@ -245,6 +247,24 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         8), "message B", "correction B"));
   }
 
+  public void test_analysis_notification_flushResults() throws Exception {
+    listener.assertFlushedResults(new ArrayList<String>(0));
+    putResponse(//
+        "{",
+        "  'event': 'analysis.flushResults',",
+        "  'params': {",
+        "    'files': [",
+        "      'file1.dart',",
+        "      'file2.dart',",
+        "      'file3.dart'",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    listener.assertFlushedResults(ImmutableList.of("file1.dart", "file2.dart", "file3.dart"));
+  }
+
   public void test_analysis_notification_highlights() throws Exception {
     putResponse(//
         "{",
@@ -254,7 +274,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'regions' : [",
         "      {",
         "        'type': 'CLASS',",
-        "        'offset': 1,",
+        "         'offset': 1,",
         "        'length': 2",
         "      },",
         "      {",
@@ -271,15 +291,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(regions).hasSize(2);
     {
       HighlightRegion error = regions[0];
-      assertSame(HighlightType.CLASS, error.getType());
-      assertEquals(1, error.getOffset());
-      assertEquals(2, error.getLength());
+      assertEquals(HighlightRegionType.CLASS, error.getType());
+      assertEquals(new Integer(1), error.getOffset());
+      assertEquals(new Integer(2), error.getLength());
     }
     {
       HighlightRegion error = regions[1];
-      assertSame(HighlightType.FIELD, error.getType());
-      assertEquals(10, error.getOffset());
-      assertEquals(20, error.getLength());
+      assertEquals(HighlightRegionType.FIELD, error.getType());
+      assertEquals(new Integer(10), error.getOffset());
+      assertEquals(new Integer(20), error.getLength());
     }
   }
 
@@ -331,12 +351,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(regions).hasSize(1);
     {
       NavigationRegion region = regions[0];
-      assertEquals(1, region.getOffset());
-      assertEquals(2, region.getLength());
-      Element[] elements = region.getTargets();
+      assertEquals(new Integer(1), region.getOffset());
+      assertEquals(new Integer(2), region.getLength());
+      List<Element> elements = region.getTargets();
       assertThat(elements).hasSize(2);
       {
-        Element element = elements[0];
+        Element element = elements.get(0);
         assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
         assertEquals("name0", element.getName());
         Location location = element.getLocation();
@@ -355,7 +375,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("returnType0", element.getReturnType());
       }
       {
-        Element element = elements[1];
+        Element element = elements.get(1);
         assertEquals(ElementKind.CLASS, element.getKind());
         assertEquals("_name1", element.getName());
         Location location = element.getLocation();
@@ -429,7 +449,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertNull(element.getReturnType());
     }
     assertThat(occurrences.getOffsets()).hasSize(5).contains(1, 2, 3, 4, 5);
-    assertEquals(6, occurrences.getLength());
+    assertEquals(new Integer(6), occurrences.getLength());
   }
 
   public void test_analysis_notification_outline() throws Exception {
@@ -537,17 +557,20 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      {",
         "        'offset': 1,",
         "        'length': 2,",
-        "        'superclassElement': {",
-        "          'kind': 'CLASS',",
-        "          'name': 'name1',",
-        "          'location': {",
-        "            'file': '/test2.dart',",
-        "            'offset': 3,",
-        "            'length': 4,",
-        "            'startLine': 5,",
-        "            'startColumn': 6",
-        "          },",
-        "          'flags': 0",
+        "        'superclassMember': {",
+        "          'className':'superclassName1',",
+        "          'element': {",
+        "            'kind': 'CLASS',",
+        "            'name': 'name1',",
+        "            'location': {",
+        "              'file': '/test2.dart',",
+        "              'offset': 3,",
+        "              'length': 4,",
+        "              'startLine': 5,",
+        "              'startColumn': 6",
+        "            },",
+        "            'flags': 0",
+        "          }",
         "        }",
         "      },",
         "      {",
@@ -564,16 +587,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     // assertions on overrides
     assertThat(overrides).hasSize(2);
     {
-      assertEquals(1, overrides[0].getOffset());
-      assertEquals(2, overrides[0].getLength());
-      Element superclassElement = overrides[0].getSuperclassElement();
-      assertNotNull(superclassElement);
-      assertEquals("name1", superclassElement.getName());
+      assertEquals(new Integer(1), overrides[0].getOffset());
+      assertEquals(new Integer(2), overrides[0].getLength());
+      OverriddenMember superclassMember = overrides[0].getSuperclassMember();
+      assertNotNull(superclassMember);
+      assertEquals("superclassName1", superclassMember.getClassName());
+      assertEquals("name1", superclassMember.getElement().getName());
     }
     {
-      assertEquals(7, overrides[1].getOffset());
-      assertEquals(8, overrides[1].getLength());
-      assertNull(overrides[1].getSuperclassElement());
+      assertEquals(new Integer(7), overrides[1].getOffset());
+      assertEquals(new Integer(8), overrides[1].getLength());
+      assertNull(overrides[1].getSuperclassMember());
     }
   }
 
@@ -677,73 +701,187 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  // TODO (jwren) uncomment after re-implemented
-//  public void test_analysis_setSubscriptions() throws Exception {
-//    LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
-//    subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
-//    subscriptions.put(AnalysisService.HIGHLIGHTS, ImmutableList.of("/fileA.dart"));
-//    subscriptions.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
-//    subscriptions.put(
-//        AnalysisService.OUTLINE,
-//        ImmutableList.of("/fileD.dart", "/fileE.dart", "/fileF.dart"));
-//
-//    server.analysis_setSubscriptions(subscriptions);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': {",
-//        "      ERRORS: [],",
-//        "      HIGHLIGHTS: ['/fileA.dart'],",
-//        "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
-//        "      OUTLINE: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
-//        "    }",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
+  public void test_analysis_setSubscriptions() throws Exception {
+    Map<String, List<String>> subscriptionsMap = new LinkedHashMap<String, List<String>>();
+    subscriptionsMap.put(AnalysisService.FOLDING, new ArrayList<String>(0));
+    subscriptionsMap.put(AnalysisService.HIGHLIGHTS, ImmutableList.of("/fileA.dart"));
+    subscriptionsMap.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
+    subscriptionsMap.put(
+        AnalysisService.OCCURRENCES,
+        ImmutableList.of("/fileD.dart", "/fileE.dart", "/fileF.dart"));
 
-  // TODO (jwren) uncomment after re-implemented
-//  public void test_analysis_setSubscriptions_emptyMap() throws Exception {
-//    server.analysis_setSubscriptions(new HashMap<AnalysisService, List<String>>(0));
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': {}",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
+    server.analysis_setSubscriptions(subscriptionsMap);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {",
+        "      FOLDING: [],",
+        "      HIGHLIGHTS: ['/fileA.dart'],",
+        "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
+        "      OCCURRENCES: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
 
-  // TODO (jwren) uncomment after re-implemented
-//  public void test_analysis_setSubscriptions_nullMap() throws Exception {
-//    server.analysis_setSubscriptions(null);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': {}",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
+  public void test_analysis_setSubscriptions_emptyMap() throws Exception {
+    server.analysis_setSubscriptions(new HashMap<String, List<String>>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {}",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
 
-  public void test_analysis_updateAnalysisOptions_all_false() throws Exception {
-    AnalysisOptions options = new AnalysisOptions();
-    options.setAnalyzeAngular(false);
-    options.setAnalyzePolymer(false);
-    options.setEnableAsync(false);
-    options.setEnableDeferredLoading(false);
-    options.setEnableEnums(false);
-    options.setGenerateDart2jsHints(false);
-    options.setGenerateHints(false);
+  public void test_analysis_setSubscriptions_nullMap() throws Exception {
+    server.analysis_setSubscriptions(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {}",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_AddContentOverlay() throws Exception {
+    Map<String, Object> files = new HashMap<String, Object>(2);
+    files.put("/fileA.dart", new AddContentOverlay("content for A"));
+    files.put("/fileB.dart", new AddContentOverlay("content for B"));
+    server.analysis_updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "      '/fileA.dart': {",
+        "        'type': 'add',",
+        "        'content': 'content for A'",
+        "        },",
+        "      '/fileB.dart': {",
+        "        'type': 'add',",
+        "        'content': 'content for B'",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_ChangeContentOverlay() throws Exception {
+    Map<String, Object> files = new HashMap<String, Object>(2);
+    List<SourceEdit> sourceEdit1 = new ArrayList<SourceEdit>(1);
+    sourceEdit1.add(new SourceEdit(0, 1, "replacement1", null));
+    List<SourceEdit> sourceEdit2 = new ArrayList<SourceEdit>(1);
+    sourceEdit2.add(new SourceEdit(2, 3, "replacement2", "sourceEditId2"));
+    files.put("/fileA.dart", new ChangeContentOverlay(sourceEdit1));
+    files.put("/fileB.dart", new ChangeContentOverlay(sourceEdit2));
+    server.analysis_updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "      '/fileA.dart': {",
+        "        'type': 'change',",
+        "        'edits': [",
+        "          {",
+        "            'offset': 0,",
+        "            'length': 1,",
+        "            'replacement': 'replacement1'",
+        "          }",
+        "        ]",
+        "      },",
+        "      '/fileB.dart': {",
+        "        'type': 'change',",
+        "        'edits': [",
+        "          {",
+        "            'offset': 2,",
+        "            'length': 3,",
+        "            'replacement': 'replacement2',",
+        "            'id': 'sourceEditId2'",
+        "          }",
+        "        ]",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_emptyList() throws Exception {
+    Map<String, Object> files = new HashMap<String, Object>(0);
+    server.analysis_updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_nullList() throws Exception {
+    server.analysis_updateContent(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_RemoveContentOverlay() throws Exception {
+    Map<String, Object> files = new HashMap<String, Object>(2);
+    files.put("/fileA.dart", new RemoveContentOverlay());
+    files.put("/fileB.dart", new RemoveContentOverlay());
+    server.analysis_updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "      '/fileA.dart': {",
+        "        'type': 'remove'",
+        "        },",
+        "      '/fileB.dart': {",
+        "        'type': 'remove'",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateOptions_all_false() throws Exception {
+    AnalysisOptions options = new AnalysisOptions(false, false, false, false, false);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -752,8 +890,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'analysis.updateOptions',",
         "  'params': {",
         "    'options': {",
-        "      'analyzeAngular': false,",
-        "      'analyzePolymer': false,",
         "      'enableAsync': false,",
         "      'enableDeferredLoading': false,",
         "      'enableEnums': false,",
@@ -765,15 +901,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateAnalysisOptions_all_true() throws Exception {
-    AnalysisOptions options = new AnalysisOptions();
-    options.setAnalyzeAngular(true);
-    options.setAnalyzePolymer(true);
-    options.setEnableAsync(true);
-    options.setEnableDeferredLoading(true);
-    options.setEnableEnums(true);
-    options.setGenerateDart2jsHints(true);
-    options.setGenerateHints(true);
+  public void test_analysis_updateOptions_all_true() throws Exception {
+    AnalysisOptions options = new AnalysisOptions(true, true, true, true, true);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -782,8 +911,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'analysis.updateOptions',",
         "  'params': {",
         "    'options': {",
-        "      'analyzeAngular': true,",
-        "      'analyzePolymer': true,",
         "      'enableAsync': true,",
         "      'enableDeferredLoading': true,",
         "      'enableEnums': true,",
@@ -795,9 +922,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateAnalysisOptions_subset1() throws Exception {
-    AnalysisOptions options = new AnalysisOptions();
-    options.setAnalyzeAngular(true);
+  public void test_analysis_updateOptions_subset1() throws Exception {
+    AnalysisOptions options = new AnalysisOptions(true, null, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -806,18 +932,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'analysis.updateOptions',",
         "  'params': {",
         "    'options': {",
-        "      'analyzeAngular': true",
+        "      'enableAsync': true",
         "    }",
         "  }",
         "}");
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateAnalysisOptions_subset2() throws Exception {
-    AnalysisOptions options = new AnalysisOptions();
-    options.setAnalyzePolymer(true);
-    options.setEnableAsync(false);
-    options.setEnableDeferredLoading(true);
+  public void test_analysis_updateOptions_subset2() throws Exception {
+    AnalysisOptions options = new AnalysisOptions(false, true, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -826,7 +949,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'analysis.updateOptions',",
         "  'params': {",
         "    'options': {",
-        "      'analyzePolymer': true,",
         "      'enableAsync': false,",
         "      'enableDeferredLoading': true",
         "    }",
@@ -834,67 +956,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     assertTrue(requests.contains(expected));
   }
-
-  // TODO (jwren) API change
-//  public void test_analysis_updateContent() throws Exception {
-//    Map<String, ContentChange> files = ImmutableMap.of(
-//        "/fileA.dart",
-//        new ContentChange("aaa"),
-//        "/fileB.dart",
-//        new ContentChange("bbb", 1, 2, 3));
-//    server.analysis_updateContent(files);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.updateContent',",
-//        "  'params': {",
-//        "    'files': {",
-//        "      '/fileA.dart': {",
-//        "        'content': 'aaa'",
-//        "      },",
-//        "      '/fileB.dart': {",
-//        "        'content': 'bbb',",
-//        "        'offset': 1,",
-//        "        'oldLength': 2,",
-//        "        'newLength': 3",
-//        "      }",
-//        "    }",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
-//
-//  public void test_analysis_updateContent_emptyList() throws Exception {
-//    Map<String, ContentChange> files = Maps.newHashMap();
-//    server.updateContent(files);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.updateContent',",
-//        "  'params': {",
-//        "    'files': {",
-//        "    }",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
-//
-//  public void test_analysis_updateContent_nullList() throws Exception {
-//    server.updateContent(null);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'analysis.updateContent',",
-//        "  'params': {",
-//        "    'files': {",
-//        "    }",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
 
   public void test_completion_getSuggestions() throws Exception {
     final String[] completionIdPtr = {null};
@@ -1518,208 +1579,208 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 //        "}");
 //    assertTrue(requests.contains(expected));
 //  }
-
-  public void test_edit_getAssists() throws Exception {
-    final SourceChange[][] sourceChangeArray = {{null}};
-    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
-      @Override
-      public void computedSourceChanges(SourceChange[] sourceChanges) {
-        sourceChangeArray[0] = sourceChanges;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.getAssists',",
-        "  'params': {",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'assists': [",
-        "      {",
-        "        'message': 'message1',",
-        "        'edits': [",
-        "          {",
-        "            'file':'someFile1.dart',",
-        "            'edits': [",
-        "              {",
-        "                'offset': 1,",
-        "                'length': 2,",
-        "                'replacement': 'replacement1'",
-        "             }",
-        "            ]",
-        "          }",
-        "        ]",
-        "      },",
-        "      {",
-        "        'message': 'message2',",
-        "        'edits': [",
-        "          {",
-        "            'file':'someFile2.dart',",
-        "            'edits': [",
-        "              {",
-        "                'offset': 3,",
-        "                'length': 4,",
-        "                'replacement': 'replacement2'",
-        "             }",
-        "            ]",
-        "          }",
-        "        ]",
-        "      }",
-        "    ]",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'refactorings' (List<SourceChange>)
-    SourceChange[] sourceChanges = sourceChangeArray[0];
-    assertThat(sourceChanges).hasSize(2);
-    {
-      assertEquals("message1", sourceChanges[0].getMessage());
-      assertThat(sourceChanges[0].getEdits()).hasSize(1);
-      SourceFileEdit sourceFileEdit = sourceChanges[0].getEdits()[0];
-      assertEquals("someFile1.dart", sourceFileEdit.getFile());
-      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-      assertEquals(1, sourceEdit.getOffset());
-      assertEquals(2, sourceEdit.getLength());
-      assertEquals("replacement1", sourceEdit.getReplacement());
-    }
-    {
-      assertEquals("message2", sourceChanges[1].getMessage());
-      assertThat(sourceChanges[1].getEdits()).hasSize(1);
-      SourceFileEdit sourceFileEdit = sourceChanges[1].getEdits()[0];
-      assertEquals("someFile2.dart", sourceFileEdit.getFile());
-      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-      assertEquals(3, sourceEdit.getOffset());
-      assertEquals(4, sourceEdit.getLength());
-      assertEquals("replacement2", sourceEdit.getReplacement());
-    }
-  }
-
-  public void test_edit_getFixes() throws Exception {
-    final ErrorFixes[][] errorFixesArray = {{null}};
-    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
-      @Override
-      public void computedFixes(ErrorFixes[] e) {
-        errorFixesArray[0] = e;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.getFixes',",
-        "  'params': {",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'fixes': [",
-        "      {",
-        "        'error': {",
-        "          'severity': 'ERROR',",
-        "          'type': 'SYNTACTIC_ERROR',",
-        "          'location': {",
-        "            'file': '/fileA.dart',",
-        "            'offset': 1,",
-        "            'length': 2,",
-        "            'startLine': 3,",
-        "            'startColumn': 4",
-        "          },",
-        "          'message': 'message A',",
-        "          'correction': 'correction A'",
-        "        },",
-        "        'fixes': [",
-        "          {",
-        "            'message': 'message3',",
-        "            'edits': [",
-        "              {",
-        "                'file':'someFile3.dart',",
-        "                'edits': [",
-        "                  {",
-        "                    'offset': 9,",
-        "                    'length': 10,",
-        "                    'replacement': 'replacement1'",
-        "                  }",
-        "                ]",
-        "              }",
-        "            ]",
-        "          }",
-        "        ]",
-        "      },",
-        "      {",
-        "        'error': {",
-        "          'severity': 'ERROR',",
-        "          'type': 'COMPILE_TIME_ERROR',",
-        "          'location': {",
-        "            'file': '/fileB.dart',",
-        "            'offset': 5,",
-        "            'length': 6,",
-        "            'startLine': 7,",
-        "            'startColumn': 8",
-        "          },",
-        "          'message': 'message B',",
-        "          'correction': 'correction B'",
-        "        },",
-        "        'fixes':[]",
-        "      }",
-        "    ]",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'fixes' (List<ErrorFixes>)
-    ErrorFixes[] errorFixes = errorFixesArray[0];
-    assertThat(errorFixes).hasSize(2);
-    {
-      AnalysisError error = errorFixes[0].getError();
-      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
-          "/fileA.dart",
-          1,
-          2,
-          3,
-          4), "message A", "correction A"), error);
-      SourceChange[] sourceChangeArray = errorFixes[0].getFixes();
-      assertThat(sourceChangeArray).hasSize(1);
-      assertEquals("message3", sourceChangeArray[0].getMessage());
-      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
-      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
-      assertEquals("someFile3.dart", sourceFileEdit.getFile());
-      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-      assertEquals(9, sourceEdit.getOffset());
-      assertEquals(10, sourceEdit.getLength());
-      assertEquals("replacement1", sourceEdit.getReplacement());
-    }
-    {
-      AnalysisError error = errorFixes[1].getError();
-      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
-          "/fileB.dart",
-          5,
-          6,
-          7,
-          8), "message B", "correction B"), error);
-      SourceChange[] sourceChangeArray = errorFixes[1].getFixes();
-      assertThat(sourceChangeArray).isEmpty();
-    }
-  }
+//
+//  public void test_edit_getAssists() throws Exception {
+//    final SourceChange[][] sourceChangeArray = {{null}};
+//    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
+//      @Override
+//      public void computedSourceChanges(SourceChange[] sourceChanges) {
+//        sourceChangeArray[0] = sourceChanges;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.getAssists',",
+//        "  'params': {",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'assists': [",
+//        "      {",
+//        "        'message': 'message1',",
+//        "        'edits': [",
+//        "          {",
+//        "            'file':'someFile1.dart',",
+//        "            'edits': [",
+//        "              {",
+//        "                'offset': 1,",
+//        "                'length': 2,",
+//        "                'replacement': 'replacement1'",
+//        "             }",
+//        "            ]",
+//        "          }",
+//        "        ]",
+//        "      },",
+//        "      {",
+//        "        'message': 'message2',",
+//        "        'edits': [",
+//        "          {",
+//        "            'file':'someFile2.dart',",
+//        "            'edits': [",
+//        "              {",
+//        "                'offset': 3,",
+//        "                'length': 4,",
+//        "                'replacement': 'replacement2'",
+//        "             }",
+//        "            ]",
+//        "          }",
+//        "        ]",
+//        "      }",
+//        "    ]",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'refactorings' (List<SourceChange>)
+//    SourceChange[] sourceChanges = sourceChangeArray[0];
+//    assertThat(sourceChanges).hasSize(2);
+//    {
+//      assertEquals("message1", sourceChanges[0].getMessage());
+//      assertThat(sourceChanges[0].getEdits()).hasSize(1);
+//      SourceFileEdit sourceFileEdit = sourceChanges[0].getEdits()[0];
+//      assertEquals("someFile1.dart", sourceFileEdit.getFile());
+//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+//      assertEquals(1, sourceEdit.getOffset());
+//      assertEquals(2, sourceEdit.getLength());
+//      assertEquals("replacement1", sourceEdit.getReplacement());
+//    }
+//    {
+//      assertEquals("message2", sourceChanges[1].getMessage());
+//      assertThat(sourceChanges[1].getEdits()).hasSize(1);
+//      SourceFileEdit sourceFileEdit = sourceChanges[1].getEdits()[0];
+//      assertEquals("someFile2.dart", sourceFileEdit.getFile());
+//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+//      assertEquals(3, sourceEdit.getOffset());
+//      assertEquals(4, sourceEdit.getLength());
+//      assertEquals("replacement2", sourceEdit.getReplacement());
+//    }
+//  }
+//
+//  public void test_edit_getFixes() throws Exception {
+//    final ErrorFixes[][] errorFixesArray = {{null}};
+//    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
+//      @Override
+//      public void computedFixes(ErrorFixes[] e) {
+//        errorFixesArray[0] = e;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.getFixes',",
+//        "  'params': {",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'fixes': [",
+//        "      {",
+//        "        'error': {",
+//        "          'severity': 'ERROR',",
+//        "          'type': 'SYNTACTIC_ERROR',",
+//        "          'location': {",
+//        "            'file': '/fileA.dart',",
+//        "            'offset': 1,",
+//        "            'length': 2,",
+//        "            'startLine': 3,",
+//        "            'startColumn': 4",
+//        "          },",
+//        "          'message': 'message A',",
+//        "          'correction': 'correction A'",
+//        "        },",
+//        "        'fixes': [",
+//        "          {",
+//        "            'message': 'message3',",
+//        "            'edits': [",
+//        "              {",
+//        "                'file':'someFile3.dart',",
+//        "                'edits': [",
+//        "                  {",
+//        "                    'offset': 9,",
+//        "                    'length': 10,",
+//        "                    'replacement': 'replacement1'",
+//        "                  }",
+//        "                ]",
+//        "              }",
+//        "            ]",
+//        "          }",
+//        "        ]",
+//        "      },",
+//        "      {",
+//        "        'error': {",
+//        "          'severity': 'ERROR',",
+//        "          'type': 'COMPILE_TIME_ERROR',",
+//        "          'location': {",
+//        "            'file': '/fileB.dart',",
+//        "            'offset': 5,",
+//        "            'length': 6,",
+//        "            'startLine': 7,",
+//        "            'startColumn': 8",
+//        "          },",
+//        "          'message': 'message B',",
+//        "          'correction': 'correction B'",
+//        "        },",
+//        "        'fixes':[]",
+//        "      }",
+//        "    ]",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'fixes' (List<ErrorFixes>)
+//    ErrorFixes[] errorFixes = errorFixesArray[0];
+//    assertThat(errorFixes).hasSize(2);
+//    {
+//      AnalysisError error = errorFixes[0].getError();
+//      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
+//          "/fileA.dart",
+//          1,
+//          2,
+//          3,
+//          4), "message A", "correction A"), error);
+//      SourceChange[] sourceChangeArray = errorFixes[0].getFixes();
+//      assertThat(sourceChangeArray).hasSize(1);
+//      assertEquals("message3", sourceChangeArray[0].getMessage());
+//      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
+//      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
+//      assertEquals("someFile3.dart", sourceFileEdit.getFile());
+//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+//      assertEquals(9, sourceEdit.getOffset());
+//      assertEquals(10, sourceEdit.getLength());
+//      assertEquals("replacement1", sourceEdit.getReplacement());
+//    }
+//    {
+//      AnalysisError error = errorFixes[1].getError();
+//      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
+//          "/fileB.dart",
+//          5,
+//          6,
+//          7,
+//          8), "message B", "correction B"), error);
+//      SourceChange[] sourceChangeArray = errorFixes[1].getFixes();
+//      assertThat(sourceChangeArray).isEmpty();
+//    }
+//  }
 
   // TODO (jwren) refactoring API changed
 //  public void test_edit_getRefactorings() throws Exception {
@@ -2416,10 +2477,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(SearchResultKind.DECLARATION, result.getKind());
       assertEquals(true, result.isPotential());
       {
-        Element[] path = result.getPath();
+        List<Element> path = result.getPath();
         assertThat(path).hasSize(2);
         {
-          Element element = path[0];
+          Element element = path.get(0);
           assertEquals(ElementKind.FUNCTION, element.getKind());
           assertEquals("foo", element.getName());
           assertLocation(element.getLocation(), "fileA.dart", 13, 14, 15, 16);
@@ -2433,7 +2494,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           assertEquals("anotherType", element.getReturnType());
         }
         {
-          Element element = path[1];
+          Element element = path.get(1);
           assertEquals(ElementKind.CLASS, element.getKind());
           assertEquals("myClass", element.getName());
           assertLocation(element.getLocation(), "fileB.dart", 17, 18, 19, 20);
@@ -2544,9 +2605,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    ServerStatus serverStatus = new ServerStatus();
-    serverStatus.setAnalysisStatus(new AnalysisStatus(false, null));
-    listener.assertServerStatus(serverStatus);
+    listener.assertAnalysisStatus(new AnalysisStatus(false, null));
   }
 
   public void test_server_notification_status_true() throws Exception {
@@ -2562,9 +2621,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    ServerStatus serverStatus = new ServerStatus();
-    serverStatus.setAnalysisStatus(new AnalysisStatus(true, "target0"));
-    listener.assertServerStatus(serverStatus);
+    listener.assertAnalysisStatus(new AnalysisStatus(true, "target0"));
   }
 
   public void test_server_setSubscriptions_emptyList() throws Exception {

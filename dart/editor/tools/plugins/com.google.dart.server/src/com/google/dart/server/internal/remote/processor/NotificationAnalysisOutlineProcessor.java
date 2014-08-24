@@ -50,7 +50,7 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
 
   private Outline constructOutline(Outline parent, JsonObject outlineObject) {
     JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
-    Element element = constructElement(elementObject);
+    Element element = Element.fromJson(elementObject);
     int offset = outlineObject.get("offset").getAsInt();
     int length = outlineObject.get("length").getAsInt();
 

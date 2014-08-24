@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Maps;
-import com.google.dart.server.Occurrences;
+import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.functions.DartWordFinder;
 
@@ -206,7 +206,7 @@ public class MarkOccurrencesManager_NEW {
       return;
     }
 
-    int[] offsets = targetOccurrences.getOffsets();
+    Integer[] offsets = targetOccurrences.getOffsets();
     Position[] positions = new Position[offsets.length];
     for (int i = 0; i < offsets.length; i++) {
       int offset = offsets[i];

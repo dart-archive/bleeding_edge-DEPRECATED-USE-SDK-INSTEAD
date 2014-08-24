@@ -74,6 +74,10 @@ public class Outline {
     this.children = children;
   }
 
+  public boolean containsInclusive(int x) {
+    return offset <= x && x <= offset + length;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof Outline) {

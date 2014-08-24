@@ -19,6 +19,8 @@ import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Location;
 
+import java.util.List;
+
 /**
  * A concrete implementation of {@link SearchResult}.
  * <p>
@@ -27,12 +29,12 @@ import com.google.dart.server.generated.types.Location;
  * @coverage dart.server
  */
 public class SearchResultImpl implements SearchResult {
-  private final Element[] path;
+  private final List<Element> path;
   private final SearchResultKind kind;
   private final boolean isPotential;
   private final Location location;
 
-  public SearchResultImpl(Element[] path, SearchResultKind kind, Location location,
+  public SearchResultImpl(List<Element> path, SearchResultKind kind, Location location,
       boolean isPotential) {
     this.path = path;
     this.kind = kind;
@@ -51,7 +53,7 @@ public class SearchResultImpl implements SearchResult {
   }
 
   @Override
-  public Element[] getPath() {
+  public List<Element> getPath() {
     return path;
   }
 

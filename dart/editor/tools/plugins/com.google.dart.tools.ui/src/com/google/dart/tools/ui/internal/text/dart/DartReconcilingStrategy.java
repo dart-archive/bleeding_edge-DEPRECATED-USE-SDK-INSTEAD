@@ -13,14 +13,15 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.server.ContentChange;
+import com.google.dart.server.generated.types.AddContentOverlay;
+import com.google.dart.server.generated.types.ChangeContentOverlay;
+import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -45,6 +46,9 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
@@ -336,10 +340,10 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       String file = editor.getInputFilePath();
       if (file != null) {
-        ContentChange change = new ContentChange(code);
-        Map<String, ContentChange> files = ImmutableMap.of(file, change);
-        // TODO (jwren) re-implement after analysis_updateContent is working again
-//        DartCore.getAnalysisServer().analysis_updateContent(files);
+        AddContentOverlay change = new AddContentOverlay(code);
+        Map<String, Object> files = new HashMap<String, Object>();
+        files.put(file, change);
+        DartCore.getAnalysisServer().analysis_updateContent(files);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
@@ -368,10 +372,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       String file = editor.getInputFilePath();
       if (file != null) {
-        ContentChange change = new ContentChange(code, offset, oldLength, newLength);
-        Map<String, ContentChange> files = ImmutableMap.of(file, change);
-        // TODO (jwren) re-implement after analysis_updateContent is working again
-//        DartCore.getAnalysisServer().analysis_updateContent(files);
+        List<SourceEdit> sourceEdits = new ArrayList<SourceEdit>();
+        sourceEdits.add(new SourceEdit(offset, oldLength, code, null));
+        ChangeContentOverlay contentChangeOverlay = new ChangeContentOverlay(sourceEdits);
+        Map<String, Object> files = new HashMap<String, Object>(1);
+        files.put(file, contentChangeOverlay);
+        DartCore.getAnalysisServer().analysis_updateContent(files);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();

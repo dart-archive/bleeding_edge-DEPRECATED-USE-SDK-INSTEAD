@@ -66,6 +66,15 @@ public class Occurrences {
     this.length = length;
   }
 
+  public boolean contains(int x) {
+    for (int offset : offsets) {
+      if (offset <= x && x < offset + length) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof Occurrences) {

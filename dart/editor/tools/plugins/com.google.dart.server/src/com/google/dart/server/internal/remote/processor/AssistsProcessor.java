@@ -15,8 +15,10 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.SourceChange;
+import com.google.dart.server.generated.types.SourceChange;
 import com.google.gson.JsonObject;
+
+import java.util.List;
 
 /**
  * Instances of {@code RefactoringApplyProcessor} translate JSON result objects for a given
@@ -33,8 +35,7 @@ public class AssistsProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    SourceChange[] sourceChanges = constructSourceChangeArray(resultObject.get("assists").getAsJsonArray());
+    List<SourceChange> sourceChanges = SourceChange.fromJsonArray(resultObject.get("assists").getAsJsonArray());
     consumer.computedSourceChanges(sourceChanges);
   }
-
 }

@@ -15,7 +15,7 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringProblem;
-import com.google.dart.server.SourceChange;
+import com.google.dart.server.generated.types.SourceChange;
 import com.google.gson.JsonObject;
 
 /**
@@ -34,7 +34,7 @@ public class RefactoringApplyProcessor extends ResultProcessor {
 
   public void process(JsonObject resultObject) {
     RefactoringProblem[] problems = constructRefactoringProblemArray(resultObject.get("status").getAsJsonArray());
-    SourceChange change = constructSourceChange(resultObject.get("change").getAsJsonObject());
+    SourceChange change = SourceChange.fromJson(resultObject.get("change").getAsJsonObject());
     consumer.computed(problems, change);
   }
 }

@@ -56,8 +56,8 @@ public class AddContentOverlay {
   /**
    * Constructor for {@link AddContentOverlay}.
    */
-  public AddContentOverlay(String type, String content) {
-    this.type = type;
+  public AddContentOverlay(String content) {
+    this.type = "add";
     this.content = content;
   }
 
@@ -75,7 +75,7 @@ public class AddContentOverlay {
   public static AddContentOverlay fromJson(JsonObject jsonObject) {
     String type = jsonObject.get("type").getAsString();
     String content = jsonObject.get("content").getAsString();
-    return new AddContentOverlay(type, content);
+    return new AddContentOverlay(content);
   }
 
   public static List<AddContentOverlay> fromJsonArray(JsonArray jsonArray) {

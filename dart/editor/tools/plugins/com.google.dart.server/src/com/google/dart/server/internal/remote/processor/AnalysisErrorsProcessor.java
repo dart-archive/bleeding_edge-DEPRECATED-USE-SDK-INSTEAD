@@ -39,11 +39,8 @@ public class AnalysisErrorsProcessor extends ResultProcessor {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     Iterator<JsonElement> iter = resultObject.get("errors").getAsJsonArray().iterator();
     while (iter.hasNext()) {
-      JsonElement errorElem = iter.next();
-      if (errorElem instanceof JsonObject) {
-        JsonObject errorObj = (JsonObject) errorElem;
-        errors.add(constructAnalysisError(errorObj));
-      }
+      JsonObject errorJsonObject = iter.next().getAsJsonObject();
+      errors.add(AnalysisError.fromJson(errorJsonObject));
     }
     consumer.computedErrors(errors.toArray(new AnalysisError[errors.size()]));
   }

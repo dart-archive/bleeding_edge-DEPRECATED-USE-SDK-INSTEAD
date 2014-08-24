@@ -26,7 +26,7 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;

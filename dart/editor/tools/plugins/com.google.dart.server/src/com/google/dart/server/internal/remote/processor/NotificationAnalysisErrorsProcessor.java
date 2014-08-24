@@ -47,7 +47,7 @@ public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
     List<AnalysisError> analysisErrors = Lists.newArrayList();
     while (errorElementIterator.hasNext()) {
       JsonObject errorObject = errorElementIterator.next().getAsJsonObject();
-      AnalysisError analysisError = constructAnalysisError(errorObject);
+      AnalysisError analysisError = AnalysisError.fromJson(errorObject);
       if (analysisError != null) {
         analysisErrors.add(analysisError);
       }

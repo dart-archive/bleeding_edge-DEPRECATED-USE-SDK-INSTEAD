@@ -39,21 +39,8 @@ public class HoverProcessor extends ResultProcessor {
     ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
     Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
     while (iter.hasNext()) {
-      JsonElement hoverElem = iter.next();
-      if (hoverElem instanceof JsonObject) {
-        JsonObject hoverObj = (JsonObject) hoverElem;
-        hovers.add(new HoverInformation( //
-            hoverObj.get("offset").getAsInt(),
-            hoverObj.get("length").getAsInt(),
-            safelyGetAsString(hoverObj, "containingLibraryPath"),
-            safelyGetAsString(hoverObj, "containingLibraryName"),
-            safelyGetAsString(hoverObj, "dartdoc"),
-            safelyGetAsString(hoverObj, "elementDescription"),
-            safelyGetAsString(hoverObj, "elementKind"),
-            safelyGetAsString(hoverObj, "parameter"),
-            safelyGetAsString(hoverObj, "propagatedType"),
-            safelyGetAsString(hoverObj, "staticType")));
-      }
+      JsonObject hoverJsonObject = iter.next().getAsJsonObject();
+      hovers.add(HoverInformation.fromJson(hoverJsonObject));
     }
     consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
   }

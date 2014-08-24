@@ -14,6 +14,13 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
+
+import java.util.List;
 
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
@@ -108,6 +115,20 @@ public interface AnalysisServerListener {
   public void computedSearchResults(String searchId, SearchResult[] results, boolean last);
 
   /**
+   * Reports that any analysis results that were previously associated with the given files should
+   * be considered to be invalid because those files are no longer being analyzed, either because
+   * the analysis root that contained it is no longer being analyzed or because the file no longer
+   * exists.
+   * <p>
+   * If a file is included in this notification and at some later time a notification with results
+   * for the file is received, clients should assume that the file is once again being analyzed and
+   * the information should be processed.
+   * <p>
+   * It is not possible to subscribe to or unsubscribe from this notification.
+   */
+  public void flushedResults(List<String> files);
+
+  /**
    * Reports that the server is running. This notification is issued once after the server has
    * started running to let the client know that it started correctly.
    */
@@ -125,9 +146,9 @@ public interface AnalysisServerListener {
   public void serverError(boolean isFatal, String message, String stackTrace);
 
   /**
-   * Reports the current status of the server.
+   * Reports the current analysis status of the server.
    * 
-   * @param status the current status of the server
+   * @param status the current analysis status of the server
    */
-  public void serverStatus(ServerStatus status);
+  public void serverStatus(AnalysisStatus status);
 }

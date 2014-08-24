@@ -13,6 +13,11 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.ErrorFixes;
+
+import java.util.List;
+
 /**
  * The interface {@code FixesConsumer} defines the behavior of objects that consume fixes for
  * errors.
@@ -24,7 +29,7 @@ public interface GetFixesConsumer extends Consumer {
    * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
    * for all of the any fixes will be returned.
    * 
-   * @param errorFixesArray an array of computed error fixes
+   * @param errorFixesArray a list of computed error fixes
    */
-  public void computedFixes(ErrorFixes[] errorFixesArray);
+  public void computedFixes(List<ErrorFixes> errorFixesArray);
 }

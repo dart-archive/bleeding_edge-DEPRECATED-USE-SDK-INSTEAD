@@ -27,11 +27,13 @@ import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.text.ITextSelection;
+
+import java.util.List;
 
 /**
  * To replace {@link SelectionConverter}.
@@ -177,7 +179,8 @@ public class NewSelectionConverter {
     NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(file);
     for (NavigationRegion navigationRegion : regions) {
       if (navigationRegion.containsInclusive(offset)) {
-        return navigationRegion.getTargets();
+        List<com.google.dart.server.generated.types.Element> elements = navigationRegion.getTargets();
+        return elements.toArray(new com.google.dart.server.generated.types.Element[elements.size()]);
       }
     }
     return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;

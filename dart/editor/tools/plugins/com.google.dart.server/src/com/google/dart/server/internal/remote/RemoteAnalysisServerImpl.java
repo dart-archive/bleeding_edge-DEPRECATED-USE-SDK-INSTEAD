@@ -16,7 +16,6 @@ package com.google.dart.server.internal.remote;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
@@ -42,6 +41,7 @@ import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
+import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
@@ -49,6 +49,7 @@ import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
 import com.google.dart.server.internal.remote.processor.FixesProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisFlushResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOccurrencesProcessor;
@@ -177,6 +178,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   // Analysis domain
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
+  private static final String ANALYSIS_NOTIFICATION_FLUSH_RESULTS = "analysis.flushResults";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
   private static final String ANALYSIS_NOTIFICATION_NAVIGATION = "analysis.navigation";
   private static final String ANALYSIS_NOTIFICATION_OCCURRENCES = "analysis.occurrences";
@@ -305,34 +307,22 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
   }
 
-  // TODO (jwren) comment in after generated with enum
-//  @Override
-//  public void analysis_setSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
-//    String id = generateUniqueId();
-//    if (subscriptions == null) {
-//      subscriptions = Maps.newHashMap();
-//    }
-//    sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
-//  }
-
   @Override
   public void analysis_setSubscriptions(Map<String, List<String>> subscriptions) {
-    // TODO (jwren) Delete after enum version is generated
+    String id = generateUniqueId();
+    if (subscriptions == null) {
+      subscriptions = Maps.newHashMap();
+    }
+    sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
   }
-
-  // TODO (jwren) comment in after generated with enum
-//  @Override
-//  public void analysis_updateContent(Map<String, ContentChange> files) {
-//    String id = generateUniqueId();
-//    if (files == null) {
-//      files = Maps.newHashMap();
-//    }
-//    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
-//  }
 
   @Override
   public void analysis_updateContent(Map<String, Object> files) {
-    // TODO (jwren) Delete after enum version is generated
+    String id = generateUniqueId();
+    if (files == null) {
+      files = Maps.newHashMap();
+    }
+    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
   }
 
   @Override
@@ -603,6 +593,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     if (event.equals(ANALYSIS_NOTIFICATION_ERRORS)) {
       // analysis.errors
       new NotificationAnalysisErrorsProcessor(listener).process(response);
+    } else if (event.equals(ANALYSIS_NOTIFICATION_FLUSH_RESULTS)) {
+      // analysis.flushResults
+      new NotificationAnalysisFlushResultsProcessor(listener).process(response);
     } else if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
       // analysis.highlights
       new NotificationAnalysisHighlightsProcessor(listener).process(response);

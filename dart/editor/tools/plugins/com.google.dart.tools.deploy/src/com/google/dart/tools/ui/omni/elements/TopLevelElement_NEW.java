@@ -27,6 +27,8 @@ import com.google.dart.tools.ui.omni.OmniProposalProvider;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
 
+import java.util.List;
+
 /**
  * {@link OmniElement} for a top-level {@link Element}.
  */
@@ -37,8 +39,8 @@ public class TopLevelElement_NEW extends OmniElement {
 
   public TopLevelElement_NEW(OmniProposalProvider provider, SearchResult searchResult) {
     super(provider);
-    Element[] path = searchResult.getPath();
-    this.element = path[0];
+    List<Element> path = searchResult.getPath();
+    this.element = path.get(0);
     this.library = getLibraryElement(path);
   }
 
@@ -98,7 +100,7 @@ public class TopLevelElement_NEW extends OmniElement {
     }
   }
 
-  private Element getLibraryElement(Element[] elements) {
+  private Element getLibraryElement(List<Element> elements) {
     for (Element element : elements) {
       if (element.getKind() == ElementKind.LIBRARY) {
         return element;

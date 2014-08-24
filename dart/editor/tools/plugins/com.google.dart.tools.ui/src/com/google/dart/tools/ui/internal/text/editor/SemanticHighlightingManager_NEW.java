@@ -15,8 +15,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.HighlightType;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
@@ -113,8 +113,8 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
         continue;
       }
       // prepare highlight key
-      HighlightType type = position.highlight.getType();
-      String themeKey = getThemeKey(type);
+      String highlightType = position.highlight.getType();
+      String themeKey = getThemeKey(highlightType);
       if (themeKey == null) {
         continue;
       }
@@ -184,73 +184,80 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     }
   }
 
-  private String getThemeKey(HighlightType type) {
-    switch (type) {
-      case ANNOTATION:
-        return "annotation";
-      case BUILT_IN:
-      case KEYWORD:
-        return "builtin";
-      case CLASS:
-        return "class";
-      case CONSTRUCTOR:
-        return "constructor";
-      case DIRECTIVE:
-        return "directive";
-      case DYNAMIC_TYPE:
-        return "dynamicType";
-      case FIELD:
-        return "field";
-      case FIELD_STATIC:
-        return "staticField";
-      case FUNCTION:
-        return "function";
-      case FUNCTION_DECLARATION:
-        return "methodDeclarationName";
-      case FUNCTION_TYPE_ALIAS:
-        return "functionTypeAlias";
-      case GETTER_DECLARATION:
-        return "getterDeclaration";
-      case IMPORT_PREFIX:
-        return "importPrefix";
-      case LITERAL_BOOLEAN:
-        return "builtin";
-      case LITERAL_DOUBLE:
-      case LITERAL_INTEGER:
-        return "number";
-      case LITERAL_STRING:
-        return "string";
-      case LOCAL_VARIABLE:
-        return "localVariable";
-      case LOCAL_VARIABLE_DECLARATION:
-        return "localVariableDeclaration";
-      case METHOD:
-        return "method";
-      case METHOD_STATIC:
-        return "staticMethod";
-      case METHOD_DECLARATION:
-        return "methodDeclarationName";
-      case METHOD_DECLARATION_STATIC:
-        return "staticMethodDeclarationName";
-      case PARAMETER:
-        return "parameterVariable";
-      case SETTER_DECLARATION:
-        return "setterDeclaration";
-      case TOP_LEVEL_VARIABLE:
-        return "staticField";
-      case TYPE_NAME_DYNAMIC:
-        return "builtin";
-      case TYPE_PARAMETER:
-        return "typeParameter";
-      case COMMENT_BLOCK:
-      case COMMENT_DOCUMENTATION:
-      case COMMENT_END_OF_LINE:
-      case IDENTIFIER_DEFAULT:
-      case LITERAL_LIST:
-      case LITERAL_MAP:
-        // unsupported
-        break;
+  /**
+   * The type will be a {@link String} from {@link HighlightRegionType}.
+   * 
+   * @param type
+   * @return
+   */
+  private String getThemeKey(String type) {
+    if (type.equals(HighlightRegionType.ANNOTATION)) {
+      return "annotation";
+    } else if (type.equals(HighlightRegionType.BUILT_IN)
+        || type.equals(HighlightRegionType.KEYWORD)) {
+      return "builtin";
+    } else if (type.equals(HighlightRegionType.CLASS)) {
+      return "class";
+    } else if (type.equals(HighlightRegionType.CONSTRUCTOR)) {
+      return "constructor";
+    } else if (type.equals(HighlightRegionType.DIRECTIVE)) {
+      return "directive";
+    } else if (type.equals(HighlightRegionType.DYNAMIC_TYPE)) {
+      return "dynamicType";
+    } else if (type.equals(HighlightRegionType.FIELD)) {
+      return "field";
+    } else if (type.equals(HighlightRegionType.FIELD_STATIC)) {
+      return "staticField";
+    } else if (type.equals(HighlightRegionType.FUNCTION)) {
+      return "function";
+    } else if (type.equals(HighlightRegionType.FUNCTION_DECLARATION)) {
+      return "methodDeclarationName";
+    } else if (type.equals(HighlightRegionType.FUNCTION_TYPE_ALIAS)) {
+      return "functionTypeAlias";
+    } else if (type.equals(HighlightRegionType.GETTER_DECLARATION)) {
+      return "getterDeclaration";
+    } else if (type.equals(HighlightRegionType.IMPORT_PREFIX)) {
+      return "importPrefix";
+    } else if (type.equals(HighlightRegionType.LITERAL_BOOLEAN)) {
+      return "builtin";
+    } else if (type.equals(HighlightRegionType.LITERAL_DOUBLE)
+        || type.equals(HighlightRegionType.LITERAL_INTEGER)) {
+      return "number";
+    } else if (type.equals(HighlightRegionType.LITERAL_STRING)) {
+      return "string";
+    } else if (type.equals(HighlightRegionType.LOCAL_VARIABLE)) {
+      return "localVariable";
+    } else if (type.equals(HighlightRegionType.LOCAL_VARIABLE_DECLARATION)) {
+      return "localVariableDeclaration";
+    } else if (type.equals(HighlightRegionType.METHOD)) {
+      return "method";
+    } else if (type.equals(HighlightRegionType.METHOD_STATIC)) {
+      return "staticMethod";
+    } else if (type.equals(HighlightRegionType.METHOD_DECLARATION)) {
+      return "methodDeclarationName";
+    } else if (type.equals(HighlightRegionType.METHOD_DECLARATION_STATIC)) {
+      return "staticMethodDeclarationName";
+    } else if (type.equals(HighlightRegionType.PARAMETER)) {
+      return "parameterVariable";
+    } else if (type.equals(HighlightRegionType.SETTER_DECLARATION)) {
+      return "setterDeclaration";
+    } else if (type.equals(HighlightRegionType.TOP_LEVEL_VARIABLE)) {
+      return "staticField";
     }
-    return null;
+
+    else if (type.equals(HighlightRegionType.TYPE_NAME_DYNAMIC)) {
+      return "builtin";
+    } else if (type.equals(HighlightRegionType.TYPE_PARAMETER)) {
+      return "typeParameter";
+    } else {
+      // unsupported:
+//    COMMENT_BLOCK:
+//    COMMENT_DOCUMENTATION:
+//    COMMENT_END_OF_LINE:
+//    IDENTIFIER_DEFAULT:
+//    LITERAL_LIST:
+//    LITERAL_MAP:
+      return null;
+    }
   }
 }

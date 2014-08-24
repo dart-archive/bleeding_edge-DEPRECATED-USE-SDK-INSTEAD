@@ -15,6 +15,8 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
+import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.SearchResultImpl;
 import com.google.gson.JsonArray;
@@ -59,9 +61,9 @@ public class NotificationSearchResultsProcessor extends NotificationProcessor {
 
   private SearchResult constructSearchResult(JsonObject resultObject) {
     return new SearchResultImpl(
-        constructElementArray(resultObject.getAsJsonArray("path")),
+        Element.fromJsonArray(resultObject.getAsJsonArray("path")),
         SearchResultKind.valueOf(resultObject.get("kind").getAsString()),
-        constructLocation(resultObject.getAsJsonObject("location")),
+        Location.fromJson(resultObject.getAsJsonObject("location")),
         resultObject.get("isPotential").getAsBoolean());
   }
 }

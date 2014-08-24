@@ -13,16 +13,11 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.Occurrences;
-import com.google.dart.server.generated.types.Element;
-import com.google.dart.server.internal.OccurrencesImpl;
+import com.google.dart.server.generated.types.Occurrences;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,23 +39,10 @@ public class NotificationAnalysisOccurrencesProcessor extends NotificationProces
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
     JsonArray occurrencesJsonArray = paramsObject.get("occurrences").getAsJsonArray();
-    // compute occurrences and notify listener
-    getListener().computedOccurrences(file, constructOccurrencesArray(occurrencesJsonArray));
-  }
-
-  private Occurrences[] constructOccurrencesArray(JsonArray occurrencesJsonArray) {
-    Iterator<JsonElement> occurrencesIterator = occurrencesJsonArray.iterator();
-    List<Occurrences> occurrencesList = Lists.newArrayList();
-    while (occurrencesIterator.hasNext()) {
-      JsonObject occurrencesObject = occurrencesIterator.next().getAsJsonObject();
-      JsonObject elementObject = occurrencesObject.get("element").getAsJsonObject();
-      Element element = constructElement(elementObject);
-      int length = occurrencesObject.get("length").getAsInt();
-      int[] offsets = constructIntArray(occurrencesObject.get("offsets").getAsJsonArray());
-      occurrencesList.add(new OccurrencesImpl(element, length, offsets));
-    }
-
-    // create outline object
-    return occurrencesList.toArray(new Occurrences[occurrencesList.size()]);
+    // construct occurrences and notify listener
+    List<Occurrences> occurrencesList = Occurrences.fromJsonArray(occurrencesJsonArray);
+    getListener().computedOccurrences(
+        file,
+        occurrencesList.toArray(new Occurrences[occurrencesList.size()]));
   }
 }

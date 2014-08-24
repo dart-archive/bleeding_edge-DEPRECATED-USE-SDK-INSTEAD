@@ -67,6 +67,10 @@ public class NavigationRegion {
     this.targets = targets;
   }
 
+  public boolean containsInclusive(int x) {
+    return offset <= x && x <= offset + length;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NavigationRegion) {

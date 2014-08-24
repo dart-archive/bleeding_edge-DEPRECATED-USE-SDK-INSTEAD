@@ -15,7 +15,7 @@
 package com.google.dart.server.internal.asserts;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
 
 import junit.framework.Assert;
 

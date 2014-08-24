@@ -20,14 +20,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.AnalysisService;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisService;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
@@ -51,7 +51,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
   private final Map<String, Occurrences[]> occurrencesData = Maps.newHashMap();
-  private final Map<AnalysisService, List<String>> analysisSubscriptions = Maps.newHashMap();
+  private final Map<String, List<String>> analysisSubscriptions = Maps.newHashMap();
   private final Map<String, SearchResultsListener> searchResultsListeners = Maps.newHashMap();
   private final Map<String, List<SearchResultsSet>> searchResultsData = Maps.newHashMap();
   // TODO(scheglov) restore or remove for the new API
@@ -288,30 +288,29 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   /**
    * Adds the given file to the subscription list for the given {@link AnalysisService}.
    */
-  private void addAnalysisSubscription(AnalysisService service, String file) {
-    List<String> files = analysisSubscriptions.get(service);
+  private void addAnalysisSubscription(String analysisService, String file) {
+    List<String> files = analysisSubscriptions.get(analysisService);
     if (files == null) {
       files = Lists.newArrayList();
-      analysisSubscriptions.put(service, files);
+      analysisSubscriptions.put(analysisService, files);
     }
     if (!files.contains(file)) {
       files.add(file);
-      // TODO (jwren) re-enable after it is working in the java server again:
-//      server.analysis_setSubscriptions(analysisSubscriptions);
+      server.analysis_setSubscriptions(analysisSubscriptions);
     }
   }
 
   /**
    * Removes the given file from the subscription list for the given {@link AnalysisService}.
    */
-  private void removeAnalysisSubscription(AnalysisService service, String file) {
-    List<String> files = analysisSubscriptions.get(service);
+  private void removeAnalysisSubscription(String analysisService, String file) {
+    List<String> files = analysisSubscriptions.get(analysisService);
     if (files == null) {
       return;
     }
     if (files.remove(file)) {
       if (files.isEmpty()) {
-        analysisSubscriptions.remove(service);
+        analysisSubscriptions.remove(analysisService);
       }
       // TODO (jwren) re-implement after this is working
 //      server.analysis_setSubscriptions(analysisSubscriptions);

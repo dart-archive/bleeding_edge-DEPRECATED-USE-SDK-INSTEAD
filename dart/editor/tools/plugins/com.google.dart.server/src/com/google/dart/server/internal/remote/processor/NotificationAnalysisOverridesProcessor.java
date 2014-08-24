@@ -13,16 +13,11 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.OverrideMember;
-import com.google.dart.server.generated.types.Element;
-import com.google.dart.server.internal.OverrideMemberImpl;
+import com.google.dart.server.generated.types.OverrideMember;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -43,27 +38,11 @@ public class NotificationAnalysisOverridesProcessor extends NotificationProcesso
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
-    JsonArray occurrencesJsonArray = paramsObject.get("overrides").getAsJsonArray();
+    JsonArray overridesJsonArray = paramsObject.get("overrides").getAsJsonArray();
     // compute occurrences and notify listener
-    getListener().computedOverrides(file, constructOverridesArray(occurrencesJsonArray));
-  }
-
-  private OverrideMember[] constructOverridesArray(JsonArray occurrencesJsonArray) {
-    Iterator<JsonElement> overridesIterator = occurrencesJsonArray.iterator();
-    List<OverrideMember> overridesList = Lists.newArrayList();
-    while (overridesIterator.hasNext()) {
-      JsonObject overridesObject = overridesIterator.next().getAsJsonObject();
-      int offset = overridesObject.get("offset").getAsInt();
-      int length = overridesObject.get("length").getAsInt();
-      JsonObject superclassObject = safelyGetAsJsonObject(overridesObject, "superclassElement");
-      Element superclassElement = null;
-      if (superclassObject != null) {
-        superclassElement = constructElement(superclassObject);
-      }
-      overridesList.add(new OverrideMemberImpl(offset, length, superclassElement));
-    }
-
-    // create overrides object
-    return overridesList.toArray(new OverrideMember[overridesList.size()]);
+    List<OverrideMember> overriddenMemberList = OverrideMember.fromJsonArray(overridesJsonArray);
+    getListener().computedOverrides(
+        file,
+        overriddenMemberList.toArray(new OverrideMember[overriddenMemberList.size()]));
   }
 }

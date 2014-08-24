@@ -16,6 +16,8 @@ package com.google.dart.server;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Location;
 
+import java.util.List;
+
 /**
  * The interface {@code SearchResult} defines the behavior of objects that represent a search
  * result.
@@ -48,7 +50,7 @@ public interface SearchResult {
    * 
    * @return the path to this result
    */
-  public Element[] getPath();
+  public List<Element> getPath();
 
   /**
    * Return {@code true} is this search result is a potential reference to a class member.

@@ -51,8 +51,8 @@ public class RemoveContentOverlay {
   /**
    * Constructor for {@link RemoveContentOverlay}.
    */
-  public RemoveContentOverlay(String type) {
-    this.type = type;
+  public RemoveContentOverlay() {
+    this.type = "remove";
   }
 
   @Override
@@ -67,7 +67,7 @@ public class RemoveContentOverlay {
 
   public static RemoveContentOverlay fromJson(JsonObject jsonObject) {
     String type = jsonObject.get("type").getAsString();
-    return new RemoveContentOverlay(type);
+    return new RemoveContentOverlay();
   }
 
   public static List<RemoveContentOverlay> fromJsonArray(JsonArray jsonArray) {

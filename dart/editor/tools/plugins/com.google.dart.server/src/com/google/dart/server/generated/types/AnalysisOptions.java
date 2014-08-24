@@ -118,21 +118,21 @@ public class AnalysisOptions {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
-  public Boolean getEnableAsync() {
+  public Boolean isEnableAsync() {
     return enableAsync;
   }
 
   /**
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
-  public Boolean getEnableDeferredLoading() {
+  public Boolean isEnableDeferredLoading() {
     return enableDeferredLoading;
   }
 
   /**
    * True if the client wants to enable support for the proposed enum feature.
    */
-  public Boolean getEnableEnums() {
+  public Boolean isEnableEnums() {
     return enableEnums;
   }
 
@@ -140,14 +140,14 @@ public class AnalysisOptions {
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
-  public Boolean getGenerateDart2jsHints() {
+  public Boolean isGenerateDart2jsHints() {
     return generateDart2jsHints;
   }
 
   /**
    * True is hints should be generated as part of generating errors and warnings.
    */
-  public Boolean getGenerateHints() {
+  public Boolean isGenerateHints() {
     return generateHints;
   }
 

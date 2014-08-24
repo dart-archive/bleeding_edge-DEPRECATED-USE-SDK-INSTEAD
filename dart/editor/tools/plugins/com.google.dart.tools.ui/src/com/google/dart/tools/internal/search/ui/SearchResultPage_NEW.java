@@ -628,8 +628,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     Map<Element, ElementItem> itemMap = Maps.newHashMap();
     itemMap.put(null, rootItem);
     for (SearchResult searchResult : searchResults) {
-      Element[] elements = searchResult.getPath();
-      ElementItem elementItem = addElementItem(itemMap, elements, 0);
+      List<Element> elements = searchResult.getPath();
+      Element[] elementArray = elements.toArray(new Element[elements.size()]);
+      ElementItem elementItem = addElementItem(itemMap, elementArray, 0);
       elementItem.addMatch(sourceLineProvider, searchResult);
     }
     calculateNumMatches(rootItem);

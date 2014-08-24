@@ -14,12 +14,13 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.server.AnalysisOptions;
-import com.google.dart.server.AnalysisService;
-import com.google.dart.server.ContentChange;
 import com.google.dart.server.Parameter;
+import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisOptions;
+import com.google.dart.server.generated.types.ChangeContentOverlay;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -108,8 +109,6 @@ public class RequestUtilities {
         String keyString;
         if (key instanceof String) {
           keyString = (String) key;
-        } else if (key instanceof AnalysisService) {
-          keyString = ((AnalysisService) key).name();
         } else {
           throw new IllegalArgumentException("Unable to convert to string: " + getClassName(key));
         }
@@ -122,12 +121,16 @@ public class RequestUtilities {
         }
       }
       return jsonObject;
-    } else if (object instanceof ContentChange) {
-      return buildJsonObjectContentChange((ContentChange) object);
     } else if (object instanceof AnalysisError) {
       return buildJsonObjectAnalysisError((AnalysisError) object);
+    } else if (object instanceof AddContentOverlay) {
+      return ((AddContentOverlay) object).toJson();
+    } else if (object instanceof ChangeContentOverlay) {
+      return ((ChangeContentOverlay) object).toJson();
+    } else if (object instanceof RemoveContentOverlay) {
+      return ((RemoveContentOverlay) object).toJson();
     } else if (object instanceof AnalysisOptions) {
-      return buildJsonObjectAnalysisOptions((AnalysisOptions) object);
+      return ((AnalysisOptions) object).toJson();
     } else if (object instanceof Location) {
       return buildJsonObjectLocation((Location) object);
     }
@@ -243,7 +246,7 @@ public class RequestUtilities {
    * </pre>
    */
   public static JsonObject generateAnalysisSetSubscriptions(String id,
-      Map<AnalysisService, List<String>> subscriptions) {
+      Map<String, List<String>> subscriptions) {
     JsonObject params = new JsonObject();
     params.add("subscriptions", buildJsonElement(subscriptions));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_SUBSCRIPTIONS, params);
@@ -262,8 +265,7 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateAnalysisUpdateContent(String idValue,
-      Map<String, ContentChange> files) {
+  public static JsonObject generateAnalysisUpdateContent(String idValue, Map<String, Object> files) {
     JsonObject params = new JsonObject();
     params.add("files", buildJsonElement(files));
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
@@ -674,51 +676,6 @@ public class RequestUtilities {
     String correction = error.getCorrection();
     if (correction != null) {
       errorJsonObject.addProperty("correction", correction);
-    }
-    return errorJsonObject;
-  }
-
-  private static JsonElement buildJsonObjectAnalysisOptions(AnalysisOptions options) {
-    JsonObject optionsJsonObject = new JsonObject();
-    Boolean analyzeAngular = options.getAnalyzeAngular();
-    Boolean analyzePolymer = options.getAnalyzePolymer();
-    Boolean enableAsync = options.getEnableAsync();
-    Boolean enableDeferredLoading = options.getEnableDeferredLoading();
-    Boolean enableEnums = options.getEnableEnums();
-    Boolean generateDart2jsHints = options.getGenerateDart2jsHints();
-    Boolean generateHints = options.getGenerateHints();
-
-    if (analyzeAngular != null) {
-      optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
-    }
-    if (analyzePolymer != null) {
-      optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
-    }
-    if (enableAsync != null) {
-      optionsJsonObject.addProperty("enableAsync", options.getEnableAsync());
-    }
-    if (enableDeferredLoading != null) {
-      optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
-    }
-    if (enableEnums != null) {
-      optionsJsonObject.addProperty("enableEnums", options.getEnableEnums());
-    }
-    if (generateDart2jsHints != null) {
-      optionsJsonObject.addProperty("generateDart2jsHints", options.getGenerateDart2jsHints());
-    }
-    if (generateHints != null) {
-      optionsJsonObject.addProperty("generateHints", options.getGenerateHints());
-    }
-    return optionsJsonObject;
-  }
-
-  private static JsonObject buildJsonObjectContentChange(ContentChange change) {
-    JsonObject errorJsonObject = new JsonObject();
-    errorJsonObject.addProperty("content", change.getContent());
-    if (change.isIncremental()) {
-      errorJsonObject.addProperty(OFFSET, change.getOffset());
-      errorJsonObject.addProperty("oldLength", change.getOldLength());
-      errorJsonObject.addProperty("newLength", change.getNewLength());
     }
     return errorJsonObject;
   }

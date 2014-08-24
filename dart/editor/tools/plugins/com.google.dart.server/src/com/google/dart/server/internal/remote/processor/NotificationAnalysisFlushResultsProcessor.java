@@ -13,28 +13,31 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.GetFixesConsumer;
-import com.google.dart.server.generated.types.ErrorFixes;
+import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonObject;
 
 import java.util.List;
 
 /**
- * Instances of {@code FixesProcessor} translate JSON result objects for a given
- * {@link GetFixesConsumer}.
+ * Processor for "analysis.flushResults" notification.
  * 
  * @coverage dart.server.remote
  */
-public class FixesProcessor extends ResultProcessor {
+public class NotificationAnalysisFlushResultsProcessor extends NotificationProcessor {
 
-  private final GetFixesConsumer consumer;
-
-  public FixesProcessor(GetFixesConsumer consumer) {
-    this.consumer = consumer;
+  public NotificationAnalysisFlushResultsProcessor(AnalysisServerListener listener) {
+    super(listener);
   }
 
-  public void process(JsonObject resultObject) {
-    List<ErrorFixes> errorFixesArray = ErrorFixes.fromJsonArray(resultObject.get("fixes").getAsJsonArray());
-    consumer.computedFixes(errorFixesArray);
+  /**
+   * Process the given {@link JsonObject} notification and notify {@link #listener}.
+   */
+  @Override
+  public void process(JsonObject response) throws Exception {
+    JsonObject paramsObject = response.get("params").getAsJsonObject();
+    List<String> files = JsonUtilities.decodeStringList(paramsObject.get("files").getAsJsonArray());
+    // notify listener
+    getListener().flushedResults(files);
   }
 }

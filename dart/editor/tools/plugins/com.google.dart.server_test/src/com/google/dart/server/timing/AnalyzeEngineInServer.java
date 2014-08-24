@@ -16,21 +16,21 @@ package com.google.dart.server.timing;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
-import com.google.dart.server.ServerStatus;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Instances of the class {@code AnalyzeEngineInServer} use an analysis server to analyze the
@@ -81,6 +81,10 @@ public class AnalyzeEngineInServer extends TimingTest {
     }
 
     @Override
+    public void flushedResults(List<String> files) {
+    }
+
+    @Override
     public void serverConnected() {
     }
 
@@ -89,8 +93,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     }
 
     @Override
-    public void serverStatus(ServerStatus status) {
-      AnalysisStatus analysisStatus = status.getAnalysisStatus();
+    public void serverStatus(AnalysisStatus analysisStatus) {
       if (analysisStatus != null) {
         isAnalyzing = analysisStatus.isAnalyzing();
       }

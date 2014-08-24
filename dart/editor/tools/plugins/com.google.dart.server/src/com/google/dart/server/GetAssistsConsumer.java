@@ -13,6 +13,10 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.SourceChange;
+
+import java.util.List;
+
 /**
  * The interface {@code AssistsConsumer} defines the behavior of objects that consume assists
  * {@link SourceChange}s.
@@ -25,5 +29,5 @@ public interface GetAssistsConsumer extends Consumer {
    * 
    * @param proposals an array of computed {@link SourceChange}s
    */
-  public void computedSourceChanges(SourceChange[] sourceChanges);
+  public void computedSourceChanges(List<SourceChange> sourceChanges);
 }

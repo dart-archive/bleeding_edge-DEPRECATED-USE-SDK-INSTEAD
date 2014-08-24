@@ -16,6 +16,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.*;
+
 import java.util.List;
 import java.util.Map;
 

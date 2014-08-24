@@ -19,17 +19,16 @@ import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ArrayUtilities;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
-import com.google.dart.server.ServerStatus;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
@@ -58,6 +57,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   private final Map<String, CompletionResult> completionsMap = Maps.newHashMap();
+  private final List<String> flushedResults = Lists.newArrayList();
   private final Map<String, SearchResult[]> searchResultsMap = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
@@ -67,7 +67,12 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<String, Outline> outlineMap = Maps.newHashMap();
   private final Map<String, OverrideMember[]> overridesMap = Maps.newHashMap();
   private boolean serverConnected = false;
-  private ServerStatus serverStatus = null;
+  private AnalysisStatus analysisStatus = null;
+
+  public synchronized void assertAnalysisStatus(AnalysisStatus expectedStatus) {
+    Assert.assertEquals(expectedStatus.isAnalyzing(), analysisStatus.isAnalyzing());
+    Assert.assertEquals(expectedStatus.getAnalysisTarget(), analysisStatus.getAnalysisTarget());
+  }
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -83,6 +88,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
       AnalysisError... expectedErrors) {
     AnalysisError[] errors = getErrors(file);
     assertErrorsWithAnalysisErrors(errors, expectedErrors);
+  }
+
+  /**
+   * Asserts the list of flushed results.
+   */
+  public synchronized void assertFlushedResults(List<String> expectedFlushedResults) {
+    assertThat(expectedFlushedResults).isEqualTo(flushedResults);
   }
 
   /**
@@ -108,15 +120,6 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     for (int i = 0; i < expectedErrors.size(); i++) {
       Assert.assertTrue(expectedErrors.get(i).equals(serverErrors.get(i)));
     }
-  }
-
-  public synchronized void assertServerStatus(ServerStatus expectedStatus) {
-    AnalysisStatus actualAnalysisStatus = serverStatus.getAnalysisStatus();
-    AnalysisStatus expectedAnalysisStatus = expectedStatus.getAnalysisStatus();
-    Assert.assertEquals(expectedAnalysisStatus.isAnalyzing(), actualAnalysisStatus.isAnalyzing());
-    Assert.assertEquals(
-        expectedAnalysisStatus.getAnalysisTarget(),
-        actualAnalysisStatus.getAnalysisTarget());
   }
 
   /**
@@ -194,11 +197,16 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {
         if (navigationRegion.containsInclusive(offset)) {
-          return navigationRegion.getTargets()[0];
+          return navigationRegion.getTargets().get(0);
         }
       }
     }
     return null;
+  }
+
+  @Override
+  public synchronized void flushedResults(List<String> files) {
+    flushedResults.addAll(files);
   }
 
   public boolean getCompletionIsLast(String completionId) {
@@ -304,8 +312,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void serverStatus(ServerStatus status) {
-    this.serverStatus = status;
+  public synchronized void serverStatus(AnalysisStatus status) {
+    this.analysisStatus = status;
   }
 
   /**

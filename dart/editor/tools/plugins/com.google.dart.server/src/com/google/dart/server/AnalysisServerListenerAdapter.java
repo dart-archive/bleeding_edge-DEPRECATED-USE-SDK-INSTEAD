@@ -14,6 +14,13 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
+
+import java.util.List;
 
 /**
  * This adapter class provides default implementations for the methods described by the
@@ -60,6 +67,11 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
   }
 
   @Override
+  public void flushedResults(List<String> files) {
+
+  }
+
+  @Override
   public void serverConnected() {
 
   }
@@ -70,7 +82,7 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(ServerStatus status) {
+  public void serverStatus(AnalysisStatus status) {
 
   }
 

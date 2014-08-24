@@ -17,14 +17,14 @@ package com.google.dart.server.internal;
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
-import com.google.dart.server.ServerStatus;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
 
 import java.util.List;
 
@@ -114,6 +114,13 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
+  @Override
+  public void flushedResults(List<String> files) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.flushedResults(files);
+    }
+  }
+
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
@@ -141,9 +148,9 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(ServerStatus status) {
+  public void serverStatus(AnalysisStatus analysisStatus) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.serverStatus(status);
+      listener.serverStatus(analysisStatus);
     }
   }
 

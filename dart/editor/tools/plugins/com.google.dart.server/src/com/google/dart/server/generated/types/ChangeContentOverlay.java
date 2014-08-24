@@ -59,8 +59,8 @@ public class ChangeContentOverlay {
   /**
    * Constructor for {@link ChangeContentOverlay}.
    */
-  public ChangeContentOverlay(String type, List<SourceEdit> edits) {
-    this.type = type;
+  public ChangeContentOverlay(List<SourceEdit> edits) {
+    this.type = "change";
     this.edits = edits;
   }
 
@@ -78,7 +78,7 @@ public class ChangeContentOverlay {
   public static ChangeContentOverlay fromJson(JsonObject jsonObject) {
     String type = jsonObject.get("type").getAsString();
     List<SourceEdit> edits = SourceEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
-    return new ChangeContentOverlay(type, edits);
+    return new ChangeContentOverlay(edits);
   }
 
   public static List<ChangeContentOverlay> fromJsonArray(JsonArray jsonArray) {

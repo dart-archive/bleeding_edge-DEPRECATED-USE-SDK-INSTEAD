@@ -113,7 +113,7 @@ public class SearchResult {
    * all references to a method m defined in some class were requested, and a reference to a method m
    * from an unknown class were found, it would be marked as being a potential match.
    */
-  public Boolean getIsPotential() {
+  public Boolean isIsPotential() {
     return isPotential;
   }
 

@@ -16,14 +16,14 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
-import com.google.dart.server.ServerStatus;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.HighlightRegion;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Implementation of {@link AnalysisServerListener} for the Eclipse workspace.
@@ -101,6 +102,10 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public void flushedResults(List<String> files) {
+  }
+
+  @Override
   public void serverConnected() {
     projectManager.start();
   }
@@ -111,9 +116,9 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(ServerStatus status) {
+  public void serverStatus(AnalysisStatus status) {
     synchronized (statusLock) {
-      if (status.getAnalysisStatus().isAnalyzing()) {
+      if (status.isAnalyzing()) {
         if (statusJob == null) {
           //
           // Start a build level job to display progress in the status area

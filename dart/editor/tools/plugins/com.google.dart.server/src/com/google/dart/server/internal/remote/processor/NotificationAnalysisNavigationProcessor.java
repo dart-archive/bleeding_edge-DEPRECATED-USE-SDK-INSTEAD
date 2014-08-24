@@ -13,15 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.generated.types.Element;
-import com.google.dart.server.internal.NavigationRegionImpl;
-import com.google.gson.JsonElement;
+import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.gson.JsonObject;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -41,30 +36,7 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
-    // prepare region objects iterator
-    JsonElement regionsElement = paramsObject.get("regions");
-    Iterator<JsonElement> regionObjectIterator = regionsElement.getAsJsonArray().iterator();
-    // convert regions
-    List<NavigationRegion> regions = Lists.newArrayList();
-    while (regionObjectIterator.hasNext()) {
-      JsonObject regionObject = regionObjectIterator.next().getAsJsonObject();
-      int offset = regionObject.get("offset").getAsInt();
-      int length = regionObject.get("length").getAsInt();
-      // prepare region objects iterator
-      JsonElement targetsElement = regionObject.get("targets");
-      Iterator<JsonElement> targetObjectIterator = targetsElement.getAsJsonArray().iterator();
-      // convert targets
-      List<Element> targets = Lists.newArrayList();
-      while (targetObjectIterator.hasNext()) {
-        JsonObject elementObject = targetObjectIterator.next().getAsJsonObject();
-        Element element = constructElement(elementObject);
-        targets.add(element);
-      }
-      regions.add(new NavigationRegionImpl(
-          offset,
-          length,
-          targets.toArray(new Element[targets.size()])));
-    }
+    List<NavigationRegion> regions = NavigationRegion.fromJsonArray(paramsObject.get("regions").getAsJsonArray());
     // notify listener
     getListener().computedNavigation(file, regions.toArray(new NavigationRegion[regions.size()]));
   }

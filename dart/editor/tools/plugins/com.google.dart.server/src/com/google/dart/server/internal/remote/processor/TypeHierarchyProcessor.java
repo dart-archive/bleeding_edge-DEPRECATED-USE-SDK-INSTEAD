@@ -47,14 +47,14 @@ public class TypeHierarchyProcessor extends ResultProcessor {
 
   private TypeHierarchyItem constructTypeHierarchyItem(JsonObject hierarchyObject) {
     // classElement
-    Element classElement = constructElement(hierarchyObject.get("classElement").getAsJsonObject());
+    Element classElement = Element.fromJson(hierarchyObject.get("classElement").getAsJsonObject());
 
     // displayName
     String displayName = safelyGetAsString(hierarchyObject, "displayName");
 
     // memberElement
     JsonObject memberElementObject = safelyGetAsJsonObject(hierarchyObject, "memberElement");
-    Element memberElement = memberElementObject != null ? constructElement(memberElementObject)
+    Element memberElement = memberElementObject != null ? Element.fromJson(memberElementObject)
         : null;
 
     // superclass

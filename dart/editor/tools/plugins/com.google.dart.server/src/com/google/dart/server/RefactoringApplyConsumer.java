@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.SourceChange;
 
 /**
  * The interface {@code RefactoringApplyConsumer} defines the behavior of objects that consume an

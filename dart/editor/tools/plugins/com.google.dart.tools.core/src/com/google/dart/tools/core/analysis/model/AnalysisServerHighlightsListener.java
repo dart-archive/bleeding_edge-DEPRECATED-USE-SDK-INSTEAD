@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.server.HighlightRegion;
+import com.google.dart.server.generated.types.HighlightRegion;
 
 /**
  * Used by {@link AnalysisServerData} to notify clients that new {@link HighlightRegion}s are ready.

@@ -13,15 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.HighlightType;
-import com.google.dart.server.internal.HighlightRegionImpl;
-import com.google.gson.JsonElement;
+import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.gson.JsonObject;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -42,21 +37,7 @@ public class NotificationAnalysisHighlightsProcessor extends NotificationProcess
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
-    // prepare region objects iterator
-    JsonElement regionsElement = paramsObject.get("regions");
-    Iterator<JsonElement> regionObjectIterator = regionsElement.getAsJsonArray().iterator();
-    // convert regions
-    List<HighlightRegion> regions = Lists.newArrayList();
-    while (regionObjectIterator.hasNext()) {
-      JsonObject regionObject = regionObjectIterator.next().getAsJsonObject();
-      String typeName = regionObject.get("type").getAsString();
-      HighlightType type = HighlightType.valueOf(typeName);
-      if (type != null) {
-        int offset = regionObject.get("offset").getAsInt();
-        int length = regionObject.get("length").getAsInt();
-        regions.add(new HighlightRegionImpl(offset, length, type));
-      }
-    }
+    List<HighlightRegion> regions = HighlightRegion.fromJsonArray(paramsObject.get("regions").getAsJsonArray());
     // notify listener
     getListener().computedHighlights(file, regions.toArray(new HighlightRegion[regions.size()]));
   }
