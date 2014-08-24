@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -355,6 +356,29 @@ public class CompletionSuggestion {
    */
   public Integer getSelectionOffset() {
     return selectionOffset;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(kind);
+    builder.append(relevance);
+    builder.append(completion);
+    builder.append(selectionOffset);
+    builder.append(selectionLength);
+    builder.append(isDeprecated);
+    builder.append(isPotential);
+    builder.append(docSummary);
+    builder.append(docComplete);
+    builder.append(declaringType);
+    builder.append(returnType);
+    builder.append(parameterNames);
+    builder.append(parameterTypes);
+    builder.append(requiredParameterCount);
+    builder.append(positionalParameterCount);
+    builder.append(parameterName);
+    builder.append(parameterType);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

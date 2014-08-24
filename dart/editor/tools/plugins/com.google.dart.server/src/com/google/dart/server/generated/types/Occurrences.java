@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -125,6 +126,15 @@ public class Occurrences {
    */
   public Integer[] getOffsets() {
     return offsets;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(element);
+    builder.append(offsets);
+    builder.append(length);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

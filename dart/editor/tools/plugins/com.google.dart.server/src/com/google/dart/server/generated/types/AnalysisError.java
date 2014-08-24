@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -152,6 +153,17 @@ public class AnalysisError {
    */
   public String getType() {
     return type;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(severity);
+    builder.append(type);
+    builder.append(location);
+    builder.append(message);
+    builder.append(correction);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

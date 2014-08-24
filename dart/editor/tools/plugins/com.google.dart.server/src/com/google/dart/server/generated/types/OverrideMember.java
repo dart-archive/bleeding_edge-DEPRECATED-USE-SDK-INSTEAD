@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -137,6 +138,16 @@ public class OverrideMember {
    */
   public OverriddenMember getSuperclassMember() {
     return superclassMember;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(offset);
+    builder.append(length);
+    builder.append(superclassMember);
+    builder.append(interfaceMembers);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

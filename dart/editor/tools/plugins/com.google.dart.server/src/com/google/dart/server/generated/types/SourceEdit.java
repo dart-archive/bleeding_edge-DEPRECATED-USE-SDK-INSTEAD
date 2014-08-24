@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -143,6 +144,16 @@ public class SourceEdit {
    */
   public String getReplacement() {
     return replacement;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(offset);
+    builder.append(length);
+    builder.append(replacement);
+    builder.append(id);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

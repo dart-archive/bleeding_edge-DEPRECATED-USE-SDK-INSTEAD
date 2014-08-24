@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -243,6 +244,22 @@ public class HoverInformation {
    */
   public String getStaticType() {
     return staticType;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(offset);
+    builder.append(length);
+    builder.append(containingLibraryPath);
+    builder.append(containingLibraryName);
+    builder.append(dartdoc);
+    builder.append(elementDescription);
+    builder.append(elementKind);
+    builder.append(parameter);
+    builder.append(propagatedType);
+    builder.append(staticType);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {

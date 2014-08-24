@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -137,6 +138,16 @@ public class SearchResult {
    */
   public List<Element> getPath() {
     return path;
+  }
+
+  @Override
+  public int hashCode() {
+    HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(location);
+    builder.append(kind);
+    builder.append(isPotential);
+    builder.append(path);
+    return builder.toHashCode();
   }
 
   public JsonObject toJson() {
