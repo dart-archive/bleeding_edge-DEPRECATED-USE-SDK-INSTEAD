@@ -125,6 +125,13 @@ public class SearchManager {
       }
     }
 
+    @Override
+    public void sourceSelectionChanged() {
+      if (isCurrent()) {
+        engine.updateSourceSelection();
+      }
+    }
+
     protected boolean isCurrent() {
       return panel.equals(SearchManager.this.panel);
     }

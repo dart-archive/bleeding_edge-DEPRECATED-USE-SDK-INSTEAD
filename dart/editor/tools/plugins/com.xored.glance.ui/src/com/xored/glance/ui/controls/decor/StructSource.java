@@ -136,6 +136,10 @@ public abstract class StructSource implements ITextSource, IStructProvider, Sele
   }
 
   @Override
+  public void updateSourceSelection() {
+  }
+
+  @Override
   public void widgetDefaultSelected(final SelectionEvent e) {
     fireSelectionChanged();
   }

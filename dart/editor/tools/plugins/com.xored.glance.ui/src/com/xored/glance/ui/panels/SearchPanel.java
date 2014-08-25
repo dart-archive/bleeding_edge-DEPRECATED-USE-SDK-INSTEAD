@@ -657,6 +657,10 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
     }
   }
 
+  protected void updateSelection() {
+    fireSelectionChanged();
+  }
+
   private void createIndexing(final ToolBar bar) {
     bIndexing = new ToolItem(bar, SWT.CHECK);
     bIndexing.setDisabledImage(GlancePlugin.getImage(GlancePlugin.IMG_INDEXING_FINISHED));
@@ -687,6 +691,14 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
     for (final Object object : objects) {
       final ISearchPanelListener listener = (ISearchPanelListener) object;
       listener.ruleChanged(rule);
+    }
+  }
+
+  private void fireSelectionChanged() {
+    final Object[] objects = listeners.getListeners();
+    for (final Object object : objects) {
+      final ISearchPanelListener listener = (ISearchPanelListener) object;
+      listener.sourceSelectionChanged();
     }
   }
 

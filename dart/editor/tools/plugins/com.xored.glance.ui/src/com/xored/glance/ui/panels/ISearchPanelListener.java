@@ -22,4 +22,6 @@ public interface ISearchPanelListener {
 
   public void ruleChanged(SearchRule rule);
 
+  public void sourceSelectionChanged();
+
 }

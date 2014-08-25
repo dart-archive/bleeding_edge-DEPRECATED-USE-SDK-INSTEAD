@@ -191,6 +191,7 @@ public class SearchStatusLine extends SearchPanel {
       @Override
       public void focusGained(FocusEvent e) {
         setKeyFilter(false);
+        updateSelection();
       }
 
       @Override

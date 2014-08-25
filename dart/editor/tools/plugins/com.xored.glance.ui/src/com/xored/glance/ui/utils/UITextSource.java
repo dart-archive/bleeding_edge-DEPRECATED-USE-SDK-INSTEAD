@@ -229,6 +229,11 @@ public class UITextSource implements ITextSource, ITextSourceListener {
     });
   }
 
+  @Override
+  public void updateSourceSelection() {
+    updateSelection();
+  }
+
   protected ITextBlock[] addBlocks(final ITextBlock[] blocks) {
     synchronized (this.blocks) {
       final ITextBlock[] added = new ITextBlock[blocks.length];

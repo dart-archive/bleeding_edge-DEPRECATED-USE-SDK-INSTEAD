@@ -225,6 +225,10 @@ public class SearchEngine extends Thread {
     }
   }
 
+  public void updateSourceSelection() {
+    scope.updateSourceSelection();
+  }
+
   protected void doSetRule(SearchRule rule) {
     cancel = true;
     boolean findFirst = false;

@@ -196,6 +196,11 @@ public abstract class AbstractSearchScope implements IMatchListener, ITextSource
     }
   }
 
+  protected void updateSourceSelection() {
+    source.updateSourceSelection();
+    updateSelection(source.getSelection());
+  }
+
   protected void updateStart() {
     int index = getSelectedEntryIndex();
     if (index >= 0) {

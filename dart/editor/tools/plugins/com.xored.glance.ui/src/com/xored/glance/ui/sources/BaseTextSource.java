@@ -23,4 +23,8 @@ public abstract class BaseTextSource implements ITextSource {
   public boolean isIndexRequired() {
     return false;
   }
+
+  @Override
+  public void updateSourceSelection() {
+  }
 }

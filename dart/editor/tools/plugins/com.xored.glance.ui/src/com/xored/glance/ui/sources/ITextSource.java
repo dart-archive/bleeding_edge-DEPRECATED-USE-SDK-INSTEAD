@@ -71,4 +71,6 @@ public interface ITextSource {
    */
   public void show(Match[] matches);
 
+  public void updateSourceSelection();
+
 }
