@@ -9,14 +9,16 @@ import socket
 import sys
 import os
 import subprocess
-from os.path import join
+from os.path import join, exists
 
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 
-port = 11104 # The socket used to get output from the test runner
+PORT = 11104 # The socket used to get output from the test runner
 
-# Define environment var DEBUG_SWTBOT_RUNNER to print output from test runner.
+# While debugging this script you can define environment variable
+# DEBUG_SWTBOT_RUNNER to print the output from the test runner process.
+# It isn't very useful, but is available for completeness.
 
 def IsWindows():
   return utils.GuessOS() == 'win32'
@@ -28,18 +30,18 @@ def ExtractTestName(line):
 
 
 def GetSocket():
-  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  server_address = ('localhost', port)
-  sock.bind(server_address)
-  sock.listen(1)
-  return sock
+  server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  server_address = ('localhost', PORT)
+  server_socket.bind(server_address)
+  server_socket.listen(1)
+  return server_socket
 
 
 def GetJava():
   java = '/usr/bin/java'
   try:
     javahome = os.environ('JAVA_HOME')
-    java = join(java, 'bin', 'java')
+    java = join(javahome, 'bin', 'java')
   except:
     pass
   return java
@@ -49,23 +51,6 @@ def GetLauncher(build_dir):
   jarpath = 'plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar'
   launcher = join(build_dir, jarpath)
   return launcher
-
-
-def GetOS():
-  os = utils.GuessOS()
-  if os is 'macos':
-    os = 'macosx'
-  return os
-
-
-def GetWS():
-  os = utils.GuessOS()
-  ws = None
-  if os is 'macos':
-    ws = 'cocoa'
-  elif os is 'linux':
-    ws = 'gtk'
-  return ws
 
 
 def ExecTestRunner(tempDir):
@@ -84,11 +69,11 @@ def ExecTestRunner(tempDir):
 
   sock = GetSocket()
   java = GetJava()
-  if not os.path.exists(java):
+  if not exists(java):
     print 'Cannot find java vm'
     return 2, None
   launcher = GetLauncher(build_dir)
-  if not os.path.exists(launcher):
+  if not exists(launcher):
     print 'Cannot find eclipse launcher'
     return 3, None
 
@@ -98,8 +83,18 @@ def ExecTestRunner(tempDir):
   
     # Start DartEditor in a sub process.
     # SWTBot test results will be sent to the socket on the given port.
-    cmd = [
-         java, '-Xms256M', '-Xmx2048M', '-XX:MaxPermSize=256M',
+    os = utils.GuessOS()
+    if os is 'macos':
+      os = 'macosx'
+      ws = 'cocoa'
+      cmd = [java, '-XstartOnFirstThread']
+    elif os is 'linux':
+      ws = 'gtk'
+      cmd = [java]
+    else:
+      return 4, None
+    cmd.extend([
+         '-Xms256M', '-Xmx2048M', '-XX:MaxPermSize=256M',
          '-Dorg.eclipse.swt.internal.carbon.smallFonts',
          '-jar', str(launcher),
          '-testLoaderClass',
@@ -109,14 +104,12 @@ def ExecTestRunner(tempDir):
          'org.eclipse.pde.junit.runtime.nonuithreadtestapplication',
          '-testpluginname', 'com.google.dart.tools.tests.swtbot_test',
          '-data', str(workspace),
-         '-os', GetOS(), '-ws', GetWS(), '-arch', 'x86_64',
-         '-port', str(port),
+         '-os', os, '-ws', ws, '-arch', 'x86_64',
+         '-port', str(PORT),
          '-product', 'com.google.dart.tools.deploy.product',
          '-testApplication', 'com.google.dart.tools.deploy.application',
          '-classNames', 'com.google.dart.tools.tests.swtbot.test.TestAll'
-         ]
-    if GetOS() is 'macosx':
-      cmd[1:1] = ['-XstartOnFirstThread']
+         ])
     editorOutputFile = open(join(str(tempDir), 'editorOutput'), 'w')
     editor = subprocess.Popen(cmd, stdout=editorOutputFile.fileno(),
                               stderr=subprocess.STDOUT, shell=IsWindows())
@@ -154,7 +147,8 @@ def ProcessTestOutput(tmpfile_name):
   status = 0
   skip_lines = False
   with open(tmpfile_name) as file:
-    # This loop is awkward but matches the structure of java code
+    # This loop is awkward but matches the structure of similar java code
+    # in the Dart Editor junit test runner.
     for line in file:
       if line.startswith('%'):
         if line.startswith('%ERROR') or line.startswith('%FAILED'):
