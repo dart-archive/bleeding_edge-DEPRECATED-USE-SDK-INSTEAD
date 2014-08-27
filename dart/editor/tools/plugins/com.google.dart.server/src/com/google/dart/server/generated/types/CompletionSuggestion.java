@@ -261,7 +261,7 @@ public class CompletionSuggestion {
   /**
    * True if the suggested element is deprecated.
    */
-  public Boolean isIsDeprecated() {
+  public Boolean isDeprecated() {
     return isDeprecated;
   }
 
@@ -269,7 +269,7 @@ public class CompletionSuggestion {
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
-  public Boolean isIsPotential() {
+  public Boolean isPotential() {
     return isPotential;
   }
 

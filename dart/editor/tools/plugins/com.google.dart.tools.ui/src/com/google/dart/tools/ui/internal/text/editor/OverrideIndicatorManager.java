@@ -317,7 +317,8 @@ public class OverrideIndicatorManager {
     Map<Annotation, Position> annotationMap = Maps.newHashMap();
     for (OverrideMember override : overrides) {
       boolean isOverride = true;
-      com.google.dart.server.generated.types.Element superElement = override.getSuperclassMember().getElement();
+      com.google.dart.server.generated.types.Element superElement = override.getSuperclassMember() != null
+          ? override.getSuperclassMember().getElement() : null;
       // TODO(scheglov) shouldn't happen, probably because of "implements X"
       if (superElement == null) {
         continue;

@@ -100,7 +100,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  public Boolean isIsAnalyzing() {
+  public Boolean isAnalyzing() {
     return isAnalyzing;
   }
 
