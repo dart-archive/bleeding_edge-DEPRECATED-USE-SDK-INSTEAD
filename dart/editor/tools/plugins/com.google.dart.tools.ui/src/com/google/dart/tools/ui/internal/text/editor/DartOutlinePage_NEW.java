@@ -547,7 +547,12 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       @Override
       public void run() {
         Object[] expandedElements = viewer.getExpandedElements();
-        viewer.setInput(input);
+        ignoreSelectionChangedEvent = true;
+        try {
+          viewer.setInput(input);
+        } finally {
+          ignoreSelectionChangedEvent = false;
+        }
         viewer.setExpandedElements(expandedElements);
         select(offset);
       }
