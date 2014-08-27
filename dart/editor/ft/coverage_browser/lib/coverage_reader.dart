@@ -5,7 +5,7 @@
 library coverage_reader;
 
 import 'dart:collection';
-import 'package:petitparser/xml.dart';
+import 'xml/xml.dart';
 
 import 'numeric_list_parser.dart' as numlist;
 import 'coverage_data.dart';
