@@ -47,6 +47,20 @@ public class ParserTestCase extends EngineTestCase {
   protected static boolean parseFunctionBodies = true;
 
   /**
+   * Create a parser.
+   * 
+   * @param listener the listener to be passed to the parser
+   * @return the parser that was created
+   */
+  public static Parser createParser(GatheringErrorListener listener) {
+    Parser parser = new Parser(null, listener);
+    parser.setParseAsync(true);
+    parser.setParseDeferredLibraries(true);
+    parser.setParseEnum(true);
+    return parser;
+  }
+
+  /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
    * <p>
@@ -146,10 +160,7 @@ public class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    parser.setParseAsync(true);
-    parser.setParseDeferredLibraries(true);
-    parser.setParseEnum(true);
+    Parser parser = createParser(listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     assertNotNull(unit);
     listener.assertErrorsWithCodes(errorCodes);
@@ -172,7 +183,7 @@ public class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     Expression expression = parser.parseExpression(token);
     assertNotNull(expression);
     listener.assertErrorsWithCodes(errorCodes);
@@ -195,7 +206,7 @@ public class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     Statement statement = parser.parseStatement(token);
     assertNotNull(statement);
     listener.assertErrorsWithCodes(errorCodes);
@@ -219,7 +230,7 @@ public class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     List<Statement> statements = parser.parseStatements(token);
     assertSizeOfList(expectedCount, statements);
     listener.assertErrorsWithCodes(errorCodes);
@@ -254,7 +265,7 @@ public class ParserTestCase extends EngineTestCase {
     //
     // Parse the source.
     //
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     parser.setParseFunctionBodies(parseFunctionBodies);
     parser.setParseDeferredLibraries(true);
     parser.setParseAsync(true);

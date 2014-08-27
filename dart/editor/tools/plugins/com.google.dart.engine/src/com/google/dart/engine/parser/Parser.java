@@ -115,6 +115,11 @@ public class Parser {
   private Token currentToken;
 
   /**
+   * A flag indicating whether the parser is currently in a function body marked as being 'async'.
+   */
+  private boolean inAsync = false;
+
+  /**
    * A flag indicating whether the parser is currently in the body of a loop.
    */
   private boolean inLoop = false;
@@ -4041,8 +4046,10 @@ public class Parser {
    */
   private FunctionBody parseFunctionBody(boolean mayBeEmpty, ParserErrorCode emptyErrorCode,
       boolean inExpression) {
+    boolean wasInAsync = inAsync;
     boolean wasInLoop = inLoop;
     boolean wasInSwitch = inSwitch;
+    inAsync = false;
     inLoop = false;
     inSwitch = false;
     try {
@@ -4067,6 +4074,7 @@ public class Parser {
           if (matches(TokenType.STAR)) {
             star = getAndAdvance();
           }
+          inAsync = true;
         } else if (matchesString(SYNC)) {
           keyword = getAndAdvance();
           if (matches(TokenType.STAR)) {
@@ -4110,6 +4118,7 @@ public class Parser {
         return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
+      inAsync = wasInAsync;
       inLoop = wasInLoop;
       inSwitch = wasInSwitch;
     }
@@ -5027,10 +5036,13 @@ public class Parser {
         reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
         return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (parseAsync && matchesString(YIELD)) {
+    } else if (inAsync && matchesString(YIELD)) {
       return parseYieldStatement();
-    } else if (parseAsync && matchesString(AWAIT) && tokenMatchesKeyword(peek(), Keyword.FOR)) {
-      return parseForStatement();
+    } else if (inAsync && matchesString(AWAIT)) {
+      if (tokenMatchesKeyword(peek(), Keyword.FOR)) {
+        return parseForStatement();
+      }
+      return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
@@ -5969,7 +5981,7 @@ public class Parser {
     } else if (matches(TokenType.PLUS)) {
       reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
-    } else if (parseAsync && matchesString(AWAIT)) {
+    } else if (inAsync && matchesString(AWAIT)) {
       return parseAwaitExpression();
     }
     return parsePostfixExpression();
