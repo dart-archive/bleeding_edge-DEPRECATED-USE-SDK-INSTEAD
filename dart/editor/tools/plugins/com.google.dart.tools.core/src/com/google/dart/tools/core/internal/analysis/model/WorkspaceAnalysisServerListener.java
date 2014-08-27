@@ -118,7 +118,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   @Override
   public void serverStatus(AnalysisStatus status) {
     synchronized (statusLock) {
-      if (status.isIsAnalyzing()) {
+      if (status.isAnalyzing()) {
         if (statusJob == null) {
           //
           // Start a build level job to display progress in the status area
