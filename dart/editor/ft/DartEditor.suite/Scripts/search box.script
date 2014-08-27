@@ -1,4 +1,4 @@
-Click "search icon"
+﻿Click "search icon"
 util.typeSlowly "sunflower"
 util.xWait 0.5
 TypeText downArrow
@@ -7,9 +7,12 @@ util.xWaitFor 5, (Text:"(4 matches)",CaseSensitive:"yes",ValidCharacters:"(4matc
 util.searchBox
 util.xWait 0.4
 util.typeSlowly "str"
+set the SearchRectangle to ((800,0),(1920,400))
 Click "Stream async"
 util.xWait 1
+set the SearchRectangle to ((0,0),(1920,400))
 util.xWaitFor 3, "stream tab"
+set the SearchRectangle to ()
 util.closeAllTabs
 util.openWelcomePage
 DoubleClick "dart sdk"

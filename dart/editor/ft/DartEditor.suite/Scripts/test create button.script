@@ -59,9 +59,9 @@ util.xWaitFor 30,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidC
 set the SearchRectangle to ()
 if (util.isLinux()) then
   Click "close window X"
-  Click "close window X"
+  (*Click "close window X"*)
 else if (util.isMacOSX) then
-  util.exitChromium
+  util.doKeyCmd("q")
 end if
 util.deleteProject "sample project"
 util.deleteOutput

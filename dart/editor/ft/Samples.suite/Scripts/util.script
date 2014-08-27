@@ -271,7 +271,11 @@ end openPreferences
 (* With focus in the preference dialog, select the name'd pane *)
 to choosePreference with name
   set loc = ImageLocation (Text: "Preferences")
-  Click loc + (0,30)
+  set x = 0
+  if isMacOSX() then
+    set x = -250
+  end if
+  Click loc + (x,30)
   util.selectAll
   util.cutText
   typetext name
@@ -279,6 +283,7 @@ to choosePreference with name
   typetext downArrow
   set BR = loc + (300, 100)
   if (isMacOSX()) then
+    typetext downArrow
     set loc = loc - (200,0)
   end if
   set the searchRectangle to (loc,BR)
@@ -320,6 +325,7 @@ end stopProcess
 
 (* Force all processes to quit *)
 to killAll
+  init()
   Click (100,100)
   stopProcess()
   Click (800,100)
@@ -328,7 +334,7 @@ to killAll
   stopProcess()
   Click (800,800)
   stopProcess()
-end KillAll
+  end KillAll
 
 to doKeyCmd key
   if isMacOSX()

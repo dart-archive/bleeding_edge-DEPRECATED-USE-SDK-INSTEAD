@@ -41,7 +41,7 @@ util.xWait 30 (* broken launch timing *)
 Click (1000,40) (* work-around for broken debug UX on linux *)
 put the SearchRectangle into origRect
 set the SearchRectangle to ((0,800),(1920,1200))
-util.xWaitFor 10, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+util.xWaitFor 10, (Text:"reaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 set the SearchRectangle to origRect
 util.deleteOutput
 Click "stop debug button"
