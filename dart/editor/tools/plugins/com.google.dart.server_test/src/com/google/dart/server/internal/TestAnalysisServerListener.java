@@ -70,7 +70,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private AnalysisStatus analysisStatus = null;
 
   public synchronized void assertAnalysisStatus(AnalysisStatus expectedStatus) {
-    Assert.assertEquals(expectedStatus.isAnalyzing(), analysisStatus.isAnalyzing());
+    Assert.assertEquals(expectedStatus.isIsAnalyzing(), analysisStatus.isIsAnalyzing());
     Assert.assertEquals(expectedStatus.getAnalysisTarget(), analysisStatus.getAnalysisTarget());
   }
 

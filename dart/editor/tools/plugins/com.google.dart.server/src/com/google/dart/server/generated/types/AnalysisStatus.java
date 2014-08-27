@@ -46,7 +46,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  private final Boolean analyzing;
+  private final Boolean isAnalyzing;
 
   /**
    * The name of the current target of analysis. This field is omitted if analyzing is false.
@@ -56,8 +56,8 @@ public class AnalysisStatus {
   /**
    * Constructor for {@link AnalysisStatus}.
    */
-  public AnalysisStatus(Boolean analyzing, String analysisTarget) {
-    this.analyzing = analyzing;
+  public AnalysisStatus(Boolean isAnalyzing, String analysisTarget) {
+    this.isAnalyzing = isAnalyzing;
     this.analysisTarget = analysisTarget;
   }
 
@@ -66,16 +66,16 @@ public class AnalysisStatus {
     if (obj instanceof AnalysisStatus) {
       AnalysisStatus other = (AnalysisStatus) obj;
       return
-        ObjectUtilities.equals(other.analyzing, analyzing) &&
+        ObjectUtilities.equals(other.isAnalyzing, isAnalyzing) &&
         ObjectUtilities.equals(other.analysisTarget, analysisTarget);
     }
     return false;
   }
 
   public static AnalysisStatus fromJson(JsonObject jsonObject) {
-    Boolean analyzing = jsonObject.get("analyzing").getAsBoolean();
+    Boolean isAnalyzing = jsonObject.get("isAnalyzing").getAsBoolean();
     String analysisTarget = jsonObject.get("analysisTarget") == null ? null : jsonObject.get("analysisTarget").getAsString();
-    return new AnalysisStatus(analyzing, analysisTarget);
+    return new AnalysisStatus(isAnalyzing, analysisTarget);
   }
 
   public static List<AnalysisStatus> fromJsonArray(JsonArray jsonArray) {
@@ -100,21 +100,21 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  public Boolean isAnalyzing() {
-    return analyzing;
+  public Boolean isIsAnalyzing() {
+    return isAnalyzing;
   }
 
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(analyzing);
+    builder.append(isAnalyzing);
     builder.append(analysisTarget);
     return builder.toHashCode();
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    jsonObject.addProperty("analyzing", analyzing);
+    jsonObject.addProperty("isAnalyzing", isAnalyzing);
     if (analysisTarget != null) {
       jsonObject.addProperty("analysisTarget", analysisTarget);
     }
@@ -125,8 +125,8 @@ public class AnalysisStatus {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
-    builder.append("analyzing=");
-    builder.append(analyzing + ", ");
+    builder.append("isAnalyzing=");
+    builder.append(isAnalyzing + ", ");
     builder.append("analysisTarget=");
     builder.append(analysisTarget);
     builder.append("]");

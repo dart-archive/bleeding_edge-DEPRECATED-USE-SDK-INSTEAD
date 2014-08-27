@@ -95,7 +95,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     @Override
     public void serverStatus(AnalysisStatus analysisStatus) {
       if (analysisStatus != null) {
-        isAnalyzing = analysisStatus.isAnalyzing();
+        isAnalyzing = analysisStatus.isIsAnalyzing();
       }
     }
   }
