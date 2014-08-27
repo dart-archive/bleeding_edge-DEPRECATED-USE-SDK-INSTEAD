@@ -1,5 +1,6 @@
 barback-*
 fake_async
+async_await
 petitparser
 source_maps-*
 
