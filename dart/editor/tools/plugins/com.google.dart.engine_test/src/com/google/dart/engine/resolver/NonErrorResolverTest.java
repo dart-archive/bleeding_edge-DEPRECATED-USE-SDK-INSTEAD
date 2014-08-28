@@ -3748,8 +3748,11 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_typeParameter_18468() throws Exception {
-    // This test verifies that T << Type where T is a type parameter and Type is the type Type from
-    // core, this particular test case comes from issue 18468 which depends on this fact.
+    // https://code.google.com/p/dart/issues/detail?id=18468
+    //
+    // This test verifies that the type of T is more specific than Type,
+    // where T is a type parameter and Type is the type Type from
+    // core, this particular test case comes from issue 18468.
     //
     // A test cannot be added to TypeParameterTypeImplTest since the types returned out of the
     // TestTypeProvider don't have a mock 'dart.core' enclosing library element.

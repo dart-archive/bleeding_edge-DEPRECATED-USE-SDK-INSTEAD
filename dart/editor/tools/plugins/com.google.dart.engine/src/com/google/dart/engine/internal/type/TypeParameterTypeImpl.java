@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.internal.type;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.type.Type;
@@ -35,11 +33,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
    * An empty array of type parameter types.
    */
   public static final TypeParameterType[] EMPTY_ARRAY = new TypeParameterType[0];
-
-  /**
-   * The name of the type Type from dart.core.
-   */
-  private static final String TYPE_CLASS_NAME = "Type"; //$NON-NLS-1$
 
   /**
    * Return an array containing the type parameter types defined by the given array of type
@@ -132,15 +125,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
 
   private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
-    //
-    // If s is of type Type from dart.core, return true
-    //
-    Element sElement = s.getElement();
-    LibraryElement sLibrary = sElement != null ? sElement.getLibrary() : null;
-    if (sLibrary != null && sLibrary.isDartCore() && s.getName().equals(TYPE_CLASS_NAME)) {
-      return true;
-    }
-
     //
     // T is a type parameter and S is the upper bound of T.
     //
