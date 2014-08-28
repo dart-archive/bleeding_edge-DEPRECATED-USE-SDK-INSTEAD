@@ -60,19 +60,18 @@ public class Outline {
    */
   private final Integer length;
 
-  /**
-   * The children of the node. The field will be omitted if the node has no children.
-   */
-  private final List<Outline> children;
+  private final Outline parent;
+
+  private List<Outline> children;
 
   /**
    * Constructor for {@link Outline}.
    */
-  public Outline(Element element, Integer offset, Integer length, List<Outline> children) {
+  public Outline(Outline parent, Element element, Integer offset, Integer length) {
+    this.parent = parent;
     this.element = element;
     this.offset = offset;
     this.length = length;
-    this.children = children;
   }
 
   public boolean containsInclusive(int x) {
@@ -92,25 +91,28 @@ public class Outline {
     return false;
   }
 
-  public static Outline fromJson(JsonObject jsonObject) {
-    Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
-    List<Outline> children = jsonObject.get("children") == null ? null : Outline.fromJsonArray(jsonObject.get("children").getAsJsonArray());
-    return new Outline(element, offset, length, children);
-  }
+  private Outline fromJson(Outline parent, JsonObject outlineObject) {
+      JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
+      Element element = Element.fromJson(elementObject);
+      int offset = outlineObject.get("offset").getAsInt();
+      int length = outlineObject.get("length").getAsInt();
 
-  public static List<Outline> fromJsonArray(JsonArray jsonArray) {
-    if (jsonArray == null) {
-      return EMPTY_LIST;
+      // create outline object
+      Outline outline = new Outline(parent, element, offset, length);
+
+      // compute children recursively
+      List<Outline> childrenList = Lists.newArrayList();
+      JsonElement childrenJsonArray = outlineObject.get("children");
+      if (childrenJsonArray instanceof JsonArray) {
+        Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
+        while (childrenElementIterator.hasNext()) {
+          JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+          childrenList.add(fromJson(outline, childObject));
+        }
+      }
+      outline.setChildren(childrenList);
+      return outline;
     }
-    ArrayList<Outline> list = new ArrayList<Outline>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
-    }
-    return list;
-  }
 
   /**
    * The children of the node. The field will be omitted if the node has no children.
@@ -152,20 +154,9 @@ public class Outline {
     return builder.toHashCode();
   }
 
-  public JsonObject toJson() {
-    JsonObject jsonObject = new JsonObject();
-    jsonObject.add("element", element.toJson());
-    jsonObject.addProperty("offset", offset);
-    jsonObject.addProperty("length", length);
-    if (children != null) {
-      JsonArray jsonArrayChildren = new JsonArray();
-      for(Outline elt : children) {
-        jsonArrayChildren.add(elt.toJson());
-      }
-      jsonObject.add("children", jsonArrayChildren);
+  public void setChildren(List<Outline> children) {
+      this.children = children;
     }
-    return jsonObject;
-  }
 
   @Override
   public String toString() {
