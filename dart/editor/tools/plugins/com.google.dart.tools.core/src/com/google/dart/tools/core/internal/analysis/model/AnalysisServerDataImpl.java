@@ -278,6 +278,21 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   /**
+   * Clears all information associated with the given files.
+   */
+  void internalFlushResults(List<String> files) {
+    for (String file : files) {
+      highlightsSubscriptions.remove(file);
+      outlineSubscriptions.remove(file);
+      overridesSubscriptions.remove(file);
+      errorData.remove(file);
+      navigationData.remove(file);
+      occurrencesData.remove(file);
+      analysisSubscriptions.remove(file);
+    }
+  }
+
+  /**
    * Remembers the {@link ErrorCode} that may be fixed in the given context.
    */
   void internalSetFixableErrorCodes(String file, ErrorCode[] errorCodes) {

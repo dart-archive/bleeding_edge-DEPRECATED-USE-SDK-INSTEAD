@@ -41,7 +41,7 @@ import java.util.List;
  */
 public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   private final AnalysisServerDataImpl dataImpl;
-  private DartProjectManager projectManager;
+  private final DartProjectManager projectManager;
 
   private final Object statusLock = new Object();
   private boolean statusAnalyzing = false;
@@ -62,13 +62,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   @Override
   public void computedErrors(String filePath, AnalysisError[] errors) {
     dataImpl.internalComputedErrors(filePath, errors);
-    File file = new File(filePath);
-    if (file.exists()) {
-      IResource resource = ResourceUtil.getResource(file);
-      if (resource != null) {
-        AnalysisMarkerManager_NEW.getInstance().queueErrors(resource, errors);
-      }
-    }
+    scheduleResourceErrorMarkersUpdate(filePath, errors);
   }
 
   @Override
@@ -103,6 +97,12 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void flushedResults(List<String> files) {
+    // clear information
+    dataImpl.internalFlushResults(files);
+    // remove markers
+    for (String file : files) {
+      scheduleResourceErrorMarkersUpdate(file, AnalysisError.EMPTY_ARRAY);
+    }
   }
 
   @Override
@@ -142,6 +142,16 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
           statusAnalyzing = false;
           statusLock.notifyAll();
         }
+      }
+    }
+  }
+
+  private void scheduleResourceErrorMarkersUpdate(String filePath, AnalysisError[] errors) {
+    File file = new File(filePath);
+    if (file.exists()) {
+      IResource resource = ResourceUtil.getResource(file);
+      if (resource != null) {
+        AnalysisMarkerManager_NEW.getInstance().queueErrors(resource, errors);
       }
     }
   }
