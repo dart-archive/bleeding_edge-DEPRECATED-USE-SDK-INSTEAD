@@ -22,7 +22,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -438,11 +438,24 @@ public class PubYamlUtils {
   @SuppressWarnings("unchecked")
   public static Map<String, Object> parsePubspecYamlToMap(String contents) throws ScannerException {
     Yaml yaml = new Yaml(
-        new Constructor(),
+        new SafeConstructor(),
         new Representer(),
         new DumperOptions(),
         new CustomResolver());
-    Object o = yaml.load(contents);
+    // https://code.google.com/p/dart/issues/detail?id=20712
+    //
+    // [org.json.JSONObject] escapes "</" to "<\\/" which breaks [yaml.load], because
+    // escaped forward slashes are part of JSON but not part of YAML:
+    // http://en.wikipedia.org/wiki/JSON#YAML .
+    //
+    // Experiments with [JSONObject] indicate that only "/" after "<" is escaped
+    // by [JSONObject]; a lone "/" is not escaped, and it would be dangerous to
+    // instead do [contents.replace("\\/", "/")] here, since then e.g.
+    //
+    //   \\/ --JSONObject--> \\\\/ --here--> \\/ --SnakeYAML--> Error
+    //
+    // would be wrong.
+    Object o = yaml.load(contents.replace("<\\/", "</"));
     Map<String, Object> map = new HashMap<String, Object>();
     if (o instanceof Map) {
       map.putAll((Map<String, Object>) o);
