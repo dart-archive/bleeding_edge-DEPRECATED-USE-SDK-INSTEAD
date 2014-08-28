@@ -2092,7 +2092,14 @@ public class Parser {
     if (afterParameters == null) {
       return false;
     }
-    return afterParameters.matchesAny(TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION);
+    if (afterParameters.matchesAny(TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION)) {
+      return true;
+    }
+    if (parseAsync) {
+      String lexeme = afterParameters.getLexeme();
+      return lexeme.equals(ASYNC) || lexeme.equals(SYNC);
+    }
+    return false;
   }
 
   /**

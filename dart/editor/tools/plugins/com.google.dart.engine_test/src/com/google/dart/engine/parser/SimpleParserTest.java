@@ -2405,6 +2405,38 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getRightOperand());
   }
 
+  public void test_parseExpression_function_async() throws Exception {
+    FunctionExpression expression = parseExpression("() async {}");
+    assertNotNull(expression.getBody());
+    assertTrue(expression.getBody().isAsynchronous());
+    assertFalse(expression.getBody().isGenerator());
+    assertNotNull(expression.getParameters());
+  }
+
+  public void test_parseExpression_function_asyncStar() throws Exception {
+    FunctionExpression expression = parseExpression("() async* {}");
+    assertNotNull(expression.getBody());
+    assertTrue(expression.getBody().isAsynchronous());
+    assertTrue(expression.getBody().isGenerator());
+    assertNotNull(expression.getParameters());
+  }
+
+  public void test_parseExpression_function_sync() throws Exception {
+    FunctionExpression expression = parseExpression("() {}");
+    assertNotNull(expression.getBody());
+    assertFalse(expression.getBody().isAsynchronous());
+    assertFalse(expression.getBody().isGenerator());
+    assertNotNull(expression.getParameters());
+  }
+
+  public void test_parseExpression_function_syncStar() throws Exception {
+    FunctionExpression expression = parseExpression("() sync* {}");
+    assertNotNull(expression.getBody());
+    assertFalse(expression.getBody().isAsynchronous());
+    assertTrue(expression.getBody().isGenerator());
+    assertNotNull(expression.getParameters());
+  }
+
   public void test_parseExpression_invokeFunctionExpression() throws Exception {
     FunctionExpressionInvocation invocation = parse("parseExpression", "(a) {return a + a;} (3)");
     assertInstanceOf(FunctionExpression.class, invocation.getFunction());
@@ -3174,12 +3206,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getBody());
     assertNotNull(expression.getParameters());
     assertNull(((ExpressionFunctionBody) expression.getBody()).getSemicolon());
-  }
-
-  public void test_parseFunctionExpression_minimal() throws Exception {
-    FunctionExpression expression = parse("parseFunctionExpression", "() {}");
-    assertNotNull(expression.getBody());
-    assertNotNull(expression.getParameters());
   }
 
   public void test_parseGetter_nonStatic() throws Exception {
