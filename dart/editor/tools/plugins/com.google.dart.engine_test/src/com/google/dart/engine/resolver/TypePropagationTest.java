@@ -1132,6 +1132,47 @@ public class TypePropagationTest extends ResolverTestCase {
         getTypeProvider().getIntType());
   }
 
+  public void test_objectMethodOnDynamicExpression_doubleEquals() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    //
+    // This was not actually part of Issue 20342, since the spec specifies a
+    // static type of [bool] for [==] comparison and the implementation
+    // was already consistent with the spec there. But, it's another
+    // [Object] method, so it's included here.
+    assertTypeOfMarkedExpression(createSource(//
+        "f1(x) {",
+        "  var v = (x == x);",
+        "  return v; // marker",
+        "}"), null, getTypeProvider().getBoolType());
+  }
+
+  public void test_objectMethodOnDynamicExpression_hashCode() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    assertTypeOfMarkedExpression(createSource(//
+        "f1(x) {",
+        "  var v = x.hashCode;",
+        "  return v; // marker",
+        "}"), null, getTypeProvider().getIntType());
+  }
+
+  public void test_objectMethodOnDynamicExpression_runtimeType() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    assertTypeOfMarkedExpression(createSource(//
+        "f1(x) {",
+        "  var v = x.runtimeType;",
+        "  return v; // marker",
+        "}"), null, getTypeProvider().getTypeType());
+  }
+
+  public void test_objectMethodOnDynamicExpression_toString() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    assertTypeOfMarkedExpression(createSource(//
+        "f1(x) {",
+        "  var v = x.toString();",
+        "  return v; // marker",
+        "}"), null, getTypeProvider().getStringType());
+  }
+
   public void test_propagatedReturnType_function_hasReturnType_returnsNull() throws Exception {
     String code = createSource(//
         "String f() => null;",

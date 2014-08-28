@@ -921,6 +921,12 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     }
     if (needPropagatedType) {
       Element propagatedElement = methodNameNode.getPropagatedElement();
+      // HACK: special case for object methods ([toString]) on dynamic expressions.
+      // More special cases in [visitPrefixedIdentfier].
+      if (propagatedElement == null) {
+        propagatedElement = typeProvider.getObjectType().getMethod(methodNameNode.getName());
+      }
+
       if (propagatedElement != staticMethodElement) {
         // Record static return type of the propagated element.
         Type propagatedStaticType = computeStaticReturnType(propagatedElement);
@@ -1049,6 +1055,12 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     recordStaticType(node, staticType);
 
     Element propagatedElement = prefixedIdentifier.getPropagatedElement();
+    // HACK: special case for object getters ([hashCode] and [runtimeType]) on dynamic expressions.
+    // More special cases in [visitMethodInvocation].
+    if (propagatedElement == null) {
+      propagatedElement = typeProvider.getObjectType().getGetter(prefixedIdentifier.getName());
+    }
+
     if (propagatedElement instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
         propagatedType = ((ClassElement) propagatedElement).getType();
