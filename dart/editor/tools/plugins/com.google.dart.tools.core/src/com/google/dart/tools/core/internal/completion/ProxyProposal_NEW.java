@@ -14,11 +14,14 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.engine.services.util.DartDocUtilities;
-import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.CompletionSuggestionKind;
+import com.google.dart.server.generated.types.CompletionRelevance;
+import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.tools.core.completion.CompletionProposal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import java.util.List;
 
 /**
  * Wrap String-based completion proposals for use in legacy char[]-based client code.
@@ -66,56 +69,55 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public String getElementDocDetails() {
-    String detailsText = suggestion.getElementDocDetails();
-    return DartDocUtilities.getDartDocAsHtml(detailsText);
+    return DartDocUtilities.getDartDocAsHtml(suggestion.getDocComplete());
   }
 
   @Override
   public String getElementDocSummary() {
-    return suggestion.getElementDocSummary();
+    return suggestion.getDocSummary();
   }
 
   @Override
   public int getKind() {
-    switch (suggestion.getKind()) {
-      case ARGUMENT_LIST:
-        return CompletionProposal.ARGUMENT_LIST;
-      case CLASS:
-        return CompletionProposal.TYPE_REF;
-      case CLASS_ALIAS:
-        return CompletionProposal.TYPE_REF;
-      case CONSTRUCTOR:
-        return CompletionProposal.METHOD_REF;
-      case FIELD:
-        return CompletionProposal.FIELD_REF;
-      case FUNCTION:
-        return CompletionProposal.METHOD_REF;
-      case FUNCTION_TYPE_ALIAS:
-        return CompletionProposal.TYPE_REF;
-      case GETTER:
-        return CompletionProposal.FIELD_REF;
-      case IMPORT:
-        return CompletionProposal.TYPE_IMPORT;
-      case LIBRARY_PREFIX:
-        return CompletionProposal.LIBRARY_PREFIX;
-      case LOCAL_VARIABLE:
-        return CompletionProposal.LOCAL_VARIABLE_REF;
-      case METHOD:
-        return CompletionProposal.METHOD_REF;
-      case METHOD_NAME:
-        return CompletionProposal.METHOD_NAME_REFERENCE;
-      case OPTIONAL_ARGUMENT:
-        return CompletionProposal.OPTIONAL_ARGUMENT;
-      case NAMED_ARGUMENT:
-        return CompletionProposal.NAMED_ARGUMENT;
-      case PARAMETER:
-        return CompletionProposal.LOCAL_VARIABLE_REF;
-      case SETTER:
-        return CompletionProposal.FIELD_REF;
-      case TYPE_PARAMETER:
-        return CompletionProposal.TYPE_REF;
-      default:
-        return 0;
+    String kind = suggestion.getKind();
+    if (kind.equals(CompletionSuggestionKind.ARGUMENT_LIST)) {
+      return CompletionProposal.ARGUMENT_LIST;
+    } else if (kind.equals(CompletionSuggestionKind.CLASS)) {
+      return CompletionProposal.TYPE_REF;
+    } else if (kind.equals(CompletionSuggestionKind.CLASS_ALIAS)) {
+      return CompletionProposal.TYPE_REF;
+    } else if (kind.equals(CompletionSuggestionKind.CONSTRUCTOR)) {
+      return CompletionProposal.METHOD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.FIELD)) {
+      return CompletionProposal.FIELD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.FUNCTION)) {
+      return CompletionProposal.METHOD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.FUNCTION_TYPE_ALIAS)) {
+      return CompletionProposal.TYPE_REF;
+    } else if (kind.equals(CompletionSuggestionKind.GETTER)) {
+      return CompletionProposal.FIELD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.IMPORT)) {
+      return CompletionProposal.TYPE_IMPORT;
+    } else if (kind.equals(CompletionSuggestionKind.LIBRARY_PREFIX)) {
+      return CompletionProposal.LIBRARY_PREFIX;
+    } else if (kind.equals(CompletionSuggestionKind.LOCAL_VARIABLE)) {
+      return CompletionProposal.LOCAL_VARIABLE_REF;
+    } else if (kind.equals(CompletionSuggestionKind.METHOD)) {
+      return CompletionProposal.METHOD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.METHOD_NAME)) {
+      return CompletionProposal.METHOD_NAME_REFERENCE;
+    } else if (kind.equals(CompletionSuggestionKind.OPTIONAL_ARGUMENT)) {
+      return CompletionProposal.OPTIONAL_ARGUMENT;
+    } else if (kind.equals(CompletionSuggestionKind.NAMED_ARGUMENT)) {
+      return CompletionProposal.NAMED_ARGUMENT;
+    } else if (kind.equals(CompletionSuggestionKind.PARAMETER)) {
+      return CompletionProposal.LOCAL_VARIABLE_REF;
+    } else if (kind.equals(CompletionSuggestionKind.SETTER)) {
+      return CompletionProposal.FIELD_REF;
+    } else if (kind.equals(CompletionSuggestionKind.TYPE_PARAMETER)) {
+      return CompletionProposal.TYPE_REF;
+    } else {
+      return 0;
     }
   }
 
@@ -154,7 +156,14 @@ public class ProxyProposal_NEW extends CompletionProposal {
     if (suggestion.getCompletion().startsWith("$dom_")) {
       return -1;
     } else {
-      return suggestion.getRelevance().ordinal();
+      String relevance = suggestion.getRelevance();
+      if (relevance.equals(CompletionRelevance.LOW)) {
+        return 0;
+      } else if (relevance.equals(CompletionRelevance.DEFAULT)) {
+        return 1;
+      } else {
+        return 2;
+      }
     }
   }
 
@@ -185,17 +194,23 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public boolean hasNamedParameters() {
-    return suggestion.hasNamed();
+    int numOfParams = suggestion.getParameterNames() != null
+        ? suggestion.getParameterNames().size() : 0;
+    if (numOfParams == 0) {
+      return false;
+    }
+    return (numOfParams - suggestion.getRequiredParameterCount() - suggestion.getPositionalParameterCount()) > 0;
+
   }
 
   @Override
   public boolean hasOptionalParameters() {
-    return suggestion.hasPositional() || suggestion.hasNamed();
+    return suggestion.getPositionalParameterCount() > 0 || hasNamedParameters();
   }
 
   @Override
   public boolean isConstructor() {
-    return suggestion.getKind() == CompletionSuggestionKind.CONSTRUCTOR;
+    return suggestion.getKind().equals(CompletionSuggestionKind.CONSTRUCTOR);
   }
 
   @Override
@@ -204,7 +219,7 @@ public class ProxyProposal_NEW extends CompletionProposal {
   }
 
   public boolean isGetter() {
-    return suggestion.getKind() == CompletionSuggestionKind.GETTER;
+    return suggestion.getKind().equals(CompletionSuggestionKind.GETTER);
   }
 
   @Override
@@ -213,13 +228,15 @@ public class ProxyProposal_NEW extends CompletionProposal {
   }
 
   public boolean isSetter() {
-    return suggestion.getKind() == CompletionSuggestionKind.SETTER;
+    return suggestion.getKind().equals(CompletionSuggestionKind.SETTER);
   }
 
-  private char[][] copyStrings(String[] strings) {
-    char[][] chars = new char[strings.length][];
-    for (int i = 0; i < strings.length; i++) {
-      chars[i] = strings[i].toCharArray();
+  private char[][] copyStrings(List<String> strings) {
+    char[][] chars = new char[strings.size()][];
+    int i = 0;
+    for (String s : strings) {
+      chars[i] = s.toCharArray();
+      i++;
     }
     return chars;
   }

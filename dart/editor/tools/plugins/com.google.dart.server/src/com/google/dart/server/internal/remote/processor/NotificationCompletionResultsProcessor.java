@@ -13,18 +13,11 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.CompletionRelevance;
-import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.CompletionSuggestionKind;
-import com.google.dart.server.internal.CompletionSuggestionImpl;
+import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -33,15 +26,6 @@ import java.util.List;
  * @coverage dart.server.remote
  */
 public class NotificationCompletionResultsProcessor extends NotificationProcessor {
-
-  /**
-   * Return the {@link CompletionSuggestionKind} code for the given name. If the passed name cannot
-   * be found, an {@link IllegalArgumentException} is thrown.
-   */
-  @VisibleForTesting
-  public static CompletionSuggestionKind getCompletionSuggestionKind(String kindName) {
-    return CompletionSuggestionKind.valueOf(kindName);
-  }
 
   public NotificationCompletionResultsProcessor(AnalysisServerListener listener) {
     super(listener);
@@ -68,51 +52,7 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
   }
 
   private CompletionSuggestion[] constructCompletions(JsonArray resultsArray) {
-    Iterator<JsonElement> completionObjectIterator = resultsArray.iterator();
-    List<CompletionSuggestion> completions = Lists.newArrayList();
-    while (completionObjectIterator.hasNext()) {
-      JsonObject completionObject = completionObjectIterator.next().getAsJsonObject();
-      CompletionSuggestionKind kind = getCompletionSuggestionKind(completionObject.get("kind").getAsString());
-      CompletionRelevance relevance = CompletionRelevance.valueOf(completionObject.get("relevance").getAsString());
-      String completion = completionObject.get("completion").getAsString();
-      int selectionOffset = completionObject.get("selectionOffset").getAsInt();
-      int selectionLength = completionObject.get("selectionLength").getAsInt();
-      boolean isDeprecated = completionObject.get("isDeprecated").getAsBoolean();
-      boolean isPotential = completionObject.get("isPotential").getAsBoolean();
-      // optional parameters
-      String docSummary = safelyGetAsString(completionObject, "docSummary");
-      String docComplete = safelyGetAsString(completionObject, "docComplete");
-      String declaringType = safelyGetAsString(completionObject, "declaringType");
-      String returnType = safelyGetAsString(completionObject, "returnType");
-      String[] parameterNames = constructStringArray(safelyGetAsJsonArray(
-          completionObject,
-          "parameterNames"));
-      String[] parameterTypes = constructStringArray(safelyGetAsJsonArray(
-          completionObject,
-          "parameterTypes"));
-      int requiredParameterCount = safelyGetAsInt(completionObject, "requiredParameterCount", 0);
-      int positionalParameterCount = safelyGetAsInt(completionObject, "positionalParameterCount", 0);
-      String parameterName = safelyGetAsString(completionObject, "parameterName");
-      String parameterType = safelyGetAsString(completionObject, "parameterType");
-      completions.add(new CompletionSuggestionImpl(
-          kind,
-          relevance,
-          completion,
-          selectionOffset,
-          selectionLength,
-          isDeprecated,
-          isPotential,
-          docSummary,
-          docComplete,
-          declaringType,
-          returnType,
-          parameterNames,
-          parameterTypes,
-          requiredParameterCount,
-          positionalParameterCount,
-          parameterName,
-          parameterType));
-    }
+    List<CompletionSuggestion> completions = CompletionSuggestion.fromJsonArray(resultsArray);
     return completions.toArray(new CompletionSuggestion[completions.size()]);
   }
 }
