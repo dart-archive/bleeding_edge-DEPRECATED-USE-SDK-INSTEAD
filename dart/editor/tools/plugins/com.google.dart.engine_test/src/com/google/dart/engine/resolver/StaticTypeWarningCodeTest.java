@@ -252,7 +252,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAssignment_regressionInR35501() throws Exception {
+  public void test_invalidAssignment_regressionInIssue18468Fix() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=18628
     Source source = addSource(createSource(//
         "class C<T> {",
@@ -628,7 +628,8 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_typeArgumentNotMatchingBounds_extends_regressionInR35501() throws Exception {
+  public void test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix()
+      throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=18628
     Source source = addSource(createSource(//
         "class X<T extends Type> {}",
