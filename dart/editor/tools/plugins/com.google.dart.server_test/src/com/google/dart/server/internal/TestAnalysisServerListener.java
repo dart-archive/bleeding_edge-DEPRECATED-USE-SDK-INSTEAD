@@ -145,13 +145,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public synchronized void computedCompletion(String completionId, int replacementOffset,
-      int replacementLength, List<CompletionSuggestion> suggestions, boolean last) {
+      int replacementLength, List<CompletionSuggestion> suggestions, boolean isLast) {
     // computed completion results are aggregate, replacing any prior results
     completionsMap.put(completionId, new CompletionResult(
         replacementOffset,
         replacementLength,
         suggestions,
-        last));
+        isLast));
   }
 
   @Override

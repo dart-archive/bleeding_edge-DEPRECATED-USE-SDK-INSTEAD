@@ -32,7 +32,7 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
 
   @Override
   public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
-      List<CompletionSuggestion> completions, boolean last) {
+      List<CompletionSuggestion> completions, boolean isLast) {
   }
 
   @Override

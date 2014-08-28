@@ -39,13 +39,13 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
     JsonArray resultsArray = paramsObject.get("results").getAsJsonArray();
     int replacementOffset = paramsObject.get("replacementOffset").getAsInt();
     int replacementLength = paramsObject.get("replacementLength").getAsInt();
-    boolean last = paramsObject.get("last").getAsBoolean();
+    boolean isLast = paramsObject.get("isLast").getAsBoolean();
     // compute outline and notify listener
     getListener().computedCompletion(
         completionId,
         replacementOffset,
         replacementLength,
         CompletionSuggestion.fromJsonArray(resultsArray),
-        last);
+        isLast);
   }
 }

@@ -43,11 +43,11 @@ public interface AnalysisServerListener {
    *          identifier containing the cursor is to be replaced when the suggestion is applied
    *          (that is, the number of characters in the existing identifier).
    * @param completions the completion suggestions being reported
-   * @param last {@code true} if this is the last set of results that will be returned for the
+   * @param isLast {@code true} if this is the last set of results that will be returned for the
    *          indicated completion
    */
   public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
-      List<CompletionSuggestion> completions, boolean last);
+      List<CompletionSuggestion> completions, boolean isLast);
 
   /**
    * Reports the errors associated with a given file.

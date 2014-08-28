@@ -49,7 +49,7 @@ public class AnalyzeEngineInServer extends TimingTest {
 
     @Override
     public void computedCompletion(String completionId, int replacementOffset,
-        int replacementLength, List<CompletionSuggestion> completions, boolean last) {
+        int replacementLength, List<CompletionSuggestion> completions, boolean isLast) {
     }
 
     @Override
