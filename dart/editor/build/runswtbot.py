@@ -10,6 +10,7 @@ import sys
 import os
 import subprocess
 from os.path import join, exists
+from os import getenv
 
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
@@ -132,7 +133,7 @@ def ExecTestRunner(tempDir):
       editorOutputFile.close()
       editor.terminate()
 
-  if os.getenv('DEBUG_SWTBOT_RUNNER'):
+  if getenv('DEBUG_SWTBOT_RUNNER'):
     out = open(editorOutputFile.name, 'r')
     print out.readlines()
     out.close()
