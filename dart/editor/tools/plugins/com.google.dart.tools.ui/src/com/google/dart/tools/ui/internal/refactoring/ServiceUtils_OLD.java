@@ -45,7 +45,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
@@ -77,7 +77,7 @@ import java.util.Set;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ServiceUtils {
+public class ServiceUtils_OLD {
   /**
    * @return the {@link CoreException} wrapper around given {@link Throwable}.
    */
@@ -297,19 +297,19 @@ public class ServiceUtils {
   }
 
   /**
-   * @return the {@link LinkedCorrectionProposal} for the given {@link SourceCorrectionProposal}.
+   * @return the {@link LinkedCorrectionProposal_OLD} for the given {@link SourceCorrectionProposal}.
    */
-  public static LinkedCorrectionProposal toUI(SourceCorrectionProposal sourceProposal) {
+  public static LinkedCorrectionProposal_OLD toUI(SourceCorrectionProposal sourceProposal) {
     // prepare TextChange
     SourceChange sourceChange = sourceProposal.getChange();
-    TextChange textChange = ServiceUtils.toLTK(sourceChange);
+    TextChange textChange = ServiceUtils_OLD.toLTK(sourceChange);
     if (textChange == null) {
       return null;
     }
     // prepare UI proposal
     CorrectionKind kind = sourceProposal.getKind();
-    Image image = ServiceUtils.toLTK(kind.getImage());
-    LinkedCorrectionProposal uiProposal = new LinkedCorrectionProposal(
+    Image image = ServiceUtils_OLD.toLTK(kind.getImage());
+    LinkedCorrectionProposal_OLD uiProposal = new LinkedCorrectionProposal_OLD(
         sourceProposal.getName(),
         sourceChange.getSource(),
         textChange,

@@ -23,8 +23,8 @@ import org.eclipse.swt.graphics.Image;
  * A proposal for quick fixes and quick assists that applies change and enters the linked mode when
  * the proposal is set up.
  */
-public class LinkedCorrectionProposal extends CUCorrectionProposal {
-  public LinkedCorrectionProposal(String name, Source source, TextChange change, int relevance,
+public class LinkedCorrectionProposal_OLD extends CUCorrectionProposal_OLD {
+  public LinkedCorrectionProposal_OLD(String name, Source source, TextChange change, int relevance,
       Image image) {
     super(name, source, change, relevance, image);
   }

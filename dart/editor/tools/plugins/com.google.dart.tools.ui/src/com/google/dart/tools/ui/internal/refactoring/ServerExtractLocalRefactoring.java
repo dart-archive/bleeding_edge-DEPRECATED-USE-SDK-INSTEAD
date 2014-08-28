@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.status.RefactoringStatus;
 
-import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
+import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD.toLTK;
 
 /**
  * LTK wrapper around Analysis Server 'Extract Local' refactoring.

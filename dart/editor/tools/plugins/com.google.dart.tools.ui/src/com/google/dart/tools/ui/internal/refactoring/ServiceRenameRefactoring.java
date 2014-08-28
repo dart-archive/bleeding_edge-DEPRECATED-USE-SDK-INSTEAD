@@ -20,7 +20,7 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 
-import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
+import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD.toLTK;
 
 /**
  * LTK wrapper around Engine Services {@link RenameRefactoring}.

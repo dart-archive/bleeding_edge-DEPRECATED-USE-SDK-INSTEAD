@@ -33,8 +33,8 @@ import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
-import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -56,14 +56,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Test for {@link ServiceUtils}.
+ * Test for {@link ServiceUtils_OLD}.
  */
 public class ServiceUtilsTest extends AbstractDartTest {
   private final IProgressMonitor NULL_PM = new NullProgressMonitor();
 
   public void test_createCoreException() throws Exception {
     Throwable e = new Throwable("msg");
-    CoreException coreException = ServiceUtils.createCoreException(e);
+    CoreException coreException = ServiceUtils_OLD.createCoreException(e);
     assertSame(e, coreException.getCause());
     // status
     IStatus status = coreException.getStatus();
@@ -81,7 +81,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
         sourceChangeA,
         sourceChangeB);
     // toLTK
-    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(compositeChange);
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils_OLD.toLTK(compositeChange);
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
@@ -97,7 +97,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
         sourceChangeA,
         sourceChangeB);
     // toLTK
-    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(compositeChange);
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils_OLD.toLTK(compositeChange);
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
@@ -119,7 +119,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
         compositeChangeA,
         compositeChangeB);
     // toLTK
-    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(mergeChange);
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils_OLD.toLTK(mergeChange);
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
@@ -143,7 +143,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
         compositeChangeA,
         compositeChangeB);
     // toLTK
-    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(mergeChange);
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils_OLD.toLTK(mergeChange);
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
@@ -158,7 +158,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChange.addEdit(new Edit(10, 1, "a"));
     sourceChange.addEdit(new Edit(20, 2, "b"));
     // toLTK
-    TextFileChange ltkChange = (TextFileChange) ServiceUtils.toLTK((Change) sourceChange);
+    TextFileChange ltkChange = (TextFileChange) ServiceUtils_OLD.toLTK((Change) sourceChange);
     assertEquals("My change", ltkChange.getName());
   }
 
@@ -170,13 +170,13 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChange.addEdit(new Edit(20, 2, "b"));
     // no IFile for this Source, so no LTK change
     {
-      org.eclipse.ltk.core.refactoring.Change ltkChange = ServiceUtils.toLTK(sourceChange);
+      org.eclipse.ltk.core.refactoring.Change ltkChange = ServiceUtils_OLD.toLTK(sourceChange);
       assertNull(ltkChange);
     }
     // try as part of CompositeChange
     {
       CompositeChange compositeChange = new CompositeChange("My composite change", sourceChange);
-      org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = ServiceUtils.toLTK(compositeChange);
+      org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = ServiceUtils_OLD.toLTK(compositeChange);
       assertNotNull(ltkChange);
       // wrong SourceChange was ignored
       assertThat(ltkChange.getChildren()).isEmpty();
@@ -184,13 +184,13 @@ public class ServiceUtilsTest extends AbstractDartTest {
   }
 
   public void test_toLTK_CorrectionImage() throws Exception {
-    assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CHANGE));
-    assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CLASS));
+    assertNotNull(ServiceUtils_OLD.toLTK(CorrectionImage.IMG_CORRECTION_CHANGE));
+    assertNotNull(ServiceUtils_OLD.toLTK(CorrectionImage.IMG_CORRECTION_CLASS));
   }
 
   public void test_toLTK_RefactoringStatus() throws Exception {
     RefactoringStatus serviceStatus = RefactoringStatus.createErrorStatus("msg");
-    org.eclipse.ltk.core.refactoring.RefactoringStatus ltkStatus = ServiceUtils.toLTK(serviceStatus);
+    org.eclipse.ltk.core.refactoring.RefactoringStatus ltkStatus = ServiceUtils_OLD.toLTK(serviceStatus);
     org.eclipse.ltk.core.refactoring.RefactoringStatusEntry[] ltkEntries = ltkStatus.getEntries();
     assertThat(ltkEntries).hasSize(1);
     // entry[0]
@@ -207,7 +207,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChange.addEdit(new Edit(10, 1, "a"));
     sourceChange.addEdit(new Edit(20, 2, "b"));
     // toLTK
-    TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
+    TextFileChange ltkChange = ServiceUtils_OLD.toLTK(sourceChange);
     assertEquals("My change", ltkChange.getName());
     // no groups
     TextEditBasedChangeGroup[] changeGroups = ltkChange.getChangeGroups();
@@ -232,7 +232,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChange.addEdit(new Edit(2, 0, "a"));
     sourceChange.addEdit(new Edit(2, 0, "b"));
     // toLTK
-    TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
+    TextFileChange ltkChange = ServiceUtils_OLD.toLTK(sourceChange);
     TextEdit textEdit = ltkChange.getEdit();
     // apply
     Document document = new Document("01234");
@@ -248,7 +248,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChange.addEdit(new Edit(20, 2, "a2"), "groupA");
     sourceChange.addEdit(new Edit(30, 3, "b"), "groupB");
     // toLTK
-    TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
+    TextFileChange ltkChange = ServiceUtils_OLD.toLTK(sourceChange);
     assertEquals("My change", ltkChange.getName());
     TextEditBasedChangeGroup[] changeGroups = ltkChange.getChangeGroups();
     assertThat(changeGroups).hasSize(2);
@@ -264,7 +264,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
 
   public void test_toLTK_Throwable() throws Exception {
     Throwable e = new Throwable("msg");
-    org.eclipse.ltk.core.refactoring.RefactoringStatus ltkStatus = ServiceUtils.toLTK(e);
+    org.eclipse.ltk.core.refactoring.RefactoringStatus ltkStatus = ServiceUtils_OLD.toLTK(e);
     org.eclipse.ltk.core.refactoring.RefactoringStatusEntry[] ltkEntries = ltkStatus.getEntries();
     assertThat(ltkEntries).hasSize(1);
     // entry[0]
@@ -286,7 +286,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
         sourceChange,
         CorrectionKind.QA_ADD_TYPE_ANNOTATION);
     //
-    com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal uiProposal = (com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal) ServiceUtils.toUI(proposal);
+    com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal uiProposal = (com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal) ServiceUtils_OLD.toUI(proposal);
     ReflectionUtils.invokeMethod(uiProposal, "getChange()");
     CompilationUnitChange ltkChange = (CompilationUnitChange) uiProposal.getChange();
     assertEquals("My change", ltkChange.getName());
@@ -298,7 +298,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     CorrectionProposal proposal = new ChangeCorrectionProposal(
         sourceChange,
         CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    ICompletionProposal uiProposal = ServiceUtils.toUI(proposal);
+    ICompletionProposal uiProposal = ServiceUtils_OLD.toUI(proposal);
     assertNull(uiProposal);
   }
 
@@ -326,7 +326,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
       proposal.setLinkedPositionProposals(linkedProposals);
     }
     //
-    LinkedCorrectionProposal uiProposal = ServiceUtils.toUI(proposal);
+    LinkedCorrectionProposal_OLD uiProposal = ServiceUtils_OLD.toUI(proposal);
     CompilationUnitChange ltkChange = (CompilationUnitChange) uiProposal.getChange();
     assertEquals("My linked change", ltkChange.getName());
   }
@@ -337,7 +337,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
     SourceCorrectionProposal proposal = new SourceCorrectionProposal(
         sourceChange,
         CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    LinkedCorrectionProposal uiProposal = ServiceUtils.toUI(proposal);
+    LinkedCorrectionProposal_OLD uiProposal = ServiceUtils_OLD.toUI(proposal);
     assertNull(uiProposal);
   }
 

@@ -19,7 +19,7 @@ import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
 import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
-import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
+import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD.toLTK;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;

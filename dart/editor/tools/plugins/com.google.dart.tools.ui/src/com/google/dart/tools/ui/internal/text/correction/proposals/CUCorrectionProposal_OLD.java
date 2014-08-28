@@ -57,7 +57,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class CUCorrectionProposal extends ChangeCorrectionProposal {
+public class CUCorrectionProposal_OLD extends ChangeCorrectionProposal {
 
   private final Source source;
   private LinkedProposalModel linkedProposalModel;
@@ -77,7 +77,7 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
    * @param image the image that is displayed for this proposal or <code>null</code> if no image is
    *          desired.
    */
-  public CUCorrectionProposal(String name, Source source, TextChange change, int relevance,
+  public CUCorrectionProposal_OLD(String name, Source source, TextChange change, int relevance,
       Image image) {
     super(name, change, relevance, image);
     if (source == null) {

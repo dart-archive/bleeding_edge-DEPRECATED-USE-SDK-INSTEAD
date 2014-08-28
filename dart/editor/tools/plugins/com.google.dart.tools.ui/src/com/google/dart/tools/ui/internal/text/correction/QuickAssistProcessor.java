@@ -14,19 +14,24 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.generated.types.SourceChange;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
+import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
+import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
@@ -43,6 +48,8 @@ import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Standard {@link IQuickAssistProcessor} for Dart.
@@ -56,7 +63,7 @@ public class QuickAssistProcessor {
   static void addServiceProposals(List<ICompletionProposal> proposals,
       CorrectionProposal[] serviceProposals) {
     for (CorrectionProposal serviceProposal : serviceProposals) {
-      ICompletionProposal uiProposal = ServiceUtils.toUI(serviceProposal);
+      ICompletionProposal uiProposal = ServiceUtils_OLD.toUI(serviceProposal);
       if (uiProposal != null) {
         proposals.add(uiProposal);
       }
@@ -64,6 +71,7 @@ public class QuickAssistProcessor {
   }
 
   private AssistContext context;
+
   private DartEditor editor;
   private ISourceViewer viewer;
   private DartSelection selection;
@@ -75,42 +83,44 @@ public class QuickAssistProcessor {
     this.viewer = editor.getViewer();
     this.selection = (DartSelection) editor.getSelectionProvider().getSelection();
     proposals = Lists.newArrayList();
-    // not resolved yet
-    if (context == null) {
+    // add proposals
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       ExecutionUtils.runLog(new RunnableEx() {
         @Override
         public void run() throws Exception {
-          addUnresolvedProposals();
+          final List<SourceChange> changes = Lists.newArrayList();
+          final CountDownLatch latch = new CountDownLatch(1);
+          String file = context.getSource().getFullName();
+          DartCore.getAnalysisServer().edit_getAssists(
+              file,
+              context.getSelectionOffset(),
+              context.getSelectionLength(),
+              new GetAssistsConsumer() {
+                @Override
+                public void computedSourceChanges(List<SourceChange> _changes) {
+                  changes.addAll(_changes);
+                  latch.countDown();
+                }
+              });
+          Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+          addServerProposals(changes);
         }
       });
-    }
-    // use AssistContext
-    if (context != null) {
-      ExecutionUtils.runLog(new RunnableEx() {
-        @Override
-        public void run() throws Exception {
-          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-            final List<CorrectionProposal> proposalList = Lists.newArrayList();
-            // TODO(scheglov) restore or remove for the new API
-//            final CountDownLatch latch = new CountDownLatch(1);
-//            DartCore.getAnalysisServer().computeMinorRefactorings(
-//                context.getAnalysisContextId(),
-//                context.getSource(),
-//                context.getSelectionOffset(),
-//                context.getSelectionLength(),
-//                new MinorRefactoringsConsumer() {
-//                  @Override
-//                  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult) {
-//                    Collections.addAll(proposalList, proposals);
-//                    if (isLastResult) {
-//                      latch.countDown();
-//                    }
-//                  }
-//                });
-//            Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
-            CorrectionProposal[] serviceProposals = proposalList.toArray(new CorrectionProposal[proposalList.size()]);
-            addServiceProposals(proposals, serviceProposals);
-          } else {
+    } else {
+      // not resolved yet
+      if (context == null) {
+        ExecutionUtils.runLog(new RunnableEx() {
+          @Override
+          public void run() throws Exception {
+            addUnresolvedProposals();
+          }
+        });
+      }
+      // use AssistContext
+      if (context != null) {
+        ExecutionUtils.runLog(new RunnableEx() {
+          @Override
+          public void run() throws Exception {
             // add refactoring proposals
             addProposal_convertGetterToMethodRefactoring();
             addProposal_convertMethodToGetterRefactoring();
@@ -123,8 +133,8 @@ public class QuickAssistProcessor {
             CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
             addServiceProposals(proposals, serviceProposals);
           }
-        }
-      });
+        });
+      }
     }
     // done
     this.context = null;
@@ -171,6 +181,18 @@ public class QuickAssistProcessor {
   private void addProposal_sortMembers() {
     CompilationUnit unit = context.getCompilationUnit();
     proposals.add(new SortMembersProposal(viewer, unit));
+  }
+
+  /**
+   * Adds the given server's {@link SourceChange}s as LTK proposals.
+   */
+  private void addServerProposals(List<SourceChange> changes) {
+    for (SourceChange change : changes) {
+      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change);
+      if (uiProposal != null) {
+        proposals.add(uiProposal);
+      }
+    }
   }
 
   /**
