@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;

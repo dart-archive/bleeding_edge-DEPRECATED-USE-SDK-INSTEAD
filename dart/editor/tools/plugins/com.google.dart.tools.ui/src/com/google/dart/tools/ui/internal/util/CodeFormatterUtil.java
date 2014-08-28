@@ -15,9 +15,9 @@ package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
@@ -75,7 +75,7 @@ public class CodeFormatterUtil {
    *          unknown and the workspace default should be used
    * @return the indent width
    */
-  public static int getIndentWidth(DartProject project) {
+  public static int getIndentWidth(IProject project) {
     String key;
     if (DefaultCodeFormatterConstants.MIXED.equals(getCoreOption(
         project,
@@ -162,11 +162,11 @@ public class CodeFormatterUtil {
    * @param key the key of the preference
    * @return the value of the preference
    */
-  private static String getCoreOption(DartProject project, String key) {
-    if (project == null) {
-      return DartCore.getOption(key);
-    }
-    return project.getOption(key, true);
+  private static String getCoreOption(IProject project, String key) {
+//    if (project != null) {
+//      return project.getOption(key, true);
+//    }
+    return DartCore.getOption(key);
   }
 
   /**
@@ -179,7 +179,7 @@ public class CodeFormatterUtil {
    * @param def the default value
    * @return the value of the preference
    */
-  private static int getCoreOption(DartProject project, String key, int def) {
+  private static int getCoreOption(IProject project, String key, int def) {
     try {
       return Integer.parseInt(getCoreOption(project, key));
     } catch (NumberFormatException e) {

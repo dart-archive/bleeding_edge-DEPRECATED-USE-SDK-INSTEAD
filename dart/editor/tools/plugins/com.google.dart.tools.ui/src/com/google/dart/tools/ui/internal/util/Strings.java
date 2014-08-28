@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.formatter.IndentManipulation;
-import com.google.dart.tools.core.model.DartProject;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.LegacyActionTools;
 import org.eclipse.jface.text.BadLocationException;
@@ -37,25 +37,6 @@ public class Strings {
    * Change the indent of, possible muti-line, code range. The current indent is removed, a new
    * indent added. The first line of the code will not be changed. (It is considered to have no
    * indent as it might start in the middle of a line)
-   * 
-   * @param project the Dart project from which to get the formatter preferences, or
-   *          <code>null</code> for global preferences
-   */
-  public static String changeIndent(String code, int codeIndentLevel, DartProject project,
-      String newIndent, String lineDelim) {
-    return IndentManipulation.changeIndent(
-        code,
-        codeIndentLevel,
-        CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project),
-        newIndent,
-        lineDelim);
-  }
-
-  /**
-   * Change the indent of, possible muti-line, code range. The current indent is removed, a new
-   * indent added. The first line of the code will not be changed. (It is considered to have no
-   * indent as it might start in the middle of a line)
    */
   public static String changeIndent(String code, int codeIndentLevel, int tabWidth,
       int indentWidth, String newIndent, String lineDelim) {
@@ -69,17 +50,22 @@ public class Strings {
   }
 
   /**
-   * Returns the indent of the given string in indentation units. Odd spaces are not counted.
+   * Change the indent of, possible muti-line, code range. The current indent is removed, a new
+   * indent added. The first line of the code will not be changed. (It is considered to have no
+   * indent as it might start in the middle of a line)
    * 
-   * @param line the text line
-   * @param project the DArt project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
-  public static int computeIndentUnits(String line, DartProject project) {
-    return IndentManipulation.measureIndentUnits(
-        line,
+  public static String changeIndent(String code, int codeIndentLevel, IProject project,
+      String newIndent, String lineDelim) {
+    return IndentManipulation.changeIndent(
+        code,
+        codeIndentLevel,
         CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project));
+        CodeFormatterUtil.getIndentWidth(project),
+        newIndent,
+        lineDelim);
   }
 
   /**
@@ -91,6 +77,20 @@ public class Strings {
    */
   public static int computeIndentUnits(String line, int tabWidth, int indentWidth) {
     return IndentManipulation.measureIndentUnits(line, tabWidth, indentWidth);
+  }
+
+  /**
+   * Returns the indent of the given string in indentation units. Odd spaces are not counted.
+   * 
+   * @param line the text line
+   * @param project the DArt project from which to get the formatter preferences, or
+   *          <code>null</code> for global preferences
+   */
+  public static int computeIndentUnits(String line, IProject project) {
+    return IndentManipulation.measureIndentUnits(
+        line,
+        CodeFormatterUtil.getTabWidth(),
+        CodeFormatterUtil.getIndentWidth(project));
   }
 
   /**
@@ -169,15 +169,12 @@ public class Strings {
    * indentation units.
    * 
    * @param line the line to scan
-   * @param project the Dart project from which to get the formatter preferences, or
-   *          <code>null</code> for global preferences
+   * @param tabWidth the size of one tab in space equivalents
+   * @param indentWidth the size of the indent in space equivalents
    * @return the indent part of <code>line</code>, but no odd spaces
    */
-  public static String getIndentString(String line, DartProject project) {
-    return IndentManipulation.extractIndentString(
-        line,
-        CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project));
+  public static String getIndentString(String line, int tabWidth, int indentWidth) {
+    return IndentManipulation.extractIndentString(line, tabWidth, indentWidth);
   }
 
   /**
@@ -185,12 +182,15 @@ public class Strings {
    * indentation units.
    * 
    * @param line the line to scan
-   * @param tabWidth the size of one tab in space equivalents
-   * @param indentWidth the size of the indent in space equivalents
+   * @param project the Dart project from which to get the formatter preferences, or
+   *          <code>null</code> for global preferences
    * @return the indent part of <code>line</code>, but no odd spaces
    */
-  public static String getIndentString(String line, int tabWidth, int indentWidth) {
-    return IndentManipulation.extractIndentString(line, tabWidth, indentWidth);
+  public static String getIndentString(String line, IProject project) {
+    return IndentManipulation.extractIndentString(
+        line,
+        CodeFormatterUtil.getTabWidth(),
+        CodeFormatterUtil.getIndentWidth(project));
   }
 
   /**
@@ -345,32 +345,24 @@ public class Strings {
   /**
    * Removes the given number of indents from the line. Asserts that the given line has the
    * requested number of indents. If <code>indentsToRemove <= 0</code> the line is returned.
-   * 
-   * @param project the Dart project from which to get the formatter preferences, or
-   *          <code>null</code> for global preferences
-   */
-  public static String trimIndent(String line, int indentsToRemove, DartProject project) {
-    return IndentManipulation.trimIndent(
-        line,
-        indentsToRemove,
-        CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project));
-  }
-
-  /**
-   * Removes the given number of indents from the line. Asserts that the given line has the
-   * requested number of indents. If <code>indentsToRemove <= 0</code> the line is returned.
    */
   public static String trimIndent(String line, int indentsToRemove, int tabWidth, int indentWidth) {
     return IndentManipulation.trimIndent(line, indentsToRemove, tabWidth, indentWidth);
   }
 
-  public static String trimIndentation(String source, DartProject project, boolean considerFirstLine) {
-    return trimIndentation(
-        source,
+  /**
+   * Removes the given number of indents from the line. Asserts that the given line has the
+   * requested number of indents. If <code>indentsToRemove <= 0</code> the line is returned.
+   * 
+   * @param project the Dart project from which to get the formatter preferences, or
+   *          <code>null</code> for global preferences
+   */
+  public static String trimIndent(String line, int indentsToRemove, IProject project) {
+    return IndentManipulation.trimIndent(
+        line,
+        indentsToRemove,
         CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project),
-        considerFirstLine);
+        CodeFormatterUtil.getIndentWidth(project));
   }
 
   public static String trimIndentation(String source, int tabWidth, int indentWidth,
@@ -404,32 +396,9 @@ public class Strings {
     }
   }
 
-  /**
-   * Removes the common number of indents from all lines. If a line only consists out of white space
-   * it is ignored.
-   * 
-   * @param project the Dart project from which to get the formatter preferences, or
-   *          <code>null</code> for global preferences
-   */
-  public static void trimIndentation(String[] lines, DartProject project) {
-    trimIndentation(
-        lines,
-        CodeFormatterUtil.getTabWidth(),
-        CodeFormatterUtil.getIndentWidth(project),
-        true);
-  }
-
-  /**
-   * Removes the common number of indents from all lines. If a line only consists out of white space
-   * it is ignored. If <code>
-   * considerFirstLine</code> is false the first line will be ignored.
-   * 
-   * @param project the Dart project from which to get the formatter preferences, or
-   *          <code>null</code> for global preferences
-   */
-  public static void trimIndentation(String[] lines, DartProject project, boolean considerFirstLine) {
-    trimIndentation(
-        lines,
+  public static String trimIndentation(String source, IProject project, boolean considerFirstLine) {
+    return trimIndentation(
+        source,
         CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project),
         considerFirstLine);
@@ -482,6 +451,37 @@ public class Strings {
         }
       }
     }
+  }
+
+  /**
+   * Removes the common number of indents from all lines. If a line only consists out of white space
+   * it is ignored.
+   * 
+   * @param project the Dart project from which to get the formatter preferences, or
+   *          <code>null</code> for global preferences
+   */
+  public static void trimIndentation(String[] lines, IProject project) {
+    trimIndentation(
+        lines,
+        CodeFormatterUtil.getTabWidth(),
+        CodeFormatterUtil.getIndentWidth(project),
+        true);
+  }
+
+  /**
+   * Removes the common number of indents from all lines. If a line only consists out of white space
+   * it is ignored. If <code>
+   * considerFirstLine</code> is false the first line will be ignored.
+   * 
+   * @param project the Dart project from which to get the formatter preferences, or
+   *          <code>null</code> for global preferences
+   */
+  public static void trimIndentation(String[] lines, IProject project, boolean considerFirstLine) {
+    trimIndentation(
+        lines,
+        CodeFormatterUtil.getTabWidth(),
+        CodeFormatterUtil.getIndentWidth(project),
+        considerFirstLine);
   }
 
   /**

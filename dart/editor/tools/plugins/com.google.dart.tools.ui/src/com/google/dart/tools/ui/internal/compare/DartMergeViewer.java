@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.compare;
 
-import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor.EclipsePreferencesAdapter;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
@@ -27,6 +28,8 @@ import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.compare.structuremergeviewer.IDiffContainer;
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
@@ -196,7 +199,7 @@ public class DartMergeViewer extends TextMergeViewer {
     return super.getAdapter(adapter);
   }
 
-  public DartProject getDartProject(ICompareInput input) {
+  public IProject getDartProject(ICompareInput input) {
 
     if (input == null) {
       return null;
@@ -230,7 +233,7 @@ public class DartMergeViewer extends TextMergeViewer {
   @Override
   public void setInput(Object input) {
     if (input instanceof ICompareInput) {
-      DartProject project = getDartProject((ICompareInput) input);
+      IProject project = getDartProject((ICompareInput) input);
       if (project != null) {
         setPreferenceStore(createChainedPreferenceStore(project));
       }
@@ -527,13 +530,11 @@ public class DartMergeViewer extends TextMergeViewer {
     }
   }
 
-  private ChainedPreferenceStore createChainedPreferenceStore(DartProject project) {
+  private ChainedPreferenceStore createChainedPreferenceStore(IProject project) {
     ArrayList<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(4);
-//    if (project != null) {
-//      stores.add(new EclipsePreferencesAdapter(
-//          new ProjectScope(project.getProject()),
-//          DartCore.PLUGIN_ID));
-//    }
+    if (project != null) {
+      stores.add(new EclipsePreferencesAdapter(new ProjectScope(project), DartCore.PLUGIN_ID));
+    }
     stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
 //    stores.add(new PreferencesAdapter(DartToolsPlugin.getDartCorePluginPreferences()));
     stores.add(EditorsUI.getPreferenceStore());

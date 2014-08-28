@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IResource;
@@ -41,11 +42,11 @@ public interface DartElement extends IAdaptable {
    */
   public static int DART_MODEL = 1;
 
-  /**
+  /*
    * A constant representing a Dart project. A Dart element with this type can be safely cast to
    * {@link DartProject}.
    */
-  public static int DART_PROJECT = 2;
+  //public static int DART_PROJECT = 2;
 
   /**
    * A constant representing an HTML file. A Dart element with this type can be safely cast to
@@ -190,14 +191,6 @@ public interface DartElement extends IAdaptable {
    * @return the Dart model that contains this element
    */
   public DartModel getDartModel();
-
-  /**
-   * Return the Dart project that contains this element, or <code>null</code> if this element is not
-   * contained in any project. This is a handle-only method.
-   * 
-   * @return the Dart project that contains this element
-   */
-  public DartProject getDartProject();
 
   /**
    * Return the name of this element as it should appear in the user interface. This is a

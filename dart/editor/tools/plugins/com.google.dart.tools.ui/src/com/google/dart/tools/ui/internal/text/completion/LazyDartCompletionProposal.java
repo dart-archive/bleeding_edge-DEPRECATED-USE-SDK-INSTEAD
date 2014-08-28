@@ -15,13 +15,13 @@ package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -47,7 +47,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     public final boolean afterTypeArgumentComma;
     public final boolean beforeClosingBracket;
 
-    FormatterPrefs(DartProject project) {
+    FormatterPrefs(IProject project) {
       beforeOpeningParen = getCoreOption(
           project,
           DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_METHOD_INVOCATION,
@@ -95,14 +95,14 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
           false);
     }
 
-    protected final String getCoreOption(DartProject project, String key) {
-      if (project == null) {
-        return JavaScriptCore.getOption(key);
-      }
-      return project.getOption(key, true);
+    protected final String getCoreOption(IProject project, String key) {
+//      if (project != null) {
+//        return project.getOption(key, true);
+//      }
+      return JavaScriptCore.getOption(key);
     }
 
-    protected final boolean getCoreOption(DartProject project, String key, boolean def) {
+    protected final boolean getCoreOption(IProject project, String key, boolean def) {
       String option = getCoreOption(project, key);
       if (JavaScriptCore.INSERT.equals(option)) {
         return true;

@@ -15,7 +15,6 @@ package com.google.dart.tools.core.formatter;
 
 import com.google.dart.tools.core.internal.util.ScannerHelper;
 import com.google.dart.tools.core.internal.util.Util;
-import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultLineTracker;

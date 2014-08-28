@@ -15,12 +15,12 @@ package com.google.dart.tools.ui.internal.text.functions;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -69,9 +69,9 @@ public class DartIndenter {
     final String prefTabChar;
     final int prefDefunIndent;
 
-    private final DartProject fProject;
+    private final IProject fProject;
 
-    CorePrefs(DartProject project) {
+    CorePrefs(IProject project) {
       fProject = project;
       if (isStandalone()) {
         prefUseTabs = false;
@@ -144,10 +144,10 @@ public class DartIndenter {
      * @return the value of the preference
      */
     private String getCoreFormatterOption(String key) {
-      if (fProject == null) {
-        return DartCore.getOption(key);
-      }
-      return fProject.getOption(key, true);
+//      if (fProject != null) {
+//        return fProject.getOption(key, true);
+//      }
+      return DartCore.getOption(key);
     }
 
     private boolean hasGenerics() {
@@ -429,7 +429,7 @@ public class DartIndenter {
    * @param project the project to get the formatter preferences from, or <code>null</code> to use
    *          the workspace settings
    */
-  public DartIndenter(IDocument document, DartHeuristicScanner scanner, DartProject project) {
+  public DartIndenter(IDocument document, DartHeuristicScanner scanner, IProject project) {
     Assert.isNotNull(document);
     Assert.isNotNull(scanner);
     fDocument = document;
