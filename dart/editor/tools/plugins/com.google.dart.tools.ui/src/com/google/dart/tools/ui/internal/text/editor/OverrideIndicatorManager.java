@@ -25,6 +25,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.server.generated.types.OverriddenMember;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -316,32 +317,36 @@ public class OverrideIndicatorManager {
     // add annotations
     Map<Annotation, Position> annotationMap = Maps.newHashMap();
     for (OverrideMember override : overrides) {
+      OverriddenMember superclassMember = override.getSuperclassMember();
+      List<OverriddenMember> interfaceMembers = override.getInterfaceMembers();
+      // prepare target
       boolean isOverride = true;
-      com.google.dart.server.generated.types.Element superElement = override.getSuperclassMember() != null
-          ? override.getSuperclassMember().getElement() : null;
-      // TODO(scheglov) shouldn't happen, probably because of "implements X"
-      if (superElement == null) {
-        continue;
+      com.google.dart.server.generated.types.Element element = null;
+      String text = null;
+      if (superclassMember != null) {
+        element = superclassMember.getElement();
+        String memberName = MessageFormat.format(
+            "{0}.{1}",
+            superclassMember.getClassName(),
+            superclassMember.getElement().getName());
+        text = Messages.format(DartEditorMessages.OverrideIndicatorManager_overrides, memberName);
+      } else if (!interfaceMembers.isEmpty()) {
+        isOverride = false;
+        OverriddenMember interfaceMember = interfaceMembers.get(0);
+        element = interfaceMember.getElement();
+        String memberName = MessageFormat.format(
+            "{0}.{1}",
+            interfaceMember.getClassName(),
+            interfaceMember.getElement().getName());
+        text = Messages.format(DartEditorMessages.OverrideIndicatorManager_implements, memberName);
       }
-      // prepare "super" method name
-      String qualifiedMethodName = MessageFormat.format(
-          "{0}.{1}",
-          "superElement.getEnclosingElement().getName()",
-          superElement.getName());
-      // prepare text
-      String text;
-      if (isOverride) {
-        text = Messages.format(
-            DartEditorMessages.OverrideIndicatorManager_overrides,
-            qualifiedMethodName);
-      } else {
-        text = Messages.format(
-            DartEditorMessages.OverrideIndicatorManager_implements,
-            qualifiedMethodName);
+      // shouldn't happen
+      if (element == null) {
+        continue;
       }
       // add override annotation
       Position position = new Position(override.getOffset(), override.getLength());
-      annotationMap.put(new OverrideIndicator(superElement, text, isOverride), position);
+      annotationMap.put(new OverrideIndicator(element, text, isOverride), position);
     }
     // add annotations to the model
     synchronized (annotationModelLockObject) {
