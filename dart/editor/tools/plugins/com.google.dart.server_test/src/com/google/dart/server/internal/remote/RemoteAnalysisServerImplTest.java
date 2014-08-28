@@ -287,16 +287,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    HighlightRegion[] regions = listener.getHighlightRegions("/test.dart");
+    List<HighlightRegion> regions = listener.getHighlightRegions("/test.dart");
     assertThat(regions).hasSize(2);
     {
-      HighlightRegion error = regions[0];
+      HighlightRegion error = regions.get(0);
       assertEquals(HighlightRegionType.CLASS, error.getType());
       assertEquals(new Integer(1), error.getOffset());
       assertEquals(new Integer(2), error.getLength());
     }
     {
-      HighlightRegion error = regions[1];
+      HighlightRegion error = regions.get(1);
       assertEquals(HighlightRegionType.FIELD, error.getType());
       assertEquals(new Integer(10), error.getOffset());
       assertEquals(new Integer(20), error.getLength());
@@ -347,10 +347,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    NavigationRegion[] regions = listener.getNavigationRegions("/test.dart");
+    List<NavigationRegion> regions = listener.getNavigationRegions("/test.dart");
     assertThat(regions).hasSize(1);
     {
-      NavigationRegion region = regions[0];
+      NavigationRegion region = regions.get(0);
       assertEquals(new Integer(1), region.getOffset());
       assertEquals(new Integer(2), region.getLength());
       List<Element> elements = region.getTargets();
@@ -424,11 +424,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    Occurrences[] occurrencesArray = listener.getOccurrences("/test.dart");
+    List<Occurrences> occurrencesList = listener.getOccurrences("/test.dart");
 
     // assertions on occurrences
-    assertThat(occurrencesArray).hasSize(1);
-    Occurrences occurrences = occurrencesArray[0];
+    assertThat(occurrencesList).hasSize(1);
+    Occurrences occurrences = occurrencesList.get(0);
     {
       Element element = occurrences.getElement();
       assertEquals(ElementKind.CLASS, element.getKind());
@@ -582,22 +582,22 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    OverrideMember[] overrides = listener.getOverrides("/test.dart");
+    List<OverrideMember> overrides = listener.getOverrides("/test.dart");
 
     // assertions on overrides
     assertThat(overrides).hasSize(2);
     {
-      assertEquals(new Integer(1), overrides[0].getOffset());
-      assertEquals(new Integer(2), overrides[0].getLength());
-      OverriddenMember superclassMember = overrides[0].getSuperclassMember();
+      assertEquals(new Integer(1), overrides.get(0).getOffset());
+      assertEquals(new Integer(2), overrides.get(0).getLength());
+      OverriddenMember superclassMember = overrides.get(0).getSuperclassMember();
       assertNotNull(superclassMember);
       assertEquals("superclassName1", superclassMember.getClassName());
       assertEquals("name1", superclassMember.getElement().getName());
     }
     {
-      assertEquals(new Integer(7), overrides[1].getOffset());
-      assertEquals(new Integer(8), overrides[1].getLength());
-      assertNull(overrides[1].getSuperclassMember());
+      assertEquals(new Integer(7), overrides.get(1).getOffset());
+      assertEquals(new Integer(8), overrides.get(1).getLength());
+      assertNull(overrides.get(1).getSuperclassMember());
     }
   }
 
@@ -1033,11 +1033,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     assertThat(listener.getCompletionReplacementOffset("completion0")).isEqualTo(107);
     assertThat(listener.getCompletionReplacementLength("completion0")).isEqualTo(108);
-    CompletionSuggestion[] suggestions = listener.getCompletions("completion0");
+    List<CompletionSuggestion> suggestions = listener.getCompletions("completion0");
     assertThat(suggestions).hasSize(2);
     assertThat(listener.getCompletionIsLast("completion0")).isEqualTo(true);
     {
-      CompletionSuggestion suggestion = suggestions[0];
+      CompletionSuggestion suggestion = suggestions.get(0);
       assertEquals(CompletionSuggestionKind.CLASS, suggestion.getKind());
       assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion0");
@@ -1063,7 +1063,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(suggestion.getParameterType(), "paramType2");
     }
     {
-      CompletionSuggestion suggestion = suggestions[1];
+      CompletionSuggestion suggestion = suggestions.get(1);
       assertEquals(CompletionSuggestionKind.CLASS_ALIAS, suggestion.getKind());
       assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion1");

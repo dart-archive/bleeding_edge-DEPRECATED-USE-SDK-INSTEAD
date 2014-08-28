@@ -49,23 +49,23 @@ public class AnalyzeEngineInServer extends TimingTest {
 
     @Override
     public void computedCompletion(String completionId, int replacementOffset,
-        int replacementLength, CompletionSuggestion[] completions, boolean last) {
+        int replacementLength, List<CompletionSuggestion> completions, boolean last) {
     }
 
     @Override
-    public void computedErrors(String file, AnalysisError[] errors) {
+    public void computedErrors(String file, List<AnalysisError> errors) {
     }
 
     @Override
-    public void computedHighlights(String file, HighlightRegion[] highlights) {
+    public void computedHighlights(String file, List<HighlightRegion> highlights) {
     }
 
     @Override
-    public void computedNavigation(String file, NavigationRegion[] targets) {
+    public void computedNavigation(String file, List<NavigationRegion> targets) {
     }
 
     @Override
-    public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+    public void computedOccurrences(String file, List<Occurrences> occurrencesArray) {
     }
 
     @Override
@@ -73,7 +73,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     }
 
     @Override
-    public void computedOverrides(String file, OverrideMember[] overrides) {
+    public void computedOverrides(String file, List<OverrideMember> overrides) {
     }
 
     @Override

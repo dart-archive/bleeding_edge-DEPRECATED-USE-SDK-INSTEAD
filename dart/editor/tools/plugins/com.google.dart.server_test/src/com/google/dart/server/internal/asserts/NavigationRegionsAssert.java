@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 /**
  * A helper for validating {@link NavigationRegion}s.
  */
@@ -35,9 +37,9 @@ public class NavigationRegionsAssert {
     return offset;
   }
 
-  private final NavigationRegion[] regions;
+  private final List<NavigationRegion> regions;
 
-  public NavigationRegionsAssert(NavigationRegion[] regions) {
+  public NavigationRegionsAssert(List<NavigationRegion> regions) {
     this.regions = regions;
   }
 

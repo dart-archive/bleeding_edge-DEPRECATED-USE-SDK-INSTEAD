@@ -55,28 +55,32 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
-      CompletionSuggestion[] completions, boolean last) {
+      List<CompletionSuggestion> completions, boolean last) {
     // TODO(jwren/scheglov) not yet implemented
   }
 
   @Override
-  public void computedErrors(String filePath, AnalysisError[] errors) {
-    dataImpl.internalComputedErrors(filePath, errors);
-    scheduleResourceErrorMarkersUpdate(filePath, errors);
+  public void computedErrors(String filePath, List<AnalysisError> errors) {
+    AnalysisError[] errorsArray = errors.toArray(new AnalysisError[errors.size()]);
+    dataImpl.internalComputedErrors(filePath, errorsArray);
+    scheduleResourceErrorMarkersUpdate(filePath, errorsArray);
   }
 
   @Override
-  public void computedHighlights(String file, HighlightRegion[] highlights) {
-    dataImpl.internalComputedHighlights(file, highlights);
+  public void computedHighlights(String file, List<HighlightRegion> highlights) {
+    HighlightRegion[] highlightsArray = highlights.toArray(new HighlightRegion[highlights.size()]);
+    dataImpl.internalComputedHighlights(file, highlightsArray);
   }
 
   @Override
-  public void computedNavigation(String file, NavigationRegion[] targets) {
-    dataImpl.internalComputedNavigation(file, targets);
+  public void computedNavigation(String file, List<NavigationRegion> targets) {
+    NavigationRegion[] targetsArray = targets.toArray(new NavigationRegion[targets.size()]);
+    dataImpl.internalComputedNavigation(file, targetsArray);
   }
 
   @Override
-  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+  public void computedOccurrences(String file, List<Occurrences> occurrences) {
+    Occurrences[] occurrencesArray = occurrences.toArray(new Occurrences[occurrences.size()]);
     dataImpl.internalComputedOccurrences(file, occurrencesArray);
   }
 
@@ -86,8 +90,9 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedOverrides(String file, OverrideMember[] overrides) {
-    dataImpl.internalComputedOverrides(file, overrides);
+  public void computedOverrides(String file, List<OverrideMember> overrideMember) {
+    OverrideMember[] overridesArray = overrideMember.toArray(new OverrideMember[overrideMember.size()]);
+    dataImpl.internalComputedOverrides(file, overridesArray);
   }
 
   @Override

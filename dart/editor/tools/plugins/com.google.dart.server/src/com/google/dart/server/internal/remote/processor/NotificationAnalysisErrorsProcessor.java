@@ -13,14 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Processor for "analysis.errors" notification.
@@ -42,20 +38,7 @@ public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
     String file = paramsObject.get("file").getAsString();
     // prepare error objects iterator
     JsonElement errorsElement = paramsObject.get("errors");
-    Iterator<JsonElement> errorElementIterator = errorsElement.getAsJsonArray().iterator();
-    // convert errors
-    List<AnalysisError> analysisErrors = Lists.newArrayList();
-    while (errorElementIterator.hasNext()) {
-      JsonObject errorObject = errorElementIterator.next().getAsJsonObject();
-      AnalysisError analysisError = AnalysisError.fromJson(errorObject);
-      if (analysisError != null) {
-        analysisErrors.add(analysisError);
-      }
-    }
     // notify listener
-    getListener().computedErrors(
-        file,
-        analysisErrors.toArray(new AnalysisError[analysisErrors.size()]));
+    getListener().computedErrors(file, AnalysisError.fromJsonArray(errorsElement.getAsJsonArray()));
   }
-
 }

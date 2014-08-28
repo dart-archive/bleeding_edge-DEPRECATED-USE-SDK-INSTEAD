@@ -18,8 +18,6 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 /**
  * Processor for "analysis.occurrences" notification.
  * 
@@ -40,9 +38,6 @@ public class NotificationAnalysisOccurrencesProcessor extends NotificationProces
     String file = paramsObject.get("file").getAsString();
     JsonArray occurrencesJsonArray = paramsObject.get("occurrences").getAsJsonArray();
     // construct occurrences and notify listener
-    List<Occurrences> occurrencesList = Occurrences.fromJsonArray(occurrencesJsonArray);
-    getListener().computedOccurrences(
-        file,
-        occurrencesList.toArray(new Occurrences[occurrencesList.size()]));
+    getListener().computedOccurrences(file, Occurrences.fromJsonArray(occurrencesJsonArray));
   }
 }

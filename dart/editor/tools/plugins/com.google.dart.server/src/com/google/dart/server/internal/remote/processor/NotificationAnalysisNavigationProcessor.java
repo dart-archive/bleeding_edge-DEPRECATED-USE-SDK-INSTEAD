@@ -38,6 +38,6 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
     String file = paramsObject.get("file").getAsString();
     List<NavigationRegion> regions = NavigationRegion.fromJsonArray(paramsObject.get("regions").getAsJsonArray());
     // notify listener
-    getListener().computedNavigation(file, regions.toArray(new NavigationRegion[regions.size()]));
+    getListener().computedNavigation(file, regions);
   }
 }

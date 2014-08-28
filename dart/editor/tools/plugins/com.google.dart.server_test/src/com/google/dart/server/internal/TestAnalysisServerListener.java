@@ -44,11 +44,11 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final static class CompletionResult {
     final int replacementOffset;
     final int replacementLength;
-    final CompletionSuggestion[] suggestions;
+    final List<CompletionSuggestion> suggestions;
     final boolean last;
 
     public CompletionResult(int replacementOffset, int replacementLength,
-        CompletionSuggestion[] suggestions, boolean last) {
+        List<CompletionSuggestion> suggestions, boolean last) {
       this.replacementOffset = replacementOffset;
       this.replacementLength = replacementLength;
       this.suggestions = suggestions;
@@ -60,12 +60,12 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final List<String> flushedResults = Lists.newArrayList();
   private final Map<String, SearchResult[]> searchResultsMap = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
-  private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
-  private final Map<String, HighlightRegion[]> highlightsMap = Maps.newHashMap();
-  private final Map<String, NavigationRegion[]> navigationMap = Maps.newHashMap();
-  private final Map<String, Occurrences[]> occurrencesMap = Maps.newHashMap();
+  private final Map<String, List<AnalysisError>> sourcesErrors = Maps.newHashMap();
+  private final Map<String, List<HighlightRegion>> highlightsMap = Maps.newHashMap();
+  private final Map<String, List<NavigationRegion>> navigationMap = Maps.newHashMap();
+  private final Map<String, List<Occurrences>> occurrencesMap = Maps.newHashMap();
   private final Map<String, Outline> outlineMap = Maps.newHashMap();
-  private final Map<String, OverrideMember[]> overridesMap = Maps.newHashMap();
+  private final Map<String, List<OverrideMember>> overridesMap = Maps.newHashMap();
   private boolean serverConnected = false;
   private AnalysisStatus analysisStatus = null;
 
@@ -86,7 +86,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    */
   public synchronized void assertErrorsWithAnalysisErrors(String file,
       AnalysisError... expectedErrors) {
-    AnalysisError[] errors = getErrors(file);
+    List<AnalysisError> errors = getErrors(file);
     assertErrorsWithAnalysisErrors(errors, expectedErrors);
   }
 
@@ -145,7 +145,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public synchronized void computedCompletion(String completionId, int replacementOffset,
-      int replacementLength, CompletionSuggestion[] suggestions, boolean last) {
+      int replacementLength, List<CompletionSuggestion> suggestions, boolean last) {
     // computed completion results are aggregate, replacing any prior results
     completionsMap.put(completionId, new CompletionResult(
         replacementOffset,
@@ -155,22 +155,22 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void computedErrors(String file, AnalysisError[] errors) {
+  public synchronized void computedErrors(String file, List<AnalysisError> errors) {
     sourcesErrors.put(file, errors);
   }
 
   @Override
-  public synchronized void computedHighlights(String file, HighlightRegion[] highlights) {
+  public synchronized void computedHighlights(String file, List<HighlightRegion> highlights) {
     highlightsMap.put(file, highlights);
   }
 
   @Override
-  public synchronized void computedNavigation(String file, NavigationRegion[] targets) {
+  public synchronized void computedNavigation(String file, List<NavigationRegion> targets) {
     navigationMap.put(file, targets);
   }
 
   @Override
-  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+  public void computedOccurrences(String file, List<Occurrences> occurrencesArray) {
     occurrencesMap.put(file, occurrencesArray);
   }
 
@@ -180,7 +180,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedOverrides(String file, OverrideMember[] overrides) {
+  public void computedOverrides(String file, List<OverrideMember> overrides) {
     overridesMap.put(file, overrides);
   }
 
@@ -193,7 +193,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns a navigation {@link Element} at the given position.
    */
   public synchronized Element findNavigationElement(String file, int offset) {
-    NavigationRegion[] regions = getNavigationRegions(file);
+    List<NavigationRegion> regions = getNavigationRegions(file);
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {
         if (navigationRegion.containsInclusive(offset)) {
@@ -234,10 +234,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns {@link CompletionSuggestion[]} for the given completion id, maybe {@code null} if have
-   * not been ever notified.
+   * Returns list of {@link CompletionSuggestion} for the given completion id, maybe {@code null} if
+   * have not been ever notified.
    */
-  public synchronized CompletionSuggestion[] getCompletions(String completionId) {
+  public synchronized List<CompletionSuggestion> getCompletions(String completionId) {
     CompletionResult result = completionsMap.get(completionId);
     return result != null ? result.suggestions : null;
   }
@@ -245,10 +245,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   /**
    * Returns {@link AnalysisError} for the given file, may be empty, but not {@code null}.
    */
-  public synchronized AnalysisError[] getErrors(String file) {
-    AnalysisError[] errors = sourcesErrors.get(file);
+  public synchronized List<AnalysisError> getErrors(String file) {
+    List<AnalysisError> errors = sourcesErrors.get(file);
     if (errors == null) {
-      return AnalysisError.EMPTY_ARRAY;
+      return AnalysisError.EMPTY_LIST;
     }
     return errors;
   }
@@ -257,7 +257,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns {@link HighlightRegion}s for the given file, maybe {@code null} if have not been ever
    * notified.
    */
-  public synchronized HighlightRegion[] getHighlightRegions(String file) {
+  public synchronized List<HighlightRegion> getHighlightRegions(String file) {
     return highlightsMap.get(file);
   }
 
@@ -265,7 +265,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns {@link NavigationRegion}s for the given file, maybe {@code null} if have not been ever
    * notified.
    */
-  public synchronized NavigationRegion[] getNavigationRegions(String file) {
+  public synchronized List<NavigationRegion> getNavigationRegions(String file) {
     return navigationMap.get(file);
   }
 
@@ -273,7 +273,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns {@link Occurrences}s for the given file, maybe {@code null} if have not been ever
    * notified.
    */
-  public synchronized Occurrences[] getOccurrences(String file) {
+  public synchronized List<Occurrences> getOccurrences(String file) {
     return occurrencesMap.get(file);
   }
 
@@ -289,7 +289,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns {@link OverrideMember}s for the given file, maybe {@code null} if have not been ever
    * notified.
    */
-  public synchronized OverrideMember[] getOverrides(String file) {
+  public synchronized List<OverrideMember> getOverrides(String file) {
     return overridesMap.get(file);
   }
 
@@ -323,19 +323,21 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * @param actualErrors the actual set of errors that were created for some analysis
    * @param expectedErrors the expected array of errors
    */
-  private void assertErrorsWithAnalysisErrors(AnalysisError[] actualErrors,
+  private void assertErrorsWithAnalysisErrors(List<AnalysisError> actualErrors,
       AnalysisError[] expectedErrors) {
     if (actualErrors == null && expectedErrors == null) {
       return;
     }
 
     // assert that the arrays have the same length
-    Assert.assertEquals(expectedErrors.length, actualErrors.length);
+    Assert.assertEquals(expectedErrors.length, actualErrors.size());
+
+    AnalysisError[] actualErrorsArray = actualErrors.toArray(new AnalysisError[actualErrors.size()]);
 
     // assert that the actualErrors contains all of the expected errors
     for (AnalysisError expectedError : expectedErrors) {
       // individual calls to assert each error are made for better messaging when there is a failure
-      Assert.assertTrue(ArrayUtilities.contains(actualErrors, expectedError));
+      Assert.assertTrue(ArrayUtilities.contains(actualErrorsArray, expectedError));
     }
   }
 }

@@ -18,8 +18,6 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 /**
  * Processor for "completion.results" notification.
  * 
@@ -47,12 +45,7 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
         completionId,
         replacementOffset,
         replacementLength,
-        constructCompletions(resultsArray),
+        CompletionSuggestion.fromJsonArray(resultsArray),
         last);
-  }
-
-  private CompletionSuggestion[] constructCompletions(JsonArray resultsArray) {
-    List<CompletionSuggestion> completions = CompletionSuggestion.fromJsonArray(resultsArray);
-    return completions.toArray(new CompletionSuggestion[completions.size()]);
   }
 }

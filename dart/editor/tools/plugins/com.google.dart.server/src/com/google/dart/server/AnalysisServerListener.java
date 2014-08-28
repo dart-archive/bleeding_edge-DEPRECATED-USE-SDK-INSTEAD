@@ -46,7 +46,7 @@ public interface AnalysisServerListener {
    *          indicated completion
    */
   public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
-      CompletionSuggestion[] completions, boolean last);
+      List<CompletionSuggestion> completions, boolean last);
 
   /**
    * Reports the errors associated with a given file.
@@ -54,7 +54,7 @@ public interface AnalysisServerListener {
    * @param file the file containing the errors
    * @param errors the errors contained in the file
    */
-  public void computedErrors(String file, AnalysisError[] errors);
+  public void computedErrors(String file, List<AnalysisError> errors);
 
   /**
    * A new collection of highlight regions has been computed for the given file. Each highlight
@@ -65,7 +65,7 @@ public interface AnalysisServerListener {
    * @param file the file containing the highlight regions
    * @param highlights the highlight regions contained in the file
    */
-  public void computedHighlights(String file, HighlightRegion[] highlights);
+  public void computedHighlights(String file, List<HighlightRegion> highlights);
 
   /**
    * A new collection of navigation regions has been computed for the given file. Each navigation
@@ -77,7 +77,7 @@ public interface AnalysisServerListener {
    * @param file the file containing the navigation regions
    * @param highlights the highlight regions associated with the source
    */
-  public void computedNavigation(String file, NavigationRegion[] targets);
+  public void computedNavigation(String file, List<NavigationRegion> targets);
 
   /**
    * A new collection of occurrences that been computed for the given file. Each occurrences object
@@ -86,7 +86,7 @@ public interface AnalysisServerListener {
    * @param file the file containing the occurrences
    * @param occurrencesArray the array of occurrences in the passed file
    */
-  public void computedOccurrences(String file, Occurrences[] occurrencesArray);
+  public void computedOccurrences(String file, List<Occurrences> occurrencesArray);
 
   /**
    * A new outline has been computed for the given file.
@@ -103,7 +103,7 @@ public interface AnalysisServerListener {
    * @param file the file with which the outline is associated
    * @param overrides the overrides associated with the file
    */
-  public void computedOverrides(String file, OverrideMember[] overrides);
+  public void computedOverrides(String file, List<OverrideMember> overrides);
 
   /**
    * A new collection of search results have been computed for the given completion id.

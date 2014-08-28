@@ -18,8 +18,6 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 /**
  * Processor for "analysis.overrides" notification.
  * 
@@ -40,9 +38,6 @@ public class NotificationAnalysisOverridesProcessor extends NotificationProcesso
     String file = paramsObject.get("file").getAsString();
     JsonArray overridesJsonArray = paramsObject.get("overrides").getAsJsonArray();
     // compute occurrences and notify listener
-    List<OverrideMember> overriddenMemberList = OverrideMember.fromJsonArray(overridesJsonArray);
-    getListener().computedOverrides(
-        file,
-        overriddenMemberList.toArray(new OverrideMember[overriddenMemberList.size()]));
+    getListener().computedOverrides(file, OverrideMember.fromJsonArray(overridesJsonArray));
   }
 }

@@ -54,7 +54,7 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
-      CompletionSuggestion[] completions, boolean last) {
+      List<CompletionSuggestion> completions, boolean last) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedCompletion(
           completionId,
@@ -66,28 +66,28 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedErrors(String file, AnalysisError[] errors) {
+  public void computedErrors(String file, List<AnalysisError> errors) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedErrors(file, errors);
     }
   }
 
   @Override
-  public void computedHighlights(String file, HighlightRegion[] highlights) {
+  public void computedHighlights(String file, List<HighlightRegion> highlights) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedHighlights(file, highlights);
     }
   }
 
   @Override
-  public void computedNavigation(String file, NavigationRegion[] targets) {
+  public void computedNavigation(String file, List<NavigationRegion> targets) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedNavigation(file, targets);
     }
   }
 
   @Override
-  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+  public void computedOccurrences(String file, List<Occurrences> occurrencesArray) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedOccurrences(file, occurrencesArray);
     }
@@ -101,7 +101,7 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedOverrides(String file, OverrideMember[] overrides) {
+  public void computedOverrides(String file, List<OverrideMember> overrides) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedOverrides(file, overrides);
     }

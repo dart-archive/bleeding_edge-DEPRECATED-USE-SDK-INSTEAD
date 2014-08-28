@@ -39,6 +39,6 @@ public class NotificationAnalysisHighlightsProcessor extends NotificationProcess
     String file = paramsObject.get("file").getAsString();
     List<HighlightRegion> regions = HighlightRegion.fromJsonArray(paramsObject.get("regions").getAsJsonArray());
     // notify listener
-    getListener().computedHighlights(file, regions.toArray(new HighlightRegion[regions.size()]));
+    getListener().computedHighlights(file, regions);
   }
 }
