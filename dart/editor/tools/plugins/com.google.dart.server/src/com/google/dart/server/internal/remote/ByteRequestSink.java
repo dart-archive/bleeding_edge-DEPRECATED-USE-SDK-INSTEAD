@@ -52,7 +52,9 @@ public class ByteRequestSink implements RequestSink {
   public void add(JsonObject request) {
     String text = request.toString();
     if (debugStream != null) {
-      debugStream.println(System.currentTimeMillis() + " => " + text);
+      if (!text.contains("server.getVersion")) {
+        debugStream.println(System.currentTimeMillis() + " => " + text);
+      }
     }
     writer.println(text);
     writer.flush();

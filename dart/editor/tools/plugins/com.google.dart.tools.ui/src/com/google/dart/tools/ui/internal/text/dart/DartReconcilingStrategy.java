@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -21,6 +22,7 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.ChangeContentOverlay;
+import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -46,7 +48,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * against {@link #lock} before accessing this field.
    */
   private DartReconcilingRegion dirtyRegion = DartReconcilingRegion.EMPTY;
+
+  /**
+   * A flag indicating whether an "overlay" has been already added for this file.
+   */
+  private boolean isOverlayAdded = false;
 
   /**
    * Listen for analysis results for the source being edited and update the editor.
@@ -180,12 +186,20 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Cleanup when the editor is closed.
    */
   public void dispose() {
-    // clear the cached source content to ensure the source will be read from disk
     if (document != null) {
       document.removeDocumentListener(documentListener);
     }
     AnalysisWorker.removeListener(analysisListener);
-    sourceChanged(null);
+    // clear the cached source content to ensure the source will be read from disk
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (isOverlayAdded) {
+        RemoveContentOverlay change = new RemoveContentOverlay();
+        updateFileContent(change);
+        isOverlayAdded = false;
+      }
+    } else {
+      sourceChanged(null);
+    }
   }
 
   @Override
@@ -272,6 +286,16 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   }
 
   /**
+   * Adds overlay for this file.
+   */
+  private void addOverlay() {
+    String code = document.get();
+    AddContentOverlay change = new AddContentOverlay(code);
+    updateFileContent(change);
+    isOverlayAdded = true;
+  }
+
+  /**
    * Apply analysis results only if there are no pending source changes.
    */
   private void applyAnalysisResult(CompilationUnit unit) {
@@ -338,12 +362,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String file = editor.getInputFilePath();
-      if (file != null) {
+      if (!isOverlayAdded) {
+        addOverlay();
+      } else {
         AddContentOverlay change = new AddContentOverlay(code);
-        Map<String, Object> files = new HashMap<String, Object>();
-        files.put(file, change);
-        DartCore.getAnalysisServer().analysis_updateContent(files);
+        updateFileContent(change);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
@@ -370,14 +393,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String file = editor.getInputFilePath();
-      if (file != null) {
-        List<SourceEdit> sourceEdits = new ArrayList<SourceEdit>();
-        sourceEdits.add(new SourceEdit(offset, oldLength, code, null));
-        ChangeContentOverlay contentChangeOverlay = new ChangeContentOverlay(sourceEdits);
-        Map<String, Object> files = new HashMap<String, Object>(1);
-        files.put(file, contentChangeOverlay);
-        DartCore.getAnalysisServer().analysis_updateContent(files);
+      if (!isOverlayAdded) {
+        addOverlay();
+      } else {
+        List<SourceEdit> sourceEdits = Lists.newArrayList();
+        String replacement = code.substring(offset, offset + newLength);
+        sourceEdits.add(new SourceEdit(offset, oldLength, replacement, null));
+        ChangeContentOverlay change = new ChangeContentOverlay(sourceEdits);
+        updateFileContent(change);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
@@ -393,6 +416,15 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
             oldLength,
             newLength);
       }
+    }
+  }
+
+  private void updateFileContent(Object change) {
+    String file = editor.getInputFilePath();
+    if (file != null) {
+      Map<String, Object> files = new HashMap<String, Object>();
+      files.put(file, change);
+      DartCore.getAnalysisServer().analysis_updateContent(files);
     }
   }
 }

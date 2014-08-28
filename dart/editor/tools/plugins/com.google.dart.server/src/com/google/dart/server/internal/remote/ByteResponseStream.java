@@ -64,7 +64,9 @@ public class ByteResponseStream implements ResponseStream {
       }
       // debug output
       if (debugStream != null) {
-        debugStream.println(System.currentTimeMillis() + " <= " + line);
+        if (!line.contains("\"result\":{\"version\":\"0.0.1\"}")) {
+          debugStream.println(System.currentTimeMillis() + " <= " + line);
+        }
       }
       // ignore non-JSON (debug) lines
       if (!line.startsWith("{")) {
