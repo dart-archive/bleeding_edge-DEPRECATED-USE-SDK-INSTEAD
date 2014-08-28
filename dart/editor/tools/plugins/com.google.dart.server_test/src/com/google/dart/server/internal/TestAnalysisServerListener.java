@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ArrayUtilities;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
@@ -28,6 +27,7 @@ import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 

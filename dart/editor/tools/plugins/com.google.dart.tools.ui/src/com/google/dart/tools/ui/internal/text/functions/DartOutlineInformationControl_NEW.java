@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.server.Outline;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartOutlinePage_NEW;
@@ -58,6 +58,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.texteditor.ITextEditor;
+
+import java.util.List;
 
 /**
  * Show outline in light-weight control.
@@ -114,7 +116,7 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
   /**
    * @return the deepest {@link Outline} enclosing given offset, may be <code>null</code>.
    */
-  private static Outline findOutlineEnclosingOffset(Outline[] outlines, int offset) {
+  private static Outline findOutlineEnclosingOffset(List<Outline> outlines, int offset) {
     for (Outline outline : outlines) {
       if (outline.containsInclusive(offset)) {
         Outline deeperOutline = findOutlineEnclosingOffset(outline.getChildren(), offset);
@@ -423,10 +425,10 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
     // prepare "outline" to select
     final Outline outline;
     {
-      Outline[] outlines = ((Outline) viewer.getInput()).getChildren();
+      List<Outline> outlineList = ((Outline) viewer.getInput()).getChildren();
       ITextSelection editorSelection = (ITextSelection) editor.getSelectionProvider().getSelection();
       int editorOffset = editorSelection.getOffset();
-      outline = findOutlineEnclosingOffset(outlines, editorOffset);
+      outline = findOutlineEnclosingOffset(outlineList, editorOffset);
     }
     // select "outline"
     if (outline != null) {

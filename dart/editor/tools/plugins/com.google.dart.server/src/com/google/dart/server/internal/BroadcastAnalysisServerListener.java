@@ -16,7 +16,6 @@ package com.google.dart.server.internal;
 
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
@@ -24,6 +23,7 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 
 import java.util.List;

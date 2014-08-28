@@ -13,17 +13,9 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.Outline;
-import com.google.dart.server.generated.types.Element;
-import com.google.dart.server.internal.OutlineImpl;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.dart.server.generated.types.Outline;
 import com.google.gson.JsonObject;
-
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Processor for "analysis.outline" notification.
@@ -45,33 +37,7 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
     String file = paramsObject.get("file").getAsString();
     JsonObject outlineObject = paramsObject.get("outline").getAsJsonObject();
     // compute outline and notify listener
-    getListener().computedOutline(file, constructOutline(null, outlineObject));
+    getListener().computedOutline(file, Outline.fromJson(null, outlineObject));
   }
 
-  private Outline constructOutline(Outline parent, JsonObject outlineObject) {
-    JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
-    Element element = Element.fromJson(elementObject);
-    int offset = outlineObject.get("offset").getAsInt();
-    int length = outlineObject.get("length").getAsInt();
-
-    // create outline object
-    OutlineImpl outline = new OutlineImpl(parent, element, offset, length);
-
-    // compute children recursively
-    List<Outline> childrenList = Lists.newArrayList();
-    if (outlineObject.has("children")) {
-      JsonElement childrenJsonArray = outlineObject.get("children");
-      if (childrenJsonArray instanceof JsonArray) {
-        Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
-        while (childrenElementIterator.hasNext()) {
-          JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
-          childrenList.add(constructOutline(outline, childObject));
-        }
-      }
-    }
-
-    // set children onto outline
-    outline.setChildren(childrenList.toArray(new Outline[childrenList.size()]));
-    return outline;
-  }
 }

@@ -40,7 +40,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
-import com.google.dart.server.Outline;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -635,7 +635,7 @@ public class LightNodeElements {
           numChildren = ((LightNodeElement) itemData).children.size();
         }
         if (itemData instanceof Outline) {
-          numChildren = ((Outline) itemData).getChildren().length;
+          numChildren = ((Outline) itemData).getChildren().size();
         }
       }
       // has children, not too many?

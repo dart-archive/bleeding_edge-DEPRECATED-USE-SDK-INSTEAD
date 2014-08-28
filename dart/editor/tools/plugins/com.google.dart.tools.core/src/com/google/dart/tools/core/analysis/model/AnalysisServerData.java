@@ -17,11 +17,11 @@ package com.google.dart.tools.core.analysis.model;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.Outline;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 
 /**

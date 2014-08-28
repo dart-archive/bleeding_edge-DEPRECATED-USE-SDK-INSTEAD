@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
-import com.google.dart.server.Outline;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -72,6 +72,8 @@ import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.part.Page;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+
+import java.util.List;
 
 /**
  * {@link IContentOutlinePage} for {@link DartEditor}.
@@ -130,12 +132,14 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
 
     @Override
     public Object[] getChildren(Object parentElement) {
-      return ((Outline) parentElement).getChildren();
+      List<Outline> outlineList = ((Outline) parentElement).getChildren();
+      return outlineList.toArray(new Outline[outlineList.size()]);
     }
 
     @Override
     public Object[] getElements(Object inputElement) {
-      return ((Outline) inputElement).getChildren();
+      List<Outline> outlineList = ((Outline) inputElement).getChildren();
+      return outlineList.toArray(new Outline[outlineList.size()]);
     }
 
     @Override

@@ -21,7 +21,6 @@ import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
-import com.google.dart.server.Outline;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -44,6 +43,7 @@ import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
+import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverriddenMember;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
@@ -502,8 +502,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on outline
     assertThat(outline.getChildren()).hasSize(1);
-    assertEquals(1, outline.getOffset());
-    assertEquals(2, outline.getLength());
+    assertEquals(new Integer(1), outline.getOffset());
+    assertEquals(new Integer(2), outline.getLength());
     Element element = outline.getElement();
     assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
     assertEquals("name0", element.getName());
@@ -523,9 +523,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("returnType0", element.getReturnType());
 
     // assertions on child
-    Outline child = outline.getChildren()[0];
-    assertEquals(7, child.getOffset());
-    assertEquals(8, child.getLength());
+    Outline child = outline.getChildren().get(0);
+    assertEquals(new Integer(7), child.getOffset());
+    assertEquals(new Integer(8), child.getLength());
     assertThat(child.getChildren()).hasSize(0);
     Element childElement = child.getElement();
     assertEquals(ElementKind.CLASS, childElement.getKind());
