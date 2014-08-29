@@ -9,19 +9,20 @@ execfile(os.path.join(path, 'multivm.deps', 'DEPS.chromium')) # Include proper C
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
-  "multivm_chromium_branch": "/chrome/trunk/src",
-  "multivm_chromium_revision": "290040",
-  # Revision numbers for archived builds closest to r290040.
-  # The archive switched back from git hashes to revision numbers.
-  # TODO(whesse): Revert code, and remove this map, when dartium is rolled.
-  "chromium_base_revision":
-      '{"Windows": "290036", ' +
-      ' "Darwin": "290041", ' +
-      ' "Linux": "290041"}',
+  "multivm_chromium_commit": "57901a08b534607d7735fb3930e2b08ea9c85534",
+  "multivm_chromium_position": "292120",
+  "chromium_base_commit":
+      '{"Windows": "d74287d2cfa09cbb7df89e79c6da9279028fb512", ' +
+      ' "Darwin": "57901a08b534607d7735fb3930e2b08ea9c85534", ' +
+      ' "Linux": "57901a08b534607d7735fb3930e2b08ea9c85534"}',
+  "chromium_base_position":
+      '{"Windows": "292116", ' +
+      ' "Darwin": "292120", ' +
+      ' "Linux": "292120"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "37732",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "181116",
+  "multivm_blink_revision": "181123",
 })
 
 def massage_deps(deps):
@@ -45,9 +46,8 @@ for os_deps in deps_os.values():
   massage_deps(os_deps)
 
 deps.update({
-  "src":
-    Var("multivm_base") + Var("multivm_chromium_branch") + "@" +
-        Var("multivm_chromium_revision"),
+  "src": Var("chromium_git") + "/chromium/src.git" + "@" +
+      Var("multivm_chromium_commit"),
 
 # We cannot check out src/dart/tools because dart/tools/gyp includes files
 # that are automatically found and that break the build.
@@ -74,5 +74,5 @@ hooks.append({
   'pattern': '.',
   'action': ['python',
              'src/dart/tools/bots/set_reference_build_revision.py',
-             Var('chromium_base_revision')],
+             Var('chromium_base_commit')],
 })
