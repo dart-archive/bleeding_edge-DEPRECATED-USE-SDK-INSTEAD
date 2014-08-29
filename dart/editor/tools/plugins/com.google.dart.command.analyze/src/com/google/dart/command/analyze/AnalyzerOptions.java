@@ -140,6 +140,12 @@ public class AnalyzerOptions {
   // usage = "Use the same resolution of dart: URI's as dart2js (defaults to the resolution used by the VM)") // don't show in help
   private boolean useDart2jsPaths = false;
 
+  @Option(name = "--enable-async")
+  private boolean enableAsync = false;
+
+  @Option(name = "--enable-enum")
+  private boolean enableEnum = false;
+
   @Option(name = "--verbose", //
   aliases = {"-v"})
   // TODO(devoncarew): document this flag when it is supported
@@ -214,6 +220,20 @@ public class AnalyzerOptions {
    */
   public boolean getDisableHints() {
     return disableHints;
+  }
+
+  /**
+   * Return {@code true} if support for async syntax should be enabled.
+   */
+  public boolean getEnableAsync() {
+    return enableAsync;
+  }
+
+  /**
+   * Return {@code true} if support for enum syntax should be enabled.
+   */
+  public boolean getEnableEnum() {
+    return enableEnum;
   }
 
   public boolean getMachineFormat() {

@@ -96,6 +96,8 @@ public class AnalyzerImpl {
     // create options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.setCacheSize(MAX_CACHE_SIZE);
+    contextOptions.setEnableAsync(options.getEnableAsync());
+    contextOptions.setEnableEnum(options.getEnableEnum());
     contextOptions.setHint(!options.getDisableHints());
 
     // prepare AnalysisContext
