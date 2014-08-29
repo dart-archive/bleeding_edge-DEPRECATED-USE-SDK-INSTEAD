@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * An indication of a problem with the execution of the server, typically in response to a request.
- * The error codes that can be returned are documented in the section titled Errors.
  *
  * @coverage dart.server.generated.types
  */

@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ *
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * This file has been automatically generated.  Please do not edit it manually.
+ * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
+ */
+package com.google.dart.server.generated.types;
+
+/**
+ * An enumeration of the types of errors that can occur in the execution of the server.
+ *
+ * @coverage dart.server.generated.types
+ */
+public class RequestErrorCode {
+
+  /**
+   * An error occurred during the processing of an "analysis.getErrors" request.
+   */
+  public static final String GET_ERRORS_ERROR = "GET_ERRORS_ERROR";
+
+  /**
+   * One of the method parameters was invalid.
+   */
+  public static final String INVALID_PARAMETER = "INVALID_PARAMETER";
+
+  /**
+   * A malformed request was received.
+   */
+  public static final String INVALID_REQUEST = "INVALID_REQUEST";
+
+  /**
+   * The analysis server has already been started (and hence won't accept new connections).
+   */
+  public static final String SERVER_ALREADY_STARTED = "SERVER_ALREADY_STARTED";
+
+  /**
+   * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
+   */
+  public static final String UNANALYZED_PRIORITY_FILES = "UNANALYZED_PRIORITY_FILES";
+
+  /**
+   * A request was received which the analysis server does not recognize, or cannot handle in its
+   * current configuation.
+   */
+  public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
+
+  /**
+   * The analysis server was requested to perform an action which is not supported.
+   */
+  public static final String UNSUPPORTED_FEATURE = "UNSUPPORTED_FEATURE";
+
+}
