@@ -49,6 +49,11 @@ deps.update({
   "src": Var("chromium_git") + "/chromium/src.git" + "@" +
       Var("multivm_chromium_commit"),
 
+  "src/third_party/WebKit" :
+    Var("multivm_base") + Var("multivm_blink_branch") + "@" +
+        Var("multivm_blink_revision"),
+
+
 # We cannot check out src/dart/tools because dart/tools/gyp includes files
 # that are automatically found and that break the build.
   "src/dart/tools/bots":
