@@ -20,7 +20,7 @@ vars.update({
       ' "Darwin": "292120", ' +
       ' "Linux": "292120"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
-  "dart_tools_revision": "37732",
+  "dart_tools_revision": "39741",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
   "multivm_blink_revision": "181123",
 })
