@@ -49,16 +49,16 @@ public class ExecutableFile {
   private final String file;
 
   /**
-   * The offset of the region to be highlighted.
+   * The kind of the executable file.
    */
-  private final String offset;
+  private final String kind;
 
   /**
    * Constructor for {@link ExecutableFile}.
    */
-  public ExecutableFile(String file, String offset) {
+  public ExecutableFile(String file, String kind) {
     this.file = file;
-    this.offset = offset;
+    this.kind = kind;
   }
 
   @Override
@@ -67,15 +67,15 @@ public class ExecutableFile {
       ExecutableFile other = (ExecutableFile) obj;
       return
         ObjectUtilities.equals(other.file, file) &&
-        ObjectUtilities.equals(other.offset, offset);
+        ObjectUtilities.equals(other.kind, kind);
     }
     return false;
   }
 
   public static ExecutableFile fromJson(JsonObject jsonObject) {
     String file = jsonObject.get("file").getAsString();
-    String offset = jsonObject.get("offset").getAsString();
-    return new ExecutableFile(file, offset);
+    String kind = jsonObject.get("kind").getAsString();
+    return new ExecutableFile(file, kind);
   }
 
   public static List<ExecutableFile> fromJsonArray(JsonArray jsonArray) {
@@ -98,24 +98,24 @@ public class ExecutableFile {
   }
 
   /**
-   * The offset of the region to be highlighted.
+   * The kind of the executable file.
    */
-  public String getOffset() {
-    return offset;
+  public String getKind() {
+    return kind;
   }
 
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(file);
-    builder.append(offset);
+    builder.append(kind);
     return builder.toHashCode();
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("file", file);
-    jsonObject.addProperty("offset", offset);
+    jsonObject.addProperty("kind", kind);
     return jsonObject;
   }
 
@@ -125,8 +125,8 @@ public class ExecutableFile {
     builder.append("[");
     builder.append("file=");
     builder.append(file + ", ");
-    builder.append("offset=");
-    builder.append(offset);
+    builder.append("kind=");
+    builder.append(kind);
     builder.append("]");
     return builder.toString();
   }
