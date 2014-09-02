@@ -11,11 +11,11 @@ vars.update({
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/dartium/src",
   "dartium_chromium_revision": "291715",
-  # Git hashes of archived chromium builds closest to r278856.
+  # Archived chromium builds closest to r291715.
   "chromium_base_revision":
-      '{"Windows":"9332044293a666d077a214b735a31ba9f3debed7", ' +
-      ' "Darwin": "db25a7e9bf34e638a1cbb4c8974ca566c22eb62c", ' +
-      ' "Linux": "abe29e2ae1ad6d9bd8a7bfa23b3316a203d39ef2"}',
+      '{"Windows":"291710", ' +
+      ' "Darwin": "291710", ' +
+      ' "Linux": "291714"}',
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
   "dartium_webkit_revision": "180947",
