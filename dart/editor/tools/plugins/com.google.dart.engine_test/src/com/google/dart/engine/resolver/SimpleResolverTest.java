@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -20,11 +21,13 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
+import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
@@ -39,6 +42,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -159,6 +163,140 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  void g(a, b, [c]) {}",
         "}"));
     validateArgumentResolution(source, 0, 1, 2, -1);
+  }
+
+  public void test_argumentResolution_setter_propagated() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  var a = new A();",
+        "  a.sss = 0;",
+        "}",
+        "class A {",
+        "  set sss(x) {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    // find "a.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.getFunctions()[0];
+      FunctionBody mainBody = mainElement.getNode().getFunctionExpression().getBody();
+      Statement statement = ((BlockFunctionBody) mainBody).getBlock().getStatements().get(1);
+      ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+      assignment = (AssignmentExpression) expressionStatement.getExpression();
+    }
+    // get parameter
+    Expression rhs = assignment.getRightHandSide();
+    assertNull(rhs.getStaticParameterElement());
+    ParameterElement parameter = rhs.getPropagatedParameterElement();
+    assertNotNull(parameter);
+    assertEquals("x", parameter.getDisplayName());
+    // validate
+    ClassElement classA = unit.getTypes()[0];
+    PropertyAccessorElement setter = classA.getAccessors()[0];
+    assertSame(parameter, setter.getParameters()[0]);
+  }
+
+  public void test_argumentResolution_setter_propagated_propertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  var a = new A();",
+        "  a.b.sss = 0;",
+        "}",
+        "class A {",
+        "  B b = new B();",
+        "}",
+        "class B {",
+        "  set sss(x) {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    // find "a.b.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.getFunctions()[0];
+      FunctionBody mainBody = mainElement.getNode().getFunctionExpression().getBody();
+      Statement statement = ((BlockFunctionBody) mainBody).getBlock().getStatements().get(1);
+      ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+      assignment = (AssignmentExpression) expressionStatement.getExpression();
+    }
+    // get parameter
+    Expression rhs = assignment.getRightHandSide();
+    assertNull(rhs.getStaticParameterElement());
+    ParameterElement parameter = rhs.getPropagatedParameterElement();
+    assertNotNull(parameter);
+    assertEquals("x", parameter.getDisplayName());
+    // validate
+    ClassElement classB = unit.getTypes()[1];
+    PropertyAccessorElement setter = classB.getAccessors()[0];
+    assertSame(parameter, setter.getParameters()[0]);
+  }
+
+  public void test_argumentResolution_setter_static() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  A a = new A();",
+        "  a.sss = 0;",
+        "}",
+        "class A {",
+        "  set sss(x) {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    // find "a.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.getFunctions()[0];
+      FunctionBody mainBody = mainElement.getNode().getFunctionExpression().getBody();
+      Statement statement = ((BlockFunctionBody) mainBody).getBlock().getStatements().get(1);
+      ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+      assignment = (AssignmentExpression) expressionStatement.getExpression();
+    }
+    // get parameter
+    Expression rhs = assignment.getRightHandSide();
+    assertNull(rhs.getPropagatedParameterElement());
+    ParameterElement parameter = rhs.getStaticParameterElement();
+    assertNotNull(parameter);
+    assertEquals("x", parameter.getDisplayName());
+    // validate
+    ClassElement classA = unit.getTypes()[0];
+    PropertyAccessorElement setter = classA.getAccessors()[0];
+    assertSame(parameter, setter.getParameters()[0]);
+  }
+
+  public void test_argumentResolution_setter_static_propertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  A a = new A();",
+        "  a.b.sss = 0;",
+        "}",
+        "class A {",
+        "  B b = new B();",
+        "}",
+        "class B {",
+        "  set sss(x) {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    // find "a.b.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.getFunctions()[0];
+      FunctionBody mainBody = mainElement.getNode().getFunctionExpression().getBody();
+      Statement statement = ((BlockFunctionBody) mainBody).getBlock().getStatements().get(1);
+      ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+      assignment = (AssignmentExpression) expressionStatement.getExpression();
+    }
+    // get parameter
+    Expression rhs = assignment.getRightHandSide();
+    assertNull(rhs.getPropagatedParameterElement());
+    ParameterElement parameter = rhs.getStaticParameterElement();
+    assertNotNull(parameter);
+    assertEquals("x", parameter.getDisplayName());
+    // validate
+    ClassElement classB = unit.getTypes()[1];
+    PropertyAccessorElement setter = classB.getAccessors()[0];
+    assertSame(parameter, setter.getParameters()[0]);
   }
 
   public void test_class_definesCall() throws Exception {

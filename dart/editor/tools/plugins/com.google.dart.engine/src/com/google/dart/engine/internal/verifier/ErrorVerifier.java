@@ -495,9 +495,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       checkForInvalidAssignment(lhs, rhs);
     } else {
       checkForInvalidCompoundAssignment(node, lhs, rhs);
+      checkForArgumentTypeNotAssignableForArgument(rhs);
     }
     checkForAssignmentToFinal(lhs);
-    checkForArgumentTypeNotAssignableForArgument(rhs);
     return super.visitAssignmentExpression(node);
   }
 

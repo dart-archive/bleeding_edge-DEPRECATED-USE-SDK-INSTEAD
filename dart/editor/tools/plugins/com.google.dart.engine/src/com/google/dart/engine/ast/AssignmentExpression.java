@@ -14,6 +14,8 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
@@ -235,10 +237,29 @@ public class AssignmentExpression extends Expression {
    *         operand will be bound
    */
   protected ParameterElement getPropagatedParameterElementForRightHandSide() {
-    if (propagatedElement == null) {
+    ExecutableElement executableElement = null;
+    if (propagatedElement != null) {
+      executableElement = propagatedElement;
+    } else {
+      if (leftHandSide instanceof Identifier) {
+        Identifier identifier = (Identifier) leftHandSide;
+        Element leftElement = identifier.getPropagatedElement();
+        if (leftElement instanceof ExecutableElement) {
+          executableElement = (ExecutableElement) leftElement;
+        }
+      }
+      if (leftHandSide instanceof PropertyAccess) {
+        SimpleIdentifier identifier = ((PropertyAccess) leftHandSide).getPropertyName();
+        Element leftElement = identifier.getPropagatedElement();
+        if (leftElement instanceof ExecutableElement) {
+          executableElement = (ExecutableElement) leftElement;
+        }
+      }
+    }
+    if (executableElement == null) {
       return null;
     }
-    ParameterElement[] parameters = propagatedElement.getParameters();
+    ParameterElement[] parameters = executableElement.getParameters();
     if (parameters.length < 1) {
       return null;
     }
@@ -256,10 +277,27 @@ public class AssignmentExpression extends Expression {
    *         operand will be bound
    */
   protected ParameterElement getStaticParameterElementForRightHandSide() {
-    if (staticElement == null) {
+    ExecutableElement executableElement = null;
+    if (staticElement != null) {
+      executableElement = staticElement;
+    } else {
+      if (leftHandSide instanceof Identifier) {
+        Element leftElement = ((Identifier) leftHandSide).getStaticElement();
+        if (leftElement instanceof ExecutableElement) {
+          executableElement = (ExecutableElement) leftElement;
+        }
+      }
+      if (leftHandSide instanceof PropertyAccess) {
+        Element leftElement = ((PropertyAccess) leftHandSide).getPropertyName().getStaticElement();
+        if (leftElement instanceof ExecutableElement) {
+          executableElement = (ExecutableElement) leftElement;
+        }
+      }
+    }
+    if (executableElement == null) {
       return null;
     }
-    ParameterElement[] parameters = staticElement.getParameters();
+    ParameterElement[] parameters = executableElement.getParameters();
     if (parameters.length < 1) {
       return null;
     }

@@ -34,7 +34,6 @@ import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -64,7 +63,6 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
@@ -407,38 +405,6 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   /**
-   * Resolver sets {@link ParameterElement} for the most cases, but not for setter invocation.
-   * 
-   * @return the best available {@link ParameterElement} for which given {@link Expression} is used.
-   */
-  private static ParameterElement getBestParameterElement(Expression expr) {
-    // setter invocation
-    if (expr.getParent() instanceof AssignmentExpression) {
-      AssignmentExpression assignment = (AssignmentExpression) expr.getParent();
-      if (assignment.getRightHandSide() == expr
-          && assignment.getOperator().getType() == TokenType.EQ) {
-        Expression lhs = assignment.getLeftHandSide();
-        Element lhsElement = null;
-        if (lhs instanceof Identifier) {
-          lhsElement = ((Identifier) lhs).getBestElement();
-        }
-        if (lhs instanceof PropertyAccess) {
-          lhsElement = ((PropertyAccess) lhs).getPropertyName().getBestElement();
-        }
-        if (lhsElement instanceof PropertyAccessorElement) {
-          PropertyAccessorElement accessor = (PropertyAccessorElement) lhsElement;
-          ParameterElement[] parameters = accessor.getParameters();
-          if (parameters.length != 0) {
-            return parameters[0];
-          }
-        }
-      }
-    }
-    // use resolver
-    return expr.getBestParameterElement();
-  }
-
-  /**
    * If the given {@link AstNode} is a some {@link ClassDeclaration}, returns the
    * {@link ClassElement}. Otherwise returns {@code null}.
    */
@@ -702,7 +668,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       // prepare argument
       Expression argument = null;
       for (Expression arg : arguments) {
-        if (Objects.equal(getBestParameterElement(arg), parameter)) {
+        if (Objects.equal(arg.getBestParameterElement(), parameter)) {
           argument = arg;
           break;
         }
