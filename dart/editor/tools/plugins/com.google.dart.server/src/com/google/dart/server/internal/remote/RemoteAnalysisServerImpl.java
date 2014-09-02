@@ -38,7 +38,6 @@ import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
-import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
@@ -62,7 +61,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerErrorP
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringApplyProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringCreateProcessor;
-import com.google.dart.server.internal.remote.processor.RefactoringGetProcessor;
+import com.google.dart.server.internal.remote.processor.RefactoringGetAvailableProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringSetOptionsProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
@@ -342,28 +341,22 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void debug_createContext(String contextRoot, CreateContextConsumer consumer) {
-    // TODO (jwren) implement
+    // TODO (jwren) debug domain not implemented yet
   }
 
   @Override
   public void debug_deleteContext(String id) {
-    // TODO (jwren) implement 
+    // TODO (jwren) debug domain not implemented yet
   }
 
   @Override
   public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
-    // TODO (jwren) implement
+    // TODO (jwren) debug domain not implemented yet
   }
-
-  // TODO (jwren) comment back in after enum version is generated
-//  @Override
-//  public void debug_setSubscriptions(List<DebugService> services) {
-//    // TODO (jwren) implement
-//  }
 
   @Override
   public void debug_setSubscriptions(List<String> subscriptions) {
-    // TODO (jwren) delete after enum version is generated
+    // TODO (jwren) debug domain not implemented yet
   }
 
   @Override
@@ -379,12 +372,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void edit_getAvailableRefactorings(String file, Integer offset, Integer length,
       GetAvailableRefactoringsConsumer consumer) {
-    // TODO (jwren) update after refactoring support has been updated
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateEditGetRefactorings(id, file, offset, length),
-//        consumer);
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditGetAvaliableRefactorings(id, file, offset, length),
+        consumer);
   }
 
   @Override
@@ -393,26 +385,21 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, file, offset), consumer);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length,
       Boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
-    // TODO Auto-generated method stub
-
+    String id = generateUniqueId();
+    // TODO (jwren) can options be Map<String, Object>?
+    sendRequestToServer(id, RequestUtilities.generateEditGetRefactoring(
+        id,
+        kindId,
+        file,
+        offset,
+        length,
+        validateOnly,
+        (Map<String, Object>) options), consumer);
   }
-
-  // TODO (jwren) delete after refactoring support updated
-//  @Override
-//  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
-//      RefactoringSetOptionsConsumer consumer) {
-//    if (refactoringOptions == null) {
-//      refactoringOptions = Maps.newHashMap();
-//    }
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateEditSetRefactoringOptions(id, refactoringId, refactoringOptions),
-//        consumer);
-//  }
 
   public void findElementReferences(String file, int offset, boolean includePotential,
       SearchIdConsumer consumer) {
@@ -670,8 +657,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetFixesConsumer) {
       new FixesProcessor((GetFixesConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof RefactoringGetConsumer) {
-      new RefactoringGetProcessor((RefactoringGetConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetAvailableRefactoringsConsumer) {
+      new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringSetOptionsConsumer) {
       new RefactoringSetOptionsProcessor((RefactoringSetOptionsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetVersionConsumer) {

@@ -45,47 +45,38 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
 
   @Override
   public void computedNavigation(String file, List<NavigationRegion> targets) {
-
   }
 
   @Override
   public void computedOccurrences(String file, List<Occurrences> occurrencesArray) {
-
   }
 
   @Override
   public void computedOutline(String file, Outline outline) {
-
   }
 
   @Override
   public void computedOverrides(String file, List<OverrideMember> overrides) {
-
   }
 
   @Override
   public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
-
   }
 
   @Override
   public void flushedResults(List<String> files) {
-
   }
 
   @Override
   public void serverConnected() {
-
   }
 
   @Override
   public void serverError(boolean isFatal, String message, String stackTrace) {
-
   }
 
   @Override
   public void serverStatus(AnalysisStatus status) {
-
   }
 
 }

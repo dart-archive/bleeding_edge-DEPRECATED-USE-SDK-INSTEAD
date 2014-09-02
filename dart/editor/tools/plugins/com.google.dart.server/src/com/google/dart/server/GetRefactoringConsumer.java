@@ -13,11 +13,28 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.SourceChange;
+
+import java.util.List;
+
 /**
- * The interface {@code GetRefactoringConsumer} defines the behavior of objects that .. TODO
+ * The interface {@code GetRefactoringConsumer} defines the behavior of objects that get the changes
+ * required to perform a refactoring.
  * 
  * @coverage dart.server
  */
-public class GetRefactoringConsumer implements Consumer {
-  // TODO (jwren) implement, class added simply to have AnalysisServer compile
+public interface GetRefactoringConsumer extends Consumer {
+  /**
+   * The changes required to perform a refactoring.
+   * <p>
+   * TODO (jwren) can feedback be Map<String, Object>?, fill in javadoc below.
+   * 
+   * @param problems The status of the refactoring. The array will be empty if there are no known
+   *          problems
+   * @param feedback
+   * @param change
+   * @param potentialEdits
+   */
+  public void computedRefactorings(List<RefactoringProblem> problems, Object feedback,
+      SourceChange change, List<String> potentialEdits);
 }

@@ -15,22 +15,13 @@ package com.google.dart.server.timing;
 
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.AnalysisServerListenerAdapter;
 import com.google.dart.server.generated.types.AnalysisStatus;
-import com.google.dart.server.generated.types.CompletionSuggestion;
-import com.google.dart.server.generated.types.HighlightRegion;
-import com.google.dart.server.generated.types.NavigationRegion;
-import com.google.dart.server.generated.types.Occurrences;
-import com.google.dart.server.generated.types.Outline;
-import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Instances of the class {@code AnalyzeEngineInServer} use an analysis server to analyze the
@@ -41,56 +32,11 @@ public class AnalyzeEngineInServer extends TimingTest {
    * Instances of the class {@code ServerListener} listen for notifications from a server, recording
    * the state of analysis.
    */
-  private static final class ServerListener implements AnalysisServerListener {
+  private static final class ServerListener extends AnalysisServerListenerAdapter {
     /**
      * The most recently recorded value of the isAnalyzing flag from the server.
      */
     private boolean isAnalyzing = true;
-
-    @Override
-    public void computedCompletion(String completionId, int replacementOffset,
-        int replacementLength, List<CompletionSuggestion> completions, boolean isLast) {
-    }
-
-    @Override
-    public void computedErrors(String file, List<AnalysisError> errors) {
-    }
-
-    @Override
-    public void computedHighlights(String file, List<HighlightRegion> highlights) {
-    }
-
-    @Override
-    public void computedNavigation(String file, List<NavigationRegion> targets) {
-    }
-
-    @Override
-    public void computedOccurrences(String file, List<Occurrences> occurrencesArray) {
-    }
-
-    @Override
-    public void computedOutline(String file, Outline outline) {
-    }
-
-    @Override
-    public void computedOverrides(String file, List<OverrideMember> overrides) {
-    }
-
-    @Override
-    public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
-    }
-
-    @Override
-    public void flushedResults(List<String> files) {
-    }
-
-    @Override
-    public void serverConnected() {
-    }
-
-    @Override
-    public void serverError(boolean isFatal, String message, String stackTrace) {
-    }
 
     @Override
     public void serverStatus(AnalysisStatus analysisStatus) {

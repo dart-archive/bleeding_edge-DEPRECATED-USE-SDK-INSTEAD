@@ -16,11 +16,16 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
+import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
+import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -36,6 +41,7 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.ErrorFixes;
 import com.google.dart.server.generated.types.ErrorSeverity;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
@@ -46,8 +52,12 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverriddenMember;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.RefactoringKind;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
+import com.google.dart.server.generated.types.RefactoringMethodParameterKind;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.dart.server.generated.types.ServerService;
+import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
@@ -1576,283 +1586,423 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 //        "}");
 //    assertTrue(requests.contains(expected));
 //  }
-//
-//  public void test_edit_getAssists() throws Exception {
-//    final SourceChange[][] sourceChangeArray = {{null}};
-//    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
-//      @Override
-//      public void computedSourceChanges(SourceChange[] sourceChanges) {
-//        sourceChangeArray[0] = sourceChanges;
-//      }
-//    });
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'edit.getAssists',",
-//        "  'params': {",
-//        "    'file': '/fileA.dart',",
-//        "    'offset': 1,",
-//        "    'length': 2",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//
-//    putResponse(//
-//        "{",
-//        "  'id': '0',",
-//        "  'result': {",
-//        "    'assists': [",
-//        "      {",
-//        "        'message': 'message1',",
-//        "        'edits': [",
-//        "          {",
-//        "            'file':'someFile1.dart',",
-//        "            'edits': [",
-//        "              {",
-//        "                'offset': 1,",
-//        "                'length': 2,",
-//        "                'replacement': 'replacement1'",
-//        "             }",
-//        "            ]",
-//        "          }",
-//        "        ]",
-//        "      },",
-//        "      {",
-//        "        'message': 'message2',",
-//        "        'edits': [",
-//        "          {",
-//        "            'file':'someFile2.dart',",
-//        "            'edits': [",
-//        "              {",
-//        "                'offset': 3,",
-//        "                'length': 4,",
-//        "                'replacement': 'replacement2'",
-//        "             }",
-//        "            ]",
-//        "          }",
-//        "        ]",
-//        "      }",
-//        "    ]",
-//        "  }",
-//        "}");
-//    server.test_waitForWorkerComplete();
-//
-//    // assertions on 'refactorings' (List<SourceChange>)
-//    SourceChange[] sourceChanges = sourceChangeArray[0];
-//    assertThat(sourceChanges).hasSize(2);
-//    {
-//      assertEquals("message1", sourceChanges[0].getMessage());
-//      assertThat(sourceChanges[0].getEdits()).hasSize(1);
-//      SourceFileEdit sourceFileEdit = sourceChanges[0].getEdits()[0];
-//      assertEquals("someFile1.dart", sourceFileEdit.getFile());
-//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-//      assertEquals(1, sourceEdit.getOffset());
-//      assertEquals(2, sourceEdit.getLength());
-//      assertEquals("replacement1", sourceEdit.getReplacement());
-//    }
-//    {
-//      assertEquals("message2", sourceChanges[1].getMessage());
-//      assertThat(sourceChanges[1].getEdits()).hasSize(1);
-//      SourceFileEdit sourceFileEdit = sourceChanges[1].getEdits()[0];
-//      assertEquals("someFile2.dart", sourceFileEdit.getFile());
-//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-//      assertEquals(3, sourceEdit.getOffset());
-//      assertEquals(4, sourceEdit.getLength());
-//      assertEquals("replacement2", sourceEdit.getReplacement());
-//    }
-//  }
-//
-//  public void test_edit_getFixes() throws Exception {
-//    final ErrorFixes[][] errorFixesArray = {{null}};
-//    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
-//      @Override
-//      public void computedFixes(ErrorFixes[] e) {
-//        errorFixesArray[0] = e;
-//      }
-//    });
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'edit.getFixes',",
-//        "  'params': {",
-//        "    'file': '/fileA.dart',",
-//        "    'offset': 1",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//
-//    putResponse(//
-//        "{",
-//        "  'id': '0',",
-//        "  'result': {",
-//        "    'fixes': [",
-//        "      {",
-//        "        'error': {",
-//        "          'severity': 'ERROR',",
-//        "          'type': 'SYNTACTIC_ERROR',",
-//        "          'location': {",
-//        "            'file': '/fileA.dart',",
-//        "            'offset': 1,",
-//        "            'length': 2,",
-//        "            'startLine': 3,",
-//        "            'startColumn': 4",
-//        "          },",
-//        "          'message': 'message A',",
-//        "          'correction': 'correction A'",
-//        "        },",
-//        "        'fixes': [",
-//        "          {",
-//        "            'message': 'message3',",
-//        "            'edits': [",
-//        "              {",
-//        "                'file':'someFile3.dart',",
-//        "                'edits': [",
-//        "                  {",
-//        "                    'offset': 9,",
-//        "                    'length': 10,",
-//        "                    'replacement': 'replacement1'",
-//        "                  }",
-//        "                ]",
-//        "              }",
-//        "            ]",
-//        "          }",
-//        "        ]",
-//        "      },",
-//        "      {",
-//        "        'error': {",
-//        "          'severity': 'ERROR',",
-//        "          'type': 'COMPILE_TIME_ERROR',",
-//        "          'location': {",
-//        "            'file': '/fileB.dart',",
-//        "            'offset': 5,",
-//        "            'length': 6,",
-//        "            'startLine': 7,",
-//        "            'startColumn': 8",
-//        "          },",
-//        "          'message': 'message B',",
-//        "          'correction': 'correction B'",
-//        "        },",
-//        "        'fixes':[]",
-//        "      }",
-//        "    ]",
-//        "  }",
-//        "}");
-//    server.test_waitForWorkerComplete();
-//
-//    // assertions on 'fixes' (List<ErrorFixes>)
-//    ErrorFixes[] errorFixes = errorFixesArray[0];
-//    assertThat(errorFixes).hasSize(2);
-//    {
-//      AnalysisError error = errorFixes[0].getError();
-//      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
-//          "/fileA.dart",
-//          1,
-//          2,
-//          3,
-//          4), "message A", "correction A"), error);
-//      SourceChange[] sourceChangeArray = errorFixes[0].getFixes();
-//      assertThat(sourceChangeArray).hasSize(1);
-//      assertEquals("message3", sourceChangeArray[0].getMessage());
-//      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
-//      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
-//      assertEquals("someFile3.dart", sourceFileEdit.getFile());
-//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-//      assertEquals(9, sourceEdit.getOffset());
-//      assertEquals(10, sourceEdit.getLength());
-//      assertEquals("replacement1", sourceEdit.getReplacement());
-//    }
-//    {
-//      AnalysisError error = errorFixes[1].getError();
-//      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
-//          "/fileB.dart",
-//          5,
-//          6,
-//          7,
-//          8), "message B", "correction B"), error);
-//      SourceChange[] sourceChangeArray = errorFixes[1].getFixes();
-//      assertThat(sourceChangeArray).isEmpty();
-//    }
-//  }
 
-  // TODO (jwren) refactoring API changed
-//  public void test_edit_getRefactorings() throws Exception {
-//    final String[][] refactoringKindsArray = {{null}};
-//    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
-//      @Override
-//      public void computedRefactoringKinds(String[] refactoringKinds) {
-//        refactoringKindsArray[0] = refactoringKinds;
-//      }
-//    });
-//    List<JsonObject> requests = requestSink.getRequests();
+  public void test_edit_getAssists() throws Exception {
+    final Object[] sourceChangesArray = {null};
+    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
+      @Override
+      public void computedSourceChanges(List<SourceChange> sourceChanges) {
+        sourceChangesArray[0] = sourceChanges;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'assists': [",
+        "      {",
+        "        'message': 'message1',",
+        "        'edits': [",
+        "          {",
+        "            'file':'file1.dart',",
+        "            'edits': [",
+        "              {",
+        "                'offset': 1,",
+        "                'length': 2,",
+        "                'replacement': 'replacement1',",
+        "                'id': 'id1'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'linkedEditGroups': [",
+        "          {",
+        "            'positions': [",
+        "              {",
+        "                'file': 'file2.dart',",
+        "                'offset': 3",
+        "              }",
+        "            ],",
+        "            'length': 4,",
+        "            'suggestions': [",
+        "              {",
+        "                'value': 'value1',",
+        "                'kind': 'METHOD'",
+        "              }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'selection': {",
+        "          'file': 'file3.dart',",
+        "          'offset': 5",
+        "        }",
+        "      },",
+        "      {",
+        "        'message': 'message2',",
+        "        'edits': [",
+        "          {",
+        "            'file':'someFile3.dart',",
+        "            'edits': [",
+        "              {",
+        "                'offset': 6,",
+        "                'length': 7,",
+        "                'replacement': 'replacement2'",
+        "             },",
+        "             {",
+        "                'offset': 8,",
+        "                'length': 9,",
+        "                'replacement': 'replacement2'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'linkedEditGroups': [",
+        "          {",
+        "            'positions': [",
+        "              {",
+        "                'file': 'file4.dart',",
+        "                'offset': 10",
+        "              }",
+        "            ],",
+        "            'length': 12,",
+        "            'suggestions': [",
+        "              {",
+        "                'value': 'value2',",
+        "                'kind': 'PARAMETER'",
+        "              }",
+        "            ]",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'assists' (List<SourceChange>)
+    @SuppressWarnings("unchecked")
+    List<SourceChange> sourceChanges = (List<SourceChange>) sourceChangesArray[0];
+    assertThat(sourceChanges).hasSize(2);
+    // other assertions would would test the generated fromJson methods
+  }
+
+  public void test_edit_getAvailableRefactorings() throws Exception {
+    final Object[] refactoringKindsArray = {null};
+    server.edit_getAvailableRefactorings(
+        "/fileA.dart",
+        1,
+        2,
+        new GetAvailableRefactoringsConsumer() {
+          @Override
+          public void computedRefactoringKinds(List<String> refactoringKinds) {
+            refactoringKindsArray[0] = refactoringKinds;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAvailableRefactorings',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'kinds' (List<RefactoringKind>)
+    @SuppressWarnings("unchecked")
+    List<String> refactoringKinds = (List<String>) refactoringKindsArray[0];
+    assertThat(refactoringKinds).hasSize(3);
+    assertThat(refactoringKinds).contains(
+        "CONVERT_GETTER_TO_METHOD",
+        "CONVERT_METHOD_TO_GETTER",
+        "EXTRACT_LOCAL_VARIABLE");
+  }
+
+  public void test_edit_getAvailableRefactorings_emptyKindsList() throws Exception {
+    final Object[] refactoringKindsArray = {null};
+    server.edit_getAvailableRefactorings(
+        "/fileA.dart",
+        1,
+        2,
+        new GetAvailableRefactoringsConsumer() {
+          @Override
+          public void computedRefactoringKinds(List<String> refactoringKinds) {
+            refactoringKindsArray[0] = refactoringKinds;
+          }
+        });
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'kinds': []",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'kinds' (List<RefactoringKind>)
+    @SuppressWarnings("unchecked")
+    List<String> refactoringKinds = (List<String>) refactoringKindsArray[0];
+    assertThat(refactoringKinds).hasSize(0);
+  }
+
+  public void test_edit_getFixes() throws Exception {
+    final Object[] errorFixesArray = {null};
+    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
+      @Override
+      public void computedFixes(List<ErrorFixes> e) {
+        errorFixesArray[0] = e;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'fixes': [",
+        "      {",
+        "        'error': {",
+        "          'severity': 'ERROR',",
+        "          'type': 'SYNTACTIC_ERROR',",
+        "          'location': {",
+        "            'file': '/fileA.dart',",
+        "            'offset': 1,",
+        "            'length': 2,",
+        "            'startLine': 3,",
+        "            'startColumn': 4",
+        "          },",
+        "          'message': 'message A',",
+        "          'correction': 'correction A'",
+        "        },",
+        "        'fixes': [",
+        "          {",
+        "            'message': 'message1',",
+        "            'edits': [",
+        "              {",
+        "                'file':'file1.dart',",
+        "                'edits': [",
+        "                  {",
+        "                    'offset': 1,",
+        "                    'length': 2,",
+        "                    'replacement': 'replacement1',",
+        "                    'id': 'id1'",
+        "                  }",
+        "                ]",
+        "              }",
+        "            ],",
+        "            'linkedEditGroups': [",
+        "              {",
+        "                'positions': [",
+        "                  {",
+        "                    'file': 'file2.dart',",
+        "                    'offset': 3",
+        "                  }",
+        "                ],",
+        "                'length': 4,",
+        "                'suggestions': [",
+        "                  {",
+        "                    'value': 'value1',",
+        "                    'kind': 'METHOD'",
+        "                  }",
+        "                ]",
+        "              }",
+        "            ],",
+        "            'selection': {",
+        "              'file': 'file3.dart',",
+        "              'offset': 5",
+        "            }",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'fixes' (List<ErrorFixes>)
+    @SuppressWarnings("unchecked")
+    List<ErrorFixes> errorFixes = (List<ErrorFixes>) errorFixesArray[0];
+    assertThat(errorFixes).hasSize(1);
+    // other assertions would would test the generated fromJson methods
+  }
+
+  public void test_edit_getRefactoring_request_options_extractLocalVariable() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("name", "name1");
+    options.put("extractAll", Boolean.TRUE);
+    server.edit_getRefactoring(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems, Object feedback,
+              SourceChange change, List<String> potentialEdits) {
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getRefactoring',",
+        "  'params': {",
+        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'file': 'file1.dart',",
+        "    'offset': 1,",
+        "    'length': 2,",
+        "    'validateOnly': false,",
+        "    'options': {",
+        "      'name': 'name1',",
+        "      'extractAll': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_getRefactoring_request_options_extractMethod() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("returnType", "returnType1");
+    options.put("createGetter", Boolean.TRUE);
+    options.put("name", "name1");
+    options.put("parameters", new RefactoringMethodParameter[] {
+        new RefactoringMethodParameter(
+            "id1",
+            RefactoringMethodParameterKind.REQUIRED,
+            "type1",
+            "name1",
+            null),
+        new RefactoringMethodParameter(
+            "id2",
+            RefactoringMethodParameterKind.POSITIONAL,
+            "type2",
+            "name2",
+            null)});
+    options.put("extractAll", Boolean.TRUE);
+    server.edit_getRefactoring(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems, Object feedback,
+              SourceChange change, List<String> potentialEdits) {
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    // TODO (jwren) test incomplete.
 //    JsonElement expected = parseJson(//
 //        "{",
 //        "  'id': '0',",
-//        "  'method': 'edit.getRefactorings',",
+//        "  'method': 'edit.getRefactoring',",
 //        "  'params': {",
-//        "    'file': '/fileA.dart',",
+//        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+//        "    'file': 'file1.dart',",
 //        "    'offset': 1,",
-//        "    'length': 2",
+//        "    'length': 2,",
+//        "    'validateOnly': false,",
+//        "    'options': {",
+//        "      'returnType': 'returnType1',",
+//        "      'createGetter': true,",
+//        "      'name': 'name1',",
+//        "      'parameters': [",
+//        "        {"
+//        "        'type1': 'name1',",
+//        "        'type2': 'name2',",
+//        "      ],",
+//        "      'extractAll': true",
+//        "    }",
 //        "  }",
 //        "}");
 //    assertTrue(requests.contains(expected));
-//
-//    putResponse(//
-//        "{",
-//        "  'id': '0',",
-//        "  'result': {",
-//        "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
-//        "  }",
-//        "}");
-//    server.test_waitForWorkerComplete();
-//
-//    // assertions on 'kinds' (List<RefactoringKind>)
-//    String[] refactoringKinds = refactoringKindsArray[0];
-//    assertThat(refactoringKinds).hasSize(3);
-//    assertThat(refactoringKinds).contains(
-//        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-//        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-//        RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-//  }
-//
-//  public void test_edit_getRefactorings_emptyKindsList() throws Exception {
-//    final String[][] refactoringKindsArray = {{null}};
-//    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
-//      @Override
-//      public void computedRefactoringKinds(String[] refactoringKinds) {
-//        refactoringKindsArray[0] = refactoringKinds;
-//      }
-//    });
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'edit.getRefactorings',",
-//        "  'params': {",
-//        "    'file': '/fileA.dart',",
-//        "    'offset': 1,",
-//        "    'length': 2",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//
-//    putResponse(//
-//        "{",
-//        "  'id': '0',",
-//        "  'result': {",
-//        "    'kinds': []",
-//        "  }",
-//        "}");
-//    server.test_waitForWorkerComplete();
-//
-//    // assertions on 'kinds' (List<RefactoringKind>)
-//    assertThat(refactoringKindsArray[0]).hasSize(0);
-//  }
-//
+  }
+
+  public void test_edit_getRefactoring_request_options_extractMethod_noParameters()
+      throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("returnType", "returnType1");
+    options.put("createGetter", Boolean.TRUE);
+    options.put("name", "name1");
+    options.put("parameters", new RefactoringMethodParameter[] {});
+    options.put("extractAll", Boolean.TRUE);
+    server.edit_getRefactoring(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems, Object feedback,
+              SourceChange change, List<String> potentialEdits) {
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getRefactoring',",
+        "  'params': {",
+        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'file': 'file1.dart',",
+        "    'offset': 1,",
+        "    'length': 2,",
+        "    'validateOnly': false,",
+        "    'options': {",
+        "      'returnType': 'returnType1',",
+        "      'createGetter': true,",
+        "      'name': 'name1',",
+        "      'parameters': [],",
+        "      'extractAll': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
 //  public void test_edit_setRefactoringOptions() throws Exception {
 //    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
 //    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {

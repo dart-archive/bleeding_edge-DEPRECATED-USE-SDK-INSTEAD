@@ -13,12 +13,20 @@
  */
 package com.google.dart.server;
 
+import java.util.List;
+
 /**
- * The interface {@code GetAvailableRefactoringsConsumer} defines the behavior of objects that ...
- * TODO
+ * The interface {@code GetAvailableRefactoringsConsumer} defines the behavior of objects that
+ * consume a get refactoring response.
  * 
  * @coverage dart.server
  */
-public class GetAvailableRefactoringsConsumer implements Consumer {
-  // TODO (jwren) implement, class added simply to have AnalysisServer compile
+public interface GetAvailableRefactoringsConsumer extends Consumer {
+  /**
+   * The refactoring kinds that have been computed for file location.
+   * 
+   * @param refactoringKinds the kinds of refactorings that are valid for the given selection
+   * @see RefactoringKind
+   */
+  public void computedRefactoringKinds(List<String> refactoringKinds);
 }

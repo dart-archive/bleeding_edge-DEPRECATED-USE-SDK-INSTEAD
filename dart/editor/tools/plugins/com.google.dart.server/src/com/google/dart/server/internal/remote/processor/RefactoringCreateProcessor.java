@@ -13,16 +13,15 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.Parameter;
 import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringProblem;
-import com.google.dart.server.internal.ParameterImpl;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -95,8 +94,8 @@ public class RefactoringCreateProcessor extends ResultProcessor {
     }
     // parameters: List<Parameter>
     JsonElement parametersElt = feedbackObject.get("parameters");
-    if (parametersElt != null) {
-      Parameter[] parameters = constructParameterArray(parametersElt.getAsJsonArray());
+    if (parametersElt instanceof JsonArray) {
+      List<RefactoringMethodParameter> parameters = RefactoringMethodParameter.fromJsonArray((JsonArray) parametersElt);
       feedback.put("parameters", parameters);
     }
     // occurrences: int
@@ -111,23 +110,4 @@ public class RefactoringCreateProcessor extends ResultProcessor {
     consumer.computedStatus(refactoringId, status, feedback);
   }
 
-  private Parameter constructParameter(JsonObject parameterObject) {
-    String type = parameterObject.get("type").getAsString();
-    String name = parameterObject.get("name").getAsString();
-    return new ParameterImpl(type, name);
-  }
-
-  private Parameter[] constructParameterArray(JsonArray jsonArray) {
-    if (jsonArray == null) {
-      return new Parameter[] {};
-    }
-    int i = 0;
-    Parameter[] parameters = new Parameter[jsonArray.size()];
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      parameters[i] = constructParameter(iterator.next().getAsJsonObject());
-      ++i;
-    }
-    return parameters;
-  }
 }

@@ -13,8 +13,11 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.RefactoringGetConsumer;
+import com.google.dart.server.GetAvailableRefactoringsConsumer;
+import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonObject;
+
+import java.util.List;
 
 /**
  * Instances of {@code RefactoringGetProcessor} translate JSON result objects for a given
@@ -22,16 +25,16 @@ import com.google.gson.JsonObject;
  * 
  * @coverage dart.server.remote
  */
-public class RefactoringGetProcessor extends ResultProcessor {
+public class RefactoringGetAvailableProcessor extends ResultProcessor {
 
-  private final RefactoringGetConsumer consumer;
+  private final GetAvailableRefactoringsConsumer consumer;
 
-  public RefactoringGetProcessor(RefactoringGetConsumer consumer) {
+  public RefactoringGetAvailableProcessor(GetAvailableRefactoringsConsumer consumer) {
     this.consumer = consumer;
   }
 
   public void process(JsonObject resultObject) {
-    String[] refactoringKinds = constructStringArray(resultObject.get("kinds").getAsJsonArray());
+    List<String> refactoringKinds = JsonUtilities.decodeStringList(resultObject.get("kinds").getAsJsonArray());
     consumer.computedRefactoringKinds(refactoringKinds);
   }
 }

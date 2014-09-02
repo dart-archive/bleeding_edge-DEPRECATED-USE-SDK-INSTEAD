@@ -14,12 +14,12 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.server.Parameter;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.ChangeContentOverlay;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -65,8 +65,8 @@ public class RequestUtilities {
   private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
-  private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactorings";
-  private static final String METHOD_EDIT_SET_REFACTORING_OPTIONS = "edit.setRefactoringOptions";
+  private static final String METHOD_EDIT_GET_AVAILABLE_REFACTORING = "edit.getAvailableRefactorings";
+  private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactoring";
 
   // Code Completion domain
   private static final String METHOD_COMPLETION_GET_SUGGESTIONS = "completion.getSuggestions";
@@ -400,12 +400,36 @@ public class RequestUtilities {
   }
 
   /**
+   * Generate and return a {@value #METHOD_EDIT_GET_AVAILABLE_REFACTORING} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.getAvailableRefactorings"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditGetAvaliableRefactorings(String idValue, String file,
+      int offset, int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    params.addProperty(LENGTH, length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_AVAILABLE_REFACTORING, params);
+  }
+
+  /**
    * Generate and return a {@value #METHOD_EDIT_GET_FIXES} request.
    * 
    * <pre>
    * request: {
    *   "id": String
-   *   "method": "analysis.getFixes"
+   *   "method": "edit.getFixes"
    *   "params": {
    *     "file": FilePath
    *     "offset": int
@@ -421,46 +445,31 @@ public class RequestUtilities {
   }
 
   /**
-   * Generate and return a {@value #METHOD_EDIT_GET_REFACTORING} request.
+   * Generate and return a {@value #METHOD_REFACTORING} request.
    * 
    * <pre>
    * request: {
    *   "id": String
-   *   "method": "edit.getRefactorings"
+   *   "method": "edit.getRefactoring"
    *   "params": {
+   *     "kind": RefactoringKind
    *     "file": FilePath
    *     "offset": int
    *     "length": int
+   *     "validateOnly": bool
+   *     "options": optional object
    *   }
    * }
    * </pre>
    */
-  public static JsonObject generateEditGetRefactorings(String idValue, String file, int offset,
-      int length) {
+  public static JsonObject generateEditGetRefactoring(String idValue, String kind, String file,
+      int offset, int length, boolean validateOnly, Map<String, Object> refactoringOptions) {
     JsonObject params = new JsonObject();
+    params.addProperty("kind", kind);
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     params.addProperty(LENGTH, length);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_EDIT_SET_REFACTORING_OPTIONS} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "edit.getRefactorings"
-   *   "params": {
-   *     "id": refactoringId
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateEditSetRefactoringOptions(String idValue, String refactoringId,
-      Map<String, Object> refactoringOptions) {
-    JsonObject params = new JsonObject();
-    params.addProperty(ID, refactoringId);
+    params.addProperty("validateOnly", validateOnly);
     JsonObject options = new JsonObject();
     if (refactoringOptions != null && !refactoringOptions.isEmpty()) {
       // name: String
@@ -487,13 +496,11 @@ public class RequestUtilities {
       Object parameterListOb = refactoringOptions.get("parameters");
       if (parameterListOb != null) {
         JsonArray parameterArray = new JsonArray();
-        if (parameterListOb instanceof Parameter[]) {
-          Parameter[] parameterList = (Parameter[]) parameterListOb;
-          for (Parameter parameter : parameterList) {
-            JsonObject parameterJsonObject = new JsonObject();
-            parameterJsonObject.addProperty("type", parameter.getType());
-            parameterJsonObject.addProperty("name", parameter.getName());
-            parameterArray.add(parameterJsonObject);
+        if (parameterListOb instanceof List<?>) {
+          @SuppressWarnings("unchecked")
+          List<RefactoringMethodParameter> parameterList = (List<RefactoringMethodParameter>) parameterListOb;
+          for (RefactoringMethodParameter parameter : parameterList) {
+            parameterArray.add(parameter.toJson());
           }
         }
         options.add("parameters", parameterArray);
@@ -515,7 +522,7 @@ public class RequestUtilities {
       }
     }
     params.add("options", options);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_SET_REFACTORING_OPTIONS, params);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
   }
 
   /**
