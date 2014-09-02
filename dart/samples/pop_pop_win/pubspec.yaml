@@ -7,7 +7,7 @@ environment:
 dependencies:
   bot: '>=0.26.0 <0.28.0'
   browser: '>=0.10.0 <0.11.0'
-  chrome: '>=0.5.6 <0.6.0'
+  chrome: '>=0.6.3 <0.7.0'
   stagexl: '>=0.9.1 <0.11.0'
 dev_dependencies:
   unittest: '>=0.10.0 <0.12.0'
