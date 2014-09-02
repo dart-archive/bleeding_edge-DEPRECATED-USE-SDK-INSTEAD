@@ -608,6 +608,21 @@ public class SimpleParserTest extends ParserTestCase {
     assertInstanceOf(VariableDeclarationStatement.class, statement);
   }
 
+  public void test_parseAwaitExpression_inSync() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        createSource("m() { return await x + await y; }"));
+    FunctionBody body = method.getBody();
+    assertInstanceOf(BlockFunctionBody.class, body);
+    Statement statement = ((BlockFunctionBody) body).getBlock().getStatements().get(0);
+    assertInstanceOf(ReturnStatement.class, statement);
+    Expression expression = ((ReturnStatement) statement).getExpression();
+    assertInstanceOf(BinaryExpression.class, expression);
+    assertInstanceOf(AwaitExpression.class, ((BinaryExpression) expression).getLeftOperand());
+    assertInstanceOf(AwaitExpression.class, ((BinaryExpression) expression).getRightOperand());
+  }
+
   public void test_parseBitwiseAndExpression_normal() throws Exception {
     BinaryExpression expression = parse("parseBitwiseAndExpression", "x & y");
     assertNotNull(expression.getLeftOperand());

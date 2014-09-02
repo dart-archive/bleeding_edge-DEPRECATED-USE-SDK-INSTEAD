@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Token;
+
 /**
  * The abstract class {@code FunctionBody} defines the behavior common to objects representing the
  * body of a function or method.
@@ -27,6 +29,25 @@ package com.google.dart.engine.ast;
  * @coverage dart.engine.ast
  */
 public abstract class FunctionBody extends AstNode {
+  /**
+   * Return the token representing the 'async' or 'sync' keyword, or {@code null} if there is no
+   * such keyword.
+   * 
+   * @return the token representing the 'async' or 'sync' keyword
+   */
+  public Token getKeyword() {
+    return null;
+  }
+
+  /**
+   * Return the star following the 'async' or 'sync' keyword, or {@code null} if there is no star.
+   * 
+   * @return the star following the 'async' or 'sync' keyword
+   */
+  public Token getStar() {
+    return null;
+  }
+
   /**
    * Return {@code true} if this function body is asynchronous.
    * 

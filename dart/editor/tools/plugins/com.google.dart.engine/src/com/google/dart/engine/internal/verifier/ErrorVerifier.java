@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AwaitExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BreakStatement;
@@ -96,6 +97,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
+import com.google.dart.engine.ast.YieldStatement;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -252,6 +254,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see #visitConstructorDeclaration(ConstructorDeclaration)
    */
   private boolean isEnclosingConstructorConst;
+
+  /**
+   * A flag indicating whether we are currently within a function body marked as being asynchronous.
+   */
+  private boolean inAsync = false;
+
+  /**
+   * A flag indicating whether we are currently within a function body marked as being a generator.
+   */
+  private boolean inGenerator = false;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of a
@@ -490,6 +502,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   @Override
+  public Void visitAwaitExpression(AwaitExpression node) {
+    if (!inAsync) {
+      errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+          node.getAwaitKeyword());
+    }
+    return super.visitAwaitExpression(node);
+  }
+
+  @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.getOperator();
     TokenType type = operator.getType();
@@ -513,16 +535,22 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    boolean wasInAsync = inAsync;
+    boolean wasInGenerator = inGenerator;
     boolean previousHasReturnWithoutValue = hasReturnWithoutValue;
     hasReturnWithoutValue = false;
     ArrayList<ReturnStatement> previousReturnsWith = returnsWith;
     ArrayList<ReturnStatement> previousReturnsWithout = returnsWithout;
     try {
+      inAsync = node.isAsynchronous();
+      inGenerator = node.isGenerator();
       returnsWith = new ArrayList<ReturnStatement>();
       returnsWithout = new ArrayList<ReturnStatement>();
       super.visitBlockFunctionBody(node);
       checkForMixedReturns(node);
     } finally {
+      inAsync = wasInAsync;
+      inGenerator = wasInGenerator;
       returnsWith = previousReturnsWith;
       returnsWithout = previousReturnsWithout;
       hasReturnWithoutValue = previousHasReturnWithoutValue;
@@ -666,6 +694,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       enclosingFunction = constructorElement;
       isEnclosingConstructorConst = node.getConstKeyword() != null;
       isInFactory = node.getFactoryKeyword() != null;
+      checkForInvalidModifierOnBody(
+          node.getBody(),
+          CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       checkForConstConstructorWithNonFinalField(node, constructorElement);
       checkForConstConstructorWithNonConstSuper(node);
       checkForConflictingConstructorNameAndMember(node, constructorElement);
@@ -741,11 +772,20 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
-    Type expectedReturnType = functionType == null ? DynamicTypeImpl.getInstance()
-        : functionType.getReturnType();
-    checkForReturnOfInvalidType(node.getExpression(), expectedReturnType);
-    return super.visitExpressionFunctionBody(node);
+    boolean wasInAsync = inAsync;
+    boolean wasInGenerator = inGenerator;
+    try {
+      inAsync = node.isAsynchronous();
+      inGenerator = node.isGenerator();
+      FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
+      Type expectedReturnType = functionType == null ? DynamicTypeImpl.getInstance()
+          : functionType.getReturnType();
+      checkForReturnOfInvalidType(node.getExpression(), expectedReturnType);
+      return super.visitExpressionFunctionBody(node);
+    } finally {
+      inAsync = wasInAsync;
+      inGenerator = wasInGenerator;
+    }
   }
 
   @Override
@@ -800,6 +840,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           }
           checkForNonVoidReturnTypeForSetter(returnType);
         }
+      }
+      if (node.isSetter()) {
+        checkForInvalidModifierOnBody(
+            node.getFunctionExpression().getBody(),
+            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       checkForTypeAnnotationDeferredClass(returnType);
       return super.visitFunctionDeclaration(node);
@@ -969,6 +1014,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         checkForVoidReturnType(node);
         checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter()) {
+        checkForInvalidModifierOnBody(
+            node.getBody(),
+            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
         checkForNonVoidReturnTypeForSetter(returnTypeName);
         checkForConflictingStaticSetterAndInstanceMember(node);
@@ -1202,6 +1250,20 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   public Void visitWhileStatement(WhileStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitWhileStatement(node);
+  }
+
+  @Override
+  public Void visitYieldStatement(YieldStatement node) {
+    if (!inGenerator) {
+      CompileTimeErrorCode errorCode;
+      if (node.getStar() != null) {
+        errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
+      } else {
+        errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
+      }
+      errorReporter.reportErrorForNode(errorCode, node);
+    }
+    return super.visitYieldStatement(node);
   }
 
   /**
@@ -1876,6 +1938,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       hasReturnWithoutValue = true;
       errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
       return true;
+    } else if (inGenerator) {
+      // RETURN_IN_GENERATOR
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATOR, node);
     }
     // RETURN_OF_INVALID_TYPE
     return checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -3941,6 +4006,23 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           fieldName);
       return;
     }
+  }
+
+  /**
+   * Check to see whether the given function body has a modifier associated with it, and report it
+   * as an error if it does.
+   * 
+   * @param body the function body being checked
+   * @param errorCode the error code to be reported if a modifier is found
+   * @return {@code true} if an error was reported
+   */
+  private boolean checkForInvalidModifierOnBody(FunctionBody body, CompileTimeErrorCode errorCode) {
+    Token keyword = body.getKeyword();
+    if (keyword != null) {
+      errorReporter.reportErrorForToken(errorCode, keyword, keyword.getLexeme());
+      return true;
+    }
+    return false;
   }
 
   /**

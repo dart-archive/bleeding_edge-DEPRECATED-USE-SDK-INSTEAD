@@ -43,6 +43,48 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_invalidIdentifierInAsync_async() throws Exception {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() async {",
+        "    int async;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC);
+    verify(source);
+  }
+
+  public void fail_invalidIdentifierInAsync_await() throws Exception {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() async {",
+        "    int await;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC);
+    verify(source);
+  }
+
+  public void fail_invalidIdentifierInAsync_yield() throws Exception {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() async {",
+        "    int yield;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC);
+    verify(source);
+  }
+
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -102,6 +144,54 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_yieldEachInNonGenerator_async() throws Exception {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR);
+    verify(source);
+  }
+
+  public void fail_yieldEachInNonGenerator_sync() throws Exception {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.YIELD_IN_NON_GENERATOR);
+    verify(source);
+  }
+
+  public void fail_yieldInNonGenerator_async() throws Exception {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async {",
+        "  yield 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.YIELD_IN_NON_GENERATOR);
+    verify(source);
+  }
+
+  public void fail_yieldInNonGenerator_sync() throws Exception {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() {",
+        "  yield 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR);
+    verify(source);
+  }
+
   public void test_accessPrivateEnumField() throws Exception {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.setEnableEnum(true);
@@ -129,6 +219,39 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class N {}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    verify(source);
+  }
+
+  public void test_asyncForInWrongContext() throws Exception {
+    Source source = addSource(createSource(//
+        "f(list) {",
+        "  await for (var e in list) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT);
+    verify(source);
+  }
+
+  public void test_awaitInWrongContext_sync() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(x) {",
+        "  return await x;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
+    verify(source);
+  }
+
+  public void test_awaitInWrongContext_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(x) sync* {",
+        "  yield await x;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
     verify(source);
   }
 
@@ -2474,6 +2597,99 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // no verify() call, "B" is not resolved
   }
 
+  public void test_invalidModifierOnConstructor_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() async {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnConstructor_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() async* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnConstructor_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() sync* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_member_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(v) async {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_member_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(v) async* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_member_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(v) sync* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_topLevel_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+    "set x(v) async {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_topLevel_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+    "set x(v) async* {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
+  public void test_invalidModifierOnSetter_topLevel_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+    "set x(v) sync* {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
+    verify(source);
+  }
+
   public void test_invalidReferenceToThis_factoryConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -4139,6 +4355,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_returnInGenerator_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  return 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATOR);
+    verify(source);
+  }
+
+  public void test_returnInGenerator_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  return 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATOR);
     verify(source);
   }
 

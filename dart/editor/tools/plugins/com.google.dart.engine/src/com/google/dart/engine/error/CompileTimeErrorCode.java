@@ -49,6 +49,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
   ARGUMENT_DEFINITION_TEST_NON_PARAMETER("'%s' is not a parameter"),
 
   /**
+   * ?? Asynchronous For-in: It is a compile-time error if an asynchronous for-in statement appears
+   * inside a synchronous function.
+   */
+  ASYNC_FOR_IN_WRONG_CONTEXT(
+      "The asynchronous for-in can only be used in a function marked with async or async*"),
+
+  /**
+   * ??: It is a compile-time error if the function immediately enclosing a is not declared
+   * asynchronous.
+   */
+  AWAIT_IN_WRONG_CONTEXT(
+      "The await expression can only be used in a function marked as async or async*"),
+
+  /**
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in identifier other than
    * dynamic as a type annotation.
    */
@@ -727,6 +741,26 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Constant values from a deferred library cannot be used as annotations"),
 
   /**
+   * 15.31 Identifier Reference: It is a compile-time error if any of the identifiers async, await
+   * or yield is used as an identifier in a function body marked with either async, async* or sync*.
+   */
+  INVALID_IDENTIFIER_IN_ASYNC(
+      "The identifier '%s' cannot be used in a function marked with async, async* or sync*"),
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync* modifier is attached to
+   * the body of a setter or constructor.
+   */
+  INVALID_MODIFIER_ON_CONSTRUCTOR(
+      "The modifier '%s' cannot be applied to the body of a constructor"),
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync* modifier is attached to
+   * the body of a setter or constructor.
+   */
+  INVALID_MODIFIER_ON_SETTER("The modifier '%s' cannot be applied to the body of a setter"),
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    * <p>
@@ -1308,6 +1342,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
 
   /**
+   * 13.12 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
+   * appears in a generator function.
+   */
+  RETURN_IN_GENERATOR(
+      "Cannot return a value from a generator function (one marked with either 'async*' or 'sync*')"),
+
+  /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred import is used in
    * another import clause.
    */
@@ -1452,7 +1493,21 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
-  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one required parameter");
+  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one required parameter"),
+
+  /**
+   * ?? Yield: It is a compile-time error if a yield statement appears in a function that is not a
+   * generator function.
+   */
+  YIELD_EACH_IN_NON_GENERATOR(
+      "Yield-each statements must be in a generator function (one marked with either 'async*' or 'sync*')"),
+
+  /**
+   * ?? Yield: It is a compile-time error if a yield statement appears in a function that is not a
+   * generator function.
+   */
+  YIELD_IN_NON_GENERATOR(
+      "Yield statements must be in a generator function (one marked with either 'async*' or 'sync*')");
 
   /**
    * The template used to create the message to be displayed for this error.

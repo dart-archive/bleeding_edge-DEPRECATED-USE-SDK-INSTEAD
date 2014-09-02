@@ -19,6 +19,8 @@ import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.BooleanErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
@@ -118,6 +120,11 @@ public class Parser {
    * A flag indicating whether the parser is currently in a function body marked as being 'async'.
    */
   private boolean inAsync = false;
+
+  /**
+   * A flag indicating whether the parser is currently in a function body marked as being 'async'.
+   */
+  private boolean inGenerator = false;
 
   /**
    * A flag indicating whether the parser is currently in the body of a loop.
@@ -4054,9 +4061,11 @@ public class Parser {
   private FunctionBody parseFunctionBody(boolean mayBeEmpty, ParserErrorCode emptyErrorCode,
       boolean inExpression) {
     boolean wasInAsync = inAsync;
+    boolean wasInGenerator = inGenerator;
     boolean wasInLoop = inLoop;
     boolean wasInSwitch = inSwitch;
     inAsync = false;
+    inGenerator = false;
     inLoop = false;
     inSwitch = false;
     try {
@@ -4080,12 +4089,14 @@ public class Parser {
           keyword = getAndAdvance();
           if (matches(TokenType.STAR)) {
             star = getAndAdvance();
+            inGenerator = true;
           }
           inAsync = true;
         } else if (matchesString(SYNC)) {
           keyword = getAndAdvance();
           if (matches(TokenType.STAR)) {
             star = getAndAdvance();
+            inGenerator = true;
           }
         }
       }
@@ -4126,6 +4137,7 @@ public class Parser {
       }
     } finally {
       inAsync = wasInAsync;
+      inGenerator = wasInGenerator;
       inLoop = wasInLoop;
       inSwitch = wasInSwitch;
     }
@@ -5043,13 +5055,20 @@ public class Parser {
         reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
         return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (inAsync && matchesString(YIELD)) {
+    } else if (inGenerator && matchesString(YIELD)) {
       return parseYieldStatement();
     } else if (inAsync && matchesString(AWAIT)) {
       if (tokenMatchesKeyword(peek(), Keyword.FOR)) {
         return parseForStatement();
       }
       return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
+    } else if (matchesString(AWAIT) && tokenMatchesKeyword(peek(), Keyword.FOR)) {
+      Token awaitToken = currentToken;
+      Statement statement = parseForStatement();
+      if (!(statement instanceof ForStatement)) {
+        reportErrorForToken(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
+      }
+      return statement;
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
@@ -5988,7 +6007,7 @@ public class Parser {
     } else if (matches(TokenType.PLUS)) {
       reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
-    } else if (inAsync && matchesString(AWAIT)) {
+    } else if (matchesString(AWAIT)) {
       return parseAwaitExpression();
     }
     return parsePostfixExpression();
@@ -6237,7 +6256,7 @@ public class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  private void reportErrorForToken(ParserErrorCode errorCode, Token token, Object... arguments) {
+  private void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
     if (token.getType() == TokenType.EOF) {
       token = token.getPrevious();
     }

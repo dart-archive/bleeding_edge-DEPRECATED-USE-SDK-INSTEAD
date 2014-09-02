@@ -206,10 +206,18 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * In the rare cases we want to group several tests into single "test_" method, so need a way to
-   * reset test instance to reuse it.
+   * Reset the analysis context to have the 'enableAsync' option set to true.
+   */
+  protected void resetWithAsync() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.setEnableAsync(true);
+    analysisContext = AnalysisContextFactory.contextWithCoreAndOptions(options);
+  }
+
+  /**
+   * Reset the analysis context to have the given options applied.
    * 
-   * @param options the analysis options for the context
+   * @param options the analysis options to be applied to the context
    */
   protected void resetWithOptions(AnalysisOptions options) {
     analysisContext = AnalysisContextFactory.contextWithCoreAndOptions(options);

@@ -300,6 +300,52 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_asyncForInWrongContext_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(list) async {",
+        "  await for (var e in list) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_asyncForInWrongContext_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(list) async* {",
+        "  await for (var e in list) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_awaitInWrongContext_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(x, y) async {",
+        "  return await x + await y;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_awaitInWrongContext_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f(x, y) async* {",
+        "  yield await x + await y;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_breakWithoutLabelInSwitch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2013,6 +2059,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidIdentifierInAsync() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {",
+        "    int async;",
+        "    int await;",
+        "    int yield;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideNamedParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -3680,6 +3740,27 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnInGenerator_async() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async {",
+        "  return 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_returnInGenerator_sync() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  return 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_async() throws Exception {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl(analysisContext.getAnalysisOptions());
     options.setEnableAsync(true);
@@ -4598,6 +4679,50 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  set x(a) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yieldEachInNonGenerator_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yieldEachInNonGenerator_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yieldInNonGenerator_asyncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  yield 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yieldInNonGenerator_syncStar() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield 0;",
         "}"));
     resolve(source);
     assertNoErrors(source);
