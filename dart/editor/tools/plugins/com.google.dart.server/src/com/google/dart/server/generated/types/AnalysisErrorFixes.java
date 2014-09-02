@@ -37,11 +37,11 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class ErrorFixes {
+public class AnalysisErrorFixes {
 
-  public static final ErrorFixes[] EMPTY_ARRAY = new ErrorFixes[0];
+  public static final AnalysisErrorFixes[] EMPTY_ARRAY = new AnalysisErrorFixes[0];
 
-  public static final List<ErrorFixes> EMPTY_LIST = Lists.newArrayList();
+  public static final List<AnalysisErrorFixes> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The error with which the fixes are associated.
@@ -54,17 +54,17 @@ public class ErrorFixes {
   private final List<SourceChange> fixes;
 
   /**
-   * Constructor for {@link ErrorFixes}.
+   * Constructor for {@link AnalysisErrorFixes}.
    */
-  public ErrorFixes(AnalysisError error, List<SourceChange> fixes) {
+  public AnalysisErrorFixes(AnalysisError error, List<SourceChange> fixes) {
     this.error = error;
     this.fixes = fixes;
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ErrorFixes) {
-      ErrorFixes other = (ErrorFixes) obj;
+    if (obj instanceof AnalysisErrorFixes) {
+      AnalysisErrorFixes other = (AnalysisErrorFixes) obj;
       return
         ObjectUtilities.equals(other.error, error) &&
         ObjectUtilities.equals(other.fixes, fixes);
@@ -72,17 +72,17 @@ public class ErrorFixes {
     return false;
   }
 
-  public static ErrorFixes fromJson(JsonObject jsonObject) {
+  public static AnalysisErrorFixes fromJson(JsonObject jsonObject) {
     AnalysisError error = AnalysisError.fromJson(jsonObject.get("error").getAsJsonObject());
     List<SourceChange> fixes = SourceChange.fromJsonArray(jsonObject.get("fixes").getAsJsonArray());
-    return new ErrorFixes(error, fixes);
+    return new AnalysisErrorFixes(error, fixes);
   }
 
-  public static List<ErrorFixes> fromJsonArray(JsonArray jsonArray) {
+  public static List<AnalysisErrorFixes> fromJsonArray(JsonArray jsonArray) {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ErrorFixes> list = new ArrayList<ErrorFixes>(jsonArray.size());
+    ArrayList<AnalysisErrorFixes> list = new ArrayList<AnalysisErrorFixes>(jsonArray.size());
     Iterator<JsonElement> iterator = jsonArray.iterator();
     while (iterator.hasNext()) {
       list.add(fromJson(iterator.next().getAsJsonObject()));

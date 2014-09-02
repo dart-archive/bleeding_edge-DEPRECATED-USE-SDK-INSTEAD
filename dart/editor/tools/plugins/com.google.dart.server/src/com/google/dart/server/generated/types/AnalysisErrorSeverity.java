@@ -21,7 +21,7 @@ package com.google.dart.server.generated.types;
  *
  * @coverage dart.server.generated.types
  */
-public class ErrorSeverity {
+public class AnalysisErrorSeverity {
 
   public static final String INFO = "INFO";
 

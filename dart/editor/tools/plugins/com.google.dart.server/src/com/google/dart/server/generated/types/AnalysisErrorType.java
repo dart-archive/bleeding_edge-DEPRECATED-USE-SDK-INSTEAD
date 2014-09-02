@@ -21,7 +21,7 @@ package com.google.dart.server.generated.types;
  *
  * @coverage dart.server.generated.types
  */
-public class ErrorType {
+public class AnalysisErrorType {
 
   public static final String COMPILE_TIME_ERROR = "COMPILE_TIME_ERROR";
 

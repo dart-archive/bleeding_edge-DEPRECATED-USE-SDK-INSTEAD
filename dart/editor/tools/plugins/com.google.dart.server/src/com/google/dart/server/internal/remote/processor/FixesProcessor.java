@@ -14,7 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetFixesConsumer;
-import com.google.dart.server.generated.types.ErrorFixes;
+import com.google.dart.server.generated.types.AnalysisErrorFixes;
 import com.google.gson.JsonObject;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class FixesProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    List<ErrorFixes> errorFixesArray = ErrorFixes.fromJsonArray(resultObject.get("fixes").getAsJsonArray());
+    List<AnalysisErrorFixes> errorFixesArray = AnalysisErrorFixes.fromJsonArray(resultObject.get("fixes").getAsJsonArray());
     consumer.computedFixes(errorFixesArray);
   }
 }

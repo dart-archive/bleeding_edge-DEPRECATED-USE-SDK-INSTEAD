@@ -14,7 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.generated.types.AnalysisError;
-import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.AnalysisErrorSeverity;
 import com.google.dart.server.generated.types.Location;
 
 import junit.framework.TestCase;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 
 public class AnalysisErrorImplTest extends TestCase {
   public void test_new() throws Exception {
-    String errorSeverity = ErrorSeverity.ERROR;
+    String errorSeverity = AnalysisErrorSeverity.ERROR;
     String errorType = "COMPILE_TIME_ERROR";
     Location location = mock(Location.class);
     AnalysisError error = new AnalysisError(

@@ -20,7 +20,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.GetFixesConsumer;
-import com.google.dart.server.generated.types.ErrorFixes;
+import com.google.dart.server.generated.types.AnalysisErrorFixes;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -52,7 +52,7 @@ public class QuickFixProcessor_OLD {
     final CountDownLatch latch = new CountDownLatch(1);
     DartCore.getAnalysisServer().edit_getFixes(file, offset, new GetFixesConsumer() {
       @Override
-      public void computedFixes(List<ErrorFixes> errorFixesArray) {
+      public void computedFixes(List<AnalysisErrorFixes> errorFixesArray) {
         System.out.println("errorFixesArray: " + errorFixesArray);
         // TODO(scheglov) Analysis Server: implement for new API
         latch.countDown();

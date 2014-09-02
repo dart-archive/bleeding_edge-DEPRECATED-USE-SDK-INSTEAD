@@ -14,7 +14,7 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.AnalysisError;
-import com.google.dart.server.generated.types.ErrorFixes;
+import com.google.dart.server.generated.types.AnalysisErrorFixes;
 
 import java.util.List;
 
@@ -31,5 +31,5 @@ public interface GetFixesConsumer extends Consumer {
    * 
    * @param errorFixesArray a list of computed error fixes
    */
-  public void computedFixes(List<ErrorFixes> errorFixesArray);
+  public void computedFixes(List<AnalysisErrorFixes> errorFixesArray);
 }

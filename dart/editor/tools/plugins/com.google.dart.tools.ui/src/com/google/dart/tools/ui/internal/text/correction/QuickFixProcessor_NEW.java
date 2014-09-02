@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.generated.types.AnalysisError;
-import com.google.dart.server.generated.types.ErrorFixes;
+import com.google.dart.server.generated.types.AnalysisErrorFixes;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
@@ -61,8 +61,8 @@ public class QuickFixProcessor_NEW {
     final CountDownLatch latch = new CountDownLatch(1);
     DartCore.getAnalysisServer().edit_getFixes(file, offset, new GetFixesConsumer() {
       @Override
-      public void computedFixes(List<ErrorFixes> errorFixesArray) {
-        for (ErrorFixes errorFixes : errorFixesArray) {
+      public void computedFixes(List<AnalysisErrorFixes> errorFixesArray) {
+        for (AnalysisErrorFixes errorFixes : errorFixesArray) {
           Location errorLocation = errorFixes.getError().getLocation();
           if (errorLocation.getOffset() == offset) {
             fixes.addAll(errorFixes.getFixes());

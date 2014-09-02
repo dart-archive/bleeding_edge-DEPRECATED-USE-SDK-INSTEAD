@@ -15,7 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.server.generated.types.AnalysisError;
-import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.AnalysisErrorSeverity;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
 
@@ -85,9 +85,9 @@ public class AnalysisMarkerManager_NEW {
       // Show errors first, then warnings, followed by everything else
       // while limiting the total number of markers added to MAX_ERROR_COUNT
       int errorCount = 0;
-      errorCount = showErrors(errorCount, ErrorSeverity.ERROR, IMarker.SEVERITY_ERROR);
-      errorCount = showErrors(errorCount, ErrorSeverity.WARNING, IMarker.SEVERITY_WARNING);
-      errorCount = showErrors(errorCount, ErrorSeverity.INFO, IMarker.SEVERITY_INFO);
+      errorCount = showErrors(errorCount, AnalysisErrorSeverity.ERROR, IMarker.SEVERITY_ERROR);
+      errorCount = showErrors(errorCount, AnalysisErrorSeverity.WARNING, IMarker.SEVERITY_WARNING);
+      errorCount = showErrors(errorCount, AnalysisErrorSeverity.INFO, IMarker.SEVERITY_INFO);
 
       if (errorCount >= MAX_ERROR_COUNT) {
         IMarker marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);

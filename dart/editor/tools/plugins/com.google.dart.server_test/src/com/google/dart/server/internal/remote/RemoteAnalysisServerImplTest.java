@@ -41,8 +41,8 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
-import com.google.dart.server.generated.types.ErrorFixes;
-import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.AnalysisErrorFixes;
+import com.google.dart.server.generated.types.AnalysisErrorSeverity;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
@@ -137,13 +137,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
 
     assertThat(errors[0]).hasSize(2);
-    assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
+    assertEquals(new AnalysisError(AnalysisErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
         "/fileA.dart",
         1,
         2,
         3,
         4), "message A", "correction A"), errors[0][0]);
-    assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
+    assertEquals(new AnalysisError(AnalysisErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
         "/fileB.dart",
         5,
         6,
@@ -245,11 +245,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     listener.assertErrorsWithAnalysisErrors("/test.dart", new AnalysisError(
-        ErrorSeverity.ERROR,
+        AnalysisErrorSeverity.ERROR,
         "SYNTACTIC_ERROR",
         new Location("/fileA.dart", 1, 2, 3, 4),
         "message A",
-        "correction A"), new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
+        "correction A"), new AnalysisError(AnalysisErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
         "/fileB.dart",
         5,
         6,
@@ -1775,7 +1775,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     final Object[] errorFixesArray = {null};
     server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
       @Override
-      public void computedFixes(List<ErrorFixes> e) {
+      public void computedFixes(List<AnalysisErrorFixes> e) {
         errorFixesArray[0] = e;
       }
     });
@@ -1857,7 +1857,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on 'fixes' (List<ErrorFixes>)
     @SuppressWarnings("unchecked")
-    List<ErrorFixes> errorFixes = (List<ErrorFixes>) errorFixesArray[0];
+    List<AnalysisErrorFixes> errorFixes = (List<AnalysisErrorFixes>) errorFixesArray[0];
     assertThat(errorFixes).hasSize(1);
     // other assertions would would test the generated fromJson methods
   }
