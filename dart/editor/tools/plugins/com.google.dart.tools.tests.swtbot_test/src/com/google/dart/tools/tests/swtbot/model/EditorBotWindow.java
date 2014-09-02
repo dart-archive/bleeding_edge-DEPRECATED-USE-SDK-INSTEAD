@@ -81,7 +81,6 @@ public class EditorBotWindow extends AbstractBotView {
    * @param string the project name
    */
   public void createWebProject(String string) {
-    // TODO Test this.
     createProject(string, Project.WEB_APP, string + ".dart");
   }
 

@@ -27,23 +27,31 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
 import org.eclipse.swtbot.swt.finder.results.IntResult;
 import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.hamcrest.Matcher;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,6 +64,7 @@ public class TextBotEditor extends AbstractBotView {
   private static KeyStroke keyA;
   private static KeyStroke keyF;
   private static KeyStroke keyS;
+  private static KeyStroke keyZ;
 
   static {
     try {
@@ -66,6 +75,7 @@ public class TextBotEditor extends AbstractBotView {
       keyA = KeyStroke.getInstance("A");
       keyF = KeyStroke.getInstance("F");
       keyS = KeyStroke.getInstance("S");
+      keyZ = KeyStroke.getInstance("Z");
     } catch (ParseException e) {
       // Won't happen
     }
@@ -76,6 +86,37 @@ public class TextBotEditor extends AbstractBotView {
   public TextBotEditor(SWTWorkbenchBot bot, String title) {
     super(bot);
     this.title = title;
+  }
+
+  public void clickHyperlinkAt(int line, int col) {
+    SWTBotEclipseEditor typist = editor();
+    typist.navigateTo(line, col);
+    Widget widget = typist.getStyledText().widget;
+    int y = measureLineToColumn(line, col);
+    int x = convertLineToVerticalOffset(line) - 5;
+    int cmdKey = keyM1.getModifierKeys();
+    notify(SWT.MouseEnter, widget);
+    notify(SWT.MouseMove, widget);
+    notify(SWT.Activate, widget);
+    notify(SWT.FocusIn, widget);
+    // in order for MouseMove to trigger hyperlink detection the physical mouse location must
+    // be set to the same point as (x,y) -- which I don't know how to do yet
+    notify(SWT.MouseMove, createMouseEvent(x, y, 0, cmdKey, 0), widget);
+    notify(SWT.MouseHover, createMouseEvent(x, y, 0, cmdKey, 0), widget);
+    waitForAsyncDrain();
+    notify(SWT.MouseDown, createMouseEvent(x, y, 1, cmdKey, 1), widget);
+    notify(SWT.MouseUp, createMouseEvent(x, y, 1, cmdKey, 1), widget);
+    waitForAnalysis();
+  }
+
+  public CompletionProposalsBotView completionList() {
+    waitForAnalysis();
+    waitMillis(1000); // when will it end?
+    List<? extends Table> w = topTables();
+    assertEquals(1, w.size());
+    // we're going to go ahead and assume there is only one table whose parent is a shell and
+    // that said table is the completion list
+    return new CompletionProposalsBotView(bot, new SWTBotTable(w.get(0)));
   }
 
   /**
@@ -226,6 +267,59 @@ public class TextBotEditor extends AbstractBotView {
         }
       }
     }
+  }
+
+  public List<? extends Table> topTables() {
+    final Matcher<Table> matcher = WidgetOfType.widgetOfType(Table.class);
+    return UIThreadRunnable.syncExec(new Result<List<? extends Table>>() {
+      @Override
+      public List<? extends Table> run() {
+        List<Shell> shells = bot.shells("", ((Composite) editor().getWidget()).getShell());
+        List<Table> tables = new ArrayList<Table>();
+        for (Shell s : shells) {
+          try {
+            tables.addAll(bot.widgets(matcher, s));
+          } catch (WidgetNotFoundException ex) {
+            // do nothing -- one of the shells may have a table, the others do not
+          }
+        }
+        List<Table> topTables = new ArrayList<Table>();
+        for (Table t : tables) {
+          for (Shell x : shells) {
+            if (t.getParent() == x) {
+              topTables.add(t);
+            }
+          }
+        }
+        return topTables;
+      }
+    });
+  }
+
+  public void undo() {
+    final SWTBotEclipseEditor editor = editor();
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        editor.pressShortcut(keyM1, keyZ);
+      }
+    });
+    waitForAnalysis();
+  }
+
+  /**
+   * Get all the widgets that are accessible from the editor.
+   * 
+   * @return a list of widgets
+   */
+  public List<? extends Widget> widgets() {
+    final Matcher<Widget> matcher = WidgetOfType.widgetOfType(Widget.class);
+    return UIThreadRunnable.syncExec(new Result<List<? extends Widget>>() {
+      @Override
+      public List<? extends Widget> run() {
+        return bot.widgets(matcher, ((Composite) editor().getWidget()).getParent());
+      }
+    });
   }
 
   @Override
