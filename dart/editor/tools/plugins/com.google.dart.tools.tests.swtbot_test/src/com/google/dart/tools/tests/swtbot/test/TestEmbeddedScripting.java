@@ -24,6 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.utils.TableCollection;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,10 +41,14 @@ public class TestEmbeddedScripting extends EditorTestHarness {
 
   @AfterClass
   public static void tearDownTest() {
-    EditorBotWindow main = new EditorBotWindow(bot);
-    FilesBotView files = main.filesView();
-    files.deleteProject("sample");
-    main.menu("File").menu("Close All").click();
+    try {
+      EditorBotWindow main = new EditorBotWindow(bot);
+      FilesBotView files = main.filesView();
+      files.deleteProject("sample");
+      main.menu("File").menu("Close All").click();
+    } catch (TimeoutException ex) {
+      // If we get here, we don't care about exceptions.
+    }
   }
 
   private boolean sampleIsValid = false;
@@ -65,7 +70,7 @@ public class TestEmbeddedScripting extends EditorTestHarness {
   public void testHyperlink() throws Exception {
     buildProject();
     htmlEditor.clickHyperlinkAt(14, 31);
-    // TODO(messick) Finish this. See comment in clickHyperlinkAt(); maybe switch to key event.
+    assertEquals("reverseText", htmlEditor.selection());
   }
 
   /**

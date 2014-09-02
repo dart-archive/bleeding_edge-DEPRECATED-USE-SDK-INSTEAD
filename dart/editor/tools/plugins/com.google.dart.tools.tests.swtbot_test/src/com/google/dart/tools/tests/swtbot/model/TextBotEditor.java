@@ -89,18 +89,24 @@ public class TextBotEditor extends AbstractBotView {
   }
 
   public void clickHyperlinkAt(int line, int col) {
-    SWTBotEclipseEditor typist = editor();
+    final SWTBotEclipseEditor typist = editor();
     typist.navigateTo(line, col);
-    Widget widget = typist.getStyledText().widget;
-    int y = measureLineToColumn(line, col);
-    int x = convertLineToVerticalOffset(line) - 5;
+    final Widget widget = typist.getStyledText().widget;
+    final int x = measureLineToColumn(line, col);
+    final int y = convertLineToVerticalOffset(line) + 5;
     int cmdKey = keyM1.getModifierKeys();
     notify(SWT.MouseEnter, widget);
     notify(SWT.MouseMove, widget);
     notify(SWT.Activate, widget);
     notify(SWT.FocusIn, widget);
     // in order for MouseMove to trigger hyperlink detection the physical mouse location must
-    // be set to the same point as (x,y) -- which I don't know how to do yet
+    // be set to the same point as (x,y)
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        typist.bot().getDisplay().setCursorLocation(((Composite) widget).toDisplay(x, y));
+      }
+    });
     notify(SWT.MouseMove, createMouseEvent(x, y, 0, cmdKey, 0), widget);
     notify(SWT.MouseHover, createMouseEvent(x, y, 0, cmdKey, 0), widget);
     waitForAsyncDrain();
@@ -111,7 +117,7 @@ public class TextBotEditor extends AbstractBotView {
 
   public CompletionProposalsBotView completionList() {
     waitForAnalysis();
-    waitMillis(1000); // when will it end?
+    waitMillis(3000); // when will it end?
     List<? extends Table> w = topTables();
     assertEquals(1, w.size());
     // we're going to go ahead and assume there is only one table whose parent is a shell and
