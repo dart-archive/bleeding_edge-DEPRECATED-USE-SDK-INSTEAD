@@ -33,13 +33,13 @@ import java.util.List;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class DartCorrectionProcessor implements
+public class DartCorrectionProcessor_OLD implements
     org.eclipse.jface.text.quickassist.IQuickAssistProcessor {
 
-  private final DartCorrectionAssistant assistant;
+  private final DartCorrectionAssistant_OLD assistant;
   private String errorMessage;
 
-  public DartCorrectionProcessor(DartCorrectionAssistant assistant) {
+  public DartCorrectionProcessor_OLD(DartCorrectionAssistant_OLD assistant) {
     this.assistant = assistant;
   }
 
@@ -54,8 +54,7 @@ public class DartCorrectionProcessor implements
     if (problem == null) {
       return false;
     }
-    String contextId = assistant.getEditor().getInputAnalysisContextId();
-    return QuickFixProcessor.hasFix(contextId, problem);
+    return QuickFixProcessor_OLD.hasFix(problem);
   }
 
   @Override
@@ -72,7 +71,7 @@ public class DartCorrectionProcessor implements
     List<ICompletionProposal> proposals = Lists.newArrayList();
     // add Quick Fixes
     try {
-      QuickFixProcessor qfProcessor = new QuickFixProcessor();
+      QuickFixProcessor_OLD qfProcessor = new QuickFixProcessor_OLD();
       AnalysisError problemToFix = assistant.getProblemToFix();
       ICompletionProposal[] fixProposals = qfProcessor.computeFix(contextUI, problemToFix);
       Collections.addAll(proposals, fixProposals);

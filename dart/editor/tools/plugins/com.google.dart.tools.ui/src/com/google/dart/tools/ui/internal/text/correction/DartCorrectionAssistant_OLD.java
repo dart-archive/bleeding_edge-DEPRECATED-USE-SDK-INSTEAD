@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @coverage dart.editor.ui.correction
  */
-public class DartCorrectionAssistant extends QuickAssistAssistant {
+public class DartCorrectionAssistant_OLD extends QuickAssistAssistant {
   private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation)
       throws BadLocationException {
     IDocumentProvider documentProvider = editor.getDocumentProvider();
@@ -77,11 +77,11 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
    */
   private AnalysisError problemToFix;
 
-  public DartCorrectionAssistant(ITextEditor editor) {
+  public DartCorrectionAssistant_OLD(ITextEditor editor) {
     Assert.isNotNull(editor);
     if (editor instanceof DartEditor) {
       this.editor = (DartEditor) editor;
-      DartCorrectionProcessor processor = new DartCorrectionProcessor(this);
+      DartCorrectionProcessor_OLD processor = new DartCorrectionProcessor_OLD(this);
       setQuickAssistProcessor(processor);
     } else {
       this.editor = null;
@@ -235,8 +235,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
           continue;
         }
         // add only if has fix 
-        String contextId = editor.getInputAnalysisContextId();
-        if (QuickFixProcessor.hasFix(contextId, error)) {
+        if (QuickFixProcessor_OLD.hasFix(error)) {
           allProblems.add(error);
           allPositions.add(pos);
         }

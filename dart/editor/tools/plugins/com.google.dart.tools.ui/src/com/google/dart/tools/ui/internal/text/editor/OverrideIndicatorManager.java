@@ -36,7 +36,6 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -227,7 +226,6 @@ public class OverrideIndicatorManager {
     @Override
     public void computedHighlights(String _file, OverrideMember[] overrides) {
       if (Objects.equal(file, _file)) {
-        System.out.println("computedHighlights: " + StringUtils.join(overrides, " "));
         updateAnnotations(overrides);
       }
     }

@@ -30,8 +30,8 @@ import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
+import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
@@ -58,6 +58,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class QuickAssistProcessor {
   /**
+   * Adds the given server's {@link SourceChange}s as LTK proposals.
+   */
+  static void addServerProposals(List<ICompletionProposal> proposals, List<SourceChange> changes) {
+    for (SourceChange change : changes) {
+      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change);
+      if (uiProposal != null) {
+        proposals.add(uiProposal);
+      }
+    }
+  }
+
+  /**
    * Adds service {@link CorrectionProposal} to the Eclipse {@link ICompletionProposal}s.
    */
   static void addServiceProposals(List<ICompletionProposal> proposals,
@@ -71,10 +83,10 @@ public class QuickAssistProcessor {
   }
 
   private AssistContext context;
-
   private DartEditor editor;
   private ISourceViewer viewer;
   private DartSelection selection;
+
   private List<ICompletionProposal> proposals;
 
   public synchronized ICompletionProposal[] getAssists(AssistContextUI contextUI) {
@@ -103,7 +115,7 @@ public class QuickAssistProcessor {
                 }
               });
           Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
-          addServerProposals(changes);
+          addServerProposals(proposals, changes);
         }
       });
     } else {
@@ -181,18 +193,6 @@ public class QuickAssistProcessor {
   private void addProposal_sortMembers() {
     CompilationUnit unit = context.getCompilationUnit();
     proposals.add(new SortMembersProposal(viewer, unit));
-  }
-
-  /**
-   * Adds the given server's {@link SourceChange}s as LTK proposals.
-   */
-  private void addServerProposals(List<SourceChange> changes) {
-    for (SourceChange change : changes) {
-      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change);
-      if (uiProposal != null) {
-        proposals.add(uiProposal);
-      }
-    }
   }
 
   /**
