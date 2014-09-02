@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.SearchIdConsumer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -31,6 +32,7 @@ public class SearchIdProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    consumer.computedSearchId(resultObject.get("id").getAsString());
+    JsonElement jsonElement = resultObject.get("id");
+    consumer.computedSearchId(jsonElement != null ? jsonElement.getAsString() : null);
   }
 }
