@@ -36,11 +36,11 @@ import org.eclipse.core.runtime.IPath;
  * @coverage dart.tools.core.model
  */
 public interface DartElement extends IAdaptable {
-  /**
+  /*
    * A constant representing a Dart model (workspace level object). A Dart element with this type
    * can be safely cast to {@link DartModel}.
    */
-  public static int DART_MODEL = 1;
+  //public static int DART_MODEL = 1;
 
   /*
    * A constant representing a Dart project. A Dart element with this type can be safely cast to
@@ -185,14 +185,6 @@ public interface DartElement extends IAdaptable {
   public IResource getCorrespondingResource() throws DartModelException;
 
   /**
-   * Return the Dart model that contains this element, or <code>null</code> if this element is not
-   * contained in the model. This is a handle-only method.
-   * 
-   * @return the Dart model that contains this element
-   */
-  public DartModel getDartModel();
-
-  /**
    * Return the name of this element as it should appear in the user interface. This is a
    * handle-only method.
    * 
@@ -216,15 +208,6 @@ public interface DartElement extends IAdaptable {
    * @return an identifier that can be used to identify this element
    */
   public String getHandleIdentifier();
-
-  /**
-   * Return the first openable parent. If this element is openable, the element itself is returned.
-   * Return <code>null</code> if this element doesn't have an openable parent. This is a handle-only
-   * method.
-   * 
-   * @return the first openable parent
-   */
-  public OpenableElement getOpenable();
 
   /**
    * Return the parent of this element, or <code>null</code> if this element does not have a parent.

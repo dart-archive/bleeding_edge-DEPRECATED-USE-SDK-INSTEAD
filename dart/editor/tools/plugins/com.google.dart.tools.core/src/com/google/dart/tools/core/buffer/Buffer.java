@@ -16,7 +16,6 @@ package com.google.dart.tools.core.buffer;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
-import com.google.dart.tools.core.model.OpenableElement;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -151,13 +150,6 @@ public interface Buffer {
    * @return the number of characters in this buffer
    */
   public int getLength();
-
-  /**
-   * Returns the Dart element owning of this buffer.
-   * 
-   * @return the Dart element owning this buffer
-   */
-  public OpenableElement getOwner();
 
   /**
    * Returns the given range of text in this buffer.
