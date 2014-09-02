@@ -10,7 +10,7 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/dartium/src",
-  "dartium_chromium_revision": "291715",
+  "dartium_chromium_revision": "291770",
   # Archived chromium builds closest to r291715.
   "chromium_base_revision":
       '{"Windows":"291710", ' +
