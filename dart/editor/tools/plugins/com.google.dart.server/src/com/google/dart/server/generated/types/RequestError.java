@@ -37,11 +37,11 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class Error {
+public class RequestError {
 
-  public static final Error[] EMPTY_ARRAY = new Error[0];
+  public static final RequestError[] EMPTY_ARRAY = new RequestError[0];
 
-  public static final List<Error> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RequestError> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * A code that uniquely identifies the error that occurred.
@@ -60,9 +60,9 @@ public class Error {
   private final Object data;
 
   /**
-   * Constructor for {@link Error}.
+   * Constructor for {@link RequestError}.
    */
-  public Error(String code, String message, Object data) {
+  public RequestError(String code, String message, Object data) {
     this.code = code;
     this.message = message;
     this.data = data;
@@ -70,8 +70,8 @@ public class Error {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Error) {
-      Error other = (Error) obj;
+    if (obj instanceof RequestError) {
+      RequestError other = (RequestError) obj;
       return
         ObjectUtilities.equals(other.code, code) &&
         ObjectUtilities.equals(other.message, message) &&
@@ -80,18 +80,18 @@ public class Error {
     return false;
   }
 
-  public static Error fromJson(JsonObject jsonObject) {
+  public static RequestError fromJson(JsonObject jsonObject) {
     String code = jsonObject.get("code").getAsString();
     String message = jsonObject.get("message").getAsString();
     Object data = jsonObject.get("data") == null ? null : jsonObject.get("data").getAsJsonArray();
-    return new Error(code, message, data);
+    return new RequestError(code, message, data);
   }
 
-  public static List<Error> fromJsonArray(JsonArray jsonArray) {
+  public static List<RequestError> fromJsonArray(JsonArray jsonArray) {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<Error> list = new ArrayList<Error>(jsonArray.size());
+    ArrayList<RequestError> list = new ArrayList<RequestError>(jsonArray.size());
     Iterator<JsonElement> iterator = jsonArray.iterator();
     while (iterator.hasNext()) {
       list.add(fromJson(iterator.next().getAsJsonObject()));
