@@ -27,7 +27,7 @@ vars = {
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@33092",
   "async_await_rev" : "@2fede12c5244c76a9a1b5af29607b7528cf5d308",
-  "d8_rev" : "@38056",
+  "d8_rev" : "@39739",
   "eclipse_rev" : "@38742",
   "fake_async_rev" : "@38614",
   "fest_rev" : "@19997",
