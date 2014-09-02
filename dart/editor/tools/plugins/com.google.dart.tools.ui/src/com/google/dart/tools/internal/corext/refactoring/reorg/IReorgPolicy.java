@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.reorg;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
@@ -75,16 +74,6 @@ public interface IReorgPolicy extends IReorgDestinationValidator {
 
   public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
       CheckConditionsContext context, IReorgQueries queries) throws CoreException;
-
-  /**
-   * @return the destination of this reorg or null if not a Dart element
-   */
-  public DartElement getDartElementDestination();
-
-  /**
-   * @return the source Dart elements to reorg
-   */
-  public DartElement[] getDartElements();
 
   /**
    * @return the unique id of this policy

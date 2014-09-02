@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelStatus;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 
@@ -43,37 +42,6 @@ public class DartModelStatusImpl extends Status implements DartModelStatus,
    * Singleton OK object
    */
   public static final DartModelStatusImpl VERIFIED_OK = new DartModelStatusImpl(OK, OK);
-
-  /**
-   * Create and return a new <code>DartModelStatus</code> that is a a multi-status status.
-   * 
-   * @see IStatus#isMultiStatus()
-   */
-  public static DartModelStatus newMultiStatus(DartModelStatus[] children) {
-    DartModelStatusImpl status = new DartModelStatusImpl();
-    status.children = children;
-    return status;
-  }
-
-  public DartModelStatusImpl() {
-    super(Status.ERROR, DartCore.PLUGIN_ID, "DartModelStatus", null); //$NON-NLS-1$
-  }
-
-  public DartModelStatusImpl(int code) {
-    super(Status.ERROR, DartCore.PLUGIN_ID, code, "DartModelStatus", null); //$NON-NLS-1$
-  }
-
-  public DartModelStatusImpl(int code, DartElement element) {
-    this(code, new DartElement[] {element});
-  }
-
-  public DartModelStatusImpl(int code, DartElement element, String message) {
-    super(Status.ERROR, DartCore.PLUGIN_ID, code, message, null);
-  }
-
-  public DartModelStatusImpl(int code, DartElement[] elements) {
-    super(Status.ERROR, DartCore.PLUGIN_ID, code, "DartModelStatus", null); //$NON-NLS-1$
-  }
 
   /**
    * Constructs a Dart model status with no corresponding elements.

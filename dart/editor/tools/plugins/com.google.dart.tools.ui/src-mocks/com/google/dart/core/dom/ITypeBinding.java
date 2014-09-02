@@ -13,7 +13,6 @@
  */
 package com.google.dart.core.dom;
 
-import com.google.dart.tools.core.model.DartElement;
 
 /**
  * TODO(devoncarew): This is a temporary interface, used to resolve compilation errors.
@@ -25,8 +24,6 @@ public interface ITypeBinding extends IBinding {
   IFunctionBinding getDeclaringMethod();
 
   int getDimensions();
-
-  DartElement getElement();
 
   ITypeBinding getElementType();
 

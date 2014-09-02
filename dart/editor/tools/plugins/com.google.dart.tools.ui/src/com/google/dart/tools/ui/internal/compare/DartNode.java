@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.compare;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.compare.ITypedElement;
@@ -106,18 +105,18 @@ class DartNode extends DocumentRangeNode implements ITypedElement {
     ImageDescriptor id = null;
 
     switch (getTypeCode()) {
-      case CU:
-        id = DartCompareUtilities.getImageDescriptor(DartElement.COMPILATION_UNIT);
-        break;
+//      case CU:
+//        id = DartCompareUtilities.getImageDescriptor(DartElement.COMPILATION_UNIT);
+//        break;
 //      case PACKAGE:
 //        id = DartCompareUtilities.getImageDescriptor(DartElement.PACKAGE_DECLARATION);
 //        break;
 //      case IMPORT:
 //        id = DartCompareUtilities.getImageDescriptor(DartElement.IMPORT_DECLARATION);
 //        break;
-      case IMPORT_CONTAINER:
-        id = DartCompareUtilities.getImageDescriptor(DartElement.IMPORT_CONTAINER);
-        break;
+//      case IMPORT_CONTAINER:
+//        id = DartCompareUtilities.getImageDescriptor(DartElement.IMPORT_CONTAINER);
+//        break;
       case CLASS:
         id = DartCompareUtilities.getTypeImageDescriptor();
 //        id = DartCompareUtilities.getTypeImageDescriptor(true);

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString.Style;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;

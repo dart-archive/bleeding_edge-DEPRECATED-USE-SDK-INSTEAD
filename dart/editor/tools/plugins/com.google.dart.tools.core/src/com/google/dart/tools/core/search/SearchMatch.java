@@ -14,10 +14,6 @@
 package com.google.dart.tools.core.search;
 
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.DartElement;
-
-import java.text.Collator;
-import java.util.Comparator;
 
 /**
  * Instances of the class <code>SearchMatch</code> represent a match found by a search engine.
@@ -28,22 +24,17 @@ public class SearchMatch {
   /**
    * The quality of the match.
    */
-  private final MatchQuality quality;
+  private MatchQuality quality;
 
   /**
    * The kind of the match.
    */
-  private final MatchKind kind;
-
-  /**
-   * The element containing the source range that was matched.
-   */
-  private final DartElement element;
+  private MatchKind kind;
 
   /**
    * The source range that was matched.
    */
-  private final SourceRange sourceRange;
+  private SourceRange sourceRange;
 
   /**
    * Is <code>true</code> if field or method access is done using qualifier.
@@ -54,54 +45,6 @@ public class SearchMatch {
    * Is not <code>null</code> if matched element was imported with this prefix.
    */
   private String importPrefix;
-
-  /**
-   * A comparator that can be used to sort the matches based on the names of the matched elements.
-   */
-  public static final Comparator<SearchMatch> SORT_BY_ELEMENT_NAME = new Comparator<SearchMatch>() {
-    @Override
-    public int compare(SearchMatch firstMatch, SearchMatch secondMatch) {
-      String firstName = firstMatch.getElement().getElementName();
-      String secondName = secondMatch.getElement().getElementName();
-      return Collator.getInstance().compare(firstName, secondName);
-    }
-  };
-
-  /**
-   * Initialize a newly created search match.
-   * 
-   * @param quality the quality of the match
-   * @param element the element containing the source range that was matched
-   * @param sourceRange the source range of the match within the element's resource
-   */
-  public SearchMatch(MatchQuality quality, DartElement element, SourceRange sourceRange) {
-    this(quality, MatchKind.NOT_A_REFERENCE, element, sourceRange);
-  }
-
-  /**
-   * Initialize a newly created search match.
-   * 
-   * @param quality the quality of the match
-   * @param kind the kind of the match
-   * @param element the element containing the source range that was matched
-   * @param sourceRange the source range of the match within the element's resource
-   */
-  public SearchMatch(MatchQuality quality, MatchKind kind, DartElement element,
-      SourceRange sourceRange) {
-    this.quality = quality;
-    this.kind = kind;
-    this.element = element;
-    this.sourceRange = sourceRange;
-  }
-
-  /**
-   * Return the element containing the source range that was matched.
-   * 
-   * @return the element containing the source range that was matched
-   */
-  public DartElement getElement() {
-    return element;
-  }
 
   /**
    * @return the import prefix used to import this match of element, may be <code>null</code>.
@@ -179,8 +122,6 @@ public class SearchMatch {
     builder.append(kind);
     builder.append(", quality="); //$NON-NLS-1$
     builder.append(quality);
-    builder.append(", element="); //$NON-NLS-1$
-    builder.append(element.getElementName());
     builder.append(", range="); //$NON-NLS-1$
     builder.append(sourceRange);
     builder.append(", qualified="); //$NON-NLS-1$

@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,44 +24,8 @@ import org.eclipse.ui.IWorkbenchPart;
 
 public class SelectionConverter {
 
-  private static final DartElement[] EMPTY_RESULT = new DartElement[0];
-
   public static boolean canOperateOn(DartEditor editor) {
-    if (editor == null) {
-      return false;
-    }
-    if (!editor.isEditable()) {
-      return false;
-    }
-    return getInput(editor) != null;
-
-  }
-
-  public static DartElement[] codeResolve(DartEditor editor) throws DartModelException {
-    return codeResolve(editor, true);
-  }
-
-  /**
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   */
-  public static DartElement[] codeResolve(DartEditor editor, boolean primaryOnly)
-      throws DartModelException {
-    return codeResolve(editor, null, (ITextSelection) editor.getSelectionProvider().getSelection());
-  }
-
-  public static DartElement[] codeResolve(DartEditor editor, DartElement input,
-      ITextSelection selection) throws DartModelException {
-    return EMPTY_RESULT;
-  }
-
-  public static DartElement getElementAtOffset(DartElement input, ITextSelection selection)
-      throws DartModelException {
-    return null;
-  }
-
-  public static DartElement getInput(DartEditor editor) {
-    // Legacy method (unsupported)
-    return null;
+    return false;
   }
 
   /**
@@ -80,7 +42,7 @@ public class SelectionConverter {
   public static IStructuredSelection getStructuredSelection(IWorkbenchPart part)
       throws DartModelException {
     if (part instanceof DartEditor) {
-      return new StructuredSelection(codeResolve((DartEditor) part));
+      return StructuredSelection.EMPTY;
     }
     ISelectionProvider provider = part.getSite().getSelectionProvider();
     if (provider != null) {
@@ -90,14 +52,6 @@ public class SelectionConverter {
       }
     }
     return StructuredSelection.EMPTY;
-  }
-
-  /**
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   */
-  private static DartElement getInput(DartEditor editor, boolean primaryOnly) {
-    // Legacy method (unsupported)
-    return null;
   }
 
   private SelectionConverter() {

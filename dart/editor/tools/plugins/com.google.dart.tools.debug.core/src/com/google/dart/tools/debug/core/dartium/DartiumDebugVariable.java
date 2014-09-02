@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
@@ -62,12 +61,6 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
     this.descriptor = descriptor;
     this.isSpecialObject = isSpecialObject;
-  }
-
-  public DartElement coerceToDartElement() {
-    // TODO(devoncarew): implement this
-
-    return null;
   }
 
   /**

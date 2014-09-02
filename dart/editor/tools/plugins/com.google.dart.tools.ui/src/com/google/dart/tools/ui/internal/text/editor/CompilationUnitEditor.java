@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -1153,6 +1152,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   @Override
+  public Object getViewPartInput() {
+    return null;
+  }
+
+  @Override
   public boolean isSaveAsAllowed() {
     return true;
   }
@@ -1168,7 +1172,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
 
     // Always notify AST provider
-    dartPlugin.getASTProvider().reconciled(null, progressMonitor);
+    dartPlugin.getASTProvider().reconciled(progressMonitor);
 
     // Notify listeners
     Object[] listeners = fReconcilingListeners_OLD.getListeners();
@@ -1431,18 +1435,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         fJavaEditorErrorTickUpdater.updateEditorImage(input);
       }
     }
-  }
-
-  /*
-   * @see DartEditor#getCorrespondingElement(DartElement)
-   */
-  @Override
-  protected DartElement getCorrespondingElement(DartElement element) {
-    // XXX: With new working copy story: original == working copy.
-    // Note that the previous code could result in a reconcile as side effect.
-    // Should check if that
-    // is still required.
-    return element;
   }
 
   @Override

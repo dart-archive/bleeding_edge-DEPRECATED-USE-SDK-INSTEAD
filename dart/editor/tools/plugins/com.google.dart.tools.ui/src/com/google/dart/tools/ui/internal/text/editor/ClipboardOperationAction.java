@@ -13,22 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.SWTError;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.RTFTransfer;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -43,7 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /**
@@ -86,26 +76,12 @@ public final class ClipboardOperationAction extends TextEditorAction {
       }
     }
 
-    public ClipboardData(DartElement origin, String[] typeImports, String[] staticImports) {
-      Assert.isNotNull(origin);
-      Assert.isNotNull(typeImports);
-      Assert.isNotNull(staticImports);
-
-      fTypeImports = typeImports;
-      fStaticImports = staticImports;
-      fOriginHandle = origin.getHandleIdentifier();
-    }
-
     public String[] getStaticImports() {
       return fStaticImports;
     }
 
     public String[] getTypeImports() {
       return fTypeImports;
-    }
-
-    public boolean isFromSame(DartElement elem) {
-      return fOriginHandle.equals(elem.getHandleIdentifier());
     }
 
     public byte[] serialize() throws IOException {
@@ -292,146 +268,15 @@ public final class ClipboardOperationAction extends TextEditorAction {
   }
 
   private void doCutCopyWithImportsOperation() {
-    ITextEditor editor = getTextEditor();
-    DartElement inputElement = (DartElement) editor.getEditorInput().getAdapter(DartElement.class);
-    ISelection selection = editor.getSelectionProvider().getSelection();
-
-    Object clipboardData = null;
-    if (inputElement != null && selection instanceof ITextSelection && !selection.isEmpty()) {
-      ITextSelection textSelection = (ITextSelection) selection;
-      if (isNonTrivialSelection(textSelection)) {
-        clipboardData = getClipboardData(
-            inputElement,
-            textSelection.getOffset(),
-            textSelection.getLength());
-      }
-    }
-
     fOperationTarget.doOperation(fOperationCode);
-
-    if (clipboardData != null) {
-      Clipboard clipboard = new Clipboard(getDisplay());
-      try {
-        /*
-         * We currently make assumptions about what the styled text widget sets, see
-         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=61876
-         */
-        Object textData = clipboard.getContents(TextTransfer.getInstance());
-        Object rtfData = clipboard.getContents(RTFTransfer.getInstance());
-
-        ArrayList<Object> datas = new ArrayList<Object>(3);
-        ArrayList<ByteArrayTransfer> transfers = new ArrayList<ByteArrayTransfer>(3);
-        if (textData != null) {
-          datas.add(textData);
-          transfers.add(TextTransfer.getInstance());
-        }
-        if (rtfData != null) {
-          datas.add(rtfData);
-          transfers.add(RTFTransfer.getInstance());
-        }
-
-        /*
-         * Don't add if we didn't get any data from the clipboard see:
-         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=70077
-         */
-        if (datas.isEmpty()) {
-          return;
-        }
-
-        datas.add(clipboardData);
-        transfers.add(fgTransferInstance);
-
-        Transfer[] dataTypes = transfers.toArray(new Transfer[transfers.size()]);
-        Object[] data = datas.toArray();
-        setClipboardContents(clipboard, data, dataTypes);
-      } finally {
-        clipboard.dispose();
-      }
-    }
   }
 
   private void doPasteWithImportsOperation() {
-    ITextEditor editor = getTextEditor();
-    DartElement inputElement = (DartElement) editor.getEditorInput().getAdapter(DartElement.class);
-
     Clipboard clipboard = new Clipboard(getDisplay());
     ClipboardData importsData = (ClipboardData) clipboard.getContents(fgTransferInstance);
-    if (importsData == null || importsData.isFromSame(inputElement)) {
+    if (importsData == null || importsData.fOriginHandle == null) {
       fOperationTarget.doOperation(fOperationCode);
     }
-  }
-
-  private ClipboardData getClipboardData(DartElement inputElement, int offset, int length) {
-    DartX.todo();
-    return null;
-//    DartUnit astRoot = DartToolsPlugin.getDefault().getASTProvider().getAST(
-//        inputElement, ASTProvider.WAIT_ACTIVE_ONLY, null);
-//    if (astRoot == null) {
-//      return null;
-//    }
-//
-//    // do process import if selection spans over import declaration or package
-//    List list = astRoot.imports();
-//    if (!list.isEmpty()) {
-//      if (offset < ((DartNode) list.get(list.size() - 1)).getStartPosition()) {
-//        return null;
-//      }
-//    } else if (astRoot.getPackage() != null) {
-//      if (offset < ((DartNode) astRoot.getPackage()).getStartPosition()) {
-//        return null;
-//      }
-//    }
-//
-//    ArrayList typeImportsRefs = new ArrayList();
-//    ArrayList staticImportsRefs = new ArrayList();
-//
-//    ImportReferencesCollector.collect(astRoot,
-//        inputElement.getJavaScriptProject(), new Region(offset, length),
-//        typeImportsRefs, staticImportsRefs);
-//
-//    if (typeImportsRefs.isEmpty() && staticImportsRefs.isEmpty()) {
-//      return null;
-//    }
-//
-//    HashSet namesToImport = new HashSet(typeImportsRefs.size());
-//    for (int i = 0; i < typeImportsRefs.size(); i++) {
-//      Name curr = (Name) typeImportsRefs.get(i);
-//      IBinding binding = curr.resolveBinding();
-//      if (binding != null && binding.getKind() == IBinding.TYPE) {
-//        ITypeBinding typeBinding = (ITypeBinding) binding;
-//        if (typeBinding.isArray()) {
-//          typeBinding = typeBinding.getElementType();
-//        }
-//
-//        if (typeBinding.isMember() || typeBinding.isTopLevel()) {
-//          String name = Bindings.getRawQualifiedName(typeBinding);
-//          if (name.length() > 0) {
-//            namesToImport.add(name);
-//          }
-//        }
-//      }
-//    }
-//
-//    HashSet staticsToImport = new HashSet(staticImportsRefs.size());
-//    for (int i = 0; i < staticImportsRefs.size(); i++) {
-//      Name curr = (Name) staticImportsRefs.get(i);
-//      IBinding binding = curr.resolveBinding();
-//      if (binding != null) {
-//        StringBuffer buf = new StringBuffer(Bindings.getImportName(binding));
-//        if (binding.getKind() == IBinding.METHOD) {
-//          buf.append("()"); //$NON-NLS-1$
-//        }
-//        staticsToImport.add(buf.toString());
-//      }
-//    }
-//
-//    if (namesToImport.isEmpty() && staticsToImport.isEmpty()) {
-//      return null;
-//    }
-//
-//    String[] typeImports = (String[]) namesToImport.toArray(new String[namesToImport.size()]);
-//    String[] staticImports = (String[]) staticsToImport.toArray(new String[staticsToImport.size()]);
-//    return new ClipboardData(inputElement, typeImports, staticImports);
   }
 
   private Display getDisplay() {
@@ -454,35 +299,7 @@ public final class ClipboardOperationAction extends TextEditorAction {
     return null;
   }
 
-  private boolean isNonTrivialSelection(ITextSelection selection) {
-    if (selection.getLength() < 30) {
-      String text = selection.getText();
-      if (text != null) {
-        for (int i = 0; i < text.length(); i++) {
-          if (!Character.isJavaIdentifierPart(text.charAt(i))) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
   private boolean isReadOnlyOperation() {
     return fOperationCode == ITextOperationTarget.COPY;
   }
-
-  private void setClipboardContents(Clipboard clipboard, Object[] datas, Transfer[] transfers) {
-    try {
-      clipboard.setContents(datas, transfers);
-    } catch (SWTError e) {
-      if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
-        throw e;
-      }
-      // silently fail. see e.g.
-// https://bugs.eclipse.org/bugs/show_bug.cgi?id=65975
-    }
-  }
-
 }

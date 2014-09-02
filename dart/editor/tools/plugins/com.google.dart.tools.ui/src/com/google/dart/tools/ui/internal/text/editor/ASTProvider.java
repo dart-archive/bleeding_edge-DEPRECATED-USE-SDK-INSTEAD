@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
@@ -245,8 +244,6 @@ public final class ASTProvider {
     return DartToolsPlugin.getDefault().getASTProvider();
   }
 
-  private DartElement fReconcilingJavaElement;
-  private DartElement fActiveJavaElement;
   private ActivationListener fActivationListener;
   private Object fReconcileLock = new Object();
   private Object fWaitLock = new Object();
@@ -290,56 +287,41 @@ public final class ASTProvider {
     }
   }
 
-  void reconciled(DartElement javaElement, IProgressMonitor progressMonitor) {
+  void reconciled(IProgressMonitor progressMonitor) {
 
     if (DEBUG) {
-      System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "reconciled: " + toString(javaElement)); //$NON-NLS-1$ //$NON-NLS-2$
+      System.out.println(getThreadName() + " - " + DEBUG_PREFIX + "reconciled: null"); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     synchronized (fReconcileLock) {
 
       fIsReconciling = progressMonitor != null && progressMonitor.isCanceled();
-      if (javaElement == null || !javaElement.equals(fReconcilingJavaElement)) {
-
-        if (DEBUG) {
-          System.out.println(getThreadName()
-              + " - " + DEBUG_PREFIX + "  ignoring AST of out-dated editor"); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-
-        // Signal - threads might wait for wrong element
-        synchronized (fWaitLock) {
-          fWaitLock.notifyAll();
-        }
-
-        return;
+      if (DEBUG) {
+        System.out.println(getThreadName()
+            + " - " + DEBUG_PREFIX + "  ignoring AST of out-dated editor"); //$NON-NLS-1$ //$NON-NLS-2$
       }
+
+      // Signal - threads might wait for wrong element
+      synchronized (fWaitLock) {
+        fWaitLock.notifyAll();
+      }
+
+      return;
     }
   }
 
   private void activeJavaEditorChanged(IWorkbenchPart editor) {
 
-    DartElement dartElement = null;
-
     synchronized (this) {
       fActiveEditor = editor;
-      fActiveJavaElement = dartElement;
     }
 
     if (DEBUG) {
-      System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "active editor is: " + toString(dartElement)); //$NON-NLS-1$ //$NON-NLS-2$
+      System.out.println(getThreadName() + " - " + DEBUG_PREFIX + "active editor is: null"); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     synchronized (fReconcileLock) {
-      if (fIsReconciling
-          && (fReconcilingJavaElement == null || !fReconcilingJavaElement.equals(dartElement))) {
-        fIsReconciling = false;
-        fReconcilingJavaElement = null;
-      } else if (dartElement == null) {
-        fIsReconciling = false;
-        fReconcilingJavaElement = null;
-      }
+      fIsReconciling = false;
     }
   }
 
@@ -350,20 +332,5 @@ public final class ASTProvider {
     } else {
       return Thread.currentThread().toString();
     }
-  }
-
-  /**
-   * Returns a string for the given Java element used for debugging.
-   * 
-   * @param javaElement the compilation unit AST
-   * @return a string used for debugging
-   */
-  private String toString(DartElement javaElement) {
-    if (javaElement == null) {
-      return "null"; //$NON-NLS-1$
-    } else {
-      return javaElement.getElementName();
-    }
-
   }
 }

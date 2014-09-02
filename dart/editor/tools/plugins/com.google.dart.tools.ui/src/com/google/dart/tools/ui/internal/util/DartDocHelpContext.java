@@ -13,11 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.DartUIMessages;
-import com.google.dart.tools.ui.Messages;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -34,29 +30,6 @@ import java.util.List;
 
 @SuppressWarnings("restriction")
 public class DartDocHelpContext implements IContext2 {
-
-  private static class JavaUIHelpResource implements IHelpResource {
-
-    private final DartElement fElement;
-    private final String fUrl;
-
-    public JavaUIHelpResource(DartElement element, String url) {
-      fElement = element;
-      fUrl = url;
-    }
-
-    @Override
-    public String getHref() {
-      return fUrl;
-    }
-
-    @Override
-    public String getLabel() {
-      String label = DartElementLabels.getTextLabel(fElement, DartElementLabels.ALL_DEFAULT
-          | DartElementLabels.ALL_FULLY_QUALIFIED);
-      return Messages.format(DartUIMessages.JavaUIHelp_link_label, label);
-    }
-  }
 
   public static void displayHelp(String contextId, Object[] selected) throws CoreException {
     IContext context = HelpSystem.getContext(contextId);
@@ -137,9 +110,9 @@ public class DartDocHelpContext implements IContext2 {
 
   @Override
   public String getCategory(IHelpResource topic) {
-    if (topic instanceof JavaUIHelpResource) {
-      return DartUIMessages.JavaUIHelpContext_javaHelpCategory_label;
-    }
+//    if (topic instanceof JavaUIHelpResource) {
+//      return DartUIMessages.JavaUIHelpContext_javaHelpCategory_label;
+//    }
 
     return null;
   }

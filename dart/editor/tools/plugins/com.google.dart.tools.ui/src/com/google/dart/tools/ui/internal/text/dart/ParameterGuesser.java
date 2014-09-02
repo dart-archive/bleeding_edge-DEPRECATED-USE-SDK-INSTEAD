@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
@@ -196,10 +195,8 @@ public class ParameterGuesser {
 
   /**
    * Creates a parameter guesser
-   * 
-   * @param enclosingElement the enclosing Java element
    */
-  public ParameterGuesser(DartElement enclosingElement) {
+  public ParameterGuesser() {
     fAlreadyMatchedNames = new HashSet<String>();
   }
 

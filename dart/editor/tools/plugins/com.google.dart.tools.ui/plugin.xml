@@ -48,7 +48,7 @@
             class="com.google.dart.tools.ui.internal.text.editor.EditorInputAdapterFactory" 
             adaptableType="org.eclipse.ui.IEditorInput">
             <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/ -->
-            <adapter type="com.google.dart.tools.core.model.DartElement"/>
+            <adapter type="com.google.dart.engine.element.Element"/>
       </factory>
       
       

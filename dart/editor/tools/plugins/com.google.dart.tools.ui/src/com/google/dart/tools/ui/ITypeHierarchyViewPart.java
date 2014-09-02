@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.DartElement;
-
 import org.eclipse.ui.IViewPart;
 
 /**
@@ -78,14 +76,6 @@ public interface ITypeHierarchyViewPart extends IViewPart {
   public int getHierarchyMode();
 
   /**
-   * Returns the input element of this type hierarchy view.
-   * 
-   * @return the input element, or <code>null</code> if no input element is set
-   * @see #setInputElement(DartElement)
-   */
-  public DartElement getInputElement();
-
-  /**
    * Returns the currently configured view layout. Possible layouts are
    * {@link #VIEW_LAYOUT_VERTICAL}, {@link #VIEW_LAYOUT_HORIZONTAL} {@link #VIEW_LAYOUT_SINGLE} and
    * {@link #VIEW_LAYOUT_AUTOMATIC} but clients should also be able to handle yet unknown layout.
@@ -122,16 +112,6 @@ public interface ITypeHierarchyViewPart extends IViewPart {
    * @param mode The hierarchy mode to set
    */
   public void setHierarchyMode(int mode);
-
-  /**
-   * Sets the input element of this type hierarchy view. The following input types are possible
-   * <code>IMember</code> (types, methods, fields..), <code>IPackageFragment</code>,
-   * <code>IPackageFragmentRoot</code> and <code>DartProject</code>.
-   * 
-   * @param element the input element of this type hierarchy view, or <code>null</code> to clear any
-   *          input
-   */
-  public void setInputElement(DartElement element);
 
   /**
    * Sets whether this type hierarchy view's selection automatically tracks the active editor.

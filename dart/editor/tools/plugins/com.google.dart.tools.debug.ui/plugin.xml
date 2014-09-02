@@ -431,17 +431,6 @@
    </extension>
 
    <extension
-         point="org.eclipse.core.runtime.adapters">
-      <factory
-            adaptableType="com.google.dart.tools.core.model.DartElement"
-            class="com.google.dart.tools.debug.ui.launch.ActionFilterAdapterFactory">
-         <adapter
-               type="org.eclipse.ui.IActionFilter">
-         </adapter>
-      </factory>
-   </extension>
-
-   <extension
          point="org.eclipse.ui.editors">
       <editor
             name="Source not available"

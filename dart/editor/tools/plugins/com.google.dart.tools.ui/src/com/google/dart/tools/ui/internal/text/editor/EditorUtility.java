@@ -20,7 +20,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -535,36 +534,6 @@ public class EditorUtility {
   }
 
   /**
-   * Selects a Dart Element in an editor
-   */
-  public static void revealInEditor(IEditorPart part, DartElement element) {
-    if (element == null) {
-      return;
-    }
-
-    // TODO(scheglov) to be removed with method
-//    if (part instanceof DartEditor) {
-//      ((DartEditor) part).setSelection(element);
-//      return;
-//    }
-
-    // Support for non-Dart editor
-    try {
-      SourceRange range = null;
-      DartX.todo();
-      if (element instanceof SourceReference) {
-        range = ((SourceReference) element).getSourceRange();
-      }
-
-      if (range != null) {
-        revealInEditor(part, range.getOffset(), range.getLength());
-      }
-    } catch (DartModelException e) {
-      // don't reveal
-    }
-  }
-
-  /**
    * Selects a Dart Element in an editor part.
    */
   public static void revealInEditor(IEditorPart part, Element element) {
@@ -651,6 +620,36 @@ public class EditorUtility {
   public static void revealInEditor(IEditorPart part, IRegion region) {
     if (part != null && region != null) {
       revealInEditor(part, region.getOffset(), region.getLength());
+    }
+  }
+
+  /**
+   * Selects a Dart Element in an editor
+   */
+  public static void revealInEditor(IEditorPart part, Object element) {
+    if (element == null) {
+      return;
+    }
+
+    // TODO(scheglov) to be removed with method
+//    if (part instanceof DartEditor) {
+//      ((DartEditor) part).setSelection(element);
+//      return;
+//    }
+
+    // Support for non-Dart editor
+    try {
+      SourceRange range = null;
+      DartX.todo();
+      if (element instanceof SourceReference) {
+        range = ((SourceReference) element).getSourceRange();
+      }
+
+      if (range != null) {
+        revealInEditor(part, range.getOffset(), range.getLength());
+      }
+    } catch (DartModelException e) {
+      // don't reveal
     }
   }
 

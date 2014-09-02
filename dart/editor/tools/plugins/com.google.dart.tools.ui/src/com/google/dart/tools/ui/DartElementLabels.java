@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.internal.util.Strings;
 
 import org.eclipse.core.resources.IResource;

@@ -337,7 +337,7 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     fChoices = new ICompletionProposal[count][];
 
     String[] parameterTypes = getParameterTypes();
-    ParameterGuesser guesser = new ParameterGuesser(null);
+    ParameterGuesser guesser = new ParameterGuesser();
 
     for (int i = count - 1; i >= 0; i--) {
       String paramName = new String(parameterNames[i]);

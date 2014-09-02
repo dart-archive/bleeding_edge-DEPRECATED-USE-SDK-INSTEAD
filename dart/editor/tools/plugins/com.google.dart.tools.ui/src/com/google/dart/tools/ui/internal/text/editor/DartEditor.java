@@ -43,7 +43,6 @@ import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -2107,11 +2106,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   @Override
-  public Object getViewPartInput() {
-    return getEditorInput().getAdapter(DartElement.class);
-  }
-
-  @Override
   public Annotation gotoAnnotation(boolean forward) {
     fSelectionChangedViaGotoAnnotation = true;
     return super.gotoAnnotation(forward);
@@ -3058,14 +3052,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected ActionGroup getActionGroup() {
     return fActionGroups;
   }
-
-  /**
-   * Returns the Dart element of this editor's input corresponding to the given DartElement.
-   * 
-   * @param element the Dart element
-   * @return the corresponding Dart element
-   */
-  abstract protected DartElement getCorrespondingElement(DartElement element);
 
   /**
    * Returns the most narrow Dart element including the given offset.

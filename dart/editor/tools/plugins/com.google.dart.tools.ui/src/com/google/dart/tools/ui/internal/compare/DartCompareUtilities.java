@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.compare;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -183,10 +182,10 @@ public class DartCompareUtilities {
 //        return DartPluginImages.DESC_OBJS_PACKDECL;
 //      case DartElement.IMPORT_DECLARATION:
 //        return DartPluginImages.DESC_OBJS_IMPDECL;
-      case DartElement.IMPORT_CONTAINER:
-        return DartPluginImages.DESC_OBJS_IMPCONT;
-      case DartElement.COMPILATION_UNIT:
-        return DartPluginImages.DESC_OBJS_CUNIT;
+//      case DartElement.IMPORT_CONTAINER:
+//        return DartPluginImages.DESC_OBJS_IMPCONT;
+//      case DartElement.COMPILATION_UNIT:
+//        return DartPluginImages.DESC_OBJS_CUNIT;
     }
     return ImageDescriptor.getMissingImageDescriptor();
   }

@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.completion;
 
-import com.google.dart.tools.core.model.DartElement;
-
 import java.security.Signature;
 
 /**

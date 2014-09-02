@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.search;
 
-import com.google.dart.tools.core.model.DartElement;
 
 /**
  * The interface <code>SearchScope</code> defines the behavior common to objects that define where
@@ -26,11 +25,4 @@ import com.google.dart.tools.core.model.DartElement;
  * @coverage dart.tools.core.search
  */
 public interface SearchScope {
-  /**
-   * Return <code>true</code> if this scope encloses the given element.
-   * 
-   * @param element the element being checked
-   * @return <code>true</code> if the element is in this scope
-   */
-  public boolean encloses(DartElement element);
 }
