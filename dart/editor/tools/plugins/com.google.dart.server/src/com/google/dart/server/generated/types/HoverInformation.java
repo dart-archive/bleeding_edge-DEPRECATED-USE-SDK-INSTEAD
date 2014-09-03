@@ -57,20 +57,22 @@ public class HoverInformation {
 
   /**
    * The path to the defining compilation unit of the library in which the referenced element is
-   * declared. This data is omitted if there is no referenced element.
+   * declared. This data is omitted if there is no referenced element, or if the element is declared
+   * inside an HTML file.
    */
   private final String containingLibraryPath;
 
   /**
    * The name of the library in which the referenced element is declared. This data is omitted if
-   * there is no referenced element.
+   * there is no referenced element, or if the element is declared inside an HTML file.
    */
   private final String containingLibraryName;
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal of the comment
    * delimiters, including leading asterisks in the case of a block comment, the dartdoc is
-   * unprocessed markdown. This data is omitted if there is no referenced element.
+   * unprocessed markdown. This data is omitted if there is no referenced element, or if the element
+   * has no dartdoc.
    */
   private final String dartdoc;
 
@@ -167,7 +169,7 @@ public class HoverInformation {
 
   /**
    * The name of the library in which the referenced element is declared. This data is omitted if
-   * there is no referenced element.
+   * there is no referenced element, or if the element is declared inside an HTML file.
    */
   public String getContainingLibraryName() {
     return containingLibraryName;
@@ -175,7 +177,8 @@ public class HoverInformation {
 
   /**
    * The path to the defining compilation unit of the library in which the referenced element is
-   * declared. This data is omitted if there is no referenced element.
+   * declared. This data is omitted if there is no referenced element, or if the element is declared
+   * inside an HTML file.
    */
   public String getContainingLibraryPath() {
     return containingLibraryPath;
@@ -184,7 +187,8 @@ public class HoverInformation {
   /**
    * The dartdoc associated with the referenced element. Other than the removal of the comment
    * delimiters, including leading asterisks in the case of a block comment, the dartdoc is
-   * unprocessed markdown. This data is omitted if there is no referenced element.
+   * unprocessed markdown. This data is omitted if there is no referenced element, or if the element
+   * has no dartdoc.
    */
   public String getDartdoc() {
     return dartdoc;
