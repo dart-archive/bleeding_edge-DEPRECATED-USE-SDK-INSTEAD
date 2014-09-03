@@ -13,9 +13,11 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.SourceChange;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface {@code GetRefactoringConsumer} defines the behavior of objects that get the changes
@@ -27,14 +29,24 @@ public interface GetRefactoringConsumer extends Consumer {
   /**
    * The changes required to perform a refactoring.
    * <p>
-   * TODO (jwren) can feedback be Map<String, Object>?, fill in javadoc below.
+   * TODO (jwren) can feedback be changed to Map<String, Object>?
    * 
    * @param problems The status of the refactoring. The array will be empty if there are no known
    *          problems
-   * @param feedback
-   * @param change
-   * @param potentialEdits
+   * @param feedback Data used to provide feedback to the user. The structure of the data is
+   *          dependent on the kind of refactoring being created. The data that is returned is
+   *          documented in the section titled Refactorings, labeled as “Feedback”.
+   * @param change The changes that are to be applied to affect the refactoring. This field will be
+   *          omitted if there are problems that prevent a set of changes from being computed, such
+   *          as having no options specified for a refactoring that requires them, or if only
+   *          validation was requested.
+   * @param potentialEdits The ids of source edits that are not known to be valid. An edit is not
+   *          known to be valid if there was insufficient type information for the server to be able
+   *          to determine whether or not the code needs to be modified, such as when a member is
+   *          being renamed and there is a reference to a member from an unknown type. This field
+   *          will be omitted if the change field is omitted or if there are no potential edits for
+   *          the refactoring.
    */
-  public void computedRefactorings(List<RefactoringProblem> problems, Object feedback,
+  public void computedRefactorings(List<RefactoringProblem> problems, Map<String, Object> feedback,
       SourceChange change, List<String> potentialEdits);
 }

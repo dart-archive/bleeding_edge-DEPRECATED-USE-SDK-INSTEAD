@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetAssistsConsumer;
-import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.gson.JsonObject;
 

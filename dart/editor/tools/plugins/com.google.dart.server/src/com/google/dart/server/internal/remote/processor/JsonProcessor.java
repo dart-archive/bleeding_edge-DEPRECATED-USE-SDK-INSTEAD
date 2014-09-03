@@ -14,16 +14,11 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.RefactoringProblem;
-import com.google.dart.server.RefactoringProblemSeverity;
-import com.google.dart.server.generated.types.Location;
-import com.google.dart.server.internal.RefactoringProblemImpl;
 import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -53,22 +48,6 @@ public abstract class JsonProcessor {
       i++;
     }
     return ints;
-  }
-
-  protected RefactoringProblem[] constructRefactoringProblemArray(JsonArray problemsArray) {
-    ArrayList<RefactoringProblem> problems = new ArrayList<RefactoringProblem>();
-    Iterator<JsonElement> iter = problemsArray.iterator();
-    while (iter.hasNext()) {
-      JsonElement problemElement = iter.next();
-      if (problemElement instanceof JsonObject) {
-        JsonObject problemObject = (JsonObject) problemElement;
-        problems.add(new RefactoringProblemImpl(
-            RefactoringProblemSeverity.valueOf(problemObject.get("severity").getAsString()),
-            problemObject.get("message").getAsString(),
-            Location.fromJson(problemObject.get("location").getAsJsonObject())));
-      }
-    }
-    return problems.toArray(new RefactoringProblem[problems.size()]);
   }
 
   /**

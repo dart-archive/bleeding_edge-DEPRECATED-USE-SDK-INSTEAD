@@ -36,9 +36,6 @@ import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
-import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.RefactoringCreateConsumer;
-import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
@@ -46,6 +43,7 @@ import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
 import com.google.dart.server.internal.remote.processor.FixesProcessor;
+import com.google.dart.server.internal.remote.processor.GetRefactoringProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisFlushResultsProcessor;
@@ -59,10 +57,7 @@ import com.google.dart.server.internal.remote.processor.NotificationSearchResult
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
-import com.google.dart.server.internal.remote.processor.RefactoringApplyProcessor;
-import com.google.dart.server.internal.remote.processor.RefactoringCreateProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringGetAvailableProcessor;
-import com.google.dart.server.internal.remote.processor.RefactoringSetOptionsProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
@@ -649,18 +644,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetTypeHierarchyConsumer) {
       new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof RefactoringApplyConsumer) {
-      new RefactoringApplyProcessor((RefactoringApplyConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof RefactoringCreateConsumer) {
-      new RefactoringCreateProcessor((RefactoringCreateConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetRefactoringConsumer) {
+      new GetRefactoringProcessor((GetRefactoringConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetAssistsConsumer) {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetFixesConsumer) {
       new FixesProcessor((GetFixesConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetAvailableRefactoringsConsumer) {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof RefactoringSetOptionsConsumer) {
-      new RefactoringSetOptionsProcessor((RefactoringSetOptionsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetVersionConsumer) {
       new VersionProcessor((GetVersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetErrorsConsumer) {

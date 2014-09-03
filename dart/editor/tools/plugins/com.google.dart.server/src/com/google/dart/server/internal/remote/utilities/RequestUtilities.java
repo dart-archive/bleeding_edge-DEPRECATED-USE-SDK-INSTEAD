@@ -492,7 +492,7 @@ public class RequestUtilities {
       if (createGetter != null) {
         options.addProperty("createGetter", (Boolean) createGetter);
       }
-      // parameters: List<Parameter>
+      // parameters: List<RefactoringMethodParameter>
       Object parameterListOb = refactoringOptions.get("parameters");
       if (parameterListOb != null) {
         JsonArray parameterArray = new JsonArray();
@@ -520,8 +520,8 @@ public class RequestUtilities {
       if (newName != null) {
         options.addProperty("newName", (String) newName);
       }
+      params.add("options", options);
     }
-    params.add("options", options);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
   }
 
