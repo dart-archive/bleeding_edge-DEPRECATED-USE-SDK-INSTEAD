@@ -285,7 +285,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
         viewer,
         offset,
         null,
-        assistContext);
+        assistContext,
+        null);
     List<ICompletionProposal> dartProposals = proposalComputer.computeCompletionProposals(
         completionContext,
         monitor);

@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.server.GetSuggestionsConsumer;
+import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.completion.DartCompletionReceiver;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
@@ -33,11 +33,9 @@ import org.eclipse.ui.IEditorPart;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Java completion processor.
+ * Dart completion processor.
  */
 public class DartCompletionProcessor extends ContentAssistProcessor {
 
@@ -48,6 +46,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
   private IContextInformationValidator fValidator;
   protected final IEditorPart fEditor;
   private AssistContext assistContext;
+  private DartCompletionReceiver receiver;
 
   public DartCompletionProcessor(IEditorPart editor, ContentAssistant assistant, String partition) {
     super(assistant, partition);
@@ -97,12 +96,10 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    * Wait up to the given amount of time for the receiver to ready. This may involve communication
    * with the Analysis Server and should not be called on the UI thread.
    * 
-   * @param millisToWait the # of milliseconds to wait for the processor to be ready
    * @return {@code true} if the processor is ready, else {@code false}
    */
-  public boolean waitUntilReady(long millisToWait) {
-    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW(millisToWait)
-        : waitUntilReady_OLD(millisToWait);
+  public boolean waitUntilReady() {
+    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW() : waitUntilReady_OLD();
   }
 
   /*
@@ -111,7 +108,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    */
   @Override
   protected ContentAssistInvocationContext createContext(ITextViewer viewer, int offset) {
-    return new DartContentAssistInvocationContext(viewer, offset, fEditor, assistContext);
+    return new DartContentAssistInvocationContext(viewer, offset, fEditor, assistContext, receiver);
   }
 
   /*
@@ -126,34 +123,30 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     return proposals;
   }
 
-  private boolean waitUntilReady_NEW(long millisToWait) {
+  private boolean waitUntilReady_NEW() {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());
-    final CountDownLatch latch = new CountDownLatch(1);
     final DartEditor dartEditor = (DartEditor) fEditor;
-    String filePath = dartEditor.getInputFilePath();
-    int offset = dartEditor.getCachedSelectedRange().x;
-    DartCore.getAnalysisServer().completion_getSuggestions(
-        filePath,
-        offset,
-        new GetSuggestionsConsumer() {
-          @Override
-          public void computedCompletionId(String completionId) {
-            System.out.println(completionId);
-            latch.countDown();
-          }
-        });
-    Uninterruptibles.awaitUninterruptibly(latch, 8, TimeUnit.SECONDS);
-    return false;
+    receiver = new DartCompletionReceiver(DartCore.getAnalysisServer());
+    receiver.requestCompletions(
+        dartEditor.getInputFilePath(),
+        dartEditor.getCachedSelectedRange().x,
+        250); // wait up to 1/4 of a second for suggestions
+    List<CompletionSuggestion> completions = receiver.getCompletions();
+    if (completions == null || completions.size() <= 0) {
+      return false;
+    }
+    return true;
   }
 
-  private boolean waitUntilReady_OLD(long millisToWait) {
+  private boolean waitUntilReady_OLD() {
     final DartEditor dartEditor = (DartEditor) fEditor;
     DartReconcilingStrategy strategy = dartEditor.getDartReconcilingStrategy();
     if (strategy != null) {
       strategy.reconcile();
     }
-    long endTime = System.currentTimeMillis() + millisToWait;
+    // Block background thread up to 8 seconds waiting for old java based dart analysis
+    long endTime = System.currentTimeMillis() + 8000;
     while (System.currentTimeMillis() < endTime) {
       StyledText control = dartEditor.getViewer().getTextWidget();
       if (control.isDisposed()) {

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * then call {@link #requestCompletions(String, int, long)} to begin collecting completions from the
  * server.
  */
-public class DartCompletionCollector {
+public class DartCompletionReceiver {
 
   /**
    * The server providing the suggestions.
@@ -43,7 +43,7 @@ public class DartCompletionCollector {
   GetSuggestionsConsumer consumer = new GetSuggestionsConsumer() {
     @Override
     public void computedCompletionId(String completionId) {
-      DartCompletionCollector.this.completionId = completionId;
+      DartCompletionReceiver.this.completionId = completionId;
       if (latch != null) {
         server.addAnalysisServerListener(listener);
       }
@@ -62,9 +62,9 @@ public class DartCompletionCollector {
     @Override
     public void computedCompletion(String completionId, int replacementOffset,
         int replacementLength, List<CompletionSuggestion> completions, boolean isLast) {
-      if (completionId.equals(DartCompletionCollector.this.completionId)) {
-        DartCompletionCollector.this.replacementOffset = replacementOffset;
-        DartCompletionCollector.this.completions = completions;
+      if (completionId.equals(DartCompletionReceiver.this.completionId)) {
+        DartCompletionReceiver.this.replacementOffset = replacementOffset;
+        DartCompletionReceiver.this.completions = completions;
         if (isLast) {
           server.removeAnalysisServerListener(this);
           latch.countDown();
@@ -90,7 +90,7 @@ public class DartCompletionCollector {
    */
   private CountDownLatch latch;
 
-  public DartCompletionCollector(AnalysisServer server) {
+  public DartCompletionReceiver(AnalysisServer server) {
     this.server = server;
   }
 

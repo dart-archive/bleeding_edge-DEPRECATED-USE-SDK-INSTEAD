@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
+import com.google.dart.tools.core.completion.DartCompletionReceiver;
 import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
@@ -46,6 +47,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   private IDartCompletionProposal[] fKeywordProposals = null;
   private CompletionContext fCoreContext = null;
   private AssistContext assistContext;
+  private DartCompletionReceiver receiver;
 
   /**
    * Creates a new context.
@@ -62,12 +64,14 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    * @param offset the invocation offset
    * @param editor the editor that content assist is invoked in
    * @param assistContext the context or {@code null} if unknown
+   * @param receiver the completion receiver or {@code null} if unknown
    */
   public DartContentAssistInvocationContext(ITextViewer viewer, int offset, IEditorPart editor,
-      AssistContext assistContext) {
+      AssistContext assistContext, DartCompletionReceiver receiver) {
     super(viewer, offset);
     fEditor = editor;
     this.assistContext = assistContext;
+    this.receiver = receiver;
   }
 
   public AssistContext getAssistContext() {
@@ -169,6 +173,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
 
   public int getPartitionOffset() {
     return 0;
+  }
+
+  public DartCompletionReceiver getReceiver() {
+    return receiver;
   }
 
   /**

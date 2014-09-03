@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DartCompletionCollectorTest extends TestCase {
+public class DartCompletionReceiverTest extends TestCase {
   class MockServer extends MockAnalysisServer {
     AnalysisServerListener listener;
     Runnable serverResponse;
@@ -64,7 +64,7 @@ public class DartCompletionCollectorTest extends TestCase {
   }
 
   MockServer server;
-  DartCompletionCollector collector;
+  DartCompletionReceiver receiver;
   String testFile = "/test.dart";
   int testOffset = 17;
   String completionId = "id27";
@@ -76,8 +76,8 @@ public class DartCompletionCollectorTest extends TestCase {
         // ignored
       }
     });
-    collector = new DartCompletionCollector(server);
-    List<CompletionSuggestion> result = collector.requestCompletions(testFile, testOffset, 1);
+    receiver = new DartCompletionReceiver(server);
+    List<CompletionSuggestion> result = receiver.requestCompletions(testFile, testOffset, 1);
     assertNull(result);
   }
 
@@ -88,8 +88,8 @@ public class DartCompletionCollectorTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
       }
     });
-    collector = new DartCompletionCollector(server);
-    List<CompletionSuggestion> result = collector.requestCompletions(testFile, testOffset, 1);
+    receiver = new DartCompletionReceiver(server);
+    List<CompletionSuggestion> result = receiver.requestCompletions(testFile, testOffset, 1);
     assertNull(result);
   }
 
@@ -141,16 +141,16 @@ public class DartCompletionCollectorTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
         if (server.listener != null) {
           server.listener.computedCompletion("anotherId", 28, 0, completions0, true);
-          partialResults[0] = collector.getCompletions();
+          partialResults[0] = receiver.getCompletions();
           server.listener.computedCompletion(completionId, testOffset, 0, completions1, false);
-          partialResults[1] = collector.getCompletions();
+          partialResults[1] = receiver.getCompletions();
         }
       }
     });
-    collector = new DartCompletionCollector(server);
+    receiver = new DartCompletionReceiver(server);
     long start = System.currentTimeMillis();
     int millisToWait = 10;
-    List<CompletionSuggestion> result = collector.requestCompletions(
+    List<CompletionSuggestion> result = receiver.requestCompletions(
         testFile,
         testOffset,
         millisToWait);
@@ -229,18 +229,18 @@ public class DartCompletionCollectorTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
         if (server.listener != null) {
           server.listener.computedCompletion("anotherId", 28, 0, completions0, true);
-          partialResults[0] = collector.getCompletions();
+          partialResults[0] = receiver.getCompletions();
           server.listener.computedCompletion(completionId, testOffset, 0, completions1, false);
-          partialResults[1] = collector.getCompletions();
+          partialResults[1] = receiver.getCompletions();
           server.listener.computedCompletion(completionId, testOffset, 0, completions2, true);
-          partialResults[2] = collector.getCompletions();
+          partialResults[2] = receiver.getCompletions();
         }
       }
     });
-    collector = new DartCompletionCollector(server);
+    receiver = new DartCompletionReceiver(server);
     long start = System.currentTimeMillis();
     int millisToWait = 50000;
-    List<CompletionSuggestion> result = collector.requestCompletions(
+    List<CompletionSuggestion> result = receiver.requestCompletions(
         testFile,
         testOffset,
         millisToWait);

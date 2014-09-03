@@ -35,7 +35,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
     @Override
     protected void showAssist(int showStyle) {
       // Not on the UI thread, so block up to 8 seconds waiting for analysis
-      if (waitUntilProcessorReady(true, 8000)) {
+      if (waitUntilProcessorReady(true)) {
         super.showAssist(showStyle);
       }
     }
@@ -53,8 +53,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
     Thread thread = new Thread(getClass().getSimpleName() + " wait for content") {
       @Override
       public void run() {
-        // Block background thread up to 8 seconds waiting for analysis
-        if (waitUntilProcessorReady(false, 8000)) {
+        if (waitUntilProcessorReady(false)) {
           StyledText control = sourceViewer.getTextWidget();
           if (control.isDisposed()) {
             return;
@@ -162,10 +161,9 @@ public class DartEditorContentAssistant extends ContentAssistant {
    * communication with the Analysis Server and should not be called on the UI thread.
    * 
    * @param auto {@code true} if triggered automatically such as when the user types a "."
-   * @param millisToWait the # of milliseconds to wait for the processor to be ready
    * @return {@code true} if the processor is ready, else {@code false}
    */
-  private boolean waitUntilProcessorReady(boolean auto, long millisToWait) {
+  private boolean waitUntilProcessorReady(boolean auto) {
     StyledText control = sourceViewer.getTextWidget();
     if (control.isDisposed()) {
       return false;
@@ -179,13 +177,15 @@ public class DartEditorContentAssistant extends ContentAssistant {
       InstrumentationBuilder instrumentation = Instrumentation.builder("WaitForProposals");
       try {
         instrumentation.metric("Auto", auto);
-        boolean ready = ((DartCompletionProcessor) p).waitUntilReady(millisToWait);
+        boolean ready = ((DartCompletionProcessor) p).waitUntilReady();
         instrumentation.metric("Ready", ready);
         // If a result was computed, then check if the current selection has moved in such as way
         // that the result is no longer useful and should be discarded
         if (ready && !isValid(control, offset)) {
           instrumentation.metric("Discarded", true);
           return false;
+        } else {
+          instrumentation.metric("Discarded", false);
         }
         return ready;
       } finally {
