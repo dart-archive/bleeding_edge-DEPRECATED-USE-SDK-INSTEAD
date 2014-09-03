@@ -109,6 +109,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -934,7 +935,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * A set containing information about the tasks that have been performed since the last change
    * notification. Used to detect infinite loops in {@link #performAnalysisTask()}.
    */
-  private HashSet<String> recentTasks = new HashSet<String>();
+  private LinkedHashSet<String> recentTasks = new LinkedHashSet<String>();
+
+  /**
+   * A flag indicating whether we have already reported an infinite loop in
+   * {@link #performAnalysisTask()}.
+   */
+  private boolean reportedLoop = false;
 
   /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
@@ -1022,6 +1029,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     synchronized (cacheLock) {
       recentTasks.clear();
+      reportedLoop = false;
       //
       // First, compute the list of sources that have been removed.
       //
@@ -1910,14 +1918,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
     String taskDescription = task.toString();
-//    if (recentTasks.add(taskDescription)) {
-//      logInformation("Performing task: " + taskDescription);
-//    } else {
-//      if (TRACE_PERFORM_TASK) {
-//        System.out.print("* ");
-//      }
-//      logInformation("*** Performing repeated task: " + taskDescription);
-//    }
+    if (!reportedLoop && !recentTasks.add(taskDescription)) {
+      @SuppressWarnings("resource")
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.print("Performing repeated task: ");
+      writer.println(taskDescription);
+      for (String description : recentTasks) {
+        writer.print("  ");
+        writer.println(description);
+      }
+      logInformation(writer.toString());
+    }
     notifyAboutToPerformTask(taskDescription);
     if (TRACE_PERFORM_TASK) {
       System.out.println(taskDescription);
@@ -2096,6 +2107,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       int newLength) {
     synchronized (cacheLock) {
       recentTasks.clear();
+      reportedLoop = false;
       String originalContents = contentCache.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
@@ -2130,6 +2142,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
       recentTasks.clear();
+      reportedLoop = false;
       String originalContents = contentCache.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
@@ -4203,6 +4216,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     removeFromPartsUsingMap(oldPartMap);
+    recentTasks.clear();
+    reportedLoop = false;
   }
 
   /**
