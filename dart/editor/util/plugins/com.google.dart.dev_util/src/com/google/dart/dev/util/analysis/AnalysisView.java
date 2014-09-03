@@ -1,5 +1,6 @@
 package com.google.dart.dev.util.analysis;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.context.AnalysisContext;
@@ -7,6 +8,10 @@ import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisContextStatistics.CacheRow;
 import com.google.dart.engine.context.AnalysisContextStatistics.PartitionData;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.index.IndexImpl;
@@ -53,6 +58,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -174,7 +180,42 @@ public class AnalysisView extends ViewPart {
   }
 
   private static enum ContextWorkerState {
-    NONE, IN_QUEUE, ACTIVE;
+    NONE,
+    IN_QUEUE,
+    ACTIVE;
+  }
+
+  private static class LibraryDependencyCollector {
+
+    private final InternalAnalysisContext context;
+
+    private final Set<LibraryElement> visitedLibraries = new HashSet<LibraryElement>();
+    private final Set<String> dependencies = new TreeSet<String>();
+
+    LibraryDependencyCollector(InternalAnalysisContext context) {
+      this.context = context;
+    }
+
+    Set<String> collectDependencies() {
+      for (Source source : context.getLibrarySources()) {
+        addDependencies(context.getLibraryElement(source));
+      }
+      return dependencies;
+    }
+
+    private void addDependencies(LibraryElement libraryElement) {
+      if (visitedLibraries.add(libraryElement)) {
+        for (CompilationUnitElement cu : libraryElement.getUnits()) {
+          dependencies.add(cu.getSource().getFullName());
+        }
+        for (ImportElement importElement : libraryElement.getImports()) {
+          addDependencies(importElement.getImportedLibrary());
+        }
+        for (ExportElement exportElement : libraryElement.getExports()) {
+          addDependencies(exportElement.getExportedLibrary());
+        }
+      }
+    }
   }
 
   private static int COLUMN_WIDTH = 12;
@@ -213,7 +254,11 @@ public class AnalysisView extends ViewPart {
         // default context
         AnalysisContext defaultContext = project.getDefaultContext();
         if (visited.add(defaultContext)) {
-          addContext(queueWorkers, activeWorker, contexts, projectName,
+          addContext(
+              queueWorkers,
+              activeWorker,
+              contexts,
+              projectName,
               (InternalAnalysisContext) defaultContext);
         }
         // separate Pub folders
@@ -221,7 +266,11 @@ public class AnalysisView extends ViewPart {
           String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
           AnalysisContext context = pubFolder.getContext();
           if (context != defaultContext && visited.add(context)) {
-            addContext(queueWorkers, activeWorker, contexts, pubFolderName,
+            addContext(
+                queueWorkers,
+                activeWorker,
+                contexts,
+                pubFolderName,
                 (InternalAnalysisContext) context);
           }
         }
@@ -246,13 +295,14 @@ public class AnalysisView extends ViewPart {
   }
 
   private TreeViewer viewer;
-  private long lastToggleTime = 0;
 
+  private long lastToggleTime = 0;
   private boolean disposed = false;
   private Font boldFont = null;
-  private Font italicFont = null;
 
+  private Font italicFont = null;
   private Color redColor = null;
+
   private final Object contextsLock = new Object();
 
   private List<AnalysisContextData> contexts;
@@ -488,6 +538,18 @@ public class AnalysisView extends ViewPart {
         }
       }
     });
+    MenuItem copyDependenciesItem = new MenuItem(menu, SWT.PUSH);
+    copyDependenciesItem.setText("Copy Library Dependencies");
+    copyDependenciesItem.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent event) {
+        ISelection selection = viewer.getSelection();
+        if (selection instanceof TreeSelection) {
+          AnalysisContextData data = (AnalysisContextData) ((TreeSelection) selection).getFirstElement();
+          copyLibraryDependencies(data);
+        }
+      }
+    });
     new MenuItem(menu, SWT.SEPARATOR);
     MenuItem copyExceptionsItem = new MenuItem(menu, SWT.PUSH);
     copyExceptionsItem.setText("Copy All Exceptions");
@@ -551,6 +613,20 @@ public class AnalysisView extends ViewPart {
     Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
     TextTransfer textTransfer = TextTransfer.getInstance();
     clipboard.setContents(new Object[] {getExceptionsText()}, new Transfer[] {textTransfer});
+  }
+
+  private void copyLibraryDependencies(AnalysisContextData data) {
+    Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
+    TextTransfer textTransfer = TextTransfer.getInstance();
+    clipboard.setContents(
+        new Object[] {copyLibraryDependenciesText(data)},
+        new Transfer[] {textTransfer});
+  }
+
+  private String copyLibraryDependenciesText(AnalysisContextData data) {
+    InternalAnalysisContext context = data.getContext();
+    Set<String> paths = new LibraryDependencyCollector(context).collectDependencies();
+    return Joiner.on("\n").join(paths);
   }
 
   private void copyMemoryStats() {
