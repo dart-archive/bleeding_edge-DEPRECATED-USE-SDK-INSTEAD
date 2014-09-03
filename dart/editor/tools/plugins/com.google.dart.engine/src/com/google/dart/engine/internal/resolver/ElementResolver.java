@@ -2460,6 +2460,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     ParameterElement[] resolvedParameters = new ParameterElement[argumentCount];
     int positionalArgumentCount = 0;
     HashSet<String> usedNames = new HashSet<String>();
+    boolean noBlankArguments = true;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments.get(i);
       if (argument instanceof NamedExpression) {
@@ -2478,13 +2479,17 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           resolver.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
         }
       } else {
+        if (argument instanceof SimpleIdentifier
+            && ((SimpleIdentifier) argument).getName().isEmpty()) {
+          noBlankArguments = false;
+        }
         positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters.get(unnamedIndex++);
         }
       }
     }
-    if (positionalArgumentCount < requiredParameters.size()) {
+    if (positionalArgumentCount < requiredParameters.size() && noBlankArguments) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS;
       resolver.reportErrorForNode(
@@ -2492,7 +2497,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           argumentList,
           requiredParameters.size(),
           positionalArgumentCount);
-    } else if (positionalArgumentCount > unnamedParameterCount) {
+    } else if (positionalArgumentCount > unnamedParameterCount && noBlankArguments) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
       resolver.reportErrorForNode(
