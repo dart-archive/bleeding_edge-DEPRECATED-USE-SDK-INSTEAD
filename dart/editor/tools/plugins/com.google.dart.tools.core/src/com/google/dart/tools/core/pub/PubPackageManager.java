@@ -191,11 +191,12 @@ public class PubPackageManager {
 
     for (int j = 0; j < jsonArray.length(); j++) {
       JSONArray packages;
+      String name = null;
       try {
         packages = jsonArray.getJSONArray(j);
         for (int i = 0; i < packages.length(); i++) {
           JSONObject o = new JSONObject(packages.getString(i));
-          String name = o.getString(PubspecConstants.NAME);
+          name = o.getString(PubspecConstants.NAME);
           Map<String, Object> pubspec = PubYamlUtils.parsePubspecYamlToMap(o.getJSONObject("latest").getString(
               "pubspec"));
 
@@ -208,7 +209,9 @@ public class PubPackageManager {
           packageNames.add(name);
         }
       } catch (JSONException e) {
-        DartCore.logError(e);
+        DartCore.logError(
+            "Failed to process pub list response:  name=" + name + "\n" + jsonArray,
+            e);
       }
       if (monitor.isCanceled()) {
         return Status.CANCEL_STATUS;
