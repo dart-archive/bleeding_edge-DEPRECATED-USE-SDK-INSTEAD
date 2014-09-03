@@ -20,7 +20,6 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
-import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -84,9 +83,7 @@ public class ParameterEditDialog extends StatusDialog {
     if (newName.length() == 0) {
       label.setText(RefactoringMessages.ParameterEditDialog_message_new);
     } else {
-      label.setText(Messages.format(
-          RefactoringMessages.ParameterEditDialog_message,
-          BasicElementLabels.getDartElementName(newName)));
+      label.setText(Messages.format(RefactoringMessages.ParameterEditDialog_message, newName));
     }
     gd = new GridData(GridData.FILL_HORIZONTAL);
     gd.horizontalSpan = 2;

@@ -18,7 +18,6 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.DartUiException;
 import com.google.dart.tools.ui.internal.DartUiStatus;
 import com.google.dart.tools.ui.internal.util.CorextMessages;
-import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -248,23 +247,11 @@ public abstract class History {
       parser.setErrorHandler(new DefaultHandler());
       root = parser.parse(inputSource).getDocumentElement();
     } catch (SAXException e) {
-      throw createException(
-          e,
-          Messages.format(
-              CorextMessages.History_error_read,
-              BasicElementLabels.getResourceName(fFileName)));
+      throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));
     } catch (ParserConfigurationException e) {
-      throw createException(
-          e,
-          Messages.format(
-              CorextMessages.History_error_read,
-              BasicElementLabels.getResourceName(fFileName)));
+      throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));
     } catch (IOException e) {
-      throw createException(
-          e,
-          Messages.format(
-              CorextMessages.History_error_read,
-              BasicElementLabels.getResourceName(fFileName)));
+      throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));
     }
 
     if (root == null) {
@@ -327,17 +314,9 @@ public abstract class History {
 
       transformer.transform(source, result);
     } catch (TransformerException e) {
-      throw createException(
-          e,
-          Messages.format(
-              CorextMessages.History_error_serialize,
-              BasicElementLabels.getResourceName(fFileName)));
+      throw createException(e, Messages.format(CorextMessages.History_error_serialize, fFileName));
     } catch (ParserConfigurationException e) {
-      throw createException(
-          e,
-          Messages.format(
-              CorextMessages.History_error_serialize,
-              BasicElementLabels.getResourceName(fFileName)));
+      throw createException(e, Messages.format(CorextMessages.History_error_serialize, fFileName));
     }
   }
 
