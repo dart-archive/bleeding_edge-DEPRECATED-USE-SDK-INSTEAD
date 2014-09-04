@@ -78,7 +78,7 @@ public class TestEmbeddedScripting extends EditorTestHarness {
    * sample in its initial state. Whenever the file is modified sampleIsValid should be set false.
    * When that edit is reversed then sampleIsValid should be set true.
    */
-  private void buildProject() {
+  private synchronized void buildProject() {
     if (sampleIsValid) {
       return;
     }
@@ -124,6 +124,7 @@ public class TestEmbeddedScripting extends EditorTestHarness {
     typist.navigateTo(0, 0);
     htmlEditor.save();
     htmlEditor.waitForAnalysis();
+    htmlEditor.waitMillis(1000); // add a little extra for the bots
     sampleIsValid = true;
   }
 
@@ -137,7 +138,8 @@ public class TestEmbeddedScripting extends EditorTestHarness {
    * @param proposal the 0-based index of the proposal to select
    * @param expected the expected text at the proposal-number
    */
-  private void exerciseCompletion(int line, int col, String trigger, int proposal, String expected) {
+  private synchronized void exerciseCompletion(int line, int col, String trigger, int proposal,
+      String expected) {
     // Go to a likely insertion point.
     SWTBotEclipseEditor typist = htmlEditor.editor();
     typist.navigateTo(line, col);

@@ -69,6 +69,7 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
     }
     tree.select(item);
     waitForAnalysis();
+    waitForAsyncDrain();
     TableCollection selection = tree.selection();
     assertNotNull(selection);
     assertEquals(selection.rowCount(), 1);

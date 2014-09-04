@@ -65,6 +65,8 @@ public class TestBreakpoints extends EditorTestHarness {
     EditorBotWindow main = new EditorBotWindow(bot);
     FilesBotView files = main.filesView();
     files.tree().setFocus();
+    editor.waitMillis(1000);
+    files.select("sunflower", "web", "sunflower.dart [sunflower]");
     bot.menu("Run").menu("Run").click();
     editor.waitMillis(1000); // Launching can be really slow on the bots
     DebuggerBotView debugger = new DebuggerBotView(bot);
