@@ -24,16 +24,11 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.waits.Conditions;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
-import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
-import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.eclipse.ui.part.PageBook;
-import org.hamcrest.Matcher;
-
-import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 
@@ -113,13 +108,7 @@ public class DebuggerBotView extends AbstractBotView {
    * @return a list of widgets
    */
   public List<? extends Widget> widgets() {
-    final Matcher<Widget> matcher = WidgetOfType.widgetOfType(Widget.class);
-    return UIThreadRunnable.syncExec(new Result<List<? extends Widget>>() {
-      @Override
-      public List<? extends Widget> run() {
-        return bot.widgets(matcher, debugger().getWidget());
-      }
-    });
+    return super.widgets(debugger().getWidget());
   }
 
   @Override
@@ -128,27 +117,8 @@ public class DebuggerBotView extends AbstractBotView {
   }
 
   private Tree findTreeWithParent(final Class<? extends Composite> parentClass) {
-    final Matcher<Tree> matcher = WidgetOfType.widgetOfType(Tree.class);
     final Widget root = debugger().getWidget();
-    final List<? extends Tree> trees = UIThreadRunnable.syncExec(new Result<List<? extends Tree>>() {
-      @Override
-      public List<? extends Tree> run() {
-        return bot.widgets(matcher, root);
-      }
-    });
-    Tree tree = UIThreadRunnable.syncExec(new Result<Tree>() {
-      @Override
-      public Tree run() {
-        for (Tree tree : trees) {
-          if (tree.getParent().getClass().isAssignableFrom(parentClass)) {
-            return tree;
-          }
-        }
-        return null;
-      }
-    });
-    assertNotNull(tree);
-    return tree;
+    return super.findTreeWithParent(root, parentClass);
   }
 
   private void stepCommand(final String tooltipForButton) {

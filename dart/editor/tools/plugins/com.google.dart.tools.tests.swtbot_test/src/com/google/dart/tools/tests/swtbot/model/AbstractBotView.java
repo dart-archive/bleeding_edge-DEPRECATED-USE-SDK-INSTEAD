@@ -26,14 +26,20 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
+import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.results.WidgetResult;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+
+import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 
@@ -126,6 +132,21 @@ abstract public class AbstractBotView {
   }
 
   /**
+   * Get all the widgets that are accessible from the given <code>root</code> widget.
+   * 
+   * @return a list of widgets
+   */
+  public List<? extends Widget> widgets(final Widget root) {
+    final Matcher<Widget> matcher = WidgetOfType.widgetOfType(Widget.class);
+    return UIThreadRunnable.syncExec(new Result<List<? extends Widget>>() {
+      @Override
+      public List<? extends Widget> run() {
+        return bot.widgets(matcher, root);
+      }
+    });
+  }
+
+  /**
    * Creates an event.
    * 
    * @return an event that encapsulates {@link #widget} and {@link #display}. Subclasses may
@@ -166,6 +187,37 @@ abstract public class AbstractBotView {
     Event event = createEvent();
     event.stateMask = stateMask;
     return event;
+  }
+
+  /**
+   * Searching from the given <code>root</code> widget, find a tree that has a widget of the given
+   * <code>parentClass</code> as its parent.
+   * 
+   * @param root the root widget
+   * @param parentClass the class of the parent widget
+   * @return the tree
+   */
+  protected Tree findTreeWithParent(final Widget root, final Class<? extends Composite> parentClass) {
+    final Matcher<Tree> matcher = WidgetOfType.widgetOfType(Tree.class);
+    final List<? extends Tree> trees = UIThreadRunnable.syncExec(new Result<List<? extends Tree>>() {
+      @Override
+      public List<? extends Tree> run() {
+        return bot.widgets(matcher, root);
+      }
+    });
+    Tree tree = UIThreadRunnable.syncExec(new Result<Tree>() {
+      @Override
+      public Tree run() {
+        for (Tree tree : trees) {
+          if (tree.getParent().getClass().isAssignableFrom(parentClass)) {
+            return tree;
+          }
+        }
+        return null;
+      }
+    });
+    assertNotNull(tree);
+    return tree;
   }
 
   /**
