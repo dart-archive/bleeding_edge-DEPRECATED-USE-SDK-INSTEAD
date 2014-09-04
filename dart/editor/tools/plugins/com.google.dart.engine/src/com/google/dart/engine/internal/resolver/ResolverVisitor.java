@@ -93,7 +93,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code ResolverVisitor} are used to resolve the nodes within a single
@@ -578,7 +578,7 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      HashMap<Element, Type> overrides = overrideManager.captureOverrides(node.getFields());
+      Map<Element, Type> overrides = overrideManager.captureOverrides(node.getFields());
       overrideManager.exitScope();
       overrideManager.applyOverrides(overrides);
     }
@@ -676,7 +676,7 @@ public class ResolverVisitor extends ScopedVisitor {
   public Void visitIfStatement(IfStatement node) {
     Expression condition = node.getCondition();
     safelyVisit(condition);
-    HashMap<Element, Type> thenOverrides = null;
+    Map<Element, Type> thenOverrides = null;
     Statement thenStatement = node.getThenStatement();
     if (thenStatement != null) {
       overrideManager.enterScope();
@@ -698,7 +698,7 @@ public class ResolverVisitor extends ScopedVisitor {
         overrideManager.exitScope();
       }
     }
-    HashMap<Element, Type> elseOverrides = null;
+    Map<Element, Type> elseOverrides = null;
     Statement elseStatement = node.getElseStatement();
     if (elseStatement != null) {
       overrideManager.enterScope();
@@ -725,10 +725,16 @@ public class ResolverVisitor extends ScopedVisitor {
       if (elseOverrides != null) {
         overrideManager.applyOverrides(elseOverrides);
       }
+    } else if (!thenIsAbrupt && !elseIsAbrupt) {
+      // It would be more precise to ignore the existing override for any variable that
+      // is overridden in both branches.
+      if (thenOverrides != null) {
+        overrideManager.mergeOverrides(thenOverrides);
+      }
+      if (elseOverrides != null) {
+        overrideManager.mergeOverrides(elseOverrides);
+      }
     }
-    // TODO(collinsn): union the [thenOverrides] and [elseOverrides] if both branches
-    // are not abrupt. If both branches are abrupt, then we can mark the
-    // remaining code as dead.
     return null;
   }
 
@@ -869,7 +875,7 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      HashMap<Element, Type> overrides = overrideManager.captureOverrides(node.getVariables());
+      Map<Element, Type> overrides = overrideManager.captureOverrides(node.getVariables());
       overrideManager.exitScope();
       overrideManager.applyOverrides(overrides);
     }
@@ -1274,7 +1280,7 @@ public class ResolverVisitor extends ScopedVisitor {
     //
     // In the presence of exceptions things become much more complicated, but while
     // we only use this to propagate at [if]-statement join points, checking for [return]
-    // is probably sound.
+    // may work well enough in the common case.
     if (statement instanceof ReturnStatement) {
       return true;
     } else if (statement instanceof ExpressionStatement) {
@@ -1285,6 +1291,21 @@ public class ResolverVisitor extends ScopedVisitor {
       if (size == 0) {
         return false;
       }
+      // This last-statement-is-return heuristic is unsound for adversarial code,
+      // but probably works well in the common case:
+      //
+      //   var x = 123;
+      //   var c = true;
+      //   L: if (c) {
+      //     x = "hello";
+      //     c = false;
+      //     break L;
+      //     return;
+      //   }
+      //   print(x);
+      //
+      // Unsound to assume that [x = "hello";] never executed after the if-statement.
+      // Of course, a dead-code analysis could point out that [return] here is dead.
       return isAbruptTerminationStatement(statements.get(size - 1));
     }
     return false;

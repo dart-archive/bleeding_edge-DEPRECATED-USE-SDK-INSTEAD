@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.type.UnionTypeImpl;
 import com.google.dart.engine.type.Type;
 
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class TypeOverrideManager {
     /**
      * A table mapping elements to the overridden type of that element.
      */
-    private HashMap<Element, Type> overridenTypes = new HashMap<Element, Type>();
+    private Map<Element, Type> overridenTypes = new HashMap<Element, Type>();
 
     /**
      * Initialize a newly created scope to be an empty child of the given scope.
@@ -56,7 +57,7 @@ public class TypeOverrideManager {
      * 
      * @param overrides the overrides to be applied
      */
-    public void applyOverrides(HashMap<Element, Type> overrides) {
+    public void applyOverrides(Map<Element, Type> overrides) {
       for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
         overridenTypes.put(entry.getKey(), entry.getValue());
       }
@@ -68,7 +69,7 @@ public class TypeOverrideManager {
      * 
      * @return the overrides in the current scope
      */
-    public HashMap<Element, Type> captureLocalOverrides() {
+    public Map<Element, Type> captureLocalOverrides() {
       return overridenTypes;
     }
 
@@ -79,8 +80,8 @@ public class TypeOverrideManager {
      * @param variableList the list of variables whose overriding types are to be captured
      * @return a table mapping elements to their overriding types
      */
-    public HashMap<Element, Type> captureOverrides(VariableDeclarationList variableList) {
-      HashMap<Element, Type> overrides = new HashMap<Element, Type>();
+    public Map<Element, Type> captureOverrides(VariableDeclarationList variableList) {
+      Map<Element, Type> overrides = new HashMap<Element, Type>();
       if (variableList.isConst() || variableList.isFinal()) {
         for (VariableDeclaration variable : variableList.getVariables()) {
           Element element = variable.getElement();
@@ -116,6 +117,18 @@ public class TypeOverrideManager {
     }
 
     /**
+     * Merge new overrides with existing overrides using union types.
+     * 
+     * @param overrides the new overrides to merge in.
+     */
+    public void mergeOverrides(Map<Element, Type> overrides) {
+      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
+        Element key = entry.getKey();
+        overridenTypes.put(key, UnionTypeImpl.union(overridenTypes.get(key), entry.getValue()));
+      }
+    }
+
+    /**
      * Set the overridden type of the given element to the given type
      * 
      * @param element the element whose type might have been overridden
@@ -143,7 +156,7 @@ public class TypeOverrideManager {
    * 
    * @param overrides the overrides to be applied
    */
-  public void applyOverrides(HashMap<Element, Type> overrides) {
+  public void applyOverrides(Map<Element, Type> overrides) {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot apply overrides without a scope");
     }
@@ -156,7 +169,7 @@ public class TypeOverrideManager {
    * 
    * @return the overrides in the current scope
    */
-  public HashMap<Element, Type> captureLocalOverrides() {
+  public Map<Element, Type> captureLocalOverrides() {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot capture local overrides without a scope");
     }
@@ -170,7 +183,7 @@ public class TypeOverrideManager {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  public HashMap<Element, Type> captureOverrides(VariableDeclarationList variableList) {
+  public Map<Element, Type> captureOverrides(VariableDeclarationList variableList) {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot capture overrides without a scope");
     }
@@ -206,6 +219,15 @@ public class TypeOverrideManager {
       return null;
     }
     return currentScope.getType(element);
+  }
+
+  /**
+   * Merge new overrides with existing overrides using union types.
+   * 
+   * @param overrides the new overrides to merge in.
+   */
+  public void mergeOverrides(Map<Element, Type> overrides) {
+    currentScope.mergeOverrides(overrides);
   }
 
   /**

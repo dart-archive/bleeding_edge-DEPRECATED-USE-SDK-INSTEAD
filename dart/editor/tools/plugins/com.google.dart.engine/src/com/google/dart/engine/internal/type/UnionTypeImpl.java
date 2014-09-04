@@ -31,7 +31,8 @@ import java.util.Set;
 public class UnionTypeImpl extends TypeImpl implements UnionType {
   /**
    * Any unions in the {@code types} will be flattened in the returned union. If there is only one
-   * type after flattening then it will be returned directly, instead of a singleton union.
+   * type after flattening then it will be returned directly, instead of a singleton union. Nulls
+   * are discarded, unless all types are null, in which case an exception is raised.
    * 
    * @param types the {@code Type}s to union
    * @return a {@code Type} comprising the {@code Type}s in {@code types}
@@ -42,10 +43,17 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
       if (t instanceof UnionType) {
         set.addAll(((UnionType) t).getElements());
       } else {
-        set.add(t);
+        if (t != null) {
+          set.add(t);
+        }
       }
     }
     if (set.size() == 0) {
+      // TODO(collinsn): better to return [null] here? The use case is e.g.
+      //
+      //   union(null, null) ==> null;
+      //
+      // instead of raising an exception.
       throw new IllegalArgumentException("No known use case for empty unions.");
     } else if (set.size() == 1) {
       return set.iterator().next();

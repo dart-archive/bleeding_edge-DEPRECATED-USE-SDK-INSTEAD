@@ -130,32 +130,6 @@ public class TypePropagationTest extends ResolverTestCase {
         getTypeProvider().getDynamicType());
   }
 
-  public void fail_mergePropagatedTypesAtJoinPoint_6() throws Exception {
-    // https://code.google.com/p/dart/issues/detail?id=19929
-    //
-    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
-    //
-    // This is tricky: the [break] jumps back above the [if], making
-    // it into a loop of sorts. The [if] type-propagation code assumes
-    // that [break] does not introduce a loop.
-    String code = createSource(
-        "f() {",
-        "  var x = 0;",
-        "  var c = false;",
-        "  L: ",
-        "  if (c) {",
-        "  } else {",
-        "    x = '';",
-        "    c = true;",
-        "    break L;",
-        "  }",
-        "  x; // marker",
-        "}");
-    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
-    assertTrue(getTypeProvider().getIntType().isSubtypeOf(t));
-    assertTrue(getTypeProvider().getStringType().isSubtypeOf(t));
-  }
-
   public void fail_mergePropagatedTypesAtJoinPoint_7() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=19929
     //
@@ -1130,6 +1104,32 @@ public class TypePropagationTest extends ResolverTestCase {
         // Don't care about the static type.
         null,
         getTypeProvider().getIntType());
+  }
+
+  public void test_mergePropagatedTypesAtJoinPoint_6() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is tricky: the [break] jumps back above the [if], making
+    // it into a loop of sorts. The [if] type-propagation code assumes
+    // that [break] does not introduce a loop.
+    String code = createSource(
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  L: ",
+        "  if (c) {",
+        "  } else {",
+        "    x = '';",
+        "    c = true;",
+        "    break L;",
+        "  }",
+        "  x; // marker",
+        "}");
+    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
+    assertTrue(getTypeProvider().getIntType().isSubtypeOf(t));
+    assertTrue(getTypeProvider().getStringType().isSubtypeOf(t));
   }
 
   public void test_objectMethodOnDynamicExpression_doubleEquals() throws Exception {

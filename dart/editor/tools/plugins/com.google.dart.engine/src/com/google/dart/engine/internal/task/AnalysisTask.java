@@ -120,7 +120,7 @@ public abstract class AnalysisTask {
     } catch (AnalysisException exception) {
       throw exception;
     } catch (Exception exception) {
-      throw new AnalysisException("Exception", exception);
+      throw new AnalysisException(exception.toString(), exception);
     }
   }
 }
