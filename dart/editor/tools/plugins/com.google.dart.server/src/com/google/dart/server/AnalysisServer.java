@@ -51,6 +51,10 @@ public interface AnalysisServer {
    * information. Clients that can apply error information as it becomes available should use the
    * information provided by the 'analysis.errors' notification.
    *
+   * If a request is made for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_ERRORS_INVALID_FILE will be generated.
+   *
    * @param file The file for which errors are being requested.
    */
   public void analysis_getErrors(String file, GetErrorsConsumer consumer);

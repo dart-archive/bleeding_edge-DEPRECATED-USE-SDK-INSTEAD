@@ -24,11 +24,10 @@ package com.google.dart.server.generated.types;
 public class RequestErrorCode {
 
   /**
-   * An error occurred during the processing of an "analysis.getErrors" request.
-   *
-   * This is a legacy error; it will be removed before the API reaches version 1.0.
+   * An "analysis.getErrors" request specified a FilePath which does not match a file currently
+   * subject to analysis.
    */
-  public static final String GET_ERRORS_ERROR = "GET_ERRORS_ERROR";
+  public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
    * One of the method parameters was invalid.
