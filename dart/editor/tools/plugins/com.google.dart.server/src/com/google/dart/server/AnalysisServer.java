@@ -292,7 +292,7 @@ public interface AnalysisServer {
    *         omitted if the refactoring does not require any options or if the values of those
    *         options are not known.
    */
-  public void edit_getRefactoring(String kind, String file, Integer offset, Integer length, Boolean validateOnly, Object options, GetRefactoringConsumer consumer);
+  public void edit_getRefactoring(String kind, String file, Integer offset, Integer length, Boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new

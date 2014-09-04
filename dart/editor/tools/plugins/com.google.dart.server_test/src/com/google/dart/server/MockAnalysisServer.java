@@ -14,6 +14,7 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.AnalysisOptions;
+import com.google.dart.server.generated.types.RefactoringOptions;
 
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,7 @@ public class MockAnalysisServer implements AnalysisServer {
 
   @Override
   public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length,
-      Boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
+      Boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

@@ -19,7 +19,7 @@ import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.ChangeContentOverlay;
 import com.google.dart.server.generated.types.Location;
-import com.google.dart.server.generated.types.RefactoringMethodParameter;
+import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -463,64 +463,15 @@ public class RequestUtilities {
    * </pre>
    */
   public static JsonObject generateEditGetRefactoring(String idValue, String kind, String file,
-      int offset, int length, boolean validateOnly, Map<String, Object> refactoringOptions) {
+      int offset, int length, boolean validateOnly, RefactoringOptions options) {
     JsonObject params = new JsonObject();
     params.addProperty("kind", kind);
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     params.addProperty(LENGTH, length);
     params.addProperty("validateOnly", validateOnly);
-    JsonObject options = new JsonObject();
-    if (refactoringOptions != null && !refactoringOptions.isEmpty()) {
-      // name: String
-      Object name = refactoringOptions.get("name");
-      if (name != null) {
-        options.addProperty("name", (String) name);
-      }
-      // extractAll: Boolean
-      Object extractAll = refactoringOptions.get("extractAll");
-      if (extractAll != null) {
-        options.addProperty("extractAll", (Boolean) extractAll);
-      }
-      // returnType: String
-      Object returnType = refactoringOptions.get("returnType");
-      if (returnType != null) {
-        options.addProperty("returnType", (String) returnType);
-      }
-      // createGetter: Boolean
-      Object createGetter = refactoringOptions.get("createGetter");
-      if (createGetter != null) {
-        options.addProperty("createGetter", (Boolean) createGetter);
-      }
-      // parameters: List<RefactoringMethodParameter>
-      Object parameterListOb = refactoringOptions.get("parameters");
-      if (parameterListOb != null) {
-        JsonArray parameterArray = new JsonArray();
-        if (parameterListOb instanceof List<?>) {
-          @SuppressWarnings("unchecked")
-          List<RefactoringMethodParameter> parameterList = (List<RefactoringMethodParameter>) parameterListOb;
-          for (RefactoringMethodParameter parameter : parameterList) {
-            parameterArray.add(parameter.toJson());
-          }
-        }
-        options.add("parameters", parameterArray);
-      }
-      // deleteSource: Boolean
-      Object deleteSource = refactoringOptions.get("deleteSource");
-      if (deleteSource != null) {
-        options.addProperty("deleteSource", (Boolean) deleteSource);
-      }
-      // inlineAll: Boolean
-      Object inlineAll = refactoringOptions.get("inlineAll");
-      if (inlineAll != null) {
-        options.addProperty("inlineAll", (Boolean) inlineAll);
-      }
-      // newName: String
-      Object newName = refactoringOptions.get("newName");
-      if (newName != null) {
-        options.addProperty("newName", (String) newName);
-      }
-      params.add("options", options);
+    if (options != null) {
+      params.add("options", options.toJson());
     }
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
   }

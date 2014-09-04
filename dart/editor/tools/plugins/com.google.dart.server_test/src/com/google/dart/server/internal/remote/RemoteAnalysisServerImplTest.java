@@ -42,9 +42,12 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.ExtractLocalVariableOptions;
+import com.google.dart.server.generated.types.ExtractMethodOptions;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
+import com.google.dart.server.generated.types.InlineMethodOptions;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -54,9 +57,11 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.dart.server.generated.types.RefactoringMethodParameterKind;
+import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.RefactoringProblemSeverity;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
+import com.google.dart.server.generated.types.RenameOptions;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
@@ -1371,11 +1376,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_request_options_extractLocalVariable() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("name", "name1");
-    options.put("extractAll", Boolean.TRUE);
+    RefactoringOptions options = new ExtractLocalVariableOptions("name1", true);
     server.edit_getRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
         "file1.dart",
         1,
         2,
@@ -1393,7 +1396,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.getRefactoring',",
         "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'kind': 'EXTRACT_LOCAL_VARIABLE',",
         "    'file': 'file1.dart',",
         "    'offset': 1,",
         "    'length': 2,",
@@ -1408,22 +1411,24 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_request_options_extractMethod() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("returnType", "returnType1");
-    options.put("createGetter", Boolean.TRUE);
-    options.put("name", "name1");
-    options.put("parameters", Lists.newArrayList(new RefactoringMethodParameter(
+    RefactoringMethodParameter p1 = new RefactoringMethodParameter(
         "id1",
         RefactoringMethodParameterKind.REQUIRED,
         "type1",
         "name1",
-        "parameters1"), new RefactoringMethodParameter(
+        "parameters1");
+    RefactoringMethodParameter p2 = new RefactoringMethodParameter(
         "id2",
         RefactoringMethodParameterKind.POSITIONAL,
         "type2",
         "name2",
-        null)));
-    options.put("extractAll", Boolean.TRUE);
+        null);
+    RefactoringOptions options = new ExtractMethodOptions(
+        "returnType1",
+        true,
+        "name1",
+        Lists.newArrayList(p1, p2),
+        true);
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_METHOD,
         "file1.dart",
@@ -1476,14 +1481,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getRefactoring_request_options_extractMethod_noParameters()
       throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("returnType", "returnType1");
-    options.put("createGetter", Boolean.TRUE);
-    options.put("name", "name1");
-    options.put("parameters", new RefactoringMethodParameter[] {});
-    options.put("extractAll", Boolean.TRUE);
+    RefactoringOptions options = new ExtractMethodOptions(
+        "returnType1",
+        true,
+        "name1",
+        Lists.<RefactoringMethodParameter> newArrayList(),
+        true);
     server.edit_getRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.EXTRACT_METHOD,
         "file1.dart",
         1,
         2,
@@ -1501,7 +1506,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.getRefactoring',",
         "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'kind': 'EXTRACT_METHOD',",
         "    'file': 'file1.dart',",
         "    'offset': 1,",
         "    'length': 2,",
@@ -1519,11 +1524,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_request_options_inlineMethod() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("deleteSource", Boolean.TRUE);
-    options.put("inlineAll", Boolean.TRUE);
+    RefactoringOptions options = new InlineMethodOptions(true, true);
     server.edit_getRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.INLINE_METHOD,
         "file1.dart",
         1,
         2,
@@ -1541,7 +1544,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.getRefactoring',",
         "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'kind': 'INLINE_METHOD',",
         "    'file': 'file1.dart',",
         "    'offset': 1,",
         "    'length': 2,",
@@ -1556,10 +1559,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_request_options_rename() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("newName", "newName1");
+    RefactoringOptions options = new RenameOptions("newName1");
     server.edit_getRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.RENAME,
         "file1.dart",
         1,
         2,
@@ -1577,7 +1579,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.getRefactoring',",
         "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'kind': 'RENAME',",
         "    'file': 'file1.dart',",
         "    'offset': 1,",
         "    'length': 2,",
@@ -1595,7 +1597,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     final Object[] feedbackArray = {null};
     final SourceChange[] changeArray = {null};
     final Object[] potentialEditsArray = {null};
-    HashMap<String, Object> options = new HashMap<String, Object>();
+    RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.CONVERT_GETTER_TO_METHOD,
         "file1.dart",
@@ -1654,7 +1656,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getRefactoring_response_feedback_extractLocalVariable() throws Exception {
     final Object[] feedbackArray = {null};
-    HashMap<String, Object> options = new HashMap<String, Object>();
+    RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_LOCAL_VARIABLE,
         "file1.dart",
@@ -1703,7 +1705,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   @SuppressWarnings("unchecked")
   public void test_edit_getRefactoring_response_feedback_extractMethod() throws Exception {
     final Object[] feedbackArray = {null};
-    HashMap<String, Object> options = new HashMap<String, Object>();
+    RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_METHOD,
         "file1.dart",
@@ -1761,7 +1763,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   @SuppressWarnings("unchecked")
   public void test_edit_getRefactoring_response_feedback_rename() throws Exception {
     final Object[] feedbackArray = {null};
-    HashMap<String, Object> options = new HashMap<String, Object>();
+    RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.RENAME,
         "file1.dart",

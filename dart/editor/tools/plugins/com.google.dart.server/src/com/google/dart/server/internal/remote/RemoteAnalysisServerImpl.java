@@ -38,6 +38,7 @@ import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
+import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
@@ -380,12 +381,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, file, offset), consumer);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length,
-      Boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
+      Boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer) {
     String id = generateUniqueId();
-    // TODO (jwren) can options be Map<String, Object>?
     sendRequestToServer(id, RequestUtilities.generateEditGetRefactoring(
         id,
         kindId,
@@ -393,7 +392,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         offset,
         length,
         validateOnly,
-        (Map<String, Object>) options), consumer);
+        options), consumer);
   }
 
   public void findElementReferences(String file, int offset, boolean includePotential,
