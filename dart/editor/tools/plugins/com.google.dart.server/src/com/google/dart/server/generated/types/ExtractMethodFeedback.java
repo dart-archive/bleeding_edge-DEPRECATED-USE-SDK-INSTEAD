@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class ExtractMethodFeedback {
+public class ExtractMethodFeedback extends RefactoringFeedback {
 
   public static final ExtractMethodFeedback[] EMPTY_ARRAY = new ExtractMethodFeedback[0];
 

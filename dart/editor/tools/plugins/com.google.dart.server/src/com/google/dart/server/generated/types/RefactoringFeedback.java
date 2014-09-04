@@ -63,18 +63,6 @@ public class RefactoringFeedback {
     return new RefactoringFeedback();
   }
 
-  public static List<RefactoringFeedback> fromJsonArray(JsonArray jsonArray) {
-    if (jsonArray == null) {
-      return EMPTY_LIST;
-    }
-    ArrayList<RefactoringFeedback> list = new ArrayList<RefactoringFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
-    }
-    return list;
-  }
-
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();

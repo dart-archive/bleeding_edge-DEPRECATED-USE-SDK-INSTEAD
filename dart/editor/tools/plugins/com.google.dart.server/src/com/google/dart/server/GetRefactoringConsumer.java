@@ -13,11 +13,11 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.SourceChange;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The interface {@code GetRefactoringConsumer} defines the behavior of objects that get the changes
@@ -47,6 +47,6 @@ public interface GetRefactoringConsumer extends Consumer {
    *          will be omitted if the change field is omitted or if there are no potential edits for
    *          the refactoring.
    */
-  public void computedRefactorings(List<RefactoringProblem> problems, Map<String, Object> feedback,
+  public void computedRefactorings(List<RefactoringProblem> problems, RefactoringFeedback feedback,
       SourceChange change, List<String> potentialEdits);
 }

@@ -42,7 +42,9 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
 import com.google.dart.server.generated.types.ExtractLocalVariableOptions;
+import com.google.dart.server.generated.types.ExtractMethodFeedback;
 import com.google.dart.server.generated.types.ExtractMethodOptions;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
@@ -54,6 +56,7 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverriddenMember;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.dart.server.generated.types.RefactoringMethodParameterKind;
@@ -61,6 +64,7 @@ import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.RefactoringProblemSeverity;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
+import com.google.dart.server.generated.types.RenameFeedback;
 import com.google.dart.server.generated.types.RenameOptions;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.generated.types.SourceChange;
@@ -1387,7 +1391,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1439,7 +1443,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1497,7 +1501,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1535,7 +1539,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1570,7 +1574,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1594,12 +1598,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getRefactoring_response() throws Exception {
     final Object[] problemsArray = {null};
-    final Object[] feedbackArray = {null};
+    final RefactoringFeedback[] feedbackArray = {null};
     final SourceChange[] changeArray = {null};
     final Object[] potentialEditsArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.RENAME,
         "file1.dart",
         1,
         2,
@@ -1608,7 +1612,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             problemsArray[0] = problems;
             feedbackArray[0] = feedback;
             changeArray[0] = change;
@@ -1626,7 +1630,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'message': 'message1'",
         "      }",
         "    ],",
-        "    'feedback': {},",
+        "    'feedback': {offset: 1, length: 2},",
         "    'change': " + getSourceChangeJson() + ",",
         "    'potentialEdits': ['one']",
         "  }",
@@ -1640,10 +1644,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals(refactoringProblem.get(0).getSeverity(), RefactoringProblemSeverity.INFO);
     assertEquals(refactoringProblem.get(0).getMessage(), "message1");
 
-    // assertions on 'feedback' (Map<String, Object>)
-    @SuppressWarnings("unchecked")
-    Map<String, Object> feedback = (Map<String, Object>) feedbackArray[0];
-    assertThat(feedback).hasSize(0);
+    // assertions on 'feedback'
+    RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
+    assertEquals(1, feedback.getOffset().intValue());
+    assertEquals(2, feedback.getLength().intValue());
 
     // assertions on 'potentialEdits' (List<String>)
     @SuppressWarnings("unchecked")
@@ -1655,7 +1659,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_response_feedback_extractLocalVariable() throws Exception {
-    final Object[] feedbackArray = {null};
+    final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_LOCAL_VARIABLE,
@@ -1667,7 +1671,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
         });
@@ -1693,18 +1697,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
 
-    // assertions on 'feedback' (Map<String, Object>)
-    @SuppressWarnings("unchecked")
-    Map<String, Object> feedback = (Map<String, Object>) feedbackArray[0];
-    assertThat(feedback).hasSize(3);
-    assertEquals(feedback.get("names"), Lists.newArrayList("one", "two"));
-    assertThat((Integer[]) feedback.get("offsets")).hasSize(2).contains(1, 2);
-    assertThat((Integer[]) feedback.get("lengths")).hasSize(3).contains(3, 4, 5);
+    // assertions on 'feedback'
+    ExtractLocalVariableFeedback feedback = (ExtractLocalVariableFeedback) feedbackArray[0];
+    assertEquals(feedback.getNames(), Lists.newArrayList("one", "two"));
+    assertThat(feedback.getOffsets()).hasSize(2).contains(1, 2);
+    assertThat(feedback.getLengths()).hasSize(3).contains(3, 4, 5);
   }
 
-  @SuppressWarnings("unchecked")
   public void test_edit_getRefactoring_response_feedback_extractMethod() throws Exception {
-    final Object[] feedbackArray = {null};
+    final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_METHOD,
@@ -1716,7 +1717,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
         });
@@ -1747,20 +1748,18 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
 
-    // assertions on 'feedback' (Map<String, Object>)
-    Map<String, Object> feedback = (Map<String, Object>) feedbackArray[0];
-    assertThat(feedback).hasSize(8);
-    assertEquals(feedback.get("offset"), 1);
-    assertEquals(feedback.get("length"), 2);
-    assertEquals(feedback.get("returnType"), "returnType1");
-    assertEquals(feedback.get("names"), Lists.newArrayList("one", "two"));
-    assertEquals(feedback.get("canCreateGetter"), true);
-    assertThat((List<RefactoringMethodParameter>) feedback.get("parameters")).hasSize(0);
-    assertThat((Integer[]) feedback.get("offsets")).hasSize(3).contains(3, 4, 5);
-    assertThat((Integer[]) feedback.get("lengths")).hasSize(4).contains(6, 7, 8, 9);
+    // assertions on 'feedback'
+    ExtractMethodFeedback feedback = (ExtractMethodFeedback) feedbackArray[0];
+    assertEquals(1, feedback.getOffset().intValue());
+    assertEquals(2, feedback.getLength().intValue());
+    assertEquals("returnType1", feedback.getReturnType());
+    assertEquals(Lists.newArrayList("one", "two"), feedback.getNames());
+    assertEquals(true, feedback.canCreateGetter().booleanValue());
+    assertThat(feedback.getParameters()).hasSize(0);
+    assertThat(feedback.getOffsets()).hasSize(3).contains(3, 4, 5);
+    assertThat(feedback.getLengths()).hasSize(4).contains(6, 7, 8, 9);
   }
 
-  @SuppressWarnings("unchecked")
   public void test_edit_getRefactoring_response_feedback_rename() throws Exception {
     final Object[] feedbackArray = {null};
     RefactoringOptions options = null;
@@ -1774,7 +1773,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         new GetRefactoringConsumer() {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
-              Map<String, Object> feedback, SourceChange change, List<String> potentialEdits) {
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
         });
@@ -1799,11 +1798,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
 
-    // assertions on 'feedback' (Map<String, Object>)
-    Map<String, Object> feedback = (Map<String, Object>) feedbackArray[0];
-    assertThat(feedback).hasSize(2);
-    assertEquals(feedback.get("offset"), 1);
-    assertEquals(feedback.get("length"), 2);
+    // assertions on 'feedback'
+    RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
+    assertEquals(1, feedback.getOffset().intValue());
+    assertEquals(2, feedback.getLength().intValue());
   }
 
   public void test_error() throws Exception {

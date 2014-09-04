@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class RenameFeedback {
+public class RenameFeedback extends RefactoringFeedback {
 
   public static final RenameFeedback[] EMPTY_ARRAY = new RenameFeedback[0];
 

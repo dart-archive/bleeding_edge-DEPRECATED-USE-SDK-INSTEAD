@@ -14,15 +14,16 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetRefactoringConsumer;
-import com.google.dart.server.generated.types.RefactoringMethodParameter;
+import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
+import com.google.dart.server.generated.types.ExtractMethodFeedback;
+import com.google.dart.server.generated.types.RefactoringFeedback;
+import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringProblem;
+import com.google.dart.server.generated.types.RenameFeedback;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +34,16 @@ import java.util.Map;
  * @coverage dart.server.remote
  */
 public class GetRefactoringProcessor extends ResultProcessor {
-
+  private final Map<String, String> requestToRefactoringKindMap;
   private final GetRefactoringConsumer consumer;
 
-  public GetRefactoringProcessor(GetRefactoringConsumer consumer) {
+  public GetRefactoringProcessor(Map<String, String> requestToRefactoringKindMap,
+      GetRefactoringConsumer consumer) {
+    this.requestToRefactoringKindMap = requestToRefactoringKindMap;
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
+  public void process(String requestId, JsonObject resultObject) {
     // problems
     List<RefactoringProblem> problems = RefactoringProblem.fromJsonArray(resultObject.get(
         "problems").getAsJsonArray());
@@ -54,61 +57,20 @@ public class GetRefactoringProcessor extends ResultProcessor {
         ? resultObject.get("potentialEdits").getAsJsonArray() : null);
 
     //
-    // Compute all refactoring-kind specific "Options" and put them into the feedback map
+    // Compute all refactoring-kind specific "Feedback" and put them into the feedback map
     //
-    JsonObject feedbackObject = resultObject.get("feedback") != null
-        ? resultObject.get("feedback").getAsJsonObject() : null;
-    Map<String, Object> feedback = new HashMap<String, Object>();
-    if (feedbackObject != null) {
-      // names: List<String>
-      JsonElement namesElt = feedbackObject.get("names");
-      if (namesElt != null) {
-        feedback.put("names", JsonUtilities.decodeStringList(namesElt.getAsJsonArray()));
-      }
-      // offsets: List<int>
-      JsonElement offsetsElt = feedbackObject.get("offsets");
-      if (offsetsElt != null) {
-        feedback.put("offsets", JsonUtilities.decodeIntegerArray(offsetsElt.getAsJsonArray()));
-      }
-      // lengths: List<int>
-      JsonElement lengthsElt = feedbackObject.get("lengths");
-      if (lengthsElt != null) {
-        feedback.put("lengths", JsonUtilities.decodeIntegerArray(lengthsElt.getAsJsonArray()));
-      }
-      // offset: int
-      JsonElement offsetElt = feedbackObject.get("offset");
-      if (offsetElt != null) {
-        feedback.put("offset", offsetElt.getAsInt());
-      }
-      // length: int
-      JsonElement lengthElt = feedbackObject.get("length");
-      if (lengthElt != null) {
-        feedback.put("length", lengthElt.getAsInt());
-      }
-      // returnType: String
-      JsonElement returnTypeElt = feedbackObject.get("returnType");
-      if (returnTypeElt != null) {
-        feedback.put("returnType", returnTypeElt.getAsString());
-      }
-      // canCreateGetter: boolean
-      JsonElement canCreateGetterElt = feedbackObject.get("canCreateGetter");
-      if (canCreateGetterElt != null) {
-        boolean canCreateGetter = canCreateGetterElt.getAsBoolean();
-        feedback.put("canCreateGetter", canCreateGetter);
-      }
-      // parameters: List<Parameter>
-      JsonElement parametersElt = feedbackObject.get("parameters");
-      if (parametersElt instanceof JsonArray) {
-        List<RefactoringMethodParameter> parameters = RefactoringMethodParameter.fromJsonArray((JsonArray) parametersElt);
-        feedback.put("parameters", parameters);
-      }
-      // occurrences: int
-      JsonElement occurrencesElt = feedbackObject.get("occurrences");
-      if (occurrencesElt != null) {
-        feedback.put("occurrences", occurrencesElt.getAsInt());
+    RefactoringFeedback feedback = null;
+    if (resultObject.has("feedback")) {
+      JsonObject feedbackObject = resultObject.get("feedback").getAsJsonObject();
+      String kind = requestToRefactoringKindMap.remove(requestId);
+      if (RefactoringKind.EXTRACT_LOCAL_VARIABLE.equals(kind)) {
+        feedback = ExtractLocalVariableFeedback.fromJson(feedbackObject);
+      } else if (RefactoringKind.EXTRACT_METHOD.equals(kind)) {
+        feedback = ExtractMethodFeedback.fromJson(feedbackObject);
+      } else if (RefactoringKind.RENAME.equals(kind)) {
+        feedback = RenameFeedback.fromJson(feedbackObject);
       }
     }
-
     consumer.computedRefactorings(problems, feedback, change, potentialEdits);
   }
 }

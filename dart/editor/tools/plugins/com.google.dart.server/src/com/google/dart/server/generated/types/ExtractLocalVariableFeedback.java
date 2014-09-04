@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class ExtractLocalVariableFeedback {
+public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   public static final ExtractLocalVariableFeedback[] EMPTY_ARRAY = new ExtractLocalVariableFeedback[0];
 

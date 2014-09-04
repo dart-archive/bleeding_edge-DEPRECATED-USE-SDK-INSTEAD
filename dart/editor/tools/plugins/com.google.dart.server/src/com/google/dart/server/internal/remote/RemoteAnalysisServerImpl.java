@@ -216,6 +216,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private final AtomicInteger nextId = new AtomicInteger();
 
   /**
+   * A mapping between "getRefactoring" request ids and the requested refactoring kinds.
+   */
+  private final Map<String, String> requestToRefactoringKindMap = Maps.newHashMap();
+
+  /**
    * The thread that restarts an unresponsive server or {@code null} if it has not been started.
    */
   private Thread watcher;
@@ -385,6 +390,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void edit_getRefactoring(String kindId, String file, Integer offset, Integer length,
       Boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer) {
     String id = generateUniqueId();
+    requestToRefactoringKindMap.put(id, kindId);
     sendRequestToServer(id, RequestUtilities.generateEditGetRefactoring(
         id,
         kindId,
@@ -644,7 +650,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (consumer instanceof GetTypeHierarchyConsumer) {
       new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetRefactoringConsumer) {
-      new GetRefactoringProcessor((GetRefactoringConsumer) consumer).process(resultObject);
+      new GetRefactoringProcessor(requestToRefactoringKindMap, (GetRefactoringConsumer) consumer).process(
+          idString,
+          resultObject);
     } else if (consumer instanceof GetAssistsConsumer) {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetFixesConsumer) {
