@@ -52,11 +52,24 @@ public class RenameFeedback extends RefactoringFeedback {
   private final int length;
 
   /**
+   * The human-readable description of the kind of element being renamed (such as “class” or
+   * “function type alias”).
+   */
+  private final String elementKindName;
+
+  /**
+   * The old name of the element before the refactoring.
+   */
+  private final String oldName;
+
+  /**
    * Constructor for {@link RenameFeedback}.
    */
-  public RenameFeedback(int offset, int length) {
+  public RenameFeedback(int offset, int length, String elementKindName, String oldName) {
     this.offset = offset;
     this.length = length;
+    this.elementKindName = elementKindName;
+    this.oldName = oldName;
   }
 
   @Override
@@ -65,7 +78,9 @@ public class RenameFeedback extends RefactoringFeedback {
       RenameFeedback other = (RenameFeedback) obj;
       return
         other.offset == offset &&
-        other.length == length;
+        other.length == length &&
+        ObjectUtilities.equals(other.elementKindName, elementKindName) &&
+        ObjectUtilities.equals(other.oldName, oldName);
     }
     return false;
   }
@@ -73,7 +88,9 @@ public class RenameFeedback extends RefactoringFeedback {
   public static RenameFeedback fromJson(JsonObject jsonObject) {
     int offset = jsonObject.get("offset").getAsInt();
     int length = jsonObject.get("length").getAsInt();
-    return new RenameFeedback(offset, length);
+    String elementKindName = jsonObject.get("elementKindName").getAsString();
+    String oldName = jsonObject.get("oldName").getAsString();
+    return new RenameFeedback(offset, length, elementKindName, oldName);
   }
 
   public static List<RenameFeedback> fromJsonArray(JsonArray jsonArray) {
@@ -86,6 +103,14 @@ public class RenameFeedback extends RefactoringFeedback {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The human-readable description of the kind of element being renamed (such as “class” or
+   * “function type alias”).
+   */
+  public String getElementKindName() {
+    return elementKindName;
   }
 
   /**
@@ -102,11 +127,20 @@ public class RenameFeedback extends RefactoringFeedback {
     return offset;
   }
 
+  /**
+   * The old name of the element before the refactoring.
+   */
+  public String getOldName() {
+    return oldName;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(offset);
     builder.append(length);
+    builder.append(elementKindName);
+    builder.append(oldName);
     return builder.toHashCode();
   }
 
@@ -114,6 +148,8 @@ public class RenameFeedback extends RefactoringFeedback {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("length", length);
+    jsonObject.addProperty("elementKindName", elementKindName);
+    jsonObject.addProperty("oldName", oldName);
     return jsonObject;
   }
 
@@ -124,7 +160,11 @@ public class RenameFeedback extends RefactoringFeedback {
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
-    builder.append(length);
+    builder.append(length + ", ");
+    builder.append("elementKindName=");
+    builder.append(elementKindName + ", ");
+    builder.append("oldName=");
+    builder.append(oldName);
     builder.append("]");
     return builder.toString();
   }
