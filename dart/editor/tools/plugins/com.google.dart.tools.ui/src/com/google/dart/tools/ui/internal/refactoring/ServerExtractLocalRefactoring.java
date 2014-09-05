@@ -22,8 +22,6 @@ import com.google.dart.server.generated.types.RefactoringOptions;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
-import java.util.List;
-
 /**
  * LTK wrapper around Analysis Server 'Extract Local' refactoring.
  * 
@@ -32,29 +30,28 @@ import java.util.List;
 public class ServerExtractLocalRefactoring extends ServerRefactoring {
   private ExtractLocalVariableOptions options = new ExtractLocalVariableOptions("name", true);
   private boolean hasSeveralOccurrences;
-  private String[] proposedNames;
+
+  private String[] names;
 
   public ServerExtractLocalRefactoring(String file, int offset, int length) {
     super(RefactoringKind.EXTRACT_LOCAL_VARIABLE, "Extract Local", file, offset, length);
   }
 
-  public String[] getProposedNames() {
-    return proposedNames;
+  public String[] getNames() {
+    return names;
   }
 
   public boolean hasSeveralOccurrences() {
     return hasSeveralOccurrences;
   }
 
-  public RefactoringStatus setLocalName(String localName) {
-    // TODO(scheglov) add setters
-    options = new ExtractLocalVariableOptions(localName, options.extractAll());
-    return setOptions(true);
+  public void setExtractAll(boolean extractAll) {
+    options.setExtractAll(extractAll);
   }
 
-  public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
-    // TODO(scheglov) add setters
-    options = new ExtractLocalVariableOptions(options.getName(), replaceAllOccurrences);
+  public RefactoringStatus setName(String name) {
+    options.setName(name);
+    return setOptions(true);
   }
 
   @Override
@@ -66,7 +63,6 @@ public class ServerExtractLocalRefactoring extends ServerRefactoring {
   protected void setFeedback(RefactoringFeedback _feedback) {
     ExtractLocalVariableFeedback feedback = (ExtractLocalVariableFeedback) _feedback;
     hasSeveralOccurrences = feedback.getOffsets().length > 1;
-    List<String> namesList = feedback.getNames();
-    proposedNames = namesList.toArray(new String[namesList.size()]);
+    names = toStringArray(feedback.getNames());
   }
 }

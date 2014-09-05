@@ -41,6 +41,10 @@ import java.util.concurrent.TimeUnit;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public abstract class ServerRefactoring extends Refactoring {
+  public static String[] toStringArray(List<String> list) {
+    return list.toArray(new String[list.size()]);
+  }
+
   protected final String kind;
   private final String name;
   private final String file;

@@ -27,13 +27,13 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
   private static class ExtractLocalInputPage extends TextInputWizardPage {
     private final boolean initialValid;
     private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
-    private final String[] nameProposals;
+    private final String[] names;
 
-    public ExtractLocalInputPage(String[] nameProposals) {
-      super(DESCRIPTION, true, nameProposals.length == 0 ? "" : nameProposals[0]); //$NON-NLS-1$
-      Assert.isNotNull(nameProposals);
-      this.nameProposals = nameProposals;
-      initialValid = nameProposals.length > 0;
+    public ExtractLocalInputPage(String[] names) {
+      super(DESCRIPTION, true, names.length == 0 ? "" : names[0]); //$NON-NLS-1$
+      Assert.isNotNull(names);
+      this.names = names;
+      initialValid = names.length > 0;
     }
 
     @Override
@@ -52,8 +52,7 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
       Text text = createTextInputField(result);
       text.selectAll();
       text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-      ControlContentAssistHelper.createTextContentAssistant(text, new VariableNamesProcessor(
-          nameProposals));
+      ControlContentAssistHelper.createTextContentAssistant(text, new VariableNamesProcessor(names));
 
       layouter.perform(label, text, 1);
 
@@ -74,13 +73,13 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
 
     @Override
     protected void textModified(String text) {
-      getExtractLocalRefactoring().setLocalName(text);
+      getExtractLocalRefactoring().setName(text);
       super.textModified(text);
     }
 
     @Override
     protected RefactoringStatus validateTextField(String text) {
-      return getExtractLocalRefactoring().setLocalName(text);
+      return getExtractLocalRefactoring().setName(text);
     }
 
     private void addReplaceAllCheckbox(Composite result, RowLayouter layouter) {
@@ -91,12 +90,12 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
       checkBox.setEnabled(refactoring.hasSeveralOccurrences());
       if (refactoring.hasSeveralOccurrences()) {
         checkBox.setSelection(true);
-        refactoring.setReplaceAllOccurrences(true);
+        refactoring.setExtractAll(true);
       }
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          refactoring.setReplaceAllOccurrences(checkBox.getSelection());
+          refactoring.setExtractAll(checkBox.getSelection());
         }
       });
     }
@@ -115,7 +114,7 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
 
   @Override
   protected void addUserInputPages() {
-    addPage(new ExtractLocalInputPage(getExtractLocalRefactoring().getProposedNames()));
+    addPage(new ExtractLocalInputPage(getExtractLocalRefactoring().getNames()));
   }
 
   private ServerExtractLocalRefactoring getExtractLocalRefactoring() {
