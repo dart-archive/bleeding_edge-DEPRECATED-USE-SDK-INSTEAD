@@ -53,12 +53,12 @@ public class Outline {
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the element.
    */
-  private final Integer length;
+  private final int length;
 
   private final Outline parent;
 
@@ -67,7 +67,7 @@ public class Outline {
   /**
    * Constructor for {@link Outline}.
    */
-  public Outline(Outline parent, Element element, Integer offset, Integer length) {
+  public Outline(Outline parent, Element element, int offset, int length) {
     this.parent = parent;
     this.element = element;
     this.offset = offset;
@@ -135,7 +135,7 @@ public class Outline {
   /**
    * The length of the element.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
@@ -144,7 +144,7 @@ public class Outline {
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

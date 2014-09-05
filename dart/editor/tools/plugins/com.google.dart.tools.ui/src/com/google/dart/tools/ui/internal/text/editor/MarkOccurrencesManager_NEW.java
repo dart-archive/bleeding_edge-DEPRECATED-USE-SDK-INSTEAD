@@ -206,7 +206,7 @@ public class MarkOccurrencesManager_NEW {
       return;
     }
 
-    Integer[] offsets = targetOccurrences.getOffsets();
+    int[] offsets = targetOccurrences.getOffsets();
     Position[] positions = new Position[offsets.length];
     for (int i = 0; i < offsets.length; i++) {
       int offset = offsets[i];

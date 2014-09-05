@@ -51,12 +51,12 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
    * should be replaced by a reference to the local variable. The expression used to initiate the
    * refactoring will always be replaced.
    */
-  private final Boolean extractAll;
+  private final boolean extractAll;
 
   /**
    * Constructor for {@link ExtractLocalVariableOptions}.
    */
-  public ExtractLocalVariableOptions(String name, Boolean extractAll) {
+  public ExtractLocalVariableOptions(String name, boolean extractAll) {
     this.name = name;
     this.extractAll = extractAll;
   }
@@ -67,14 +67,14 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
       ExtractLocalVariableOptions other = (ExtractLocalVariableOptions) obj;
       return
         ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.extractAll, extractAll);
+        other.extractAll == extractAll;
     }
     return false;
   }
 
   public static ExtractLocalVariableOptions fromJson(JsonObject jsonObject) {
     String name = jsonObject.get("name").getAsString();
-    Boolean extractAll = jsonObject.get("extractAll").getAsBoolean();
+    boolean extractAll = jsonObject.get("extractAll").getAsBoolean();
     return new ExtractLocalVariableOptions(name, extractAll);
   }
 
@@ -95,7 +95,7 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
    * should be replaced by a reference to the local variable. The expression used to initiate the
    * refactoring will always be replaced.
    */
-  public Boolean extractAll() {
+  public boolean extractAll() {
     return extractAll;
   }
 

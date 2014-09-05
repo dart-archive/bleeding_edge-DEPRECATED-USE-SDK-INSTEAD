@@ -51,27 +51,27 @@ public class Location {
   /**
    * The offset of the range.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the range.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The one-based index of the line containing the first character of the range.
    */
-  private final Integer startLine;
+  private final int startLine;
 
   /**
    * The one-based index of the column containing the first character of the range.
    */
-  private final Integer startColumn;
+  private final int startColumn;
 
   /**
    * Constructor for {@link Location}.
    */
-  public Location(String file, Integer offset, Integer length, Integer startLine, Integer startColumn) {
+  public Location(String file, int offset, int length, int startLine, int startColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
@@ -95,10 +95,10 @@ public class Location {
 
   public static Location fromJson(JsonObject jsonObject) {
     String file = jsonObject.get("file").getAsString();
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
-    Integer startLine = jsonObject.get("startLine").getAsInt();
-    Integer startColumn = jsonObject.get("startColumn").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
+    int startLine = jsonObject.get("startLine").getAsInt();
+    int startColumn = jsonObject.get("startColumn").getAsInt();
     return new Location(file, offset, length, startLine, startColumn);
   }
 
@@ -124,28 +124,28 @@ public class Location {
   /**
    * The length of the range.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the range.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 
   /**
    * The one-based index of the column containing the first character of the range.
    */
-  public Integer getStartColumn() {
+  public int getStartColumn() {
     return startColumn;
   }
 
   /**
    * The one-based index of the line containing the first character of the range.
    */
-  public Integer getStartLine() {
+  public int getStartLine() {
     return startLine;
   }
 

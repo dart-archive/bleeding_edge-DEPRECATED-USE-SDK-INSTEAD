@@ -55,7 +55,7 @@ public class LinkedEditGroup {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * Pre-computed suggestions for what every region might want to be changed to.
@@ -65,7 +65,7 @@ public class LinkedEditGroup {
   /**
    * Constructor for {@link LinkedEditGroup}.
    */
-  public LinkedEditGroup(List<Position> positions, Integer length, List<LinkedEditSuggestion> suggestions) {
+  public LinkedEditGroup(List<Position> positions, int length, List<LinkedEditSuggestion> suggestions) {
     this.positions = positions;
     this.length = length;
     this.suggestions = suggestions;
@@ -85,7 +85,7 @@ public class LinkedEditGroup {
 
   public static LinkedEditGroup fromJson(JsonObject jsonObject) {
     List<Position> positions = Position.fromJsonArray(jsonObject.get("positions").getAsJsonArray());
-    Integer length = jsonObject.get("length").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     List<LinkedEditSuggestion> suggestions = LinkedEditSuggestion.fromJsonArray(jsonObject.get("suggestions").getAsJsonArray());
     return new LinkedEditGroup(positions, length, suggestions);
   }
@@ -105,7 +105,7 @@ public class LinkedEditGroup {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 

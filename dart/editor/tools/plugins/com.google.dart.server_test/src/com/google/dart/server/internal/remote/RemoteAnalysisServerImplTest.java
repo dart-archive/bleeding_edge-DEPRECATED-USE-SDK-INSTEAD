@@ -204,8 +204,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertNotNull(hovers[0]);
-    assertEquals(new Integer(22), hovers[0].getOffset());
-    assertEquals(new Integer(5), hovers[0].getLength());
+    assertEquals(22, hovers[0].getOffset());
+    assertEquals(5, hovers[0].getLength());
     assertEquals("myLibrary", hovers[0].getContainingLibraryName());
     assertEquals("/path/to/lib", hovers[0].getContainingLibraryPath());
     assertEquals("some dartdoc", hovers[0].getDartdoc());
@@ -312,14 +312,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     {
       HighlightRegion error = regions.get(0);
       assertEquals(HighlightRegionType.CLASS, error.getType());
-      assertEquals(new Integer(1), error.getOffset());
-      assertEquals(new Integer(2), error.getLength());
+      assertEquals(1, error.getOffset());
+      assertEquals(2, error.getLength());
     }
     {
       HighlightRegion error = regions.get(1);
       assertEquals(HighlightRegionType.FIELD, error.getType());
-      assertEquals(new Integer(10), error.getOffset());
-      assertEquals(new Integer(20), error.getLength());
+      assertEquals(10, error.getOffset());
+      assertEquals(20, error.getLength());
     }
   }
 
@@ -371,8 +371,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(regions).hasSize(1);
     {
       NavigationRegion region = regions.get(0);
-      assertEquals(new Integer(1), region.getOffset());
-      assertEquals(new Integer(2), region.getLength());
+      assertEquals(1, region.getOffset());
+      assertEquals(2, region.getLength());
       List<Element> elements = region.getTargets();
       assertThat(elements).hasSize(2);
       {
@@ -381,10 +381,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("name0", element.getName());
         Location location = element.getLocation();
         assertEquals("/test2.dart", location.getFile());
-        assertEquals(new Integer(3), location.getOffset());
-        assertEquals(new Integer(4), location.getLength());
-        assertEquals(new Integer(5), location.getStartLine());
-        assertEquals(new Integer(6), location.getStartColumn());
+        assertEquals(3, location.getOffset());
+        assertEquals(4, location.getLength());
+        assertEquals(5, location.getStartLine());
+        assertEquals(6, location.getStartColumn());
         assertFalse(element.isAbstract());
         assertFalse(element.isConst());
         assertFalse(element.isDeprecated());
@@ -400,10 +400,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("_name1", element.getName());
         Location location = element.getLocation();
         assertEquals("/test3.dart", location.getFile());
-        assertEquals(new Integer(7), location.getOffset());
-        assertEquals(new Integer(8), location.getLength());
-        assertEquals(new Integer(9), location.getStartLine());
-        assertEquals(new Integer(10), location.getStartColumn());
+        assertEquals(7, location.getOffset());
+        assertEquals(8, location.getLength());
+        assertEquals(9, location.getStartLine());
+        assertEquals(10, location.getStartColumn());
         assertTrue(element.isAbstract());
         assertTrue(element.isConst());
         assertTrue(element.isDeprecated());
@@ -455,10 +455,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name0", element.getName());
       Location location = element.getLocation();
       assertEquals("/test2.dart", location.getFile());
-      assertEquals(new Integer(7), location.getOffset());
-      assertEquals(new Integer(8), location.getLength());
-      assertEquals(new Integer(9), location.getStartLine());
-      assertEquals(new Integer(10), location.getStartColumn());
+      assertEquals(7, location.getOffset());
+      assertEquals(8, location.getLength());
+      assertEquals(9, location.getStartLine());
+      assertEquals(10, location.getStartColumn());
       assertTrue(element.isAbstract());
       assertTrue(element.isConst());
       assertTrue(element.isDeprecated());
@@ -469,7 +469,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertNull(element.getReturnType());
     }
     assertThat(occurrences.getOffsets()).hasSize(5).contains(1, 2, 3, 4, 5);
-    assertEquals(new Integer(6), occurrences.getLength());
+    assertEquals(6, occurrences.getLength());
   }
 
   public void test_analysis_notification_outline() throws Exception {
@@ -522,17 +522,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on outline
     assertThat(outline.getChildren()).hasSize(1);
-    assertEquals(new Integer(1), outline.getOffset());
-    assertEquals(new Integer(2), outline.getLength());
+    assertEquals(1, outline.getOffset());
+    assertEquals(2, outline.getLength());
     Element element = outline.getElement();
     assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
     assertEquals("name0", element.getName());
     Location location = element.getLocation();
     assertEquals("/test2.dart", location.getFile());
-    assertEquals(new Integer(3), location.getOffset());
-    assertEquals(new Integer(4), location.getLength());
-    assertEquals(new Integer(5), location.getStartLine());
-    assertEquals(new Integer(6), location.getStartColumn());
+    assertEquals(3, location.getOffset());
+    assertEquals(4, location.getLength());
+    assertEquals(5, location.getStartLine());
+    assertEquals(6, location.getStartColumn());
     assertTrue(element.isAbstract());
     assertTrue(element.isConst());
     assertTrue(element.isDeprecated());
@@ -544,18 +544,18 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on child
     Outline child = outline.getChildren().get(0);
-    assertEquals(new Integer(7), child.getOffset());
-    assertEquals(new Integer(8), child.getLength());
+    assertEquals(7, child.getOffset());
+    assertEquals(8, child.getLength());
     assertThat(child.getChildren()).hasSize(0);
     Element childElement = child.getElement();
     assertEquals(ElementKind.CLASS, childElement.getKind());
     assertEquals("_name1", childElement.getName());
     location = childElement.getLocation();
     assertEquals("/test3.dart", location.getFile());
-    assertEquals(new Integer(9), location.getOffset());
-    assertEquals(new Integer(10), location.getLength());
-    assertEquals(new Integer(11), location.getStartLine());
-    assertEquals(new Integer(12), location.getStartColumn());
+    assertEquals(9, location.getOffset());
+    assertEquals(10, location.getLength());
+    assertEquals(11, location.getStartLine());
+    assertEquals(12, location.getStartColumn());
 
     assertFalse(childElement.isAbstract());
     assertFalse(childElement.isConst());
@@ -607,16 +607,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     // assertions on overrides
     assertThat(overrides).hasSize(2);
     {
-      assertEquals(new Integer(1), overrides.get(0).getOffset());
-      assertEquals(new Integer(2), overrides.get(0).getLength());
+      assertEquals(1, overrides.get(0).getOffset());
+      assertEquals(2, overrides.get(0).getLength());
       OverriddenMember superclassMember = overrides.get(0).getSuperclassMember();
       assertNotNull(superclassMember);
       assertEquals("superclassName1", superclassMember.getClassName());
       assertEquals("name1", superclassMember.getElement().getName());
     }
     {
-      assertEquals(new Integer(7), overrides.get(1).getOffset());
-      assertEquals(new Integer(8), overrides.get(1).getLength());
+      assertEquals(7, overrides.get(1).getOffset());
+      assertEquals(8, overrides.get(1).getLength());
       assertNull(overrides.get(1).getSuperclassMember());
     }
   }
@@ -1061,8 +1061,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(CompletionSuggestionKind.CLASS, suggestion.getKind());
       assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion0");
-      assertEquals(suggestion.getSelectionOffset(), new Integer(4));
-      assertEquals(suggestion.getSelectionLength(), new Integer(5));
+      assertEquals(4, suggestion.getSelectionOffset());
+      assertEquals(5, suggestion.getSelectionLength());
       assertTrue(suggestion.isDeprecated());
       assertTrue(suggestion.isPotential());
       assertEquals(suggestion.getDocSummary(), "docSummary0");
@@ -1087,8 +1087,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(CompletionSuggestionKind.CLASS_ALIAS, suggestion.getKind());
       assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion1");
-      assertEquals(suggestion.getSelectionOffset(), new Integer(10));
-      assertEquals(suggestion.getSelectionLength(), new Integer(11));
+      assertEquals(10, suggestion.getSelectionOffset());
+      assertEquals(11, suggestion.getSelectionLength());
       assertTrue(suggestion.isDeprecated());
       assertTrue(suggestion.isPotential());
       assertNull(suggestion.getDocSummary());
@@ -1646,8 +1646,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on 'feedback'
     RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
-    assertEquals(1, feedback.getOffset().intValue());
-    assertEquals(2, feedback.getLength().intValue());
+    assertEquals(1, feedback.getOffset());
+    assertEquals(2, feedback.getLength());
 
     // assertions on 'potentialEdits' (List<String>)
     @SuppressWarnings("unchecked")
@@ -1750,11 +1750,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on 'feedback'
     ExtractMethodFeedback feedback = (ExtractMethodFeedback) feedbackArray[0];
-    assertEquals(1, feedback.getOffset().intValue());
-    assertEquals(2, feedback.getLength().intValue());
+    assertEquals(1, feedback.getOffset());
+    assertEquals(2, feedback.getLength());
     assertEquals("returnType1", feedback.getReturnType());
     assertEquals(Lists.newArrayList("one", "two"), feedback.getNames());
-    assertEquals(true, feedback.canCreateGetter().booleanValue());
+    assertEquals(true, feedback.canCreateGetter());
     assertThat(feedback.getParameters()).hasSize(0);
     assertThat(feedback.getOffsets()).hasSize(3).contains(3, 4, 5);
     assertThat(feedback.getLengths()).hasSize(4).contains(6, 7, 8, 9);
@@ -1800,8 +1800,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on 'feedback'
     RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
-    assertEquals(1, feedback.getOffset().intValue());
-    assertEquals(2, feedback.getLength().intValue());
+    assertEquals(1, feedback.getOffset());
+    assertEquals(2, feedback.getLength());
   }
 
   public void test_error() throws Exception {
@@ -2022,10 +2022,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name1", element.getName());
       Location location = element.getLocation();
       assertEquals("/test1.dart", location.getFile());
-      assertEquals(new Integer(1), location.getOffset());
-      assertEquals(new Integer(2), location.getLength());
-      assertEquals(new Integer(3), location.getStartLine());
-      assertEquals(new Integer(4), location.getStartColumn());
+      assertEquals(1, location.getOffset());
+      assertEquals(2, location.getLength());
+      assertEquals(3, location.getStartLine());
+      assertEquals(4, location.getStartColumn());
       assertTrue(element.isAbstract());
       assertTrue(element.isConst());
       assertTrue(element.isDeprecated());
@@ -2043,10 +2043,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals("name2", element.getName());
       Location location = element.getLocation();
       assertEquals("/test2.dart", location.getFile());
-      assertEquals(new Integer(5), location.getOffset());
-      assertEquals(new Integer(6), location.getLength());
-      assertEquals(new Integer(7), location.getStartLine());
-      assertEquals(new Integer(8), location.getStartColumn());
+      assertEquals(5, location.getOffset());
+      assertEquals(6, location.getLength());
+      assertEquals(7, location.getStartLine());
+      assertEquals(8, location.getStartColumn());
       assertFalse(element.isAbstract());
       assertFalse(element.isConst());
       assertFalse(element.isDeprecated());
@@ -2065,10 +2065,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("name3", childItem.getBestName());
         Location location = element.getLocation();
         assertEquals("/test3.dart", location.getFile());
-        assertEquals(new Integer(9), location.getOffset());
-        assertEquals(new Integer(10), location.getLength());
-        assertEquals(new Integer(11), location.getStartLine());
-        assertEquals(new Integer(12), location.getStartColumn());
+        assertEquals(9, location.getOffset());
+        assertEquals(10, location.getLength());
+        assertEquals(11, location.getStartLine());
+        assertEquals(12, location.getStartColumn());
       }
       assertNull(childItem.getDisplayName());
       assertNull(childItem.getMemberElement());
@@ -2371,10 +2371,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   private void assertLocation(Location location, String file, int offset, int length,
       int startLine, int startColumn) {
     assertEquals(file, location.getFile());
-    assertEquals(new Integer(offset), location.getOffset());
-    assertEquals(new Integer(length), location.getLength());
-    assertEquals(new Integer(startLine), location.getStartLine());
-    assertEquals(new Integer(startColumn), location.getStartColumn());
+    assertEquals(offset, location.getOffset());
+    assertEquals(length, location.getLength());
+    assertEquals(startLine, location.getStartLine());
+    assertEquals(startColumn, location.getStartColumn());
   }
 
   private String getSourceChangeJson() {

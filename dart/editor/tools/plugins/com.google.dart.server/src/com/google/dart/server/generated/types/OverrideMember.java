@@ -46,12 +46,12 @@ public class OverrideMember {
   /**
    * The offset of the name of the overriding member.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the name of the overriding member.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The member inherited from a superclass that is overridden by the overriding member. The field is
@@ -69,7 +69,7 @@ public class OverrideMember {
   /**
    * Constructor for {@link OverrideMember}.
    */
-  public OverrideMember(Integer offset, Integer length, OverriddenMember superclassMember, List<OverriddenMember> interfaceMembers) {
+  public OverrideMember(int offset, int length, OverriddenMember superclassMember, List<OverriddenMember> interfaceMembers) {
     this.offset = offset;
     this.length = length;
     this.superclassMember = superclassMember;
@@ -90,8 +90,8 @@ public class OverrideMember {
   }
 
   public static OverrideMember fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     OverriddenMember superclassMember = jsonObject.get("superclassMember") == null ? null : OverriddenMember.fromJson(jsonObject.get("superclassMember").getAsJsonObject());
     List<OverriddenMember> interfaceMembers = jsonObject.get("interfaceMembers") == null ? null : OverriddenMember.fromJsonArray(jsonObject.get("interfaceMembers").getAsJsonArray());
     return new OverrideMember(offset, length, superclassMember, interfaceMembers);
@@ -120,14 +120,14 @@ public class OverrideMember {
   /**
    * The length of the name of the overriding member.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the name of the overriding member.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

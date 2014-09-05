@@ -44,12 +44,12 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * The offset to the beginning of the expression or statements that will be extracted.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the expression or statements that will be extracted.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The proposed return type for the method.
@@ -64,7 +64,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * True if a getter could be created rather than a method.
    */
-  private final Boolean canCreateGetter;
+  private final boolean canCreateGetter;
 
   /**
    * The proposed parameters for the method.
@@ -75,7 +75,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
    * The offsets of the expressions or statements that would be replaced by an invocation of the
    * method.
    */
-  private final Integer[] offsets;
+  private final int[] offsets;
 
   /**
    * The lengths of the expressions or statements that would be replaced by an invocation of the
@@ -83,12 +83,12 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
    * of statements), if the offset of that expression is offsets[i], then the length of that
    * expression is lengths[i].
    */
-  private final Integer[] lengths;
+  private final int[] lengths;
 
   /**
    * Constructor for {@link ExtractMethodFeedback}.
    */
-  public ExtractMethodFeedback(Integer offset, Integer length, String returnType, List<String> names, Boolean canCreateGetter, List<RefactoringMethodParameter> parameters, Integer[] offsets, Integer[] lengths) {
+  public ExtractMethodFeedback(int offset, int length, String returnType, List<String> names, boolean canCreateGetter, List<RefactoringMethodParameter> parameters, int[] offsets, int[] lengths) {
     this.offset = offset;
     this.length = length;
     this.returnType = returnType;
@@ -108,7 +108,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
         other.length == length &&
         ObjectUtilities.equals(other.returnType, returnType) &&
         ObjectUtilities.equals(other.names, names) &&
-        ObjectUtilities.equals(other.canCreateGetter, canCreateGetter) &&
+        other.canCreateGetter == canCreateGetter &&
         ObjectUtilities.equals(other.parameters, parameters) &&
         Arrays.equals(other.offsets, offsets) &&
         Arrays.equals(other.lengths, lengths);
@@ -117,14 +117,14 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   public static ExtractMethodFeedback fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     String returnType = jsonObject.get("returnType").getAsString();
     List<String> names = JsonUtilities.decodeStringList(jsonObject.get("names").getAsJsonArray());
-    Boolean canCreateGetter = jsonObject.get("canCreateGetter").getAsBoolean();
+    boolean canCreateGetter = jsonObject.get("canCreateGetter").getAsBoolean();
     List<RefactoringMethodParameter> parameters = RefactoringMethodParameter.fromJsonArray(jsonObject.get("parameters").getAsJsonArray());
-    Integer[] offsets = JsonUtilities.decodeIntegerArray(jsonObject.get("offsets").getAsJsonArray());
-    Integer[] lengths = JsonUtilities.decodeIntegerArray(jsonObject.get("lengths").getAsJsonArray());
+    int[] offsets = JsonUtilities.decodeIntArray(jsonObject.get("offsets").getAsJsonArray());
+    int[] lengths = JsonUtilities.decodeIntArray(jsonObject.get("lengths").getAsJsonArray());
     return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, offsets, lengths);
   }
 
@@ -143,14 +143,14 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * True if a getter could be created rather than a method.
    */
-  public Boolean canCreateGetter() {
+  public boolean canCreateGetter() {
     return canCreateGetter;
   }
 
   /**
    * The length of the expression or statements that will be extracted.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
@@ -160,7 +160,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
    * of statements), if the offset of that expression is offsets[i], then the length of that
    * expression is lengths[i].
    */
-  public Integer[] getLengths() {
+  public int[] getLengths() {
     return lengths;
   }
 
@@ -174,7 +174,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * The offset to the beginning of the expression or statements that will be extracted.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 
@@ -182,7 +182,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
    * The offsets of the expressions or statements that would be replaced by an invocation of the
    * method.
    */
-  public Integer[] getOffsets() {
+  public int[] getOffsets() {
     return offsets;
   }
 
@@ -231,12 +231,12 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
     }
     jsonObject.add("parameters", jsonArrayParameters);
     JsonArray jsonArrayOffsets = new JsonArray();
-    for(Integer elt : offsets) {
+    for(int elt : offsets) {
       jsonArrayOffsets.add(new JsonPrimitive(elt));
     }
     jsonObject.add("offsets", jsonArrayOffsets);
     JsonArray jsonArrayLengths = new JsonArray();
-    for(Integer elt : lengths) {
+    for(int elt : lengths) {
       jsonArrayLengths.add(new JsonPrimitive(elt));
     }
     jsonObject.add("lengths", jsonArrayLengths);

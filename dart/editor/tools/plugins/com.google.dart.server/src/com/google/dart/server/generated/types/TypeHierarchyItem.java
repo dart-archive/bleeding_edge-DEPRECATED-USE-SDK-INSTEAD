@@ -72,24 +72,24 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the interfaces implemented by this class. The list will be
    * empty if there are no implemented interfaces.
    */
-  private final Integer[] interfaces;
+  private final int[] interfaces;
 
   /**
    * The indexes of the items representing the mixins referenced by this class. The list will be
    * empty if there are no classes mixed in to this class.
    */
-  private final Integer[] mixins;
+  private final int[] mixins;
 
   /**
    * The indexes of the items representing the subtypes of this class. The list will be empty if
    * there are no subtypes or if this item represents a supertype of the pivot type.
    */
-  private final Integer[] subclasses;
+  private final int[] subclasses;
 
   /**
    * Constructor for {@link TypeHierarchyItem}.
    */
-  public TypeHierarchyItem(Element classElement, String displayName, Element memberElement, Integer superclass, Integer[] interfaces, Integer[] mixins, Integer[] subclasses) {
+  public TypeHierarchyItem(Element classElement, String displayName, Element memberElement, Integer superclass, int[] interfaces, int[] mixins, int[] subclasses) {
     this.classElement = classElement;
     this.displayName = displayName;
     this.memberElement = memberElement;
@@ -107,7 +107,7 @@ public class TypeHierarchyItem {
         ObjectUtilities.equals(other.classElement, classElement) &&
         ObjectUtilities.equals(other.displayName, displayName) &&
         ObjectUtilities.equals(other.memberElement, memberElement) &&
-        other.superclass == superclass &&
+        ObjectUtilities.equals(other.superclass, superclass) &&
         Arrays.equals(other.interfaces, interfaces) &&
         Arrays.equals(other.mixins, mixins) &&
         Arrays.equals(other.subclasses, subclasses);
@@ -120,9 +120,9 @@ public class TypeHierarchyItem {
     String displayName = jsonObject.get("displayName") == null ? null : jsonObject.get("displayName").getAsString();
     Element memberElement = jsonObject.get("memberElement") == null ? null : Element.fromJson(jsonObject.get("memberElement").getAsJsonObject());
     Integer superclass = jsonObject.get("superclass") == null ? null : jsonObject.get("superclass").getAsInt();
-    Integer[] interfaces = JsonUtilities.decodeIntegerArray(jsonObject.get("interfaces").getAsJsonArray());
-    Integer[] mixins = JsonUtilities.decodeIntegerArray(jsonObject.get("mixins").getAsJsonArray());
-    Integer[] subclasses = JsonUtilities.decodeIntegerArray(jsonObject.get("subclasses").getAsJsonArray());
+    int[] interfaces = JsonUtilities.decodeIntArray(jsonObject.get("interfaces").getAsJsonArray());
+    int[] mixins = JsonUtilities.decodeIntArray(jsonObject.get("mixins").getAsJsonArray());
+    int[] subclasses = JsonUtilities.decodeIntArray(jsonObject.get("subclasses").getAsJsonArray());
     return new TypeHierarchyItem(classElement, displayName, memberElement, superclass, interfaces, mixins, subclasses);
   }
 
@@ -158,7 +158,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the interfaces implemented by this class. The list will be
    * empty if there are no implemented interfaces.
    */
-  public Integer[] getInterfaces() {
+  public int[] getInterfaces() {
     return interfaces;
   }
 
@@ -175,7 +175,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the mixins referenced by this class. The list will be
    * empty if there are no classes mixed in to this class.
    */
-  public Integer[] getMixins() {
+  public int[] getMixins() {
     return mixins;
   }
 
@@ -183,7 +183,7 @@ public class TypeHierarchyItem {
    * The indexes of the items representing the subtypes of this class. The list will be empty if
    * there are no subtypes or if this item represents a supertype of the pivot type.
    */
-  public Integer[] getSubclasses() {
+  public int[] getSubclasses() {
     return subclasses;
   }
 
@@ -221,17 +221,17 @@ public class TypeHierarchyItem {
       jsonObject.addProperty("superclass", superclass);
     }
     JsonArray jsonArrayInterfaces = new JsonArray();
-    for(Integer elt : interfaces) {
+    for(int elt : interfaces) {
       jsonArrayInterfaces.add(new JsonPrimitive(elt));
     }
     jsonObject.add("interfaces", jsonArrayInterfaces);
     JsonArray jsonArrayMixins = new JsonArray();
-    for(Integer elt : mixins) {
+    for(int elt : mixins) {
       jsonArrayMixins.add(new JsonPrimitive(elt));
     }
     jsonObject.add("mixins", jsonArrayMixins);
     JsonArray jsonArraySubclasses = new JsonArray();
-    for(Integer elt : subclasses) {
+    for(int elt : subclasses) {
       jsonArraySubclasses.add(new JsonPrimitive(elt));
     }
     jsonObject.add("subclasses", jsonArraySubclasses);

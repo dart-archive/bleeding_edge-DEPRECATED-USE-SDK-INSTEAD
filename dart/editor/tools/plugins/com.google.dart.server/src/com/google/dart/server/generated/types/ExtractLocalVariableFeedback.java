@@ -49,19 +49,19 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /**
    * The offsets of the expressions that would be replaced by a reference to the variable.
    */
-  private final Integer[] offsets;
+  private final int[] offsets;
 
   /**
    * The lengths of the expressions that would be replaced by a reference to the variable. The
    * lengths correspond to the offsets. In other words, for a given expression, if the offset of that
    * expression is offsets[i], then the length of that expression is lengths[i].
    */
-  private final Integer[] lengths;
+  private final int[] lengths;
 
   /**
    * Constructor for {@link ExtractLocalVariableFeedback}.
    */
-  public ExtractLocalVariableFeedback(List<String> names, Integer[] offsets, Integer[] lengths) {
+  public ExtractLocalVariableFeedback(List<String> names, int[] offsets, int[] lengths) {
     this.names = names;
     this.offsets = offsets;
     this.lengths = lengths;
@@ -81,8 +81,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   public static ExtractLocalVariableFeedback fromJson(JsonObject jsonObject) {
     List<String> names = JsonUtilities.decodeStringList(jsonObject.get("names").getAsJsonArray());
-    Integer[] offsets = JsonUtilities.decodeIntegerArray(jsonObject.get("offsets").getAsJsonArray());
-    Integer[] lengths = JsonUtilities.decodeIntegerArray(jsonObject.get("lengths").getAsJsonArray());
+    int[] offsets = JsonUtilities.decodeIntArray(jsonObject.get("offsets").getAsJsonArray());
+    int[] lengths = JsonUtilities.decodeIntArray(jsonObject.get("lengths").getAsJsonArray());
     return new ExtractLocalVariableFeedback(names, offsets, lengths);
   }
 
@@ -103,7 +103,7 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
    * lengths correspond to the offsets. In other words, for a given expression, if the offset of that
    * expression is offsets[i], then the length of that expression is lengths[i].
    */
-  public Integer[] getLengths() {
+  public int[] getLengths() {
     return lengths;
   }
 
@@ -117,7 +117,7 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /**
    * The offsets of the expressions that would be replaced by a reference to the variable.
    */
-  public Integer[] getOffsets() {
+  public int[] getOffsets() {
     return offsets;
   }
 
@@ -138,12 +138,12 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
     }
     jsonObject.add("names", jsonArrayNames);
     JsonArray jsonArrayOffsets = new JsonArray();
-    for(Integer elt : offsets) {
+    for(int elt : offsets) {
       jsonArrayOffsets.add(new JsonPrimitive(elt));
     }
     jsonObject.add("offsets", jsonArrayOffsets);
     JsonArray jsonArrayLengths = new JsonArray();
-    for(Integer elt : lengths) {
+    for(int elt : lengths) {
       jsonArrayLengths.add(new JsonPrimitive(elt));
     }
     jsonObject.add("lengths", jsonArrayLengths);

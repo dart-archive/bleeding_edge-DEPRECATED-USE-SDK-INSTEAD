@@ -58,7 +58,7 @@ public class SearchResult {
    * all references to a method m defined in some class were requested, and a reference to a method m
    * from an unknown class were found, it would be marked as being a potential match.
    */
-  private final Boolean isPotential;
+  private final boolean isPotential;
 
   /**
    * The elements that contain the result, starting with the most immediately enclosing ancestor and
@@ -69,7 +69,7 @@ public class SearchResult {
   /**
    * Constructor for {@link SearchResult}.
    */
-  public SearchResult(Location location, String kind, Boolean isPotential, List<Element> path) {
+  public SearchResult(Location location, String kind, boolean isPotential, List<Element> path) {
     this.location = location;
     this.kind = kind;
     this.isPotential = isPotential;
@@ -83,7 +83,7 @@ public class SearchResult {
       return
         ObjectUtilities.equals(other.location, location) &&
         ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.isPotential, isPotential) &&
+        other.isPotential == isPotential &&
         ObjectUtilities.equals(other.path, path);
     }
     return false;
@@ -92,7 +92,7 @@ public class SearchResult {
   public static SearchResult fromJson(JsonObject jsonObject) {
     Location location = Location.fromJson(jsonObject.get("location").getAsJsonObject());
     String kind = jsonObject.get("kind").getAsString();
-    Boolean isPotential = jsonObject.get("isPotential").getAsBoolean();
+    boolean isPotential = jsonObject.get("isPotential").getAsBoolean();
     List<Element> path = Element.fromJsonArray(jsonObject.get("path").getAsJsonArray());
     return new SearchResult(location, kind, isPotential, path);
   }
@@ -114,7 +114,7 @@ public class SearchResult {
    * all references to a method m defined in some class were requested, and a reference to a method m
    * from an unknown class were found, it would be marked as being a potential match.
    */
-  public Boolean isPotential() {
+  public boolean isPotential() {
     return isPotential;
   }
 

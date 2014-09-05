@@ -51,17 +51,17 @@ public class FoldingRegion {
   /**
    * The offset of the region to be folded.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the region to be folded.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * Constructor for {@link FoldingRegion}.
    */
-  public FoldingRegion(String kind, Integer offset, Integer length) {
+  public FoldingRegion(String kind, int offset, int length) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
@@ -81,8 +81,8 @@ public class FoldingRegion {
 
   public static FoldingRegion fromJson(JsonObject jsonObject) {
     String kind = jsonObject.get("kind").getAsString();
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     return new FoldingRegion(kind, offset, length);
   }
 
@@ -108,14 +108,14 @@ public class FoldingRegion {
   /**
    * The length of the region to be folded.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be folded.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

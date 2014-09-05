@@ -69,7 +69,7 @@ public interface AnalysisServer {
    * @param file The file in which hover information is being requested.
    * @param offset The offset for which hover information is being requested.
    */
-  public void analysis_getHover(String file, Integer offset, GetHoverConsumer consumer);
+  public void analysis_getHover(String file, int offset, GetHoverConsumer consumer);
 
   /**
    * {@code analysis.reanalyze}
@@ -191,7 +191,7 @@ public interface AnalysisServer {
    * @param file The file containing the point at which suggestions are to be made.
    * @param offset The offset within the file at which suggestions are to be made.
    */
-  public void completion_getSuggestions(String file, Integer offset, GetSuggestionsConsumer consumer);
+  public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
    * {@code debug.createContext}
@@ -251,7 +251,7 @@ public interface AnalysisServer {
    * @param offset The offset of the code for which assists are being requested.
    * @param length The length of the code for which assists are being requested.
    */
-  public void edit_getAssists(String file, Integer offset, Integer length, GetAssistsConsumer consumer);
+  public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer);
 
   /**
    * {@code edit.getAvailableRefactorings}
@@ -263,7 +263,7 @@ public interface AnalysisServer {
    * @param offset The offset of the code on which the refactoring would be based.
    * @param length The length of the code on which the refactoring would be based.
    */
-  public void edit_getAvailableRefactorings(String file, Integer offset, Integer length, GetAvailableRefactoringsConsumer consumer);
+  public void edit_getAvailableRefactorings(String file, int offset, int length, GetAvailableRefactoringsConsumer consumer);
 
   /**
    * {@code edit.getFixes}
@@ -273,7 +273,7 @@ public interface AnalysisServer {
    * @param file The file containing the errors for which fixes are being requested.
    * @param offset The offset used to select the errors for which fixes will be returned.
    */
-  public void edit_getFixes(String file, Integer offset, GetFixesConsumer consumer);
+  public void edit_getFixes(String file, int offset, GetFixesConsumer consumer);
 
   /**
    * {@code edit.getRefactoring}
@@ -292,7 +292,7 @@ public interface AnalysisServer {
    *         omitted if the refactoring does not require any options or if the values of those
    *         options are not known.
    */
-  public void edit_getRefactoring(String kind, String file, Integer offset, Integer length, Boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
+  public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
@@ -316,7 +316,7 @@ public interface AnalysisServer {
    * @param offset The offset within the file of the declaration of or reference to the element.
    * @param includePotential True if potential matches are to be included in the results.
    */
-  public void search_findElementReferences(String file, Integer offset, Boolean includePotential, FindElementReferencesConsumer consumer);
+  public void search_findElementReferences(String file, int offset, boolean includePotential, FindElementReferencesConsumer consumer);
 
   /**
    * {@code search.findMemberDeclarations}
@@ -366,7 +366,7 @@ public interface AnalysisServer {
    *         is being requested.
    * @param offset The offset of the name of the type within the file.
    */
-  public void search_getTypeHierarchy(String file, Integer offset, GetTypeHierarchyConsumer consumer);
+  public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer);
 
   /**
    * {@code server.getVersion}

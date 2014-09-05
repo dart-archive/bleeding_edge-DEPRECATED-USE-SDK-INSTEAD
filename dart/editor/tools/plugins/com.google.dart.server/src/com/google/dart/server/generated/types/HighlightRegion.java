@@ -51,17 +51,17 @@ public class HighlightRegion {
   /**
    * The offset of the region to be highlighted.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the region to be highlighted.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * Constructor for {@link HighlightRegion}.
    */
-  public HighlightRegion(String type, Integer offset, Integer length) {
+  public HighlightRegion(String type, int offset, int length) {
     this.type = type;
     this.offset = offset;
     this.length = length;
@@ -85,8 +85,8 @@ public class HighlightRegion {
 
   public static HighlightRegion fromJson(JsonObject jsonObject) {
     String type = jsonObject.get("type").getAsString();
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     return new HighlightRegion(type, offset, length);
   }
 
@@ -105,14 +105,14 @@ public class HighlightRegion {
   /**
    * The length of the region to be highlighted.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be highlighted.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

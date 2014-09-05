@@ -50,7 +50,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * True if a getter should be created rather than a method. It is an error if this field is true
    * and the list of parameters is non-empty.
    */
-  private final Boolean createGetter;
+  private final boolean createGetter;
 
   /**
    * The name that the method should be given.
@@ -75,12 +75,12 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * the method. The expression or statements used to initiate the refactoring will always be
    * replaced.
    */
-  private final Boolean extractAll;
+  private final boolean extractAll;
 
   /**
    * Constructor for {@link ExtractMethodOptions}.
    */
-  public ExtractMethodOptions(String returnType, Boolean createGetter, String name, List<RefactoringMethodParameter> parameters, Boolean extractAll) {
+  public ExtractMethodOptions(String returnType, boolean createGetter, String name, List<RefactoringMethodParameter> parameters, boolean extractAll) {
     this.returnType = returnType;
     this.createGetter = createGetter;
     this.name = name;
@@ -94,20 +94,20 @@ public class ExtractMethodOptions extends RefactoringOptions {
       ExtractMethodOptions other = (ExtractMethodOptions) obj;
       return
         ObjectUtilities.equals(other.returnType, returnType) &&
-        ObjectUtilities.equals(other.createGetter, createGetter) &&
+        other.createGetter == createGetter &&
         ObjectUtilities.equals(other.name, name) &&
         ObjectUtilities.equals(other.parameters, parameters) &&
-        ObjectUtilities.equals(other.extractAll, extractAll);
+        other.extractAll == extractAll;
     }
     return false;
   }
 
   public static ExtractMethodOptions fromJson(JsonObject jsonObject) {
     String returnType = jsonObject.get("returnType").getAsString();
-    Boolean createGetter = jsonObject.get("createGetter").getAsBoolean();
+    boolean createGetter = jsonObject.get("createGetter").getAsBoolean();
     String name = jsonObject.get("name").getAsString();
     List<RefactoringMethodParameter> parameters = RefactoringMethodParameter.fromJsonArray(jsonObject.get("parameters").getAsJsonArray());
-    Boolean extractAll = jsonObject.get("extractAll").getAsBoolean();
+    boolean extractAll = jsonObject.get("extractAll").getAsBoolean();
     return new ExtractMethodOptions(returnType, createGetter, name, parameters, extractAll);
   }
 
@@ -127,7 +127,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * True if a getter should be created rather than a method. It is an error if this field is true
    * and the list of parameters is non-empty.
    */
-  public Boolean createGetter() {
+  public boolean createGetter() {
     return createGetter;
   }
 
@@ -136,7 +136,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * the method. The expression or statements used to initiate the refactoring will always be
    * replaced.
    */
-  public Boolean extractAll() {
+  public boolean extractAll() {
     return extractAll;
   }
 

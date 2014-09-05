@@ -80,7 +80,7 @@ public class Element {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  private final Integer flags;
+  private final int flags;
 
   /**
    * The parameter list for the element. If the element is not a method or function this field will
@@ -98,7 +98,7 @@ public class Element {
   /**
    * Constructor for {@link Element}.
    */
-  public Element(String kind, String name, Location location, Integer flags, String parameters, String returnType) {
+  public Element(String kind, String name, Location location, int flags, String parameters, String returnType) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -126,7 +126,7 @@ public class Element {
     String kind = jsonObject.get("kind").getAsString();
     String name = jsonObject.get("name").getAsString();
     Location location = jsonObject.get("location") == null ? null : Location.fromJson(jsonObject.get("location").getAsJsonObject());
-    Integer flags = jsonObject.get("flags").getAsInt();
+    int flags = jsonObject.get("flags").getAsInt();
     String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
     return new Element(kind, name, location, flags, parameters, returnType);
@@ -154,7 +154,7 @@ public class Element {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  public Integer getFlags() {
+  public int getFlags() {
     return flags;
   }
 

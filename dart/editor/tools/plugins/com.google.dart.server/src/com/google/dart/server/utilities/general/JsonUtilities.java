@@ -43,6 +43,20 @@ public class JsonUtilities {
     return booleanArray;
   }
 
+  public static int[] decodeIntArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return new int[0];
+    }
+    int i = 0;
+    int[] intArray = new int[jsonArray.size()];
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      intArray[i] = iterator.next().getAsInt();
+      i++;
+    }
+    return intArray;
+  }
+
   public static Integer[] decodeIntegerArray(JsonArray jsonArray) {
     if (jsonArray == null) {
       return new Integer[0];

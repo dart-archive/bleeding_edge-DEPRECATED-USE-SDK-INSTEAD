@@ -46,12 +46,12 @@ public class SourceEdit {
   /**
    * The offset of the region to be modified.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the region to be modified.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The code that is to replace the specified region in the original code.
@@ -72,7 +72,7 @@ public class SourceEdit {
   /**
    * Constructor for {@link SourceEdit}.
    */
-  public SourceEdit(Integer offset, Integer length, String replacement, String id) {
+  public SourceEdit(int offset, int length, String replacement, String id) {
     this.offset = offset;
     this.length = length;
     this.replacement = replacement;
@@ -93,8 +93,8 @@ public class SourceEdit {
   }
 
   public static SourceEdit fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     String replacement = jsonObject.get("replacement").getAsString();
     String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
     return new SourceEdit(offset, length, replacement, id);
@@ -128,14 +128,14 @@ public class SourceEdit {
   /**
    * The length of the region to be modified.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the region to be modified.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

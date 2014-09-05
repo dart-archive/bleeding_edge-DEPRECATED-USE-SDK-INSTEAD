@@ -44,17 +44,17 @@ public class RenameFeedback extends RefactoringFeedback {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the name selected to be renamed.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * Constructor for {@link RenameFeedback}.
    */
-  public RenameFeedback(Integer offset, Integer length) {
+  public RenameFeedback(int offset, int length) {
     this.offset = offset;
     this.length = length;
   }
@@ -71,8 +71,8 @@ public class RenameFeedback extends RefactoringFeedback {
   }
 
   public static RenameFeedback fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     return new RenameFeedback(offset, length);
   }
 
@@ -91,14 +91,14 @@ public class RenameFeedback extends RefactoringFeedback {
   /**
    * The length of the name selected to be renamed.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

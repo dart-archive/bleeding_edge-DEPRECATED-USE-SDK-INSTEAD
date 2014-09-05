@@ -46,7 +46,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  private final Boolean isAnalyzing;
+  private final boolean isAnalyzing;
 
   /**
    * The name of the current target of analysis. This field is omitted if analyzing is false.
@@ -56,7 +56,7 @@ public class AnalysisStatus {
   /**
    * Constructor for {@link AnalysisStatus}.
    */
-  public AnalysisStatus(Boolean isAnalyzing, String analysisTarget) {
+  public AnalysisStatus(boolean isAnalyzing, String analysisTarget) {
     this.isAnalyzing = isAnalyzing;
     this.analysisTarget = analysisTarget;
   }
@@ -66,14 +66,14 @@ public class AnalysisStatus {
     if (obj instanceof AnalysisStatus) {
       AnalysisStatus other = (AnalysisStatus) obj;
       return
-        ObjectUtilities.equals(other.isAnalyzing, isAnalyzing) &&
+        other.isAnalyzing == isAnalyzing &&
         ObjectUtilities.equals(other.analysisTarget, analysisTarget);
     }
     return false;
   }
 
   public static AnalysisStatus fromJson(JsonObject jsonObject) {
-    Boolean isAnalyzing = jsonObject.get("isAnalyzing").getAsBoolean();
+    boolean isAnalyzing = jsonObject.get("isAnalyzing").getAsBoolean();
     String analysisTarget = jsonObject.get("analysisTarget") == null ? null : jsonObject.get("analysisTarget").getAsString();
     return new AnalysisStatus(isAnalyzing, analysisTarget);
   }
@@ -100,7 +100,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  public Boolean isAnalyzing() {
+  public boolean isAnalyzing() {
     return isAnalyzing;
   }
 

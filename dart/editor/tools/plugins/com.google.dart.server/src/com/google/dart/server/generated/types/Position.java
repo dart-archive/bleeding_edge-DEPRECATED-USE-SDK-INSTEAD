@@ -51,12 +51,12 @@ public class Position {
   /**
    * The offset of the position.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * Constructor for {@link Position}.
    */
-  public Position(String file, Integer offset) {
+  public Position(String file, int offset) {
     this.file = file;
     this.offset = offset;
   }
@@ -74,7 +74,7 @@ public class Position {
 
   public static Position fromJson(JsonObject jsonObject) {
     String file = jsonObject.get("file").getAsString();
-    Integer offset = jsonObject.get("offset").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
     return new Position(file, offset);
   }
 
@@ -100,7 +100,7 @@ public class Position {
   /**
    * The offset of the position.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

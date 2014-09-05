@@ -45,18 +45,18 @@ public class InlineMethodOptions extends RefactoringOptions {
    * True if the method being inlined should be removed. It is an error if this field is true and
    * inlineAll is false.
    */
-  private final Boolean deleteSource;
+  private final boolean deleteSource;
 
   /**
    * True if all invocations of the method should be inlined, or false if only the invocation site
    * used to create this refactoring should be inlined.
    */
-  private final Boolean inlineAll;
+  private final boolean inlineAll;
 
   /**
    * Constructor for {@link InlineMethodOptions}.
    */
-  public InlineMethodOptions(Boolean deleteSource, Boolean inlineAll) {
+  public InlineMethodOptions(boolean deleteSource, boolean inlineAll) {
     this.deleteSource = deleteSource;
     this.inlineAll = inlineAll;
   }
@@ -66,15 +66,15 @@ public class InlineMethodOptions extends RefactoringOptions {
     if (obj instanceof InlineMethodOptions) {
       InlineMethodOptions other = (InlineMethodOptions) obj;
       return
-        ObjectUtilities.equals(other.deleteSource, deleteSource) &&
-        ObjectUtilities.equals(other.inlineAll, inlineAll);
+        other.deleteSource == deleteSource &&
+        other.inlineAll == inlineAll;
     }
     return false;
   }
 
   public static InlineMethodOptions fromJson(JsonObject jsonObject) {
-    Boolean deleteSource = jsonObject.get("deleteSource").getAsBoolean();
-    Boolean inlineAll = jsonObject.get("inlineAll").getAsBoolean();
+    boolean deleteSource = jsonObject.get("deleteSource").getAsBoolean();
+    boolean inlineAll = jsonObject.get("inlineAll").getAsBoolean();
     return new InlineMethodOptions(deleteSource, inlineAll);
   }
 
@@ -94,7 +94,7 @@ public class InlineMethodOptions extends RefactoringOptions {
    * True if the method being inlined should be removed. It is an error if this field is true and
    * inlineAll is false.
    */
-  public Boolean deleteSource() {
+  public boolean deleteSource() {
     return deleteSource;
   }
 
@@ -102,7 +102,7 @@ public class InlineMethodOptions extends RefactoringOptions {
    * True if all invocations of the method should be inlined, or false if only the invocation site
    * used to create this refactoring should be inlined.
    */
-  public Boolean inlineAll() {
+  public boolean inlineAll() {
     return inlineAll;
   }
 

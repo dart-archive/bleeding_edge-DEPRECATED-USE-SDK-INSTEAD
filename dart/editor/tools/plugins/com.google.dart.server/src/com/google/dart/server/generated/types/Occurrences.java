@@ -51,17 +51,17 @@ public class Occurrences {
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  private final Integer[] offsets;
+  private final int[] offsets;
 
   /**
    * The length of the name of the referenced element.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * Constructor for {@link Occurrences}.
    */
-  public Occurrences(Element element, Integer[] offsets, Integer length) {
+  public Occurrences(Element element, int[] offsets, int length) {
     this.element = element;
     this.offsets = offsets;
     this.length = length;
@@ -90,8 +90,8 @@ public class Occurrences {
 
   public static Occurrences fromJson(JsonObject jsonObject) {
     Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
-    Integer[] offsets = JsonUtilities.decodeIntegerArray(jsonObject.get("offsets").getAsJsonArray());
-    Integer length = jsonObject.get("length").getAsInt();
+    int[] offsets = JsonUtilities.decodeIntArray(jsonObject.get("offsets").getAsJsonArray());
+    int length = jsonObject.get("length").getAsInt();
     return new Occurrences(element, offsets, length);
   }
 
@@ -117,14 +117,14 @@ public class Occurrences {
   /**
    * The length of the name of the referenced element.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  public Integer[] getOffsets() {
+  public int[] getOffsets() {
     return offsets;
   }
 
@@ -141,7 +141,7 @@ public class Occurrences {
     JsonObject jsonObject = new JsonObject();
     jsonObject.add("element", element.toJson());
     JsonArray jsonArrayOffsets = new JsonArray();
-    for(Integer elt : offsets) {
+    for(int elt : offsets) {
       jsonArrayOffsets.add(new JsonPrimitive(elt));
     }
     jsonObject.add("offsets", jsonArrayOffsets);

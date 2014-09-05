@@ -39,10 +39,9 @@ public class DartCompletionReceiverTest extends TestCase {
     }
 
     @Override
-    public void completion_getSuggestions(String file, Integer offset,
-        GetSuggestionsConsumer consumer) {
+    public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer) {
       assertEquals(testFile, file);
-      assertEquals(testOffset, offset.intValue());
+      assertEquals(testOffset, offset);
       this.consumer = consumer;
       // Send results asynchronously
       Thread thread = new Thread(getClass().getSimpleName() + " suggestion results") {

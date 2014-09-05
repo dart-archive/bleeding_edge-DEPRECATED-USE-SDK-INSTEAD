@@ -46,12 +46,12 @@ public class NavigationRegion {
   /**
    * The offset of the region from which the user can navigate.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the region from which the user can navigate.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The elements to which the given region is bound. By opening the declaration of the elements,
@@ -62,7 +62,7 @@ public class NavigationRegion {
   /**
    * Constructor for {@link NavigationRegion}.
    */
-  public NavigationRegion(Integer offset, Integer length, List<Element> targets) {
+  public NavigationRegion(int offset, int length, List<Element> targets) {
     this.offset = offset;
     this.length = length;
     this.targets = targets;
@@ -85,8 +85,8 @@ public class NavigationRegion {
   }
 
   public static NavigationRegion fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     List<Element> targets = Element.fromJsonArray(jsonObject.get("targets").getAsJsonArray());
     return new NavigationRegion(offset, length, targets);
   }
@@ -106,14 +106,14 @@ public class NavigationRegion {
   /**
    * The length of the region from which the user can navigate.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
   /**
    * The offset of the region from which the user can navigate.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

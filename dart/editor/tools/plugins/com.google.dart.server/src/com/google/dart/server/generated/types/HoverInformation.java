@@ -47,13 +47,13 @@ public class HoverInformation {
    * The offset of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * The length of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  private final Integer length;
+  private final int length;
 
   /**
    * The path to the defining compilation unit of the library in which the referenced element is
@@ -109,7 +109,7 @@ public class HoverInformation {
   /**
    * Constructor for {@link HoverInformation}.
    */
-  public HoverInformation(Integer offset, Integer length, String containingLibraryPath, String containingLibraryName, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType) {
+  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -142,8 +142,8 @@ public class HoverInformation {
   }
 
   public static HoverInformation fromJson(JsonObject jsonObject) {
-    Integer offset = jsonObject.get("offset").getAsInt();
-    Integer length = jsonObject.get("length").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
+    int length = jsonObject.get("length").getAsInt();
     String containingLibraryPath = jsonObject.get("containingLibraryPath") == null ? null : jsonObject.get("containingLibraryPath").getAsString();
     String containingLibraryName = jsonObject.get("containingLibraryName") == null ? null : jsonObject.get("containingLibraryName").getAsString();
     String dartdoc = jsonObject.get("dartdoc") == null ? null : jsonObject.get("dartdoc").getAsString();
@@ -214,7 +214,7 @@ public class HoverInformation {
    * The length of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  public Integer getLength() {
+  public int getLength() {
     return length;
   }
 
@@ -222,7 +222,7 @@ public class HoverInformation {
    * The offset of the range of characters that encompases the cursor position and has the same hover
    * information as the cursor position.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 

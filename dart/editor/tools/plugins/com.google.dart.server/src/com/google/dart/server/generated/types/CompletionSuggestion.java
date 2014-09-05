@@ -65,23 +65,23 @@ public class CompletionSuggestion {
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
-  private final Integer selectionOffset;
+  private final int selectionOffset;
 
   /**
    * The number of characters that should be selected after insertion.
    */
-  private final Integer selectionLength;
+  private final int selectionLength;
 
   /**
    * True if the suggested element is deprecated.
    */
-  private final Boolean isDeprecated;
+  private final boolean isDeprecated;
 
   /**
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
-  private final Boolean isPotential;
+  private final boolean isPotential;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
@@ -146,7 +146,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, Integer selectionOffset, Integer selectionLength, Boolean isDeprecated, Boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -176,16 +176,16 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.completion, completion) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
-        ObjectUtilities.equals(other.isDeprecated, isDeprecated) &&
-        ObjectUtilities.equals(other.isPotential, isPotential) &&
+        other.isDeprecated == isDeprecated &&
+        other.isPotential == isPotential &&
         ObjectUtilities.equals(other.docSummary, docSummary) &&
         ObjectUtilities.equals(other.docComplete, docComplete) &&
         ObjectUtilities.equals(other.declaringType, declaringType) &&
         ObjectUtilities.equals(other.returnType, returnType) &&
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
         ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
-        other.requiredParameterCount == requiredParameterCount &&
-        other.positionalParameterCount == positionalParameterCount &&
+        ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
+        ObjectUtilities.equals(other.positionalParameterCount, positionalParameterCount) &&
         ObjectUtilities.equals(other.parameterName, parameterName) &&
         ObjectUtilities.equals(other.parameterType, parameterType);
     }
@@ -196,10 +196,10 @@ public class CompletionSuggestion {
     String kind = jsonObject.get("kind").getAsString();
     String relevance = jsonObject.get("relevance").getAsString();
     String completion = jsonObject.get("completion").getAsString();
-    Integer selectionOffset = jsonObject.get("selectionOffset").getAsInt();
-    Integer selectionLength = jsonObject.get("selectionLength").getAsInt();
-    Boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
-    Boolean isPotential = jsonObject.get("isPotential").getAsBoolean();
+    int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
+    int selectionLength = jsonObject.get("selectionLength").getAsInt();
+    boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
+    boolean isPotential = jsonObject.get("isPotential").getAsBoolean();
     String docSummary = jsonObject.get("docSummary") == null ? null : jsonObject.get("docSummary").getAsString();
     String docComplete = jsonObject.get("docComplete") == null ? null : jsonObject.get("docComplete").getAsString();
     String declaringType = jsonObject.get("declaringType") == null ? null : jsonObject.get("declaringType").getAsString();
@@ -261,7 +261,7 @@ public class CompletionSuggestion {
   /**
    * True if the suggested element is deprecated.
    */
-  public Boolean isDeprecated() {
+  public boolean isDeprecated() {
     return isDeprecated;
   }
 
@@ -269,7 +269,7 @@ public class CompletionSuggestion {
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
-  public Boolean isPotential() {
+  public boolean isPotential() {
     return isPotential;
   }
 
@@ -346,7 +346,7 @@ public class CompletionSuggestion {
   /**
    * The number of characters that should be selected after insertion.
    */
-  public Integer getSelectionLength() {
+  public int getSelectionLength() {
     return selectionLength;
   }
 
@@ -354,7 +354,7 @@ public class CompletionSuggestion {
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
-  public Integer getSelectionOffset() {
+  public int getSelectionOffset() {
     return selectionOffset;
   }
 
