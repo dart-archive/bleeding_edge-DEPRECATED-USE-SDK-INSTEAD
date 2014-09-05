@@ -25,9 +25,40 @@ public class InspectorExpressionBotView extends AbstractBotView {
     this.text = text;
   }
 
+  /**
+   * Fetch the content of the text view.
+   * 
+   * @return the text
+   */
+  public String content() {
+    return text.getText();
+  }
+
+  /**
+   * Evaluate the expression.
+   */
+  public void enter() {
+    text.typeText("\n");
+  }
+
+  /**
+   * Ensure the text view has focus.
+   */
+  public void focus() {
+    text.setFocus();
+  }
+
+  /**
+   * Type an expression into the text view.
+   * 
+   * @param expr the expression
+   */
+  public void type(String expr) {
+    text.typeText(expr);
+  }
+
   @Override
   protected String viewName() {
     return "Inspector Expression";
   }
-
 }

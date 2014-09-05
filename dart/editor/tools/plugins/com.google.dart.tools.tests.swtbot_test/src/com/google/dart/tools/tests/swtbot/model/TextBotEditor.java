@@ -226,6 +226,11 @@ public class TextBotEditor extends AbstractBotView {
     }
   }
 
+  /**
+   * Select everything in the editor and return the model of the text view.
+   * 
+   * @return the SWTBotStyledText of the editor
+   */
   public SWTBotStyledText selectAll() {
     SWTBotEditor editorView = bot.editorByTitle(title);
     editorView.show();
@@ -275,33 +280,9 @@ public class TextBotEditor extends AbstractBotView {
     }
   }
 
-  public List<? extends Table> topTables() {
-    final Matcher<Table> matcher = WidgetOfType.widgetOfType(Table.class);
-    return UIThreadRunnable.syncExec(new Result<List<? extends Table>>() {
-      @Override
-      public List<? extends Table> run() {
-        List<Shell> shells = bot.shells("", ((Composite) editor().getWidget()).getShell());
-        List<Table> tables = new ArrayList<Table>();
-        for (Shell s : shells) {
-          try {
-            tables.addAll(bot.widgets(matcher, s));
-          } catch (WidgetNotFoundException ex) {
-            // do nothing -- one of the shells may have a table, the others do not
-          }
-        }
-        List<Table> topTables = new ArrayList<Table>();
-        for (Table t : tables) {
-          for (Shell x : shells) {
-            if (t.getParent() == x) {
-              topTables.add(t);
-            }
-          }
-        }
-        return topTables;
-      }
-    });
-  }
-
+  /**
+   * Undo the last edit using the keyboard shortcut.
+   */
   public void undo() {
     final SWTBotEclipseEditor editor = editor();
     UIThreadRunnable.syncExec(new VoidResult() {
@@ -398,6 +379,33 @@ public class TextBotEditor extends AbstractBotView {
         Point ext = gc.textExtent(line);
         gc.dispose();
         return ext.x;
+      }
+    });
+  }
+
+  private List<? extends Table> topTables() {
+    final Matcher<Table> matcher = WidgetOfType.widgetOfType(Table.class);
+    return UIThreadRunnable.syncExec(new Result<List<? extends Table>>() {
+      @Override
+      public List<? extends Table> run() {
+        List<Shell> shells = bot.shells("", ((Composite) editor().getWidget()).getShell());
+        List<Table> tables = new ArrayList<Table>();
+        for (Shell s : shells) {
+          try {
+            tables.addAll(bot.widgets(matcher, s));
+          } catch (WidgetNotFoundException ex) {
+            // do nothing -- one of the shells may have a table, the others do not
+          }
+        }
+        List<Table> topTables = new ArrayList<Table>();
+        for (Table t : tables) {
+          for (Shell x : shells) {
+            if (t.getParent() == x) {
+              topTables.add(t);
+            }
+          }
+        }
+        return topTables;
       }
     });
   }

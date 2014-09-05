@@ -33,6 +33,7 @@ import org.junit.runners.Suite;
     TestExtractMethod.class, //
     TestDartDocDoubleClick.class, //
     TestEmbeddedScripting.class, //
+    TestInspector.class, //
 //
 })
 public final class TestAll {

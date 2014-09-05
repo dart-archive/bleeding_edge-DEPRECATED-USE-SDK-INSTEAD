@@ -41,18 +41,11 @@ public class InspectorBotView extends AbstractBotView {
     bot.waitUntilWidgetAppears(Conditions.waitForView(new ViewWithTitle(viewName())));
   }
 
+  /**
+   * Close the Inspector view.
+   */
   public void close() {
     inspector().close();
-  }
-
-  /**
-   * Get the model for the inspected object.
-   * 
-   * @return an InspectorObjectBotView
-   */
-  public InspectorObjectBotView contextView() {
-    Tree tree = findTreeWithParent(SashForm.class);
-    return new InspectorObjectBotView(bot, new SWTBotTree(tree));
   }
 
   /**
@@ -61,12 +54,12 @@ public class InspectorBotView extends AbstractBotView {
    * @return an InspectorExpressionBotView
    */
   public InspectorExpressionBotView expressionView() {
-    SWTBotLabel label = bot.label("Enter expression to evaluate:");
-    final Composite comp = label.widget.getParent();
+    final SWTBotLabel label = bot.label("Enter expression to evaluate:");
     final Matcher<StyledText> matcher = WidgetOfType.widgetOfType(StyledText.class);
     final StyledText text = UIThreadRunnable.syncExec(new Result<StyledText>() {
       @Override
       public StyledText run() {
+        Composite comp = label.widget.getParent();
         return bot.widget(matcher, comp);
       }
     });
@@ -80,6 +73,16 @@ public class InspectorBotView extends AbstractBotView {
    */
   public SWTBotView inspector() {
     return bot.viewByTitle(viewName());
+  }
+
+  /**
+   * Get the model for the inspected object.
+   * 
+   * @return an InspectorObjectBotView
+   */
+  public InspectorObjectBotView instanceView() {
+    Tree tree = findTreeWithParent(SashForm.class);
+    return new InspectorObjectBotView(bot, new SWTBotTree(tree));
   }
 
   /**

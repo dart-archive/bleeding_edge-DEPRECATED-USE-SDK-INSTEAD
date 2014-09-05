@@ -26,6 +26,11 @@ public class InspectorObjectBotView extends AbstractTreeBotView {
   }
 
   @Override
+  public SWTBotTree tree() {
+    return tree;
+  }
+
+  @Override
   protected String viewName() {
     return "Inspector Object";
   }
