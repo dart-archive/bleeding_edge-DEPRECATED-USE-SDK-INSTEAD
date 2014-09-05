@@ -40,7 +40,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} for "Convert Getter To Method" refactoring.
  */
-public class ConvertGetterToMethodAction extends AbstractRefactoringAction {
+public class ConvertGetterToMethodAction extends AbstractRefactoringAction_OLD {
   /**
    * @return the {@link ConvertGetterToMethodRefactoring} to process given {@link Element}, may be
    *         {@code null} if {@link Element} cannot be processed.

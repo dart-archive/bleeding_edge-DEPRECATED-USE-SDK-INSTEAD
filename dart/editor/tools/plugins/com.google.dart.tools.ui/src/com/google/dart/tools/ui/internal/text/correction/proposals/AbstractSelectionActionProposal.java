@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -26,10 +26,10 @@ import org.eclipse.jface.text.IDocument;
  * @coverage dart.editor.ui.correction
  */
 public abstract class AbstractSelectionActionProposal extends AbstractActionProposal {
-  private final AbstractDartSelectionAction action;
+  private final AbstractDartSelectionAction_OLD action;
   private final DartSelection selection;
 
-  public AbstractSelectionActionProposal(AbstractDartSelectionAction action, String label,
+  public AbstractSelectionActionProposal(AbstractDartSelectionAction_OLD action, String label,
       DartSelection selection) {
     super(action, label);
     this.action = action;

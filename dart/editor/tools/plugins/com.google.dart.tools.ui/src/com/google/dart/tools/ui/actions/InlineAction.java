@@ -29,7 +29,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineAction extends AbstractRefactoringAction {
+public class InlineAction extends AbstractRefactoringAction_OLD {
   private final InlineLocalAction inlineLocal;
   private final InlineMethodAction inlineMethod;
 

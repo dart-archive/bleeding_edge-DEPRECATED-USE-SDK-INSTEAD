@@ -49,8 +49,10 @@ public class GetRefactoringProcessor extends ResultProcessor {
         "problems").getAsJsonArray());
 
     // change
-    SourceChange change = SourceChange.fromJson(resultObject.get("change") != null
-        ? resultObject.get("change").getAsJsonObject() : null);
+    SourceChange change = null;
+    if (resultObject.has("change")) {
+      change = SourceChange.fromJson(resultObject.get("change").getAsJsonObject());
+    }
 
     // potential edits
     List<String> potentialEdits = JsonUtilities.decodeStringList(resultObject.get("potentialEdits") != null

@@ -31,7 +31,7 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
@@ -55,7 +55,7 @@ import java.util.Set;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindDeclarationsAction extends AbstractDartSelectionAction {
+public class FindDeclarationsAction extends AbstractDartSelectionAction_OLD {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */

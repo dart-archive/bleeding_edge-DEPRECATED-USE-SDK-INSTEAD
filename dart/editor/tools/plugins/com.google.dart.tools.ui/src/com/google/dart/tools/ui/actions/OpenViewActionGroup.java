@@ -24,7 +24,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * Action group that with "Open..." actions
  */
 public class OpenViewActionGroup extends AbstractDartSelectionActionGroup {
-  private AbstractDartSelectionAction typeHierarchyAction;
+  private AbstractDartSelectionAction_OLD typeHierarchyAction;
 
   public OpenViewActionGroup(DartEditor editor) {
     super(editor);

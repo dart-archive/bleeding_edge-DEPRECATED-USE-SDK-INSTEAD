@@ -40,7 +40,7 @@ import java.io.File;
 /**
  * This action opens an external DartDoc link.
  */
-public class OpenExternalDartdocAction extends AbstractDartSelectionAction {
+public class OpenExternalDartdocAction extends AbstractDartSelectionAction_OLD {
 
   public OpenExternalDartdocAction(DartEditor editor) {
     super(editor);

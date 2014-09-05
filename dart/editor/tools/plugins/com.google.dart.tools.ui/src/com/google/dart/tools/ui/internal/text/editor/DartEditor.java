@@ -57,7 +57,7 @@ import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_NEW;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -1813,14 +1813,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     {
       IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
       if (action != null && action.isEnabled()) {
-        addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
+        addAction(
+            menu,
+            RefactorActionGroup_NEW.GROUP_REORG,
+            ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
 
     // Format
     IAction action = getAction(DartEditorActionDefinitionIds.QUICK_FORMAT);
     if (action != null && action.isEnabled()) {
-      addAction(menu, RefactorActionGroup.GROUP_REORG, DartEditorActionDefinitionIds.QUICK_FORMAT);
+      addAction(
+          menu,
+          RefactorActionGroup_NEW.GROUP_REORG,
+          DartEditorActionDefinitionIds.QUICK_FORMAT);
     }
 
     if (selection instanceof DartSelection) {

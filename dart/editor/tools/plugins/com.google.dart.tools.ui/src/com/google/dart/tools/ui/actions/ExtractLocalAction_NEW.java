@@ -13,15 +13,17 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.server.generated.types.RefactoringKind;
+import com.google.dart.tools.ui.internal.refactoring.ExtractLocalWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.ServerExtractLocalRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.swt.widgets.Event;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -29,50 +31,105 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractLocalAction_NEW extends AbstractRefactoringAction {
-  private ServerExtractLocalRefactoring refactoring;
+public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
+//  private ServerExtractLocalRefactoring refactoring;
 
   public ExtractLocalAction_NEW(DartEditor editor) {
-    super(editor);
+    super(editor, RefactoringKind.EXTRACT_LOCAL_VARIABLE);
   }
 
   @Override
-  public void selectionChanged(DartSelection selection) {
-    // cannot operate on this editor
-    if (!canOperateOn()) {
-      setEnabled(false);
-      return;
+  public void run() {
+    // prepare refactoring
+//    refactoring = null;
+//    Control focusControl = Display.getCurrent().getFocusControl();
+//    try {
+//      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+//      progressService.busyCursorWhile(new IRunnableWithProgress() {
+//        @Override
+//        public void run(IProgressMonitor pm) throws InterruptedException {
+//          final CountDownLatch latch = new CountDownLatch(1);
+//          ExtractLocalVariableOptions options = null;
+//          DartCore.getAnalysisServer().edit_getRefactoring(
+//              RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+//              file,
+//              selectionOffset,
+//              selectionLength,
+//              false,
+//              options,
+//              new GetRefactoringConsumer() {
+//                @Override
+//                public void computedRefactorings(List<RefactoringProblem> problems,
+//                    RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+//                  System.out.println("computedRefactorings: " + change);
+//                }
+//              });
+//          while (true) {
+//            if (pm.isCanceled()) {
+//              throw new InterruptedException();
+//            }
+//            if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
+//              break;
+//            }
+//          }
+//        }
+//      });
+//    } catch (Throwable e) {
+//      return;
+//    } finally {
+//      if (focusControl != null) {
+//        focusControl.setFocus();
+//      }
+//    }
+//    if (refactoring == null) {
+//      return;
+//    }
+    // open dialog
+    ServerExtractLocalRefactoring refactoring = new ServerExtractLocalRefactoring(
+        file,
+        selectionOffset,
+        selectionLength);
+    try {
+      new RefactoringStarter().activate(
+          new ExtractLocalWizard_NEW(refactoring),
+          getShell(),
+          RefactoringMessages.ExtractLocalAction_dialog_title,
+          RefactoringSaveHelper.SAVE_NOTHING);
+    } catch (Throwable e) {
+      e.printStackTrace();
     }
-    // empty selection
-    if (selection.getLength() == 0) {
-      setEnabled(false);
-      return;
-    }
-//    // prepare context
-//    AssistContext context = selection.getContext();
-//    if (context == null) {
-//      setEnabled(false);
-//      return;
-//    }
-//    // prepare covered node
-//    AstNode coveredNode = context.getCoveredNode();
-//    if (coveredNode == null) {
-//      setEnabled(false);
-//      return;
-//    }
-//    // selection should be inside of executable node
-//    if (coveredNode.getAncestor(Block.class) == null) {
-//      setEnabled(false);
-//      return;
-//    }
-    // OK
+  }
+
+//  @Override
+//  public void run() {
+//    RefactoringOptions options = new ExtractLocalVariableOptions("res", true);
+//    DartCore.getAnalysisServer().edit_getRefactoring(
+//        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+//        file,
+//        selectionOffset,
+//        selectionLength,
+//        false,
+//        options,
+//        new GetRefactoringConsumer() {
+//          @Override
+//          public void computedRefactorings(List<RefactoringProblem> problems,
+//              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+//            System.out.println("computedRefactorings: " + change);
+//          }
+//        });
+//  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    // TODO
     setEnabled(true);
   }
 
-  @Override
-  protected void doRun(DartSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) restore or remove for the new API
+//  @Override
+//  protected void doRun(DartSelection selection, Event event,
+//      UIInstrumentationBuilder instrumentation) {
+//    // TODO(scheglov) restore or remove for the new API
 //    final String contextId = selection.getEditor().getInputAnalysisContextId();
 //    final Source source = selection.getEditor().getInputSource();
 //    if (contextId == null || source == null) {
@@ -139,7 +196,7 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction {
 //          "Extract Local",
 //          "Unexpected exception occurred. See the error log for more details.");
 //    }
-  }
+//  }
 
   @Override
   protected void init() {

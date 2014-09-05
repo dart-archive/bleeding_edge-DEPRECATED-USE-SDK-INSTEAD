@@ -30,7 +30,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} to show "Type Hierarchy" view.
  */
-public class OpenTypeHierarchyAction_OLD extends AbstractDartSelectionAction {
+public class OpenTypeHierarchyAction_OLD extends AbstractDartSelectionAction_OLD {
   public OpenTypeHierarchyAction_OLD(DartEditor editor) {
     super(editor);
   }

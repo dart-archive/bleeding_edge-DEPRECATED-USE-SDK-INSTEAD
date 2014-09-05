@@ -80,7 +80,7 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
 
     @Override
     protected RefactoringStatus validateTextField(String text) {
-      return getExtractLocalRefactoring().checkLocalName(text);
+      return getExtractLocalRefactoring().setLocalName(text);
     }
 
     private void addReplaceAllCheckbox(Composite result, RowLayouter layouter) {

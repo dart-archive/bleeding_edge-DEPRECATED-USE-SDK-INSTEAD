@@ -18,7 +18,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
+public class FindReferencesAction_NEW extends AbstractDartSelectionAction_OLD {
   /**
    * Shows "Search" view with references to non-local elements with given name.
    */

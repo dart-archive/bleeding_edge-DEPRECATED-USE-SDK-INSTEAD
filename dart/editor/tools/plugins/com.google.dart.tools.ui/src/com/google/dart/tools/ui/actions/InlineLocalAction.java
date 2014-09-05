@@ -37,7 +37,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineLocalAction extends AbstractRefactoringAction {
+public class InlineLocalAction extends AbstractRefactoringAction_OLD {
   public InlineLocalAction(DartEditor editor) {
     super(editor);
   }

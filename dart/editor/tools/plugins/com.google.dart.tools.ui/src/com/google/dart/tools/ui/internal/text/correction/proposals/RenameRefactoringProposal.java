@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
@@ -26,7 +26,7 @@ import org.eclipse.swt.graphics.Image;
  * @coverage dart.editor.ui.correction
  */
 public class RenameRefactoringProposal extends AbstractSelectionActionProposal {
-  public RenameRefactoringProposal(RenameDartElementAction action, DartSelection selection) {
+  public RenameRefactoringProposal(RenameDartElementAction_OLD action, DartSelection selection) {
     super(action, CorrectionMessages.RenameRefactoringProposal_name, selection);
   }
 

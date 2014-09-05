@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
@@ -24,7 +25,8 @@ import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_NEW;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
@@ -1359,9 +1361,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
 
     fGenerateActionGroup = new GenerateActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
-    fRefactorActionGroup = new RefactorActionGroup(this);
-    //    ActionGroup surroundWith = new SurroundWithActionGroup(this,
-    //        ITextEditorActionConstants.GROUP_EDIT);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      fRefactorActionGroup = new RefactorActionGroup_NEW(this);
+    } else {
+      fRefactorActionGroup = new RefactorActionGroup_OLD(this);
+      //    ActionGroup surroundWith = new SurroundWithActionGroup(this,
+      //        ITextEditorActionConstants.GROUP_EDIT);
+    }
 
     //    fActionGroups.addGroup(surroundWith);
     fActionGroups.addGroup(fRefactorActionGroup);

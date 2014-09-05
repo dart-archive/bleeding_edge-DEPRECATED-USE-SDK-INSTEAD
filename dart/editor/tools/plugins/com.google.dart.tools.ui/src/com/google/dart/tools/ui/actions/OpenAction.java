@@ -39,7 +39,7 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
 /**
  * This action opens a {@link DartEditor} with declaration of {@link Element}.
  */
-public class OpenAction extends AbstractDartSelectionAction {
+public class OpenAction extends AbstractDartSelectionAction_OLD {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */

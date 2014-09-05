@@ -18,7 +18,10 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.generated.types.LinkedEditGroup;
 import com.google.dart.server.generated.types.LinkedEditSuggestion;
 import com.google.dart.server.generated.types.LinkedEditSuggestionKind;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.Position;
+import com.google.dart.server.generated.types.RefactoringProblem;
+import com.google.dart.server.generated.types.RefactoringProblemSeverity;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.generated.types.SourceFileEdit;
@@ -35,6 +38,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
@@ -58,6 +65,20 @@ public class ServiceUtils_NEW {
   public static CoreException createCoreException(Throwable e) {
     IStatus status = createRuntimeStatus(e);
     return new CoreException(status);
+  }
+
+  /**
+   * @return the LTK change for the given Services {@link CompositeChange}.
+   */
+  public static CompositeChange toLTK(SourceChange sourceChange) {
+    CompositeChange ltkChange = new CompositeChange("Composite change");
+    if (sourceChange != null) {
+      for (SourceFileEdit fileEdit : sourceChange.getEdits()) {
+        TextChange textChange = toLTK(fileEdit);
+        ltkChange.add(textChange);
+      }
+    }
+    return ltkChange;
   }
 
   /**
@@ -90,9 +111,25 @@ public class ServiceUtils_NEW {
   /**
    * @return the error status for given {@link Throwable}.
    */
-  public static org.eclipse.ltk.core.refactoring.RefactoringStatus toLTK(Throwable e) {
+  public static RefactoringStatus toLTK(Throwable e) {
     IStatus status = createRuntimeStatus(e);
-    return org.eclipse.ltk.core.refactoring.RefactoringStatus.create(status);
+    return RefactoringStatus.create(status);
+  }
+
+  /**
+   * @return the LTK status for the given {@link RefactoringProblem}s.
+   */
+  public static RefactoringStatus toRefactoringStatus(List<RefactoringProblem> problems) {
+    RefactoringStatus result = new RefactoringStatus();
+    for (RefactoringProblem problem : problems) {
+      result.addEntry(
+          toProblemSeverity(problem.getSeverity()),
+          problem.getMessage(),
+          toRefactoringContext(problem.getLocation()),
+          null,
+          RefactoringStatusEntry.NO_CODE);
+    }
+    return result;
   }
 
   /**
@@ -198,5 +235,30 @@ public class ServiceUtils_NEW {
 
   private static TextEdit toLTK(SourceEdit edit) {
     return new ReplaceEdit(edit.getOffset(), edit.getLength(), edit.getReplacement());
+  }
+
+  private static int toProblemSeverity(String severity) {
+    if (RefactoringProblemSeverity.FATAL.equals(severity)) {
+      return RefactoringStatus.FATAL;
+    }
+    if (RefactoringProblemSeverity.ERROR.equals(severity)) {
+      return RefactoringStatus.ERROR;
+    }
+    if (RefactoringProblemSeverity.WARNING.equals(severity)) {
+      return RefactoringStatus.WARNING;
+    }
+    return RefactoringStatus.OK;
+  }
+
+  /**
+   * @return the Dart status context for the given {@link Location}.
+   */
+  private static RefactoringStatusContext toRefactoringContext(Location location) {
+    // TODO(scheglov)
+    return null;
+//    if (context == null) {
+//      return null;
+//    }
+//    return new DartStatusContext(context.getContext(), context.getSource(), context.getRange());
   }
 }

@@ -37,7 +37,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractMethodAction extends AbstractRefactoringAction {
+public class ExtractMethodAction extends AbstractRefactoringAction_OLD {
   public ExtractMethodAction(DartEditor editor) {
     super(editor);
   }

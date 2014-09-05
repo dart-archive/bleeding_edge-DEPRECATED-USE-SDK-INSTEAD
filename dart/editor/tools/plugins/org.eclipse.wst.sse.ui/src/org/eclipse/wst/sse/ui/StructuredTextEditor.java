@@ -9,7 +9,7 @@ package org.eclipse.wst.sse.ui;
 
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -2296,7 +2296,7 @@ public class StructuredTextEditor extends TextEditor {
     // replaces call to super.editorContextMenuAboutToShow()
     menu.add(new Separator(ITextEditorActionConstants.GROUP_OPEN));
     menu.add(new Separator(ITextEditorActionConstants.GROUP_EDIT));
-    menu.add(new Separator(RefactorActionGroup.GROUP_REORG));
+    menu.add(new Separator(RefactorActionGroup_OLD.GROUP_REORG));
     menu.add(new Separator(ITextEditorActionConstants.GROUP_RESTORE));
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
@@ -2309,7 +2309,7 @@ public class StructuredTextEditor extends TextEditor {
       addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.PASTE);
       IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
       if (action != null && action.isEnabled()) {
-        addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
+        addAction(menu, RefactorActionGroup_OLD.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     } else {
       addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);

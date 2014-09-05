@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.internal.search.ui;
 
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.ui.IWorkbenchSite;
@@ -22,7 +22,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * Finds declarations of the selected method in the hierarchy. The action is applicable to
  * selections representing a Dart method only. TODO(pquitslund): unused (implement or remove)
  */
-public class FindOverridesAction extends AbstractDartSelectionAction /* FindAction_OLD */{
+public class FindOverridesAction extends AbstractDartSelectionAction_OLD /* FindAction_OLD */{
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.

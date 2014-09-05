@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.SearchResult;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction {
+public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_OLD {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */

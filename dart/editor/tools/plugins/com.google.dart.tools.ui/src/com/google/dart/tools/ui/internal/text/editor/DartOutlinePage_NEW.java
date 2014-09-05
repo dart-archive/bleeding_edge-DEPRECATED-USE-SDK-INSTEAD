@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -418,8 +417,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     IPageSite site = getSite();
     site.setSelectionProvider(viewer);
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(site), new RefactorActionGroup(site),
-        new DartSearchActionGroup(site)});
+        new OpenViewActionGroup(site), new DartSearchActionGroup(site)});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

@@ -24,7 +24,7 @@ import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.ui.actions.AbstractRefactoringAction;
+import com.google.dart.tools.ui.actions.AbstractRefactoringAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -43,7 +43,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction extends AbstractRefactoringAction {
+public class RenameDartElementAction_OLD extends AbstractRefactoringAction_OLD {
   /**
    * @return the {@link Element} to rename {@code true}, may be {@code null} if invalid selection.
    */
@@ -82,12 +82,12 @@ public class RenameDartElementAction extends AbstractRefactoringAction {
     return element;
   }
 
-  public RenameDartElementAction(DartEditor editor) {
+  public RenameDartElementAction_OLD(DartEditor editor) {
     super(editor);
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
-  public RenameDartElementAction(IWorkbenchSite site) {
+  public RenameDartElementAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 

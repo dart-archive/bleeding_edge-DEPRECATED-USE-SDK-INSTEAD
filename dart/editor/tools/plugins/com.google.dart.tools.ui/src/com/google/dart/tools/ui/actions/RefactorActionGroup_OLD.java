@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
@@ -26,24 +25,20 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 /**
  * Action group that adds refactoring actions to a context menu and the global menu bar.
  */
-public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
+public class RefactorActionGroup_OLD extends AbstractDartSelectionActionGroup {
   public static final String GROUP_REORG = "reorgGroup";
 
-  private RenameAction renameAction;
-  private AbstractRefactoringAction extractLocalAction;
+  private RenameAction_OLD renameAction;
+  private ExtractLocalAction_OLD extractLocalAction;
   private ExtractMethodAction extractMethodAction;
   private InlineAction inlineAction;
   private ConvertMethodToGetterAction convertMethodToGetterAction;
   private ConvertGetterToMethodAction convertGetterToMethodAction;
 
-  public RefactorActionGroup(DartEditor editor) {
+  public RefactorActionGroup_OLD(DartEditor editor) {
     super(editor);
-    renameAction = new RenameAction(editor);
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      extractLocalAction = new ExtractLocalAction_NEW(editor);
-    } else {
-      extractLocalAction = new ExtractLocalAction_OLD(editor);
-    }
+    renameAction = new RenameAction_OLD(editor);
+    extractLocalAction = new ExtractLocalAction_OLD(editor);
     extractMethodAction = new ExtractMethodAction(editor);
     inlineAction = new InlineAction(editor);
     convertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
@@ -60,9 +55,9 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     addActionDartSelectionListeners();
   }
 
-  public RefactorActionGroup(IWorkbenchSite site) {
+  public RefactorActionGroup_OLD(IWorkbenchSite site) {
     super(site);
-    renameAction = new RenameAction(site);
+    renameAction = new RenameAction_OLD(site);
     convertMethodToGetterAction = new ConvertMethodToGetterAction(site);
     convertGetterToMethodAction = new ConvertGetterToMethodAction(site);
     initActions();

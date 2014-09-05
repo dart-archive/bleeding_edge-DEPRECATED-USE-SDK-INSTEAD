@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,69 +14,68 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.change.Change;
-import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.server.GetRefactoringConsumer;
+import com.google.dart.server.generated.types.RefactoringFeedback;
+import com.google.dart.server.generated.types.RefactoringOptions;
+import com.google.dart.server.generated.types.RefactoringProblem;
+import com.google.dart.server.generated.types.SourceChange;
+import com.google.dart.tools.core.DartCore;
 
-import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD.toLTK;
+import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW.toLTK;
+import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW.toRefactoringStatus;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.Refactoring;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * LTK wrapper around Analysis Server refactoring.
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ServerRefactoring extends org.eclipse.ltk.core.refactoring.Refactoring {
-  protected final String id;
+public abstract class ServerRefactoring extends Refactoring {
+  protected final String kind;
   private final String name;
-  private final RefactoringStatus initialStatus;
-  private RefactoringStatus finalStatus;
-  private Change change;
+  private final String file;
+  private final int offset;
+  private final int length;
 
-  public ServerRefactoring(String id, String name, RefactoringStatus initialStatus) {
-    this.id = id;
+  private boolean timeout;
+  private RefactoringStatus ltkStatus;
+  private Change ltkChange;
+
+  public ServerRefactoring(String kind, String name, String file, int offset, int length) {
+    this.kind = kind;
     this.name = name;
-    this.initialStatus = initialStatus;
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
   }
 
   @Override
-  public org.eclipse.ltk.core.refactoring.RefactoringStatus checkFinalConditions(IProgressMonitor pm)
-      throws CoreException, OperationCanceledException {
-    pm.beginTask("Checking final conditions", IProgressMonitor.UNKNOWN);
-    // TODO(scheglov) restore or remove for the new API
-//    final CountDownLatch latch = new CountDownLatch(1);
-//    DartCore.getAnalysisServer().applyRefactoring(id, new RefactoringApplyConsumer() {
-//      @Override
-//      public void computed(RefactoringStatus _status, Change _change) {
-//        finalStatus = _status;
-//        change = _change;
-//        latch.countDown();
-//      }
-//    });
-//    while (true) {
-//      if (pm.isCanceled()) {
-//        throw new OperationCanceledException();
-//      }
-//      if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
-//        pm.done();
-//        break;
-//      }
-//    }
-//    return toLTK(finalStatus);
-    return new org.eclipse.ltk.core.refactoring.RefactoringStatus();
+  public RefactoringStatus checkFinalConditions(IProgressMonitor pm) {
+    return setOptions(true);
   }
 
   @Override
-  public org.eclipse.ltk.core.refactoring.RefactoringStatus checkInitialConditions(
-      IProgressMonitor pm) throws CoreException, OperationCanceledException {
-    return toLTK(initialStatus);
+  public RefactoringStatus checkInitialConditions(IProgressMonitor pm) {
+    return setOptions(true);
   }
 
   @Override
-  public org.eclipse.ltk.core.refactoring.Change createChange(IProgressMonitor pm) {
-    return toLTK(change);
+  public Change createChange(IProgressMonitor pm) {
+    setOptions(false);
+    if (timeout) {
+      throw new OperationCanceledException();
+    }
+    return ltkChange;
   }
 
   @Override
@@ -90,5 +89,41 @@ public class ServerRefactoring extends org.eclipse.ltk.core.refactoring.Refactor
    */
   public boolean requiresPreview() {
     return false;
+  }
+
+  /**
+   * Returns this {@link RefactoringOptions} subclass instance.
+   */
+  protected abstract RefactoringOptions getOptions();
+
+  /**
+   * Sets the received {@link RefactoringFeedback}.
+   */
+  protected abstract void setFeedback(RefactoringFeedback feedback);
+
+  protected RefactoringStatus setOptions(boolean validateOnly) {
+    final CountDownLatch latch = new CountDownLatch(1);
+    RefactoringOptions options = getOptions();
+    DartCore.getAnalysisServer().edit_getRefactoring(
+        kind,
+        file,
+        offset,
+        length,
+        validateOnly,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems,
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+            setFeedback(feedback);
+            ltkStatus = toRefactoringStatus(problems);
+            ltkChange = toLTK(change);
+            latch.countDown();
+          }
+        });
+    if (Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS)) {
+      return ltkStatus;
+    }
+    return RefactoringStatus.createFatalErrorStatus("Timeout");
   }
 }

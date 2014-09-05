@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
-import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameResourceAction;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -31,19 +31,19 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameAction extends AbstractDartSelectionAction {
-  private final RenameDartElementAction renameElement;
+public class RenameAction_OLD extends AbstractDartSelectionAction_OLD {
+  private final RenameDartElementAction_OLD renameElement;
   private final RenameResourceAction renameResource;
 
-  public RenameAction(DartEditor editor) {
+  public RenameAction_OLD(DartEditor editor) {
     super(editor);
-    renameElement = new RenameDartElementAction(editor);
+    renameElement = new RenameDartElementAction_OLD(editor);
     renameResource = new RenameResourceAction(editor.getSite());
   }
 
-  public RenameAction(IWorkbenchSite site) {
+  public RenameAction_OLD(IWorkbenchSite site) {
     super(site);
-    renameElement = new RenameDartElementAction(site);
+    renameElement = new RenameDartElementAction_OLD(site);
     renameElement.setText(getText());
     renameResource = new RenameResourceAction(site);
     renameResource.setText(getText());

@@ -20,7 +20,6 @@ import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 
 import org.eclipse.jface.action.IMenuListener;
@@ -217,8 +216,7 @@ public class TypeHierarchyViewPart extends ViewPart {
     site.setSelectionProvider(typesViewer);
     // configure actions
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(site), new RefactorActionGroup(site),
-        new DartSearchActionGroup(site)});
+        new OpenViewActionGroup(site), new DartSearchActionGroup(site)});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

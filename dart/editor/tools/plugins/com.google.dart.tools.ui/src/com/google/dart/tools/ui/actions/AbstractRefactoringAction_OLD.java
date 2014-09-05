@@ -21,13 +21,13 @@ import org.eclipse.ui.IWorkbenchSite;
 /**
  * Abstract refactoring action.
  */
-public abstract class AbstractRefactoringAction extends AbstractDartSelectionAction {
-  public AbstractRefactoringAction(DartEditor editor) {
+public abstract class AbstractRefactoringAction_OLD extends AbstractDartSelectionAction_OLD {
+  public AbstractRefactoringAction_OLD(DartEditor editor) {
     super(editor);
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
-  public AbstractRefactoringAction(IWorkbenchSite site) {
+  public AbstractRefactoringAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 

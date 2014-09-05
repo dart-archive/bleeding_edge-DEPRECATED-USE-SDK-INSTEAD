@@ -14,7 +14,7 @@
 package com.google.dart.tools.internal.search.ui;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionActionGroup;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -33,8 +33,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * @coverage dart.editor.ui.search
  */
 public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
-  private AbstractDartSelectionAction findReferencesAction;
-  private AbstractDartSelectionAction findDeclarationsAction;
+  private AbstractDartSelectionAction_OLD findReferencesAction;
+  private AbstractDartSelectionAction_OLD findDeclarationsAction;
   private OpenAction openAction;
 
   public DartSearchActionGroup(DartEditor editor) {

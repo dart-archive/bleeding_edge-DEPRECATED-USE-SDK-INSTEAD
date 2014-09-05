@@ -36,7 +36,7 @@ import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
@@ -68,7 +68,7 @@ import java.util.Set;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindReferencesAction extends AbstractDartSelectionAction {
+public class FindReferencesAction extends AbstractDartSelectionAction_OLD {
   /**
    * Shows "Search" view with references to non-local elements with given name.
    */

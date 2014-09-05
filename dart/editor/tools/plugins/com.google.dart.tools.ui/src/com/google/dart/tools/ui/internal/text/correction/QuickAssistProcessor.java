@@ -32,7 +32,7 @@ import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
-import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.FormatProposal;
@@ -183,7 +183,7 @@ public class QuickAssistProcessor {
   }
 
   private void addProposal_renameRefactoring() throws CoreException {
-    RenameDartElementAction action = new RenameDartElementAction(editor);
+    RenameDartElementAction_OLD action = new RenameDartElementAction_OLD(editor);
     action.update(selection);
     if (action.isEnabled()) {
       proposals.add(new RenameRefactoringProposal(action, selection));

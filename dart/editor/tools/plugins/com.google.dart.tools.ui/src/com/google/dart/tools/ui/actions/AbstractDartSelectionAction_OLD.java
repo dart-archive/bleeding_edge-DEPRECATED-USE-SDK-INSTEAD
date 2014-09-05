@@ -34,7 +34,7 @@ import org.eclipse.ui.IWorkbenchSite;
 /**
  * Abstract class selection-based actions.
  */
-public abstract class AbstractDartSelectionAction extends InstrumentedSelectionDispatchAction {
+public abstract class AbstractDartSelectionAction_OLD extends InstrumentedSelectionDispatchAction {
   /**
    * Waits for background analysis, to be sure that {@link AssistContext} will stay actual. Then
    * requests {@link AssistContext} from the given {@link DartSelection}.
@@ -177,13 +177,13 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
 
   protected final DartEditor editor;
 
-  public AbstractDartSelectionAction(DartEditor editor) {
+  public AbstractDartSelectionAction_OLD(DartEditor editor) {
     super(editor.getEditorSite());
     this.editor = editor;
     init();
   }
 
-  public AbstractDartSelectionAction(IWorkbenchSite site) {
+  public AbstractDartSelectionAction_OLD(IWorkbenchSite site) {
     super(site);
     this.editor = null;
     init();
