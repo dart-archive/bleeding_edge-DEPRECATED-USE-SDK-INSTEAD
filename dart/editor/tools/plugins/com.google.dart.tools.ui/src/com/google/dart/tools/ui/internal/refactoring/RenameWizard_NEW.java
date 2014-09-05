@@ -59,7 +59,7 @@ public class RenameWizard_NEW extends ServerRefactoringWizard {
   }
 
   static final String DIALOG_SETTING_SECTION = "RenameWizard";
-  private ServerRenameRefactoring refactoring;
+  private final ServerRenameRefactoring refactoring;
 
   public RenameWizard_NEW(ServerRenameRefactoring refactoring) {
     super(refactoring, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);

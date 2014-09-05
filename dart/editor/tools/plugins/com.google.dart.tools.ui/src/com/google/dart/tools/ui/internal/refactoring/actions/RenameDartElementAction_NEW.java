@@ -35,8 +35,6 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
 
   @Override
   public void run() {
-    // TODO(scheglov)
-    System.out.println("run!");
     ServerRenameRefactoring refactoring = new ServerRenameRefactoring(
         file,
         selectionOffset,
@@ -48,28 +46,11 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
           "Rename",
           RefactoringSaveHelper.SAVE_NOTHING);
     } catch (Throwable e) {
-      showError("Extract Local", e);
+      showError("Rename", e);
     }
   }
 
   @Override
   protected void init() {
   }
-
-//  private void renameUsingDialog(Element element) {
-//    if (element == null) {
-//      return;
-//    }
-//    if (!RefactoringUtils.waitReadyForRefactoring()) {
-//      return;
-//    }
-//    try {
-//      RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
-//    } catch (Throwable e) {
-//      ExceptionHandler.handle(
-//          e,
-//          RefactoringMessages.RenameDartElementAction_name,
-//          RefactoringMessages.RenameDartElementAction_exception);
-//    }
-//  }
 }

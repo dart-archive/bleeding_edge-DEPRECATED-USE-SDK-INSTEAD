@@ -39,7 +39,7 @@ public class QuickFixProcessor_NEW {
    */
   public static boolean hasFix(AnalysisError problem) {
     // TODO(scheglov) add API to check if the marker has a fixable problem
-    return true;
+    return problem != null;
   }
 
   /**
@@ -49,8 +49,10 @@ public class QuickFixProcessor_NEW {
    */
   public ICompletionProposal[] computeFix(AssistContextUI contextUI, AnalysisError problem) {
     List<ICompletionProposal> proposals = Lists.newArrayList();
-    List<SourceChange> fixes = getFixes(problem);
-    QuickAssistProcessor.addServerProposals(proposals, fixes);
+    if (problem != null) {
+      List<SourceChange> fixes = getFixes(problem);
+      QuickAssistProcessor.addServerProposals(proposals, fixes);
+    }
     return proposals.toArray(new ICompletionProposal[proposals.size()]);
   }
 

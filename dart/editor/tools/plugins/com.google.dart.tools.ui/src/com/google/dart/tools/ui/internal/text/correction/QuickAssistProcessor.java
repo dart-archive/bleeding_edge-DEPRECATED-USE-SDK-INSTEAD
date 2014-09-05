@@ -102,7 +102,7 @@ public class QuickAssistProcessor {
         public void run() throws Exception {
           final List<SourceChange> changes = Lists.newArrayList();
           final CountDownLatch latch = new CountDownLatch(1);
-          String file = context.getSource().getFullName();
+          String file = context.getFile();
           DartCore.getAnalysisServer().edit_getAssists(
               file,
               context.getSelectionOffset(),

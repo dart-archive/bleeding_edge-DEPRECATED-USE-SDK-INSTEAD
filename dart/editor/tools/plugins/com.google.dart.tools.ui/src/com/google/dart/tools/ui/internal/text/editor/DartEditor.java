@@ -1983,22 +1983,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return null;
   }
 
-  @Override
-  public String getInputAnalysisContextId() {
-    if (inputResourceFile != null) {
-      return DartCore.getProjectManager().getContextId(inputResourceFile);
-    }
-    if (inputJavaFile != null) {
-      return DartCore.getProjectManager().getSdkContextId();
-    }
-    return null;
-  }
-
   /**
    * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
    * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
    */
   public com.google.dart.engine.element.CompilationUnitElement getInputElement() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
+    }
     com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
     return unit == null ? null : unit.getElement();
   }
@@ -2019,6 +2011,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   public Project getInputProject() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
+    }
     if (inputResourceFile != null) {
       IProject resourceProject = inputResourceFile.getProject();
       return DartCore.getProjectManager().getProject(resourceProject);
@@ -2035,6 +2030,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   public Source getInputSource() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      throw new IllegalStateException("This method should not be used with Server.");
+    }
     ProjectManager projectManager = DartCore.getProjectManager();
     // may be workspace IFile
     if (inputResourceFile != null) {
@@ -2042,11 +2040,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     // may be SDK
     if (inputJavaFile != null) {
-      // TODO(scheglov) Analysis Server: remove this?
-//      AnalysisContext context = getInputAnalysisContext();
-//      if (context == null) {
-//        return null;
-//      }
       DartSdk sdk = projectManager.getSdk();
       if (sdk instanceof DirectoryBasedDartSdk) {
         if (inputJavaFile.getAbsolutePath().startsWith(
@@ -2061,6 +2054,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
+    }
     return resolvedUnit;
   }
 
@@ -3939,10 +3935,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private AssistContext getAssistContext(ITextSelection textSelection) {
     try {
-      Source source = getInputSource();
-      if (source == null) {
-        return null;
-      }
       // prepare selection
       if (textSelection == null) {
         return null;
@@ -3959,14 +3951,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         if (file == null) {
           return null;
         }
-        return new AssistContext(
-            null/*SearchEngineFactory.createSearchEngine(index)*/,
-            null,
-            file,
-            source,
-            null,
-            selectionOffset,
-            selectionLength);
+        return new AssistContext(null, null, file, null, null, selectionOffset, selectionLength);
+      }
+      // prepare source
+      Source source = getInputSource();
+      if (source == null) {
+        return null;
       }
       // prepare AnalysisContext
       AnalysisContext analysisContext = getInputAnalysisContext();

@@ -361,14 +361,6 @@ public final class DartUI {
     return ResourceUtil.getFile(javaFile);
   }
 
-  /**
-   * @return the {@link IFile} to open for the {@link Source} in given context, may be {@code null}.
-   */
-  public static IFile getSourceFile(String contextId, Source source) {
-    ResourceMap map = getResourceMap(contextId);
-    return getSourceFile(map, source);
-  }
-
   public static Color getViewerBackground(IPreferenceStore prefs, Display display) {
     // TODO(messick) Use a color identifier distinct from the editor.
     return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
@@ -678,25 +670,6 @@ public final class DartUI {
   }
 
   /**
-   * Opens an editor at the given position in the active page.
-   */
-  public static IEditorPart openInEditor(String contextId, Source source, boolean activate)
-      throws Exception {
-    ResourceMap map = getResourceMap(contextId);
-    return openSource(map, source, activate);
-  }
-
-  /**
-   * Opens an editor at the given position in the active page.
-   */
-  public static IEditorPart openInEditor(String contextId, Source source, boolean activate,
-      int offset, int length) throws Exception {
-    IEditorPart editor = openInEditor(contextId, source, activate);
-    EditorUtility.revealInEditor(editor, offset, length);
-    return editor;
-  }
-
-  /**
    * A shared method to show the warning about "too complex" Dart file.
    */
   public static void showTooComplexDartFileWarning(IEditorPart editor) {
@@ -735,13 +708,6 @@ public final class DartUI {
       return null;
     }
     return DartCore.getProjectManager().getResourceMap(context);
-  }
-
-  private static ResourceMap getResourceMap(String contextId) {
-    if (contextId == null) {
-      return null;
-    }
-    return DartCore.getProjectManager().getResourceMap(contextId);
   }
 
   /**

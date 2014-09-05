@@ -360,7 +360,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       if (!isOverlayAdded) {
         addOverlay();
@@ -370,6 +369,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
+      Source source = editor.getInputSource();
       if (context != null && source != null) {
         ContextManager manager = getContextManager();
         DartUpdateSourceHelper.getInstance().updateFast(
@@ -391,7 +391,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param newLength the number of characters in the replacement text
    */
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
-    Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       if (!isOverlayAdded) {
         addOverlay();
@@ -404,6 +403,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
+      Source source = editor.getInputSource();
       if (context != null && source != null) {
         ContextManager manager = getContextManager();
         DartUpdateSourceHelper.getInstance().updateFast(

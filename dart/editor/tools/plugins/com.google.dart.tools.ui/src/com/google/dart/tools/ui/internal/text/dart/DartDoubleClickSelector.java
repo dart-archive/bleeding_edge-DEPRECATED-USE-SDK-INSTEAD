@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.InterpolationExpression;
 import com.google.dart.engine.ast.InterpolationString;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.functions.DartPairMatcher;
 import com.google.dart.tools.ui.internal.text.functions.ISourceVersionDependent;
@@ -332,7 +333,8 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
 
     if (region != null && region.getLength() >= 2) {
       textViewer.setSelectedRange(region.getOffset() + 1, region.getLength() - 2);
-    } else if (textViewer instanceof CompilationUnitEditor.AdaptedSourceViewer) {
+    } else if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER
+        && textViewer instanceof CompilationUnitEditor.AdaptedSourceViewer) {
       CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
       NodeLocator locator = new NodeLocator(offset);
       AstNode node = locator.searchWithin(editor.getInputUnit());

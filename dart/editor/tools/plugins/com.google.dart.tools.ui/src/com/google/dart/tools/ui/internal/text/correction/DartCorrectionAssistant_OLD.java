@@ -18,7 +18,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.RunnableObject;
@@ -169,23 +168,12 @@ public class DartCorrectionAssistant_OLD extends QuickAssistAssistant {
   }
 
   private AnalysisError[] getErrorsTimeBoxed(final AssistContext context) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) restore or remove for the new API
-      return AnalysisError.NO_ERRORS;
-//      String contextId = context.getAnalysisContextId();
-//      Source source = context.getSource();
-//      if (contextId == null || source == null) {
-//        return AnalysisError.NO_ERRORS;
-//      }
-//      return DartCore.getAnalysisServerData().getErrors(contextId, source);
-    } else {
-      return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
-        @Override
-        public AnalysisError[] runObject() {
-          return context.getErrors();
-        }
-      }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
-    }
+    return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
+      @Override
+      public AnalysisError[] runObject() {
+        return context.getErrors();
+      }
+    }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
   }
 
   /**

@@ -123,63 +123,6 @@ public class DartCorrectionAssistant_NEW extends QuickAssistAssistant {
     viewer.revealRange(offset, 0);
   }
 
-//  /**
-//   * Finds {@link AnalysisError} corresponding to the given {@link Annotation}. May be {@code null}
-//   * if underlying {@link DartEditor} has no resolved unit.
-//   */
-//  AnalysisError getAnalysisError(Annotation annotation) {
-//    // prepare marker
-//    if (!(annotation instanceof MarkerAnnotation)) {
-//      return null;
-//    }
-//    IMarker marker = ((MarkerAnnotation) annotation).getMarker();
-//    if (marker == null) {
-//      return null;
-//    }
-//    int markerOffset = marker.getAttribute(IMarker.CHAR_START, -1);
-//    int markerLength = marker.getAttribute(IMarker.CHAR_END, -1) - markerOffset;
-//    // prepare ErrorCode
-//    ErrorCode errorCode = DartCore.getErrorCode(marker);
-//    if (errorCode == null) {
-//      return null;
-//    }
-//    // prepare context
-//    AssistContext context = editor.getAssistContext();
-//    if (context == null) {
-//      return null;
-//    }
-//    // find AnalysisError
-//    AnalysisError[] errors = getErrorsTimeBoxed(context);
-//    for (AnalysisError error : errors) {
-//      if (error.getErrorCode() == errorCode && error.getOffset() == markerOffset
-//          && error.getLength() == markerLength) {
-//        return error;
-//      }
-//    }
-//    // not found
-//    return null;
-//  }
-//
-//  private AnalysisError[] getErrorsTimeBoxed(final AssistContext context) {
-//    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-//      // TODO(scheglov) restore or remove for the new API
-//      return AnalysisError.NO_ERRORS;
-////      String contextId = context.getAnalysisContextId();
-////      Source source = context.getSource();
-////      if (contextId == null || source == null) {
-////        return AnalysisError.NO_ERRORS;
-////      }
-////      return DartCore.getAnalysisServerData().getErrors(contextId, source);
-//    } else {
-//      return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
-//        @Override
-//        public AnalysisError[] runObject() {
-//          return context.getErrors();
-//        }
-//      }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
-//    }
-//  }
-
   /**
    * @return the {@link IInformationControlCreator} used to display prefix and help user to decide
    *         which correction to choose.

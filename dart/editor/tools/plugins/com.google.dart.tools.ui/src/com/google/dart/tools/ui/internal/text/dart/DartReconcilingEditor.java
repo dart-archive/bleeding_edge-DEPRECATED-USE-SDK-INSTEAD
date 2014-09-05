@@ -47,13 +47,6 @@ public interface DartReconcilingEditor {
   AnalysisContext getInputAnalysisContext();
 
   /**
-   * Answer the ID analysis context to be used when resolving the source displayed in the editor.
-   * 
-   * @return the ID of the analysis context corresponding to this editor or {@code null} if none
-   */
-  String getInputAnalysisContextId();
-
-  /**
    * Answer the full path of the file being displayed in this editor.
    * 
    * @return the full path or {@code null} if none

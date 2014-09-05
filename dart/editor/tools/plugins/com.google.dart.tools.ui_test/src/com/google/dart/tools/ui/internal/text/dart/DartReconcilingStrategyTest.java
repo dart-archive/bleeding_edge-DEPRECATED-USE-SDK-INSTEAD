@@ -158,12 +158,6 @@ public class DartReconcilingStrategyTest extends TestCase {
     }
 
     @Override
-    public String getInputAnalysisContextId() {
-      // TODO(scheglov) Analysis Server
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getInputFilePath() {
       // TODO(scheglov) Analysis Server
       throw new UnsupportedOperationException();
