@@ -32,9 +32,9 @@ public class NotificationServerStatusProcessor extends NotificationProcessor {
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     JsonObject analysisObject = paramsObject.get("analysis").getAsJsonObject();
-    boolean analyzing = analysisObject.get("analyzing").getAsBoolean();
+    boolean isAnalyzing = analysisObject.get("isAnalyzing").getAsBoolean();
     String analysisTarget = safelyGetAsString(analysisObject, "analysisTarget");
     // notify listener
-    getListener().serverStatus(new AnalysisStatus(analyzing, analysisTarget));
+    getListener().serverStatus(new AnalysisStatus(isAnalyzing, analysisTarget));
   }
 }

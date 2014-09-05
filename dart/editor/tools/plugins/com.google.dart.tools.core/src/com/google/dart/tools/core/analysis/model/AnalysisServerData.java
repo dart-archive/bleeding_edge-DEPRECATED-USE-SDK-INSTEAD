@@ -31,6 +31,11 @@ import com.google.dart.server.generated.types.OverrideMember;
  * @coverage dart.tools.core.model
  */
 public interface AnalysisServerData {
+  /**
+   * True if analysis is currently being performed.
+   */
+  public boolean isAnalyzing();
+
   void addSearchResultsListener(String id, SearchResultsListener listener);
 
   /**

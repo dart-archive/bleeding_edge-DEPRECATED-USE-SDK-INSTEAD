@@ -37,6 +37,9 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
 
   @Override
   public void run() {
+    if (!waitReadyForRefactoring()) {
+      return;
+    }
     ServerRenameRefactoring refactoring = new ServerRenameRefactoring(
         file,
         selectionOffset,

@@ -13,14 +13,56 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 /**
  * Abstract refactoring action.
  */
 public abstract class AbstractRefactoringAction_NEW extends AbstractDartSelectionAction_NEW {
+  /**
+   * Waits until the server finishes analysis.
+   * 
+   * @return {@code true} if waiting was successful, {@code false} if cancelled.
+   */
+  public static boolean waitReadyForRefactoring() {
+    Control focusControl = Display.getCurrent().getFocusControl();
+    try {
+      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+      progressService.busyCursorWhile(new IRunnableWithProgress() {
+        @Override
+        public void run(IProgressMonitor pm) throws InterruptedException {
+          pm.beginTask("Waiting for analysis...", IProgressMonitor.UNKNOWN);
+          while (true) {
+            if (pm.isCanceled()) {
+              throw new OperationCanceledException();
+            }
+            if (!DartCore.getAnalysisServerData().isAnalyzing()) {
+              break;
+            }
+          }
+        }
+      });
+      return true;
+    } catch (Throwable ie) {
+      return false;
+    } finally {
+      if (focusControl != null) {
+        focusControl.setFocus();
+      }
+    }
+  }
+
   public AbstractRefactoringAction_NEW(DartEditor editor) {
     super(editor);
     setEnabled(SelectionConverter.canOperateOn(editor));

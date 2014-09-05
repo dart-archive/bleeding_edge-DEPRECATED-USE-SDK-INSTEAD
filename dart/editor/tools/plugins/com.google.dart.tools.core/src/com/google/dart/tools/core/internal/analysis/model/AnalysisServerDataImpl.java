@@ -23,6 +23,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisService;
+import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -45,6 +46,7 @@ import java.util.Set;
  * @coverage dart.tools.core.model
  */
 public class AnalysisServerDataImpl implements AnalysisServerData {
+  private boolean isAnalyzing = false;
   private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOverridesListener>> overridesSubscriptions = Maps.newHashMap();
@@ -99,6 +101,11 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       return Occurrences.EMPTY_ARRAY;
     }
     return occurrencesArray;
+  }
+
+  @Override
+  public boolean isAnalyzing() {
+    return isAnalyzing;
   }
 
   @Override
@@ -290,6 +297,10 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       occurrencesData.remove(file);
       analysisSubscriptions.remove(file);
     }
+  }
+
+  void internalServerStatus(AnalysisStatus status) {
+    isAnalyzing = status.isAnalyzing();
   }
 
   /**

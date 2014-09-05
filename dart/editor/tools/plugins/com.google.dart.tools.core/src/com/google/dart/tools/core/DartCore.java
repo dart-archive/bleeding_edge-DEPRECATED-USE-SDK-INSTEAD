@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
@@ -23,6 +24,7 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 import com.google.dart.server.utilities.logging.Logging;
@@ -478,6 +480,7 @@ public class DartCore extends Plugin implements DartSdkListener {
                   analysisServer,
                   DartIgnoreManager.getInstance()));
           analysisServer.addAnalysisServerListener(analysisServerListener);
+          analysisServer.server_setSubscriptions(ImmutableList.of(ServerService.STATUS));
         } catch (Throwable e) {
           DartCore.logError("Enable to start stdio server", e);
           System.exit(1);

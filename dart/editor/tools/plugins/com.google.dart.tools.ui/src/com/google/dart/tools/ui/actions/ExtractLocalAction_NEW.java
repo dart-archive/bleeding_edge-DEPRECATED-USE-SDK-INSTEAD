@@ -37,6 +37,9 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
 
   @Override
   public void run() {
+    if (!waitReadyForRefactoring()) {
+      return;
+    }
     ServerExtractLocalRefactoring refactoring = new ServerExtractLocalRefactoring(
         file,
         selectionOffset,

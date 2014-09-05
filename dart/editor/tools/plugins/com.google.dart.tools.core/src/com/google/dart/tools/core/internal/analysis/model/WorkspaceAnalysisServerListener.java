@@ -122,6 +122,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void serverStatus(AnalysisStatus status) {
+    dataImpl.internalServerStatus(status);
     synchronized (statusLock) {
       if (status.isAnalyzing()) {
         if (statusJob == null) {
