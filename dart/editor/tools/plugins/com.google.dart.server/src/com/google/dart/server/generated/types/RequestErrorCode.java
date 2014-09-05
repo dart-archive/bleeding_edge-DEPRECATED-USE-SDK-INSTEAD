@@ -30,6 +30,12 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * An analysis.updateContent request contained a ChangeContentOverlay object which can't be
+   * applied, due to an edit having an offset or length that is out of range.
+   */
+  public static final String INVALID_OVERLAY_CHANGE = "INVALID_OVERLAY_CHANGE";
+
+  /**
    * One of the method parameters was invalid.
    */
   public static final String INVALID_PARAMETER = "INVALID_PARAMETER";
