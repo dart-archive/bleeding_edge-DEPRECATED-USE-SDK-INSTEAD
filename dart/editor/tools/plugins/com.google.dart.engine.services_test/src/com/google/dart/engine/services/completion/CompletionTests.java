@@ -1817,6 +1817,22 @@ public class CompletionTests extends CompletionTestCase {
     test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
   }
 
+  public void testCompletion_ifStmt_unionType() throws Exception {
+    test(src(//
+        "class A { a() => null; }",
+        "class B { b() => null; }",
+        "void main() {",
+        "  var x;",
+        "  var c;",
+        "  if(c) {",
+        "    x = new A();",
+        "  } else {",
+        "    x = new B();",
+        "  }",
+        "  x.!1;",
+        "}"), "1+a", "1+b");
+  }
+
   public void testCompletion_import() throws Exception {
     test(src(//
         "import '!1';"),
