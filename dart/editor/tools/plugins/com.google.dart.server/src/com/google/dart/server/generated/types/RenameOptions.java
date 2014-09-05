@@ -44,7 +44,7 @@ public class RenameOptions extends RefactoringOptions {
   /**
    * The name that the element should have after the refactoring.
    */
-  private final String newName;
+  private String newName;
 
   /**
    * Constructor for {@link RenameOptions}.
@@ -92,6 +92,13 @@ public class RenameOptions extends RefactoringOptions {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(newName);
     return builder.toHashCode();
+  }
+
+  /**
+   * The name that the element should have after the refactoring.
+   */
+  public void setNewName(String newName) {
+    this.newName = newName;
   }
 
   public JsonObject toJson() {

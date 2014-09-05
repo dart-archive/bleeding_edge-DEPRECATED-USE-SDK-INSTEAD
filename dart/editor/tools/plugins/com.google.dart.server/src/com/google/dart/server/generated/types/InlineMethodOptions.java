@@ -45,13 +45,13 @@ public class InlineMethodOptions extends RefactoringOptions {
    * True if the method being inlined should be removed. It is an error if this field is true and
    * inlineAll is false.
    */
-  private final boolean deleteSource;
+  private boolean deleteSource;
 
   /**
    * True if all invocations of the method should be inlined, or false if only the invocation site
    * used to create this refactoring should be inlined.
    */
-  private final boolean inlineAll;
+  private boolean inlineAll;
 
   /**
    * Constructor for {@link InlineMethodOptions}.
@@ -112,6 +112,22 @@ public class InlineMethodOptions extends RefactoringOptions {
     builder.append(deleteSource);
     builder.append(inlineAll);
     return builder.toHashCode();
+  }
+
+  /**
+   * True if the method being inlined should be removed. It is an error if this field is true and
+   * inlineAll is false.
+   */
+  public void setDeleteSource(boolean deleteSource) {
+    this.deleteSource = deleteSource;
+  }
+
+  /**
+   * True if all invocations of the method should be inlined, or false if only the invocation site
+   * used to create this refactoring should be inlined.
+   */
+  public void setInlineAll(boolean inlineAll) {
+    this.inlineAll = inlineAll;
   }
 
   public JsonObject toJson() {

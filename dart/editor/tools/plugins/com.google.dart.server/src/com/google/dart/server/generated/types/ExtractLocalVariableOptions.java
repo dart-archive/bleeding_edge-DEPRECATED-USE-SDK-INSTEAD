@@ -44,14 +44,14 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
   /**
    * The name that the local variable should be given.
    */
-  private final String name;
+  private String name;
 
   /**
    * True if all occurrences of the expression within the scope in which the variable will be defined
    * should be replaced by a reference to the local variable. The expression used to initiate the
    * refactoring will always be replaced.
    */
-  private final boolean extractAll;
+  private boolean extractAll;
 
   /**
    * Constructor for {@link ExtractLocalVariableOptions}.
@@ -112,6 +112,22 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     builder.append(name);
     builder.append(extractAll);
     return builder.toHashCode();
+  }
+
+  /**
+   * True if all occurrences of the expression within the scope in which the variable will be defined
+   * should be replaced by a reference to the local variable. The expression used to initiate the
+   * refactoring will always be replaced.
+   */
+  public void setExtractAll(boolean extractAll) {
+    this.extractAll = extractAll;
+  }
+
+  /**
+   * The name that the local variable should be given.
+   */
+  public void setName(String name) {
+    this.name = name;
   }
 
   public JsonObject toJson() {

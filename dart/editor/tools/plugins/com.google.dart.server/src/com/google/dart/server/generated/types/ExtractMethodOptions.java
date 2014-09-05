@@ -44,18 +44,18 @@ public class ExtractMethodOptions extends RefactoringOptions {
   /**
    * The return type that should be defined for the method.
    */
-  private final String returnType;
+  private String returnType;
 
   /**
    * True if a getter should be created rather than a method. It is an error if this field is true
    * and the list of parameters is non-empty.
    */
-  private final boolean createGetter;
+  private boolean createGetter;
 
   /**
    * The name that the method should be given.
    */
-  private final String name;
+  private String name;
 
   /**
    * The parameters that should be defined for the method.
@@ -68,14 +68,14 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
    */
-  private final List<RefactoringMethodParameter> parameters;
+  private List<RefactoringMethodParameter> parameters;
 
   /**
    * True if all occurrences of the expression or statements should be replaced by an invocation of
    * the method. The expression or statements used to initiate the refactoring will always be
    * replaced.
    */
-  private final boolean extractAll;
+  private boolean extractAll;
 
   /**
    * Constructor for {@link ExtractMethodOptions}.
@@ -178,6 +178,52 @@ public class ExtractMethodOptions extends RefactoringOptions {
     builder.append(parameters);
     builder.append(extractAll);
     return builder.toHashCode();
+  }
+
+  /**
+   * True if a getter should be created rather than a method. It is an error if this field is true
+   * and the list of parameters is non-empty.
+   */
+  public void setCreateGetter(boolean createGetter) {
+    this.createGetter = createGetter;
+  }
+
+  /**
+   * True if all occurrences of the expression or statements should be replaced by an invocation of
+   * the method. The expression or statements used to initiate the refactoring will always be
+   * replaced.
+   */
+  public void setExtractAll(boolean extractAll) {
+    this.extractAll = extractAll;
+  }
+
+  /**
+   * The name that the method should be given.
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  /**
+   * The parameters that should be defined for the method.
+   *
+   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL parameter. It is an error
+   * if a REQUIRED or POSITIONAL parameter follows a NAMED parameter.
+   *
+   * - To change the order and/or update proposed paramerers, add parameters with the same
+   *   identifiers as proposed.
+   * - To add new parameters, omit their identifier.
+   * - To remove some parameters, omit them in this list.
+   */
+  public void setParameters(List<RefactoringMethodParameter> parameters) {
+    this.parameters = parameters;
+  }
+
+  /**
+   * The return type that should be defined for the method.
+   */
+  public void setReturnType(String returnType) {
+    this.returnType = returnType;
   }
 
   public JsonObject toJson() {
