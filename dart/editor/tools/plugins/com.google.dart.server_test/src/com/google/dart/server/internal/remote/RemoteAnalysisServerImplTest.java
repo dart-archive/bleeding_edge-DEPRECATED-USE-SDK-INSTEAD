@@ -1630,7 +1630,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'message': 'message1'",
         "      }",
         "    ],",
-        "    'feedback': {offset: 1, length: 2},",
+        "    'feedback': {",
+        "      offset: 1,",
+        "      length: 2,",
+        "      elementKindName: 'class',",
+        "      oldName: 'oldName'",
+        "    },",
         "    'change': " + getSourceChangeJson() + ",",
         "    'potentialEdits': ['one']",
         "  }",
@@ -1648,6 +1653,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
     assertEquals(1, feedback.getOffset());
     assertEquals(2, feedback.getLength());
+    assertEquals("class", feedback.getElementKindName());
+    assertEquals("oldName", feedback.getOldName());
 
     // assertions on 'potentialEdits' (List<String>)
     @SuppressWarnings("unchecked")
@@ -1789,8 +1796,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      }",
         "    ],",
         "    'feedback': {",
-        "      'offset': 1,",
-        "      'length': 2",
+        "      offset: 1,",
+        "      length: 2,",
+        "      elementKindName: 'class',",
+        "      oldName: 'oldName'",
         "    },",
         "    'change': " + getSourceChangeJson() + ",",
         "    'potentialEdits': ['one']",
@@ -1802,6 +1811,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
     assertEquals(1, feedback.getOffset());
     assertEquals(2, feedback.getLength());
+    assertEquals("class", feedback.getElementKindName());
+    assertEquals("oldName", feedback.getOldName());
   }
 
   public void test_error() throws Exception {
