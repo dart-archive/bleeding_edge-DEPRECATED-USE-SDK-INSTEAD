@@ -119,7 +119,9 @@ public abstract class ServerRefactoring extends Refactoring {
           @Override
           public void computedRefactorings(List<RefactoringProblem> problems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
-            setFeedback(feedback);
+            if (feedback != null) {
+              setFeedback(feedback);
+            }
             ltkStatus = toRefactoringStatus(problems);
             ltkChange = toLTK(change);
             latch.countDown();
