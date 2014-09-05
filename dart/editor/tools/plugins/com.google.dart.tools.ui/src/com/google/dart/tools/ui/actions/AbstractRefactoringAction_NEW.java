@@ -17,6 +17,7 @@ import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
@@ -31,6 +32,7 @@ public abstract class AbstractRefactoringAction_NEW extends AbstractDartSelectio
   public AbstractRefactoringAction_NEW(DartEditor editor, String kind) {
     super(editor);
     this.kind = kind;
+    init();
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
@@ -61,5 +63,12 @@ public abstract class AbstractRefactoringAction_NEW extends AbstractDartSelectio
       return false;
     }
     return true;
+  }
+
+  protected void showError(String title, Throwable e) {
+    ExceptionHandler.handle(
+        e,
+        title,
+        "Unexpected exception occurred. See the error log for more details.");
   }
 }

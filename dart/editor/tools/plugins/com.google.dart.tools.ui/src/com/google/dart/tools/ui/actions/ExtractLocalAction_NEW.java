@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -32,59 +31,12 @@ import org.eclipse.ui.PlatformUI;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
-//  private ServerExtractLocalRefactoring refactoring;
-
   public ExtractLocalAction_NEW(DartEditor editor) {
     super(editor, RefactoringKind.EXTRACT_LOCAL_VARIABLE);
   }
 
   @Override
   public void run() {
-    // prepare refactoring
-//    refactoring = null;
-//    Control focusControl = Display.getCurrent().getFocusControl();
-//    try {
-//      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-//      progressService.busyCursorWhile(new IRunnableWithProgress() {
-//        @Override
-//        public void run(IProgressMonitor pm) throws InterruptedException {
-//          final CountDownLatch latch = new CountDownLatch(1);
-//          ExtractLocalVariableOptions options = null;
-//          DartCore.getAnalysisServer().edit_getRefactoring(
-//              RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-//              file,
-//              selectionOffset,
-//              selectionLength,
-//              false,
-//              options,
-//              new GetRefactoringConsumer() {
-//                @Override
-//                public void computedRefactorings(List<RefactoringProblem> problems,
-//                    RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
-//                  System.out.println("computedRefactorings: " + change);
-//                }
-//              });
-//          while (true) {
-//            if (pm.isCanceled()) {
-//              throw new InterruptedException();
-//            }
-//            if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
-//              break;
-//            }
-//          }
-//        }
-//      });
-//    } catch (Throwable e) {
-//      return;
-//    } finally {
-//      if (focusControl != null) {
-//        focusControl.setFocus();
-//      }
-//    }
-//    if (refactoring == null) {
-//      return;
-//    }
-    // open dialog
     ServerExtractLocalRefactoring refactoring = new ServerExtractLocalRefactoring(
         file,
         selectionOffset,
@@ -96,107 +48,9 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
           RefactoringMessages.ExtractLocalAction_dialog_title,
           RefactoringSaveHelper.SAVE_NOTHING);
     } catch (Throwable e) {
-      e.printStackTrace();
+      showError("Extract Local", e);
     }
   }
-
-//  @Override
-//  public void run() {
-//    RefactoringOptions options = new ExtractLocalVariableOptions("res", true);
-//    DartCore.getAnalysisServer().edit_getRefactoring(
-//        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-//        file,
-//        selectionOffset,
-//        selectionLength,
-//        false,
-//        options,
-//        new GetRefactoringConsumer() {
-//          @Override
-//          public void computedRefactorings(List<RefactoringProblem> problems,
-//              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
-//            System.out.println("computedRefactorings: " + change);
-//          }
-//        });
-//  }
-
-  @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
-    // TODO
-    setEnabled(true);
-  }
-
-//  @Override
-//  protected void doRun(DartSelection selection, Event event,
-//      UIInstrumentationBuilder instrumentation) {
-//    // TODO(scheglov) restore or remove for the new API
-//    final String contextId = selection.getEditor().getInputAnalysisContextId();
-//    final Source source = selection.getEditor().getInputSource();
-//    if (contextId == null || source == null) {
-//      return;
-//    }
-//    final int offset = selection.getOffset();
-//    final int length = selection.getLength();
-//    // prepare refactoring
-//    refactoring = null;
-//    Control focusControl = Display.getCurrent().getFocusControl();
-//    try {
-//      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-//      progressService.busyCursorWhile(new IRunnableWithProgress() {
-//        @Override
-//        public void run(IProgressMonitor pm) throws InterruptedException {
-//          final CountDownLatch latch = new CountDownLatch(1);
-//          DartCore.getAnalysisServer().createRefactoringExtractLocal(
-//              contextId,
-//              source,
-//              offset,
-//              length,
-//              new RefactoringExtractLocalConsumer() {
-//                @Override
-//                public void computed(String refactoringId, RefactoringStatus status,
-//                    boolean hasSeveralOccurrences, String[] proposedNames) {
-//                  refactoring = new ServerExtractLocalRefactoring(
-//                      refactoringId,
-//                      status,
-//                      hasSeveralOccurrences,
-//                      proposedNames);
-//                  latch.countDown();
-//                }
-//              });
-//          while (true) {
-//            if (pm.isCanceled()) {
-//              throw new InterruptedException();
-//            }
-//            if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
-//              break;
-//            }
-//          }
-//        }
-//      });
-//    } catch (Throwable e) {
-//      return;
-//    } finally {
-//      if (focusControl != null) {
-//        focusControl.setFocus();
-//      }
-//    }
-//    if (refactoring == null) {
-//      return;
-//    }
-//    // open dialog
-//    try {
-//      new RefactoringStarter().activate(
-//          new ExtractLocalWizard_NEW(refactoring),
-//          getShell(),
-//          RefactoringMessages.ExtractLocalAction_dialog_title,
-//          RefactoringSaveHelper.SAVE_NOTHING);
-//    } catch (Throwable e) {
-//      ExceptionHandler.handle(
-//          e,
-//          "Extract Local",
-//          "Unexpected exception occurred. See the error log for more details.");
-//    }
-//  }
 
   @Override
   protected void init() {
