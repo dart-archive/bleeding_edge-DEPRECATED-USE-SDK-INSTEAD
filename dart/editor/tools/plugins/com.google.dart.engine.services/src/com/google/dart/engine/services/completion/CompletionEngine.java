@@ -16,6 +16,7 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
@@ -134,6 +135,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
@@ -297,6 +299,10 @@ public class CompletionEngine {
       }
     }
 
+    void addNamesDefinedByClassElement(ClassElement classElement) {
+      addNamesDefinedByType(classElement.getType());
+    }
+
     void addNamesDefinedByExecutable(ExecutableElement execElement) {
       mergeNames(execElement.getParameters());
       mergeNames(execElement.getLocalVariables());
@@ -304,49 +310,40 @@ public class CompletionEngine {
     }
 
     void addNamesDefinedByHierarchy(ClassElement classElement, boolean forSuper) {
-      addNamesDefinedByHierarchy(classElement.getType(), forSuper);
+      addNamesDefinedByTypeHierarchy(classElement.getType(), forSuper);
     }
 
-    void addNamesDefinedByHierarchy(InterfaceType type, boolean forSuper) {
-      InterfaceType[] superTypes = type.getElement().getAllSupertypes();
-      if (!forSuper) {
-        superTypes = ArrayUtils.add(superTypes, 0, type);
-      }
-      addNamesDefinedByTypes(superTypes);
-      // Collect names defined by subtypes separately so they can be identified later.
-      NameCollector potentialMatchCollector = createNameCollector();
-      if (!type.isObject()) {
-        potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(type.getElement()));
-      }
-      potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
-      for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
-        for (Element match : matches) {
-          mergeName(match);
-          potentialMatches.add(match);
-        }
-      }
-    }
-
-    void addNamesDefinedByType(ClassElement classElement) {
-      addNamesDefinedByType(classElement.getType());
-    }
-
-    void addNamesDefinedByType(InterfaceType type) {
-      if (inPrivateLibrary(type)) {
-        return;
-      }
-      PropertyAccessorElement[] accessors = type.getAccessors();
-      mergeNames(accessors);
-      MethodElement[] methods = type.getMethods();
-      mergeNames(methods);
-      mergeNames(type.getElement().getTypeParameters());
-      filterStaticRefs(accessors);
-      filterStaticRefs(methods);
-    }
-
-    void addNamesDefinedByTypes(InterfaceType[] types) {
+    void addNamesDefinedByInterfaceTypes(InterfaceType[] types) {
       for (InterfaceType type : types) {
         addNamesDefinedByType(type);
+      }
+    }
+
+    void addNamesDefinedByType(Type type) {
+      if (type instanceof InterfaceType) {
+        addNamesDefinedByInterfaceType((InterfaceType) type);
+      } else if (type instanceof UnionType) {
+        for (Type t : ((UnionType) type).getElements()) {
+          addNamesDefinedByType(t);
+        }
+      } else {
+        // Or should we just raise an exception?
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Unexpected type in [NameCollector.addNamesDefinedByType]: " + type);
+      }
+    }
+
+    void addNamesDefinedByTypeHierarchy(Type type, boolean forSuper) {
+      if (type instanceof InterfaceType) {
+        addNamesDefinedByInterfaceTypeHierarchy((InterfaceType) type, forSuper);
+      } else if (type instanceof UnionType) {
+        for (Type t : ((UnionType) type).getElements()) {
+          addNamesDefinedByTypeHierarchy(t, forSuper);
+        }
+      } else {
+        // Or should we just raise an exception?
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Unexpected type in [NameCollector.addNamesDefinedByTypeHierarchy]: " + type);
       }
     }
 
@@ -395,6 +392,39 @@ public class CompletionEngine {
       list.remove(element);
       if (list.isEmpty()) {
         uniqueNames.remove(name);
+      }
+    }
+
+    private void addNamesDefinedByInterfaceType(InterfaceType type) {
+      if (inPrivateLibrary(type)) {
+        return;
+      }
+      PropertyAccessorElement[] accessors = type.getAccessors();
+      mergeNames(accessors);
+      MethodElement[] methods = type.getMethods();
+      mergeNames(methods);
+      mergeNames(type.getElement().getTypeParameters());
+      filterStaticRefs(accessors);
+      filterStaticRefs(methods);
+    }
+
+    private void addNamesDefinedByInterfaceTypeHierarchy(InterfaceType type, boolean forSuper) {
+      InterfaceType[] superTypes = type.getElement().getAllSupertypes();
+      if (!forSuper) {
+        superTypes = ArrayUtils.add(superTypes, 0, type);
+      }
+      addNamesDefinedByInterfaceTypes(superTypes);
+      // Collect names defined by subtypes separately so they can be identified later.
+      NameCollector potentialMatchCollector = createNameCollector();
+      if (!type.isObject()) {
+        potentialMatchCollector.addNamesDefinedByInterfaceTypes(allSubtypes(type.getElement()));
+      }
+      potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
+      for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
+        for (Element match : matches) {
+          mergeName(match);
+          potentialMatches.add(match);
+        }
       }
     }
 
@@ -1905,14 +1935,11 @@ public class CompletionEngine {
     if (receiverType != null) {
       // Complete x.!y
       Element rcvrTypeElem = receiverType.getElement();
-      if (receiverType.isBottom()) {
+      if (receiverType.isBottom() || receiverType.isDynamic()) {
         receiverType = getObjectType();
       }
-      if (receiverType.isDynamic()) {
-        receiverType = getObjectType();
-      }
-      if (receiverType instanceof InterfaceType) {
-        prefixedAccess((InterfaceType) receiverType, forSuper, completionNode);
+      if (receiverType instanceof InterfaceType || receiverType instanceof UnionType) {
+        prefixedAccess(receiverType, forSuper, completionNode);
       } else if (rcvrTypeElem instanceof TypeParameterElement) {
         TypeParameterElement typeParamElem = (TypeParameterElement) rcvrTypeElem;
         analyzePrefixedAccess(typeParamElem.getBound(), false, completionNode);
@@ -2245,7 +2272,7 @@ public class CompletionEngine {
     if (state.areInstanceReferencesProhibited) {
       names.addNamesDefinedByType(type);
     } else {
-      names.addNamesDefinedByHierarchy(type, forSuper);
+      names.addNamesDefinedByTypeHierarchy(type, forSuper);
     }
     proposeNames(names, identifier);
   }
@@ -2261,6 +2288,17 @@ public class CompletionEngine {
     state.areLiteralsAllowed = false;
     names.addTopLevelNames(prefixImports, TopLevelNamesKind.DECLARED_AND_EXPORTS);
     state.areLiteralsAllowed = litsAllowed;
+    proposeNames(names, identifier);
+  }
+
+  void prefixedAccess(Type type, boolean forSuper, SimpleIdentifier identifier) {
+    filter = createFilter(identifier);
+    NameCollector names = createNameCollector();
+    if (state.areInstanceReferencesProhibited) {
+      names.addNamesDefinedByType(type);
+    } else {
+      names.addNamesDefinedByTypeHierarchy(type, forSuper);
+    }
     proposeNames(names, identifier);
   }
 
