@@ -13,15 +13,14 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_NEW;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameResourceAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 /**
@@ -29,7 +28,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameAction_NEW extends Action implements ISelectionChangedListener {
+public class RenameAction_NEW extends AbstractDartSelectionAction_NEW {
   private final RenameDartElementAction_NEW renameElement;
   private final RenameResourceAction renameResource;
 
@@ -43,6 +42,7 @@ public class RenameAction_NEW extends Action implements ISelectionChangedListene
   };
 
   public RenameAction_NEW(DartEditor editor) {
+    super(editor);
     renameElement = new RenameDartElementAction_NEW(editor);
     renameResource = new RenameResourceAction(editor.getSite());
     renameElement.addPropertyChangeListener(enabledListener);
@@ -65,10 +65,10 @@ public class RenameAction_NEW extends Action implements ISelectionChangedListene
     renameResource.selectionChanged(event);
   }
 
-//  @Override
-//  protected void init() {
-//    setText(RefactoringMessages.RenameAction_text);
-//  }
+  @Override
+  protected void init() {
+    setText(RefactoringMessages.RenameAction_text);
+  }
 
   private boolean computeEnabledState() {
     return renameElement.isEnabled() || renameResource.isEnabled();

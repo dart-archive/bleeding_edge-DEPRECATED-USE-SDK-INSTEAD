@@ -13,15 +13,17 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.server.generated.types.RefactoringKind;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.ui.actions.AbstractRefactoringAction_NEW;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.ServerRenameRefactoring;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 /**
  * {@link Action} for renaming {@link Element}.
@@ -30,7 +32,7 @@ import org.eclipse.jface.action.Action;
  */
 public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
   public RenameDartElementAction_NEW(DartEditor editor) {
-    super(editor, RefactoringKind.RENAME);
+    super(editor);
   }
 
   @Override
@@ -51,6 +53,14 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
   }
 
   @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    Element[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(targets.length != 0);
+  }
+
+  @Override
   protected void init() {
+    setText(RefactoringMessages.RenameAction_text);
   }
 }

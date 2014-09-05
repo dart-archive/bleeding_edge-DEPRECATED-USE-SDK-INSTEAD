@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.tools.ui.internal.refactoring.ExtractLocalWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
@@ -23,6 +22,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -32,7 +32,7 @@ import org.eclipse.ui.PlatformUI;
  */
 public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
   public ExtractLocalAction_NEW(DartEditor editor) {
-    super(editor, RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+    super(editor);
   }
 
   @Override
@@ -50,6 +50,12 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
     } catch (Throwable e) {
       showError("Extract Local", e);
     }
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    setEnabled(selectionLength != 0);
   }
 
   @Override

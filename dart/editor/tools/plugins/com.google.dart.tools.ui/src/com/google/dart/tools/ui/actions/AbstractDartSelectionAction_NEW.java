@@ -35,6 +35,7 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
 
   public AbstractDartSelectionAction_NEW(DartEditor editor) {
     this.editor = editor;
+    init();
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
