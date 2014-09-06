@@ -2276,7 +2276,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'event': 'server.status',",
         "  'params': {",
         "    'analysis': {",
-        "      'analyzing': false",
+        "      'isAnalyzing': false",
         "    }",
         "  }",
         "}");
@@ -2291,7 +2291,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'event': 'server.status',",
         "  'params': {",
         "    'analysis': {",
-        "      'analyzing': true,",
+        "      'isAnalyzing': true,",
         "      'analysisTarget': 'target0'",
         "    }",
         "  }",

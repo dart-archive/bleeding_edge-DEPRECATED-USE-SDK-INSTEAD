@@ -266,7 +266,7 @@ public interface AnalysisServer {
    *
    * @param id The identifier of the execution context that is to be deleted.
    */
-  public void execution_deleteContext(ExecutionContextId id);
+  public void execution_deleteContext(String id);
 
   /**
    * {@code execution.mapUri}
@@ -280,7 +280,7 @@ public interface AnalysisServer {
    * @param file The path of the file to be mapped into a URI.
    * @param uri The URI to be mapped into a file path.
    */
-  public void execution_mapUri(ExecutionContextId id, String file, String uri, MapUriConsumer consumer);
+  public void execution_mapUri(String id, String file, String uri, MapUriConsumer consumer);
 
   /**
    * {@code execution.setSubscriptions}

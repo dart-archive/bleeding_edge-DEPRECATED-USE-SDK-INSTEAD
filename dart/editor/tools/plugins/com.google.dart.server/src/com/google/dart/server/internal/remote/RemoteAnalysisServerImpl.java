@@ -341,26 +341,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void debug_createContext(String contextRoot, CreateContextConsumer consumer) {
-    // TODO (jwren) debug domain not implemented yet
-  }
-
-  @Override
-  public void debug_deleteContext(String id) {
-    // TODO (jwren) debug domain not implemented yet
-  }
-
-  @Override
-  public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
-    // TODO (jwren) debug domain not implemented yet
-  }
-
-  @Override
-  public void debug_setSubscriptions(List<String> subscriptions) {
-    // TODO (jwren) debug domain not implemented yet
-  }
-
-  @Override
   public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
@@ -398,6 +378,26 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         length,
         validateOnly,
         options), consumer);
+  }
+
+  @Override
+  public void execution_createContext(String contextRoot, CreateContextConsumer consumer) {
+    // TODO (jwren) debug domain not implemented yet
+  }
+
+  @Override
+  public void execution_deleteContext(String id) {
+    // TODO (jwren) debug domain not implemented yet
+  }
+
+  @Override
+  public void execution_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+    // TODO (jwren) debug domain not implemented yet
+  }
+
+  @Override
+  public void execution_setSubscriptions(List<String> subscriptions) {
+    // TODO (jwren) debug domain not implemented yet
   }
 
   public void findElementReferences(String file, int offset, boolean includePotential,

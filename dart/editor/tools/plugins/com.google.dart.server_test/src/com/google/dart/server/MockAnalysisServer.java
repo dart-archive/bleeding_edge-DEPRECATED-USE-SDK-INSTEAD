@@ -75,26 +75,6 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void debug_createContext(String contextRoot, CreateContextConsumer consumer) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void debug_deleteContext(String id) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void debug_setSubscriptions(List<String> subscriptions) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
@@ -113,6 +93,26 @@ public class MockAnalysisServer implements AnalysisServer {
   @Override
   public void edit_getRefactoring(String kindId, String file, int offset, int length,
       boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void execution_createContext(String contextRoot, CreateContextConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void execution_deleteContext(String id) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void execution_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void execution_setSubscriptions(List<String> subscriptions) {
     throw new UnsupportedOperationException();
   }
 
