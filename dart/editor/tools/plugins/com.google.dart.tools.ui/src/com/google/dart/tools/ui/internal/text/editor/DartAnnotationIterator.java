@@ -88,7 +88,7 @@ public class DartAnnotationIterator implements Iterator {
   private void skip() {
     while (fIterator.hasNext()) {
       Annotation next = (Annotation) fIterator.next();
-      if (next instanceof IJavaAnnotation || next instanceof IQuickFixableAnnotation) {
+      if (next instanceof IQuickFixableAnnotation) {
         if (fSkipIrrelevants) {
           if (!next.isMarkedDeleted()) {
             fNext = next;

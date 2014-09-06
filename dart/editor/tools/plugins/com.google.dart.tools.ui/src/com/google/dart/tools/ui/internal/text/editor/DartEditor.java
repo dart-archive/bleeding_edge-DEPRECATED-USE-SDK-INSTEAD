@@ -196,7 +196,6 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IUpdate;
-import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.texteditor.TextNavigationAction;
 import org.eclipse.ui.texteditor.TextOperationAction;
@@ -2983,8 +2982,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Iterator e = new DartAnnotationIterator(model, true, true);
     while (e.hasNext()) {
       Annotation a = (Annotation) e.next();
-      if (a instanceof IJavaAnnotation && ((IJavaAnnotation) a).hasOverlay()
-          || !isNavigationTarget(a)) {
+      if (!isNavigationTarget(a)) {
         continue;
       }
 
@@ -3766,19 +3764,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void updateMarkerViews(Annotation annotation) {
-    if (annotation instanceof IJavaAnnotation) {
-      Iterator<IJavaAnnotation> e = ((IJavaAnnotation) annotation).getOverlaidIterator();
-      if (e != null) {
-        while (e.hasNext()) {
-          Object o = e.next();
-          if (o instanceof MarkerAnnotation) {
-            super.updateMarkerViews((MarkerAnnotation) o);
-            return;
-          }
-        }
-      }
-      return;
-    }
     super.updateMarkerViews(annotation);
   }
 
@@ -3797,9 +3782,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setStatusLineMessage(null);
     if (annotation != null) {
       updateMarkerViews(annotation);
-      if (annotation instanceof IJavaAnnotation && ((IJavaAnnotation) annotation).isProblem()) {
-        setStatusLineMessage(annotation.getText());
-      }
     }
   }
 

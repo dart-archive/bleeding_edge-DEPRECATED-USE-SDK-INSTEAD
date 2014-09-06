@@ -104,9 +104,7 @@ public class CompilationUnitAnnotationModelEvent extends AnnotationModelEvent {
     if (fIncludesProblemMarkerAnnotations) {
       return;
     }
-    if (annotation instanceof DartMarkerAnnotation) {
-      fIncludesProblemMarkerAnnotations = ((DartMarkerAnnotation) annotation).isProblem();
-    } else if (annotation instanceof MarkerAnnotation) {
+    if (annotation instanceof MarkerAnnotation) {
       try {
         IMarker marker = ((MarkerAnnotation) annotation).getMarker();
         if (!marker.exists() || marker.isSubtypeOf(IMarker.PROBLEM)) {
