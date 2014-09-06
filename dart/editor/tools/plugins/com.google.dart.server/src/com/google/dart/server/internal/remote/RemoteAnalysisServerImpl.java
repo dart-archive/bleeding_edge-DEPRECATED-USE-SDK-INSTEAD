@@ -102,35 +102,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * A thread which reads input from the {@link LineReaderStream}.
-   */
-  public class ServerErrorReaderThread extends Thread {
-    private LineReaderStream stream;
-
-    public ServerErrorReaderThread(LineReaderStream stream) {
-      setDaemon(true);
-      setName("ServerErrorReaderThread");
-      this.stream = stream;
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        try {
-          String line = stream.readLine();
-          if (line == null) {
-            return;
-          }
-          System.err.println(line);
-        } catch (Exception e) {
-          // TODO (jwren) handle error messages
-          e.printStackTrace();
-        }
-      }
-    }
-  }
-
-  /**
    * A thread which reads responses from the {@link ResponseStream} and calls the associated
    * {@link Consumer}s from {@link RemoteAnalysisServerImpl#consumerMap}.
    */
@@ -168,7 +139,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   // Server domain
   private static final String SERVER_NOTIFICATION_CONNECTED = "server.connected";
-  private static final String SERVER_NOTIFICATION_ERROR = "server.error";
+  public static final String SERVER_NOTIFICATION_ERROR = "server.error";
   private static final String SERVER_NOTIFICATION_STATUS = "server.status";
 
   // Analysis domain
@@ -711,7 +682,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     errorStream = socket.getErrorStream();
     new ServerResponseReaderThread(responseStream).start();
     if (errorStream != null) {
-      new ServerErrorReaderThread(errorStream).start();
+      new ServerErrorReaderThread(errorStream, listener).start();
     }
   }
 

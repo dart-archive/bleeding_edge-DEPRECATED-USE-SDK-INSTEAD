@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
@@ -24,6 +25,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
@@ -117,7 +119,12 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void serverError(boolean isFatal, String message, String stackTrace) {
-    // TODO(scheglov) Analysis Server
+    @SuppressWarnings("resource")
+    PrintStringWriter buf = new PrintStringWriter();
+    buf.println("ServerError: Fatal=" + isFatal);
+    buf.println(message);
+    buf.println(stackTrace);
+    DartCore.logError(buf.toString());
   }
 
   @Override

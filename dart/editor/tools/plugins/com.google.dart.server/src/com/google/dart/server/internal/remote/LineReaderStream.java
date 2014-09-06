@@ -13,6 +13,8 @@
  */
 package com.google.dart.server.internal.remote;
 
+import java.io.IOException;
+
 /**
  * A source of remote server lines.
  * 
@@ -24,4 +26,9 @@ public interface LineReaderStream {
    * Takes the the next line from the stream and return it. Blocks if no response available.
    */
   String readLine() throws Exception;
+
+  /**
+   * Returns {@code true} if there is content to be read.
+   */
+  boolean ready() throws IOException;
 }

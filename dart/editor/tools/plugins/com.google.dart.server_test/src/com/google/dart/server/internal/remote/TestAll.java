@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(ByteRequestSinkTest.class);
     suite.addTestSuite(ByteResposeStreamTest.class);
     suite.addTestSuite(RemoteAnalysisServerImplTest.class);
+    suite.addTestSuite(ServerErrorReaderThreadTest.class);
     return suite;
   }
 }

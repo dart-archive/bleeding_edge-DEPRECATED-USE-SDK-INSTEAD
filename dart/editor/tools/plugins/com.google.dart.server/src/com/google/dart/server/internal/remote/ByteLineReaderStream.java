@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Charsets;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -46,5 +47,10 @@ public class ByteLineReaderStream implements LineReaderStream {
 //        System.err.println(System.currentTimeMillis() + " <= --eof--");
 //      }
     return line;
+  }
+
+  @Override
+  public boolean ready() throws IOException {
+    return reader.ready();
   }
 }
