@@ -194,53 +194,6 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
-   * {@code debug.createContext}
-   *
-   * Create a debugging context for the executable file with the given path. The context that is
-   * created will persist until debug.deleteContext is used to delete it. Clients, therefore, are
-   * responsible for managing the lifetime of debugging contexts.
-   *
-   * @param contextRoot The path of the Dart or HTML file that will be launched.
-   */
-  public void debug_createContext(String contextRoot, CreateContextConsumer consumer);
-
-  /**
-   * {@code debug.deleteContext}
-   *
-   * Delete the debugging context with the given identifier. The context id is no longer valid after
-   * this command. The server is allowed to re-use ids when they are no longer valid.
-   *
-   * @param id The identifier of the debugging context that is to be deleted.
-   */
-  public void debug_deleteContext(String id);
-
-  /**
-   * {@code debug.mapUri}
-   *
-   * Map a URI from the debugging context to the file that it corresponds to, or map a file to the
-   * URI that it corresponds to in the debugging context.
-   *
-   * Exactly one of the file and uri fields must be provided.
-   *
-   * @param id The identifier of the debugging context in which the URI is to be mapped.
-   * @param file The path of the file to be mapped into a URI.
-   * @param uri The URI to be mapped into a file path.
-   */
-  public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer);
-
-  /**
-   * {@code debug.setSubscriptions}
-   *
-   * Subscribe for services. All previous subscriptions are replaced by the given set of services.
-   *
-   * It is an error if any of the elements in the list are not valid services. If there is an error,
-   * then the current subscriptions will remain unchanged.
-   *
-   * @param subscriptions A list of the services being subscribed to.
-   */
-  public void debug_setSubscriptions(List<String> subscriptions);
-
-  /**
    * {@code edit.getAssists}
    *
    * Return the set of assists that are available at the given location. An assist is distinguished
@@ -293,6 +246,53 @@ public interface AnalysisServer {
    *         options are not known.
    */
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
+
+  /**
+   * {@code execution.createContext}
+   *
+   * Create an execution context for the executable file with the given path. The context that is
+   * created will persist until execution.deleteContext is used to delete it. Clients, therefore, are
+   * responsible for managing the lifetime of execution contexts.
+   *
+   * @param contextRoot The path of the Dart or HTML file that will be launched.
+   */
+  public void execution_createContext(String contextRoot, CreateContextConsumer consumer);
+
+  /**
+   * {@code execution.deleteContext}
+   *
+   * Delete the execution context with the given identifier. The context id is no longer valid after
+   * this command. The server is allowed to re-use ids when they are no longer valid.
+   *
+   * @param id The identifier of the execution context that is to be deleted.
+   */
+  public void execution_deleteContext(ExecutionContextId id);
+
+  /**
+   * {@code execution.mapUri}
+   *
+   * Map a URI from the execution context to the file that it corresponds to, or map a file to the
+   * URI that it corresponds to in the execution context.
+   *
+   * Exactly one of the file and uri fields must be provided.
+   *
+   * @param id The identifier of the execution context in which the URI is to be mapped.
+   * @param file The path of the file to be mapped into a URI.
+   * @param uri The URI to be mapped into a file path.
+   */
+  public void execution_mapUri(ExecutionContextId id, String file, String uri, MapUriConsumer consumer);
+
+  /**
+   * {@code execution.setSubscriptions}
+   *
+   * Subscribe for services. All previous subscriptions are replaced by the given set of services.
+   *
+   * It is an error if any of the elements in the list are not valid services. If there is an error,
+   * then the current subscriptions will remain unchanged.
+   *
+   * @param subscriptions A list of the services being subscribed to.
+   */
+  public void execution_setSubscriptions(List<String> subscriptions);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
