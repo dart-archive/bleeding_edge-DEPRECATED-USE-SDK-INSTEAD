@@ -9,7 +9,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineLocalWizard extends ServiceRefactoringWizard {
+public class InlineLocalWizard_NEW extends ServerRefactoringWizard {
 
   private static class InlineLocalInputPage extends MessageWizardPage {
 
@@ -29,8 +29,8 @@ public class InlineLocalWizard extends ServiceRefactoringWizard {
 
     @Override
     protected String getMessageString() {
-      ServiceInlineLocalRefactoring refactoring = (ServiceInlineLocalRefactoring) getRefactoring();
-      int occurrences = refactoring.getReferenceCount();
+      ServerInlineLocalRefactoring refactoring = (ServerInlineLocalRefactoring) getRefactoring();
+      int occurrences = refactoring.getOccurrences();
       final String name = refactoring.getVariableName();
       switch (occurrences) {
         case 0:
@@ -47,7 +47,7 @@ public class InlineLocalWizard extends ServiceRefactoringWizard {
     }
   }
 
-  public InlineLocalWizard(ServiceInlineLocalRefactoring ref) {
+  public InlineLocalWizard_NEW(ServerInlineLocalRefactoring ref) {
     super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE
         | NO_BACK_BUTTON_ON_STATUS_DIALOG);
     setDefaultPageTitle(RefactoringMessages.InlineLocalWizard_defaultPageTitle);

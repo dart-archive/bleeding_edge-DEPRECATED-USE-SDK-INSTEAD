@@ -19,7 +19,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.ServiceInlineLocalRefactoring;
@@ -37,8 +37,8 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineLocalAction extends AbstractRefactoringAction_OLD {
-  public InlineLocalAction(DartEditor editor) {
+public class InlineLocalAction_OLD extends AbstractRefactoringAction_OLD {
+  public InlineLocalAction_OLD(DartEditor editor) {
     super(editor);
   }
 
@@ -69,7 +69,7 @@ public class InlineLocalAction extends AbstractRefactoringAction_OLD {
       InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
       ServiceInlineLocalRefactoring ltkRefactoring = new ServiceInlineLocalRefactoring(refactoring);
       new RefactoringStarter().activate(
-          new InlineLocalWizard(ltkRefactoring),
+          new InlineLocalWizard_OLD(ltkRefactoring),
           shell,
           RefactoringMessages.InlineLocalAction_dialog_title,
           RefactoringSaveHelper.SAVE_NOTHING);
