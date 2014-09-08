@@ -64,7 +64,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
   public static final boolean ENABLE_NEW_FEEDBACK = isOptionTrue("experimental/feedback");
-  public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
@@ -109,7 +108,6 @@ public class DartCoreDebug {
     instrumentation.metric("ENABLE_ALT_KEY_BINDINGS", ENABLE_ALT_KEY_BINDINGS);
     instrumentation.metric("ENABLE_TESTS_VIEW", ENABLE_TESTS_VIEW);
     instrumentation.metric("ENABLE_FORMATTER", ENABLE_FORMATTER);
-    instrumentation.metric("ENABLE_THEMES", ENABLE_THEMES);
     instrumentation.metric("ENABLE_TAB_COLORING", ENABLE_TAB_COLORING);
     instrumentation.metric("ENABLE_HTML_VALIDATION", ENABLE_HTML_VALIDATION);
     instrumentation.metric("NO_PUB_PACKAGES", NO_PUB_PACKAGES);

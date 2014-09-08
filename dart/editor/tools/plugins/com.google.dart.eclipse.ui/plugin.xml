@@ -478,12 +478,12 @@
    
    <extension
          point="org.eclipse.ui.commands">
-      <command
+      <!--<command
             categoryId="org.eclipse.ui.category.navigate"
             defaultHandler="com.google.dart.eclipse.ui.internal.handlers.OpenTypeDialogHandler"
             description="%command.openType.desc"
             id="com.google.dart.eclipse.openType"
-            name="%command.openType.name"/>
+            name="%command.openType.name"/>-->
       <!--<command
             defaultHandler="com.google.dart.eclipse.ui.internal.handlers.CleanupHandler"
             id="com.google.dart.eclipse.cleanup"
@@ -514,14 +514,14 @@
       <actionSet
             id="com.google.dart.eclipse.perspectiveActions"
             label="Navigation">
-         <action
+         <!--<action
                class="com.google.dart.tools.ui.internal.actions.OpenTypeAction"
                definitionId="com.google.dart.eclipse.openType"
                id="com.google.dart.eclipse.openTypeAction"
                label="%action.openType.label"
                menubarPath="navigate/open.ext2"
                style="push">
-         </action>
+         </action>-->
       </actionSet>
       
       <actionSet

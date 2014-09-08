@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.theme.preferences;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -162,9 +161,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performCancel() {
-    if (!DartCoreDebug.ENABLE_THEMES) {
-      return true;
-    }
     while (updating) {
       waitALittle();
     }
@@ -185,9 +181,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-    if (!DartCoreDebug.ENABLE_THEMES) {
-      return true;
-    }
     while (updating) {
       waitALittle();
     }
@@ -212,9 +205,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   protected void contributeButtons(Composite parent) {
-    if (!DartCoreDebug.ENABLE_THEMES) {
-      return;
-    }
     ((GridLayout) parent.getLayout()).numColumns++;
 
     Button button = new Button(parent, SWT.NONE);
@@ -255,9 +245,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     GridLayout containerLayout = new GridLayout(1, true);
     containerLayout.marginWidth = 0;
     container.setLayout(containerLayout);
-    if (!DartCoreDebug.ENABLE_THEMES) {
-      return container;
-    }
 
     gridData = new GridData(GridData.FILL_BOTH);
     themeSelection = new Composite(container, SWT.NONE);
@@ -365,9 +352,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   }
 
   private void reloadThemeSelectionList() {
-    if (!DartCoreDebug.ENABLE_THEMES) {
-      return;
-    }
     themeSelectionList.removeAll();
     fillThemeSelectionList();
     themeSelectionList.setSelection(new String[] {ColorThemeManager.DEFAULT_THEME_NAME});
