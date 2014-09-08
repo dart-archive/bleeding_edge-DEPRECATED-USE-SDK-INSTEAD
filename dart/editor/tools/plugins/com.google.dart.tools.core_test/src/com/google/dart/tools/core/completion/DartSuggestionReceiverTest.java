@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DartCompletionReceiverTest extends TestCase {
+public class DartSuggestionReceiverTest extends TestCase {
   class MockServer extends MockAnalysisServer {
     AnalysisServerListener listener;
     Runnable serverResponse;
@@ -63,7 +63,7 @@ public class DartCompletionReceiverTest extends TestCase {
   }
 
   MockServer server;
-  DartCompletionReceiver receiver;
+  DartSuggestionReceiver receiver;
   String testFile = "/test.dart";
   int testOffset = 17;
   String completionId = "id27";
@@ -75,8 +75,8 @@ public class DartCompletionReceiverTest extends TestCase {
         // ignored
       }
     });
-    receiver = new DartCompletionReceiver(server);
-    List<CompletionSuggestion> result = receiver.requestCompletions(testFile, testOffset, 1);
+    receiver = new DartSuggestionReceiver(server);
+    List<CompletionSuggestion> result = receiver.requestSuggestions(testFile, testOffset, 1);
     assertNull(result);
   }
 
@@ -87,8 +87,8 @@ public class DartCompletionReceiverTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
       }
     });
-    receiver = new DartCompletionReceiver(server);
-    List<CompletionSuggestion> result = receiver.requestCompletions(testFile, testOffset, 1);
+    receiver = new DartSuggestionReceiver(server);
+    List<CompletionSuggestion> result = receiver.requestSuggestions(testFile, testOffset, 1);
     assertNull(result);
   }
 
@@ -140,16 +140,16 @@ public class DartCompletionReceiverTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
         if (server.listener != null) {
           server.listener.computedCompletion("anotherId", 28, 0, completions0, true);
-          partialResults[0] = receiver.getCompletions();
+          partialResults[0] = receiver.getSuggestions();
           server.listener.computedCompletion(completionId, testOffset, 0, completions1, false);
-          partialResults[1] = receiver.getCompletions();
+          partialResults[1] = receiver.getSuggestions();
         }
       }
     });
-    receiver = new DartCompletionReceiver(server);
+    receiver = new DartSuggestionReceiver(server);
     long start = System.currentTimeMillis();
     int millisToWait = 10;
-    List<CompletionSuggestion> result = receiver.requestCompletions(
+    List<CompletionSuggestion> result = receiver.requestSuggestions(
         testFile,
         testOffset,
         millisToWait);
@@ -159,6 +159,8 @@ public class DartCompletionReceiverTest extends TestCase {
     assertEquals(completions1, partialResults[1]);
     assertNull(partialResults[2]);
     assertTrue(delta >= millisToWait);
+    assertEquals(testOffset, receiver.getReplacementOffset());
+    assertEquals(0, receiver.getReplacementLength());
   }
 
   public void test_suggestions() {
@@ -228,18 +230,18 @@ public class DartCompletionReceiverTest extends TestCase {
         server.consumer.computedCompletionId(completionId);
         if (server.listener != null) {
           server.listener.computedCompletion("anotherId", 28, 0, completions0, true);
-          partialResults[0] = receiver.getCompletions();
+          partialResults[0] = receiver.getSuggestions();
           server.listener.computedCompletion(completionId, testOffset, 0, completions1, false);
-          partialResults[1] = receiver.getCompletions();
-          server.listener.computedCompletion(completionId, testOffset, 0, completions2, true);
-          partialResults[2] = receiver.getCompletions();
+          partialResults[1] = receiver.getSuggestions();
+          server.listener.computedCompletion(completionId, testOffset, 8, completions2, true);
+          partialResults[2] = receiver.getSuggestions();
         }
       }
     });
-    receiver = new DartCompletionReceiver(server);
+    receiver = new DartSuggestionReceiver(server);
     long start = System.currentTimeMillis();
     int millisToWait = 50000;
-    List<CompletionSuggestion> result = receiver.requestCompletions(
+    List<CompletionSuggestion> result = receiver.requestSuggestions(
         testFile,
         testOffset,
         millisToWait);
@@ -248,6 +250,8 @@ public class DartCompletionReceiverTest extends TestCase {
     assertNull(partialResults[0]);
     assertEquals(completions1, partialResults[1]);
     assertEquals(completions2, partialResults[2]);
+    assertEquals(testOffset, receiver.getReplacementOffset());
+    assertEquals(8, receiver.getReplacementLength());
     assertTrue(delta < millisToWait);
   }
 }

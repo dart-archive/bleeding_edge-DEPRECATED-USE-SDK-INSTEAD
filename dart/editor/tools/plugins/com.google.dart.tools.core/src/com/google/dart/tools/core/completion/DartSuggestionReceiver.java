@@ -27,10 +27,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * This listener processes notifications from {@link AnalysisServer} and collects any completion
  * suggestions received for the given completion request. Clients should instantiate the collector
- * then call {@link #requestCompletions(String, int, long)} to begin collecting completions from the
+ * then call {@link #requestSuggestions(String, int, long)} to begin collecting completions from the
  * server.
  */
-public class DartCompletionReceiver {
+public class DartSuggestionReceiver {
 
   /**
    * The server providing the suggestions.
@@ -43,7 +43,7 @@ public class DartCompletionReceiver {
   GetSuggestionsConsumer consumer = new GetSuggestionsConsumer() {
     @Override
     public void computedCompletionId(String completionId) {
-      DartCompletionReceiver.this.completionId = completionId;
+      DartSuggestionReceiver.this.completionId = completionId;
       if (latch != null) {
         server.addAnalysisServerListener(listener);
       }
@@ -62,9 +62,10 @@ public class DartCompletionReceiver {
     @Override
     public void computedCompletion(String completionId, int replacementOffset,
         int replacementLength, List<CompletionSuggestion> completions, boolean isLast) {
-      if (completionId.equals(DartCompletionReceiver.this.completionId)) {
-        DartCompletionReceiver.this.replacementOffset = replacementOffset;
-        DartCompletionReceiver.this.completions = completions;
+      if (completionId.equals(DartSuggestionReceiver.this.completionId)) {
+        DartSuggestionReceiver.this.replacementOffset = replacementOffset;
+        DartSuggestionReceiver.this.replacementLength = replacementLength;
+        DartSuggestionReceiver.this.suggestions = completions;
         if (isLast) {
           server.removeAnalysisServerListener(this);
           latch.countDown();
@@ -79,26 +80,31 @@ public class DartCompletionReceiver {
   private int replacementOffset;
 
   /**
-   * The completions returned by the server or {@code null} if none.
+   * The replacement length for the current completions.
    */
-  private List<CompletionSuggestion> completions;
+  private int replacementLength;
 
   /**
-   * The latch used by {@link #listener} to notify {@link #requestCompletions(String, int, long)}
+   * The suggestions returned by the server or {@code null} if none.
+   */
+  private List<CompletionSuggestion> suggestions;
+
+  /**
+   * The latch used by {@link #listener} to notify {@link #requestSuggestions(String, int, long)}
    * when suggestions are available or {@code null} if no request has been made or if the request is
    * complete.
    */
   private CountDownLatch latch;
 
-  public DartCompletionReceiver(AnalysisServer server) {
+  public DartSuggestionReceiver(AnalysisServer server) {
     this.server = server;
   }
 
   /**
-   * Answer the current completions returned by the server or {@code null} if none
+   * Answer the replacement length for the current completions.
    */
-  public List<CompletionSuggestion> getCompletions() {
-    return completions;
+  public int getReplacementLength() {
+    return replacementLength;
   }
 
   /**
@@ -106,6 +112,13 @@ public class DartCompletionReceiver {
    */
   public int getReplacementOffset() {
     return replacementOffset;
+  }
+
+  /**
+   * Answer the current suggestions returned by the server or {@code null} if none
+   */
+  public List<CompletionSuggestion> getSuggestions() {
+    return suggestions;
   }
 
   /**
@@ -119,12 +132,12 @@ public class DartCompletionReceiver {
    * @param millisToWait the maximum # of milliseconds to wait for the final list of completions.
    * @return the completion suggestions or {@code null} if none
    */
-  public List<CompletionSuggestion> requestCompletions(String file, int offset, long millisToWait) {
+  public List<CompletionSuggestion> requestSuggestions(String file, int offset, long millisToWait) {
     latch = new CountDownLatch(1);
     server.completion_getSuggestions(file, offset, consumer);
     Uninterruptibles.awaitUninterruptibly(latch, millisToWait, TimeUnit.MILLISECONDS);
     latch = null;
     server.removeAnalysisServerListener(listener);
-    return completions;
+    return suggestions;
   }
 }

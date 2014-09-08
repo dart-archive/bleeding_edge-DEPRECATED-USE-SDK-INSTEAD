@@ -14,11 +14,11 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.completion.DartCompletionReceiver;
+import com.google.dart.tools.core.completion.DartSuggestionReceiver;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.ui.internal.text.completion.DartServerProposalCollector;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
@@ -46,7 +46,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
   private IContextInformationValidator fValidator;
   protected final IEditorPart fEditor;
   private AssistContext assistContext;
-  private DartCompletionReceiver receiver;
+  private DartServerProposalCollector collector;
 
   public DartCompletionProcessor(IEditorPart editor, ContentAssistant assistant, String partition) {
     super(assistant, partition);
@@ -108,7 +108,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    */
   @Override
   protected ContentAssistInvocationContext createContext(ITextViewer viewer, int offset) {
-    return new DartContentAssistInvocationContext(viewer, offset, fEditor, assistContext, receiver);
+    return new DartContentAssistInvocationContext(viewer, offset, fEditor, assistContext, collector);
   }
 
   /*
@@ -118,8 +118,12 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
   @SuppressWarnings("rawtypes")
   @Override
   protected List filterAndSortProposals(List proposals, IProgressMonitor monitor,
-      ContentAssistInvocationContext context) {
-    ProposalSorterRegistry.getDefault().getCurrentSorter().sortProposals(context, proposals);
+      final ContentAssistInvocationContext context) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // Proposals have already been sorted on a background thread
+    } else {
+      ProposalSorterRegistry.getDefault().getCurrentSorter().sortProposals(context, proposals);
+    }
     return proposals;
   }
 
@@ -127,16 +131,18 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());
     final DartEditor dartEditor = (DartEditor) fEditor;
-    receiver = new DartCompletionReceiver(DartCore.getAnalysisServer());
-    receiver.requestCompletions(
+    // Ensure the server has the latest content before requesting suggestions
+    dartEditor.getDartReconcilingStrategy().reconcile();
+    // Request suggestions from server
+    DartSuggestionReceiver receiver = new DartSuggestionReceiver(DartCore.getAnalysisServer());
+    receiver.requestSuggestions(
         dartEditor.getInputFilePath(),
         dartEditor.getCachedSelectedRange().x,
-        250); // wait up to 1/4 of a second for suggestions
-    List<CompletionSuggestion> completions = receiver.getCompletions();
-    if (completions == null || completions.size() <= 0) {
-      return false;
-    }
-    return true;
+        // TODO (danrubel) reduce to 1/4 second
+        8000); // wait up to 8 seconds for suggestions
+    // Translate server suggestions into Eclipse proposals
+    collector = new DartServerProposalCollector(receiver);
+    return collector.computeAndSortProposals();
   }
 
   private boolean waitUntilReady_OLD() {

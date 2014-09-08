@@ -37,7 +37,8 @@ public interface IDartCompletionProposal extends ICompletionProposal {
    * The relevance is used to determine if this proposal is more relevant than another proposal.
    * </p>
    * 
-   * @return the relevance of this completion proposal in the range of [0, 100]
+   * @return the relevance of this completion proposal in the range of [0, 100] where a lower number
+   *         is more relevant than a higher number
    */
   int getRelevance();
 

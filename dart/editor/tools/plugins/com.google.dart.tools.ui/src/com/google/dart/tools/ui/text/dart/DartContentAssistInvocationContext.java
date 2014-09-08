@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.completion.DartCompletionReceiver;
+import com.google.dart.tools.ui.internal.text.completion.DartServerProposalCollector;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -46,7 +46,8 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   private IDartCompletionProposal[] fKeywordProposals = null;
   private CompletionContext fCoreContext = null;
   private AssistContext assistContext;
-  private DartCompletionReceiver receiver;
+
+  private DartServerProposalCollector collector;
 
   /**
    * Creates a new context.
@@ -63,14 +64,14 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    * @param offset the invocation offset
    * @param editor the editor that content assist is invoked in
    * @param assistContext the context or {@code null} if unknown
-   * @param receiver the completion receiver or {@code null} if unknown
+   * @param collector the completion collector or {@code null} if unknown
    */
   public DartContentAssistInvocationContext(ITextViewer viewer, int offset, IEditorPart editor,
-      AssistContext assistContext, DartCompletionReceiver receiver) {
+      AssistContext assistContext, DartServerProposalCollector collector) {
     super(viewer, offset);
     fEditor = editor;
     this.assistContext = assistContext;
-    this.receiver = receiver;
+    this.collector = collector;
   }
 
   public AssistContext getAssistContext() {
@@ -78,6 +79,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
       assistContext = ((DartEditor) fEditor).getAssistContext();
     }
     return assistContext;
+  }
+
+  public DartServerProposalCollector getCollector() {
+    return collector;
   }
 
   /**
@@ -172,10 +177,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
 
   public int getPartitionOffset() {
     return 0;
-  }
-
-  public DartCompletionReceiver getReceiver() {
-    return receiver;
   }
 
   /**
