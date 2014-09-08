@@ -48,7 +48,8 @@ import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
-import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
+import com.google.dart.tools.internal.search.ui.DartSearchActionGroup_NEW;
+import com.google.dart.tools.internal.search.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
@@ -2555,10 +2556,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo("actions");
     ActionGroup oeg, ovg;
     ActionGroup dsg, ddg;
-    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-        oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
-        dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
-    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          dsg = new DartSearchActionGroup_NEW(this), ddg = new DartdocActionGroup(this)});
+      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    } else {
+      fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
+      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    }
 
     // Registers the folding actions with the editor
     fFoldingGroup = new FoldingActionGroup(this, getViewer());

@@ -2121,7 +2121,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        ]",
         "      }",
         "    ],",
-        "    'last': true",
+        "    'isLast': true",
         "  }",
         "}");
     responseStream.waitForEmpty();

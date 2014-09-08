@@ -1004,14 +1004,14 @@ public class OmniBoxPopup extends BasePopupDialog {
     //to ensure a refresh --- if/when other provides go async, this special casing should 
     //get generalized
     for (OmniProposalProvider provider : providers) {
-      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        if (provider instanceof TypeProvider_OLD) {
-          needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        if (provider instanceof TopLevelElementProvider_NEW) {
+          needsRefresh = !((TopLevelElementProvider_NEW) provider).isSearchComplete();
           provider.reset();
         }
       } else {
-        if (provider instanceof TopLevelElementProvider_NEW) {
-          needsRefresh = !((TopLevelElementProvider_NEW) provider).isSearchComplete();
+        if (provider instanceof TypeProvider_OLD) {
+          needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
           provider.reset();
         }
       }

@@ -34,6 +34,6 @@ public class NotificationSearchResultsProcessor extends NotificationProcessor {
     getListener().computedSearchResults(
         params.get("id").getAsString(),
         SearchResult.fromJsonArray(params.getAsJsonArray("results")),
-        params.get("last").getAsBoolean());
+        params.get("isLast").getAsBoolean());
   }
 }

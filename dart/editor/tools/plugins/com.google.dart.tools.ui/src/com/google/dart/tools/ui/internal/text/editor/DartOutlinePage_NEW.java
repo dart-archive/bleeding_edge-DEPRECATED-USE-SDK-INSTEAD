@@ -17,7 +17,6 @@ import com.google.common.base.Objects;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -416,8 +415,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     // register "viewer" as selection provide for this view
     IPageSite site = getSite();
     site.setSelectionProvider(viewer);
-    actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(site), new DartSearchActionGroup(site)});
+    actionGroups = new CompositeActionGroup(new ActionGroup[] {new OpenViewActionGroup(site)});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

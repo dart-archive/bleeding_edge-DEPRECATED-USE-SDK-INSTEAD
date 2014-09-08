@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.internal.search.ui;
 
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionActionGroup;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -22,8 +20,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
@@ -32,23 +28,15 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * 
  * @coverage dart.editor.ui.search
  */
-public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
-  private AbstractDartSelectionAction_OLD findReferencesAction;
-  private AbstractDartSelectionAction_OLD findDeclarationsAction;
+public class DartSearchActionGroup_NEW extends AbstractDartSelectionActionGroup {
+  private FindReferencesAction_NEW findReferencesAction;
+  private FindDeclarationsAction_NEW findDeclarationsAction;
   private OpenAction openAction;
 
-  public DartSearchActionGroup(DartEditor editor) {
+  public DartSearchActionGroup_NEW(DartEditor editor) {
     super(editor);
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      findReferencesAction = new FindReferencesAction_NEW(editor);
-    } else {
-      findReferencesAction = new FindReferencesAction(editor);
-    }
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      findDeclarationsAction = new FindDeclarationsAction_NEW(editor);
-    } else {
-      findDeclarationsAction = new FindDeclarationsAction(editor);
-    }
+    findReferencesAction = new FindReferencesAction_NEW(editor);
+    findDeclarationsAction = new FindDeclarationsAction_NEW(editor);
     openAction = new OpenAction(editor);
     initActions();
     editor.setAction(findReferencesAction.getActionDefinitionId(), findReferencesAction);
@@ -56,27 +44,6 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     editor.setAction("OpenEditor", openAction);
     addActions(findReferencesAction, findDeclarationsAction, openAction);
     addActionDartSelectionListeners();
-  }
-
-  public DartSearchActionGroup(IViewPart part) {
-    this(part.getViewSite());
-  }
-
-  public DartSearchActionGroup(IWorkbenchSite site) {
-    super(site);
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      findReferencesAction = new FindReferencesAction_NEW(site);
-    } else {
-      findReferencesAction = new FindReferencesAction(site);
-    }
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      findDeclarationsAction = new FindDeclarationsAction_NEW(site);
-    } else {
-      findDeclarationsAction = new FindDeclarationsAction(site);
-    }
-    initActions();
-    addActions(findReferencesAction, findDeclarationsAction);
-    addActionSelectionListeners();
   }
 
   @Override

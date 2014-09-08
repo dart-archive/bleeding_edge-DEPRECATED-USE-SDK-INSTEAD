@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
+import com.google.dart.tools.internal.search.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -256,7 +256,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     site.setSelectionProvider(viewer);
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
         new OpenViewActionGroup(site), new RefactorActionGroup_OLD(site),
-        new DartSearchActionGroup(site)});
+        new DartSearchActionGroup_OLD(site)});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

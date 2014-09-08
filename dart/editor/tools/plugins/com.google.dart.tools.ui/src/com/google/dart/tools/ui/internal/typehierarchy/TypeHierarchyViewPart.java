@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
@@ -215,8 +214,7 @@ public class TypeHierarchyViewPart extends ViewPart {
     IViewSite site = getViewSite();
     site.setSelectionProvider(typesViewer);
     // configure actions
-    actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(site), new DartSearchActionGroup(site)});
+    actionGroups = new CompositeActionGroup(new ActionGroup[] {new OpenViewActionGroup(site)});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

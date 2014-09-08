@@ -15,26 +15,26 @@ package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.server.FindElementReferencesConsumer;
+import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
-import com.google.dart.tools.ui.actions.OpenAction;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_NEW;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Event;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindReferencesAction_NEW extends AbstractDartSelectionAction_OLD {
+public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
   /**
    * Shows "Search" view with references to non-local elements with given name.
    */
@@ -78,23 +78,24 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_OLD {
         protected List<SearchResult> runQuery() {
           final List<SearchResult> allResults = Lists.newArrayList();
           final CountDownLatch latch = new CountDownLatch(1);
-          // TODO (jwren) re-implement after functionality has been updated in server
-//          DartCore.getAnalysisServer().searchClassMemberReferences(name, new SearchIdConsumer() {
-//            @Override
-//            public void computedSearchId(String searchId) {
-//              DartCore.getAnalysisServerData().addSearchResultsListener(
-//                  searchId,
-//                  new SearchResultsListener() {
-//                    @Override
-//                    public void computedSearchResults(SearchResult[] results, boolean last) {
-//                      Collections.addAll(allResults, results);
-//                      if (last) {
-//                        latch.countDown();
-//                      }
-//                    }
-//                  });
-//            }
-//          });
+          DartCore.getAnalysisServer().search_findMemberReferences(
+              name,
+              new FindMemberReferencesConsumer() {
+                @Override
+                public void computedSearchId(String searchId) {
+                  DartCore.getAnalysisServerData().addSearchResultsListener(
+                      searchId,
+                      new SearchResultsListener() {
+                        @Override
+                        public void computedSearchResults(List<SearchResult> results, boolean last) {
+                          allResults.addAll(results);
+                          if (last) {
+                            latch.countDown();
+                          }
+                        }
+                      });
+                }
+              });
           Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
           return allResults;
         }
@@ -126,39 +127,15 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_OLD {
     super(editor);
   }
 
-  public FindReferencesAction_NEW(IWorkbenchSite site) {
-    super(site);
-  }
-
   @Override
-  public void selectionChanged(DartSelection selection) {
-    Element[] elements = OpenAction.getNavigationTargets(selection);
-    setEnabled(elements.length != 0);
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    // TODO(scheglov) Analysis Server: implement search for an Element in outline view
-//    Element element = getSelectionElement(selection);
-//    setEnabled(element != null);
-  }
-
-  @Override
-  protected void doRun(DartSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    // prepare context
-    DartEditor editor = selection.getEditor();
-    final String filePath = editor.getInputFilePath();
-    final int offset = selection.getOffset();
-    // open Search view
+  public void run() {
     SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
     if (view == null) {
       return;
     }
     // do search
-    final Element[] elements = OpenAction.getNavigationTargets(selection);
-    final Element element = elements != null ? elements[0] : null;
     view.showPage(new SearchResultPage_NEW(view, "Searching for references...") {
+      private Element element;
 
       @Override
       protected IProject getCurrentProject() {
@@ -181,42 +158,39 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_OLD {
       @Override
       protected List<SearchResult> runQuery() {
         final List<SearchResult> allResults = Lists.newArrayList();
-        if (element != null) {
-          final CountDownLatch latch = new CountDownLatch(1);
-          // TODO (jwren) re-implement after functionality has been updated in server
-//          DartCore.getAnalysisServer().searchElementReferences(
-//              filePath,
-//              offset,
-//              true,
-//              new SearchIdConsumer() {
-//                @Override
-//                public void computedSearchId(String searchId) {
-//                  DartCore.getAnalysisServerData().addSearchResultsListener(
-//                      searchId,
-//                      new SearchResultsListener() {
-//                        @Override
-//                        public void computedSearchResults(SearchResult[] results, boolean last) {
-//                          Collections.addAll(allResults, results);
-//                          if (last) {
-//                            latch.countDown();
-//                          }
-//                        }
-//                      });
-//                }
-//              });
-          Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
-        }
+        final CountDownLatch latch = new CountDownLatch(1);
+        DartCore.getAnalysisServer().search_findElementReferences(
+            file,
+            selectionOffset,
+            true,
+            new FindElementReferencesConsumer() {
+              @Override
+              public void computedElementReferences(String searchId, Element _element) {
+                element = _element;
+                DartCore.getAnalysisServerData().addSearchResultsListener(
+                    searchId,
+                    new SearchResultsListener() {
+                      @Override
+                      public void computedSearchResults(List<SearchResult> results, boolean last) {
+                        allResults.addAll(results);
+                        if (last) {
+                          latch.countDown();
+                        }
+                      }
+                    });
+              }
+            });
+        Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
         return allResults;
       }
     });
   }
 
   @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) Analysis Server: implement search for an Element in outline view
-//    Element element = getSelectionElement(selection);
-//    doSearch(element, null);
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(elements.length != 0);
   }
 
   @Override

@@ -15,23 +15,22 @@ package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.server.FindMemberDeclarationsConsumer;
 import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_NEW;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.functions.DartWordFinder;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
@@ -43,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_OLD {
+public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_NEW {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
@@ -79,23 +78,24 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_OLD 
         protected List<SearchResult> runQuery() {
           final List<SearchResult> allResults = Lists.newArrayList();
           final CountDownLatch latch = new CountDownLatch(1);
-          // TODO (jwren) re-implement after functionality has been updated in server
-//          DartCore.getAnalysisServer().searchClassMemberDeclarations(name, new SearchIdConsumer() {
-//            @Override
-//            public void computedSearchId(String searchId) {
-//              DartCore.getAnalysisServerData().addSearchResultsListener(
-//                  searchId,
-//                  new SearchResultsListener() {
-//                    @Override
-//                    public void computedSearchResults(SearchResult[] results, boolean last) {
-//                      Collections.addAll(allResults, results);
-//                      if (last) {
-//                        latch.countDown();
-//                      }
-//                    }
-//                  });
-//            }
-//          });
+          DartCore.getAnalysisServer().search_findMemberDeclarations(
+              name,
+              new FindMemberDeclarationsConsumer() {
+                @Override
+                public void computedSearchId(String searchId) {
+                  DartCore.getAnalysisServerData().addSearchResultsListener(
+                      searchId,
+                      new SearchResultsListener() {
+                        @Override
+                        public void computedSearchResults(List<SearchResult> results, boolean last) {
+                          allResults.addAll(results);
+                          if (last) {
+                            latch.countDown();
+                          }
+                        }
+                      });
+                }
+              });
           Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
           return allResults;
         }
@@ -105,43 +105,25 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_OLD 
     }
   }
 
+  private String selectionName;
+
   public FindDeclarationsAction_NEW(DartEditor editor) {
     super(editor);
   }
 
-  public FindDeclarationsAction_NEW(IWorkbenchSite site) {
-    super(site);
-  }
-
   @Override
-  public void selectionChanged(DartSelection selection) {
-    String name = findName(selection);
-    setEnabled(name != null);
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-//    Element element = getSelectionElement(selection);
-//    setEnabled(element != null);
-  }
-
-  @Override
-  protected void doRun(DartSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    String name = findName(selection);
-    if (name != null) {
-      doSearch(name);
+  public void run() {
+    super.run();
+    if (selectionName != null) {
+      doSearch(selectionName);
     }
   }
 
   @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-//    Element element = getSelectionElement(selection);
-//    if (element != null) {
-//      String name = element.getDisplayName();
-//      doSearch(name);
-//    }
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    updateSelectionName();
+    setEnabled(selectionName != null);
   }
 
   @Override
@@ -153,23 +135,19 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_OLD 
         DartHelpContextIds.FIND_DECLARATIONS_IN_WORKSPACE_ACTION);
   }
 
-  private String findName(DartSelection selection) {
-    // prepare context
-    DartEditor editor = selection.getEditor();
-    final int offset = selection.getOffset();
-    // prepare name
+  private void updateSelectionName() {
+    selectionName = null;
     try {
       IDocument document = editor.getViewer().getDocument();
-      IRegion nameRegion = DartWordFinder.findWord(document, offset);
+      IRegion nameRegion = DartWordFinder.findWord(document, selectionOffset);
       if (nameRegion == null) {
-        return null;
+        return;
       }
       if (nameRegion.getLength() == 0) {
-        return null;
+        return;
       }
-      return document.get(nameRegion.getOffset(), nameRegion.getLength());
+      selectionName = document.get(nameRegion.getOffset(), nameRegion.getLength());
     } catch (Throwable e) {
-      return null;
     }
   }
 }
