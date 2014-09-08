@@ -23,11 +23,11 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.server.generated.types.SearchResultKind;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -434,12 +434,13 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     REFERENCE,
     READ,
     WRITE;
-    public static ReferenceKind of(SearchResultKind kind) {
-      if (kind == SearchResultKind.READ) {
+    public static ReferenceKind of(String searchResultKind) {
+      if (searchResultKind.equals(SearchResultKind.READ)) {
         return READ;
       }
-      if (kind == SearchResultKind.DECLARATION || kind == SearchResultKind.READ_WRITE
-          || kind == SearchResultKind.WRITE) {
+      if (searchResultKind.equals(SearchResultKind.DECLARATION)
+          || searchResultKind.equals(SearchResultKind.READ_WRITE)
+          || searchResultKind.equals(SearchResultKind.WRITE)) {
         return WRITE;
       }
       return REFERENCE;

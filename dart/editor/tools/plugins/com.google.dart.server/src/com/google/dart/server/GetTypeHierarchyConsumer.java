@@ -13,6 +13,10 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.TypeHierarchyItem;
+
+import java.util.List;
+
 /**
  * The interface {@code TypeHierarchyConsumer} defines the behavior of objects that consume type
  * hierarchy.
@@ -23,8 +27,12 @@ public interface GetTypeHierarchyConsumer extends Consumer {
   /**
    * Type hierarchy has been computed.
    * 
-   * @param target the item corresponding to the {@link Element} the hierarchy was requested for,
-   *          {@code null} if no hierarchy exists for the given {@link Element}
+   * @param hierarchyItems A list of the types in the requested hierarchy. The first element of the
+   *          list is the item representing the type for which the hierarchy was requested. The
+   *          index of other elements of the list is unspecified, but correspond to the integers
+   *          used to reference supertype and subtype items within the items. This field will be
+   *          absent if the code at the given file and offset does not represent a type, or if the
+   *          file has not been sufficiently analyzed to allow a type hierarchy to be produced.
    */
-  public void computedHierarchy(TypeHierarchyItem target);
+  public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems);
 }

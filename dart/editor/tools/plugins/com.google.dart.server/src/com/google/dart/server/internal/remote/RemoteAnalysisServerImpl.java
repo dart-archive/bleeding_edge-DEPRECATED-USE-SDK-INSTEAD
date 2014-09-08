@@ -36,13 +36,16 @@ import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
-import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
+import com.google.dart.server.internal.remote.processor.FindElementReferencesProcessor;
+import com.google.dart.server.internal.remote.processor.FindMemberDeclarationsProcessor;
+import com.google.dart.server.internal.remote.processor.FindMemberReferencesProcessor;
+import com.google.dart.server.internal.remote.processor.FindTopLevelDeclarationsProcessor;
 import com.google.dart.server.internal.remote.processor.FixesProcessor;
 import com.google.dart.server.internal.remote.processor.GetRefactoringProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
@@ -59,7 +62,6 @@ import com.google.dart.server.internal.remote.processor.NotificationServerConnec
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringGetAvailableProcessor;
-import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
@@ -216,26 +218,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateAnalysisGetErrors(id, file), consumer);
   }
 
-  // TODO (jwren) delete after refactoring is implemented again
-//  @Override
-//  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateEditApplyRefactoring(id, refactoringId),
-//        consumer);
-//  }
-//
-//  @Override
-//  public void createRefactoring(String refactoringKind, String file, int offset, int length,
-//      RefactoringCreateConsumer consumer) {
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateEditCreateRefactoring(id, refactoringKind, file, offset, length),
-//        consumer);
-//  }
-
   @Override
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
     String id = generateUniqueId();
@@ -247,13 +229,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
   }
-
-  // TODO (jwren) delete after refactoring is implemented again
-//  @Override
-//  public void deleteRefactoring(String refactoringId) {
-//    String id = generateUniqueId();
-//    sendRequestToServer(id, RequestUtilities.generateEditDeleteRefactoring(id, refactoringId));
-//  }
 
   @Override
   public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
@@ -371,8 +346,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // TODO (jwren) debug domain not implemented yet
   }
 
-  public void findElementReferences(String file, int offset, boolean includePotential,
-      SearchIdConsumer consumer) {
+  @Override
+  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+    this.listener.removeListener(listener);
+  }
+
+  @Override
+  public void search_findElementReferences(String file, int offset, boolean includePotential,
+      FindElementReferencesConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
@@ -380,7 +361,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         consumer);
   }
 
-  public void findMemberDeclarations(String name, SearchIdConsumer consumer) {
+  @Override
+  public void search_findMemberDeclarations(String name, FindMemberDeclarationsConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
@@ -388,80 +370,20 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         consumer);
   }
 
-  public void findMemberReferences(String name, SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
-  }
-
-  // TODO (jwren) fold support into search_findTopLevelDeclarations
-  public void findTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
-        consumer);
-  }
-
-  @Override
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    this.listener.removeListener(listener);
-  }
-
-//TODO (jwren) remove after search domain has been re-implemented in the java server interface
-//@Override
-//public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer) {
-//  String id = generateUniqueId();
-//  sendRequestToServer(
-//      id,
-//      RequestUtilities.generateSearchFindMemberDeclarations(id, name),
-//      consumer);
-//}
-//
-//@Override
-//public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
-//  String id = generateUniqueId();
-//  sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
-//}
-//
-//@Override
-//public void searchElementReferences(String file, int offset, boolean includePotential,
-//    SearchIdConsumer consumer) {
-//  String id = generateUniqueId();
-//  sendRequestToServer(
-//      id,
-//      RequestUtilities.generateSearchFindElementReferences(id, file, offset, includePotential),
-//      consumer);
-//}
-//
-//@Override
-//public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
-//  String id = generateUniqueId();
-//  sendRequestToServer(
-//      id,
-//      RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
-//      consumer);
-//}
-
-  @Override
-  public void search_findElementReferences(String file, int offset, boolean includePotential,
-      FindElementReferencesConsumer consumer) {
-    // TODO (jwren) re-implement
-  }
-
-  @Override
-  public void search_findMemberDeclarations(String name, FindMemberDeclarationsConsumer consumer) {
-    // TODO (jwren) re-implement
-  }
-
   @Override
   public void search_findMemberReferences(String name, FindMemberReferencesConsumer consumer) {
-    // TODO (jwren) re-implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
   }
 
   @Override
   public void search_findTopLevelDeclarations(String pattern,
       FindTopLevelDeclarationsConsumer consumer) {
-    // TODO (jwren) re-implement
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
+        consumer);
   }
 
   @Override
@@ -611,14 +533,31 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
+    //
+    // Completion Domain
+    //
     if (consumer instanceof GetSuggestionsConsumer) {
       new CompletionIdProcessor((GetSuggestionsConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof GetHoverConsumer) {
-      new HoverProcessor((GetHoverConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof SearchIdConsumer) {
-      new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
+    }
+    //
+    // Search Domain
+    //
+    else if (consumer instanceof FindElementReferencesConsumer) {
+      new FindElementReferencesProcessor((FindElementReferencesConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof FindMemberDeclarationsConsumer) {
+      new FindMemberDeclarationsProcessor((FindMemberDeclarationsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof FindMemberReferencesConsumer) {
+      new FindMemberReferencesProcessor((FindMemberReferencesConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof FindTopLevelDeclarationsConsumer) {
+      new FindTopLevelDeclarationsProcessor((FindTopLevelDeclarationsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetTypeHierarchyConsumer) {
       new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
+    }
+    //
+    // Edit Domain
+    //
+    else if (consumer instanceof GetHoverConsumer) {
+      new HoverProcessor((GetHoverConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetRefactoringConsumer) {
       new GetRefactoringProcessor(requestToRefactoringKindMap, (GetRefactoringConsumer) consumer).process(
           idString,
@@ -629,10 +568,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new FixesProcessor((GetFixesConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetAvailableRefactoringsConsumer) {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof GetVersionConsumer) {
-      new VersionProcessor((GetVersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetErrorsConsumer) {
       new AnalysisErrorsProcessor((GetErrorsConsumer) consumer).process(resultObject);
+    }
+    //
+    // Server Domain
+    //
+    else if (consumer instanceof GetVersionConsumer) {
+      new VersionProcessor((GetVersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof BasicConsumer) {
       ((BasicConsumer) consumer).received();
     }

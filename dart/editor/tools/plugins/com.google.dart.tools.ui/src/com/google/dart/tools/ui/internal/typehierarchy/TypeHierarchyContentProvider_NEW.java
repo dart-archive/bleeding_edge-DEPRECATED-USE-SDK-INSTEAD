@@ -17,8 +17,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.server.GetTypeHierarchyConsumer;
-import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.functions.PositionElement;
 
@@ -39,8 +39,8 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
   public static class TypeItem {
     final TypeHierarchyItem type;
     final Element element;
-    final TypeHierarchyItem[] mixins;
-    final TypeHierarchyItem[] interfaces;
+    final int[] mixins;
+    final int[] interfaces;
 
     public TypeItem(TypeHierarchyItem type) {
       this.type = type;
@@ -78,11 +78,13 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
       StyledString styledString = new StyledString(type.getBestName());
       if (mixins != null && mixins.length != 0) {
         styledString.append(" with ", StyledString.QUALIFIER_STYLER);
-        appendItems(styledString, mixins);
+        // TODO (jwren/ scheglov) get new TypeHierarchyItem to work with the Editor
+//        appendItems(styledString, mixins);
       }
       if (interfaces != null && interfaces.length != 0) {
         styledString.append(" implements ", StyledString.QUALIFIER_STYLER);
-        appendItems(styledString, interfaces);
+        // TODO (jwren/ scheglov) get new TypeHierarchyItem to work with the Editor
+//        appendItems(styledString, interfaces);
       }
       return styledString;
     }
@@ -166,8 +168,9 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
         element.offset,
         new GetTypeHierarchyConsumer() {
           @Override
-          public void computedHierarchy(TypeHierarchyItem target) {
-            inputHierarchyChanged(viewer, target);
+          public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems) {
+            // TODO (jwren/ scheglov) get new TypeHierarchyItem to work with the Editor
+            //inputHierarchyChanged(viewer, hierarchyItems);
           }
         });
   }
@@ -213,18 +216,19 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
         superItem = targetItem;
       }
       // try "extends"
-      superclass = superItem.type.getSuperclass();
-      if (superclass == null) {
-        break;
-      }
-      // try to use something better than "Object"
-      if (superclass.getClassElement().getName().equals("Object")) {
-        if (superItem.mixins.length != 0) {
-          superclass = superItem.mixins[0];
-        } else if (superItem.interfaces.length != 0) {
-          superclass = superItem.interfaces[0];
-        }
-      }
+      // TODO (jwren/ scheglov) get new TypeHierarchyItem to work with the Editor
+//      superclass = superItem.type.getSuperclass();
+//      if (superclass == null) {
+//        break;
+//      }
+//      // try to use something better than "Object"
+//      if (superclass.getClassElement().getName().equals("Object")) {
+//        if (superItem.mixins.length != 0) {
+//          superclass = superItem.mixins[0];
+//        } else if (superItem.interfaces.length != 0) {
+//          superclass = superItem.interfaces[0];
+//        }
+//      }
     }
     // prepare sub types
     fillSubTypes(target, targetItem);
@@ -251,15 +255,16 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
    * Builds complete sub-types hierarchy in {@link #superToSubsMap}.
    */
   private void fillSubTypes(TypeHierarchyItem type, TypeItem item) {
-    TypeHierarchyItem[] subTypes = type.getSubclasses();
-    List<TypeItem> subItems = Lists.newArrayList();
-    for (TypeHierarchyItem subType : subTypes) {
-      TypeItem subItem = new TypeItem(subType);
-      subToSuperMap.put(subItem, item);
-      subItems.add(subItem);
-      fillSubTypes(subType, subItem);
-    }
-    superToSubsMap.put(item, subItems);
+    // TODO (jwren/ scheglov) get new TypeHierarchyItem to work with the Editor
+//    TypeHierarchyItem[] subTypes = type.getSubclasses();
+//    List<TypeItem> subItems = Lists.newArrayList();
+//    for (TypeHierarchyItem subType : subTypes) {
+//      TypeItem subItem = new TypeItem(subType);
+//      subToSuperMap.put(subItem, item);
+//      subItems.add(subItem);
+//      fillSubTypes(subType, subItem);
+//    }
+//    superToSubsMap.put(item, subItems);
   }
 
   /**

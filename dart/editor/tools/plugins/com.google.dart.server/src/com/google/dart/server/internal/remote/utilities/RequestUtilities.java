@@ -60,12 +60,9 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
 
   // Edit domain
-  private static final String METHOD_EDIT_APPLY_REFACTORING = "edit.applyRefactoring";
-  private static final String METHOD_EDIT_CREATE_REFACTORING = "edit.createRefactoring";
-  private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
-  private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   private static final String METHOD_EDIT_GET_AVAILABLE_REFACTORING = "edit.getAvailableRefactorings";
+  private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactoring";
 
   // Code Completion domain
@@ -309,70 +306,6 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_EDIT_APPLY_REFACTORING} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "edit.applyRefactoring"
-   *   "params": {
-   *     "id": RefactoringId
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateEditApplyRefactoring(String idValue, String refactoringId) {
-    JsonObject params = new JsonObject();
-    params.addProperty("id", refactoringId);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_APPLY_REFACTORING, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_EDIT_CREATE_REFACTORING} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "edit.createRefactoring"
-   *   "params": {
-   *     "kind": RefactoringKind
-   *     "file": FilePath
-   *     "offset": int
-   *     "length": int
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateEditCreateRefactoring(String idValue, String refactoringKind,
-      String file, int offset, int length) {
-    JsonObject params = new JsonObject();
-    params.addProperty("kind", refactoringKind);
-    params.addProperty(FILE, file);
-    params.addProperty(OFFSET, offset);
-    params.addProperty(LENGTH, length);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_CREATE_REFACTORING, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_EDIT_DELETE_REFACTORING} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "edit.deleteRefactoring"
-   *   "params": {
-   *     "id": RefactoringId
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateEditDeleteRefactoring(String idValue, String refactoringId) {
-    JsonObject params = new JsonObject();
-    params.addProperty("id", refactoringId);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_DELETE_REFACTORING, params);
   }
 
   /**

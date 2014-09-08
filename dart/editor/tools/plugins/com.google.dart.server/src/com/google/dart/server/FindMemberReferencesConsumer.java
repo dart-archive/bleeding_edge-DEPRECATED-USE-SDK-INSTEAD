@@ -14,10 +14,16 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code FindMemberReferencesConsumer} defines the behavior of objects that ... TODO
+ * The interface {@code FindMemberReferencesConsumer} defines the behavior of objects consume the
+ * find member references request.
  * 
  * @coverage dart.server
  */
-public class FindMemberReferencesConsumer implements Consumer {
-  // TODO (jwren) implement, class added simply to have AnalysisServer compile
+public interface FindMemberReferencesConsumer extends Consumer {
+  /**
+   * A search id {@link String}.
+   * 
+   * @param searchId the identifier used to associate results with this search request
+   */
+  public void computedSearchId(String searchId);
 }

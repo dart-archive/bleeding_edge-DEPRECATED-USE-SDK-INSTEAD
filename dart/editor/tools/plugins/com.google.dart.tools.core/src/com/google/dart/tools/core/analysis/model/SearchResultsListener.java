@@ -14,7 +14,9 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.server.SearchResult;
+import com.google.dart.server.generated.types.SearchResult;
+
+import java.util.List;
 
 /**
  * Used by {@link AnalysisServerData} to notify clients that new {@link SearchResult}s are ready.
@@ -25,5 +27,5 @@ public interface SearchResultsListener {
   /**
    * Called when {@link SearchResult}s for a particular search request are ready.
    */
-  void computedSearchResults(SearchResult[] results, boolean last);
+  void computedSearchResults(List<SearchResult> results, boolean last);
 }

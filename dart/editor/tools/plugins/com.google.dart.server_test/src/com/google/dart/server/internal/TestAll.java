@@ -20,9 +20,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
-    suite.addTestSuite(ElementImplTest.class);
     suite.addTestSuite(OutlineImplTest.class);
-    suite.addTestSuite(TypeHierarchyItemImplTest.class);
     suite.addTest(com.google.dart.server.internal.remote.TestAll.suite());
     return suite;
   }

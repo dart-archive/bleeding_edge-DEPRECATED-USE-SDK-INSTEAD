@@ -14,16 +14,18 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.server.SearchResult;
+import com.google.dart.server.generated.types.SearchResult;
+
+import java.util.List;
 
 /**
  * A set of {@link SearchResult}s.
  */
 class SearchResultsSet {
-  final SearchResult[] results;
+  final List<SearchResult> results;
   final boolean last;
 
-  public SearchResultsSet(SearchResult[] results, boolean last) {
+  public SearchResultsSet(List<SearchResult> results, boolean last) {
     this.results = results;
     this.last = last;
   }

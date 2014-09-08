@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisService;
 import com.google.dart.server.generated.types.AnalysisStatus;
@@ -29,6 +28,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
@@ -273,7 +273,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     }
   }
 
-  synchronized void internalComputedSearchResults(String searchId, SearchResult[] results,
+  synchronized void internalComputedSearchResults(String searchId, List<SearchResult> results,
       boolean last) {
     SearchResultsListener listener = searchResultsListeners.get(searchId);
     if (listener != null) {

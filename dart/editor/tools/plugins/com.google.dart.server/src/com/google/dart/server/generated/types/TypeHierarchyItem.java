@@ -138,6 +138,14 @@ public class TypeHierarchyItem {
     return list;
   }
 
+  public String getBestName() {
+    if (displayName == null) {
+      return classElement.getName();
+    } else {
+      return displayName;
+    }
+  }
+
   /**
    * The class element represented by this item.
    */

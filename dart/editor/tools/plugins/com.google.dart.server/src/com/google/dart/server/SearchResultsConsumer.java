@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.SearchResult;
+
 /**
  * The interface {@code SearchReferencesConsumer} defines the behavior of objects that consume
  * {@link SearchResult}s.

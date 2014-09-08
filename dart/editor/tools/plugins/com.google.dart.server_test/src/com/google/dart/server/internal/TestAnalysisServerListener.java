@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ArrayUtilities;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
@@ -29,6 +28,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
@@ -58,7 +58,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
 
   private final Map<String, CompletionResult> completionsMap = Maps.newHashMap();
   private final List<String> flushedResults = Lists.newArrayList();
-  private final Map<String, SearchResult[]> searchResultsMap = Maps.newHashMap();
+  private final Map<String, List<SearchResult>> searchResultsMap = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, List<AnalysisError>> sourcesErrors = Maps.newHashMap();
   private final Map<String, List<HighlightRegion>> highlightsMap = Maps.newHashMap();
@@ -185,7 +185,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
+  public void computedSearchResults(String searchId, List<SearchResult> results, boolean last) {
     searchResultsMap.put(searchId, results);
   }
 
@@ -297,7 +297,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * Returns {@link SearchResult[]} for the given search id, maybe {@code null} if have not been
    * ever notified.
    */
-  public SearchResult[] getSearchResults(String searchId) {
+  public List<SearchResult> getSearchResults(String searchId) {
     return searchResultsMap.get(searchId);
   }
 

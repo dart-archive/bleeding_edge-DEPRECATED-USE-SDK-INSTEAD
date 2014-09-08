@@ -15,7 +15,7 @@ package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.SearchResult;
+import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;

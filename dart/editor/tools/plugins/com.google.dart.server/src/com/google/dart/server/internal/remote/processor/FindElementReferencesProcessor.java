@@ -13,29 +13,28 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.GetTypeHierarchyConsumer;
-import com.google.dart.server.generated.types.TypeHierarchyItem;
-import com.google.gson.JsonArray;
+import com.google.dart.server.FindElementReferencesConsumer;
+import com.google.dart.server.generated.types.Element;
 import com.google.gson.JsonObject;
 
 /**
- * Instances of {@code TypeHierarchyResultProcessor} translate JSON result objects for a given
- * {@link GetTypeHierarchyConsumer}.
+ * Instances of {@code FindElementReferencesProcessor} translate JSON result objects for a given
+ * {@link FindElementReferencesConsumer}.
  * 
  * @coverage dart.server.remote
  */
-public class TypeHierarchyProcessor extends ResultProcessor {
+public class FindElementReferencesProcessor extends ResultProcessor {
 
-  private final GetTypeHierarchyConsumer consumer;
+  private final FindElementReferencesConsumer consumer;
 
-  public TypeHierarchyProcessor(GetTypeHierarchyConsumer consumer) {
+  public FindElementReferencesProcessor(FindElementReferencesConsumer consumer) {
     this.consumer = consumer;
   }
 
   public void process(JsonObject resultObject) {
-    JsonArray typeHierarchyItemsArray = resultObject.get("hierarchyItems") != null
-        ? resultObject.get("hierarchyItems").getAsJsonArray() : null;
-    // construct type hierarchy item list and notify listener
-    consumer.computedHierarchy(TypeHierarchyItem.fromJsonArray(typeHierarchyItemsArray));
+    String searchId = resultObject.get("id").getAsString();
+    Element element = resultObject.has("element")
+        ? Element.fromJson(resultObject.get("element").getAsJsonObject()) : null;
+    consumer.computedElementReferences(searchId, element);
   }
 }

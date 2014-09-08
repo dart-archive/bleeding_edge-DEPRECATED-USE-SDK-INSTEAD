@@ -16,6 +16,10 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.dart.server.FindElementReferencesConsumer;
+import com.google.dart.server.FindMemberDeclarationsConsumer;
+import com.google.dart.server.FindMemberReferencesConsumer;
+import com.google.dart.server.FindTopLevelDeclarationsConsumer;
 import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
@@ -25,10 +29,6 @@ import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
-import com.google.dart.server.SearchIdConsumer;
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultKind;
-import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
@@ -66,9 +66,12 @@ import com.google.dart.server.generated.types.RefactoringProblemSeverity;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.dart.server.generated.types.RenameFeedback;
 import com.google.dart.server.generated.types.RenameOptions;
+import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.server.generated.types.SearchResultKind;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
+import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
@@ -1829,13 +1832,70 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_search_findElementReferences() throws Exception {
-    final String[] result = new String[1];
-    server.findElementReferences("/fileA.dart", 17, false, new SearchIdConsumer() {
-      @Override
-      public void computedSearchId(String searchId) {
-        result[0] = searchId;
-      }
-    });
+    final String[] searchIdArray = new String[] {null};
+    final Element[] elementArray = new Element[] {null};
+    server.search_findElementReferences(
+        "/fileA.dart",
+        17,
+        false,
+        new FindElementReferencesConsumer() {
+          @Override
+          public void computedElementReferences(String searchId, Element element) {
+            searchIdArray[0] = searchId;
+            elementArray[0] = element;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findElementReferences',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 17,",
+        "    'includePotential': false",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'searchId0',",
+        "    'element': {",
+        "        'kind': 'CLASS',",
+        "        'name': 'name1',",
+        "        'location': {",
+        "          'file': '/test1.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        },",
+        "        'flags': 63",
+        "      }",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("searchId0", searchIdArray[0]);
+    assertNotNull(elementArray[0]);
+  }
+
+  public void test_search_findElementReferences_nullElt() throws Exception {
+    final String[] searchIdArray = new String[] {null};
+    final Element[] elementArray = new Element[] {null};
+    server.search_findElementReferences(
+        "/fileA.dart",
+        17,
+        false,
+        new FindElementReferencesConsumer() {
+          @Override
+          public void computedElementReferences(String searchId, Element element) {
+            searchIdArray[0] = searchId;
+            elementArray[0] = element;
+          }
+        });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -1857,15 +1917,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
-    assertEquals("searchId0", result[0]);
+    assertEquals("searchId0", searchIdArray[0]);
+    assertNull(elementArray[0]);
   }
 
   public void test_search_findMemberDeclarations() throws Exception {
-    final String[] result = new String[1];
-    server.findMemberDeclarations("mydeclaration", new SearchIdConsumer() {
+    final String[] searchIdArray = new String[1];
+    server.search_findMemberDeclarations("mydeclaration", new FindMemberDeclarationsConsumer() {
       @Override
       public void computedSearchId(String searchId) {
-        result[0] = searchId;
+        searchIdArray[0] = searchId;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1887,15 +1948,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
-    assertEquals("searchId1", result[0]);
+    assertEquals("searchId1", searchIdArray[0]);
   }
 
   public void test_search_findMemberReferences() throws Exception {
-    final String[] result = new String[1];
-    server.findMemberReferences("mydeclaration", new SearchIdConsumer() {
+    final String[] searchIdArray = new String[1];
+    server.search_findMemberReferences("mydeclaration", new FindMemberReferencesConsumer() {
       @Override
       public void computedSearchId(String searchId) {
-        result[0] = searchId;
+        searchIdArray[0] = searchId;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1917,15 +1978,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
-    assertEquals("searchId2", result[0]);
+    assertEquals("searchId2", searchIdArray[0]);
   }
 
   public void test_search_findTopLevelDeclarations() throws Exception {
-    final String[] result = new String[1];
-    server.findTopLevelDeclarations("some-pattern", new SearchIdConsumer() {
+    final String[] searchIdArray = new String[1];
+    server.search_findTopLevelDeclarations("some-pattern", new FindTopLevelDeclarationsConsumer() {
       @Override
       public void computedSearchId(String searchId) {
-        result[0] = searchId;
+        searchIdArray[0] = searchId;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1947,15 +2008,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
-    assertEquals("searchId3", result[0]);
+    assertEquals("searchId3", searchIdArray[0]);
   }
 
   public void test_search_getTypeHierarchy() throws Exception {
-    final TypeHierarchyItem[] items = new TypeHierarchyItem[1];
+    final Object[] itemsArray = {null};
     server.search_getTypeHierarchy("/fileA.dart", 1, new GetTypeHierarchyConsumer() {
       @Override
-      public void computedHierarchy(TypeHierarchyItem target) {
-        items[0] = target;
+      public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems) {
+        itemsArray[0] = hierarchyItems;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1974,7 +2035,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'hierarchy': {",
+        "    'hierarchyItems': [{",
         "      'classElement': {",
         "        'kind': 'CLASS',",
         "        'name': 'name1',",
@@ -2000,98 +2061,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        },",
         "        'flags': 0",
         "      },",
-        "      'superclass': {",
-        "        'classElement': {",
-        "          'kind': 'CLASS',",
-        "          'name': 'name3',",
-        "          'location': {",
-        "            'file': '/test3.dart',",
-        "            'offset': 9,",
-        "            'length': 10,",
-        "            'startLine': 11,",
-        "            'startColumn': 12",
-        "          },",
-        "          'flags': 63",
-        "        },",
-        "        'interfaces': [],",
-        "        'mixins': [],",
-        "        'subclasses': []",
-        "      },",
-        "      'interfaces': [],",
-        "      'mixins': [],",
-        "      'subclasses': []",
-        "    }",
+        "      'superclass': 1,",
+        "      'interfaces': [2, 3],",
+        "      'mixins': [4, 5],",
+        "      'subclasses': [6, 7]",
+        "    }]",
         "  }",
         "}");
     server.test_waitForWorkerComplete();
-    TypeHierarchyItem item = items[0];
-    assertNotNull(item);
-    // classElement
-    {
-      Element element = item.getClassElement();
-      assertEquals(ElementKind.CLASS, element.getKind());
-      assertEquals("name1", element.getName());
-      Location location = element.getLocation();
-      assertEquals("/test1.dart", location.getFile());
-      assertEquals(1, location.getOffset());
-      assertEquals(2, location.getLength());
-      assertEquals(3, location.getStartLine());
-      assertEquals(4, location.getStartColumn());
-      assertTrue(element.isAbstract());
-      assertTrue(element.isConst());
-      assertTrue(element.isDeprecated());
-      assertTrue(element.isFinal());
-      assertTrue(element.isPrivate());
-      assertTrue(element.isTopLevelOrStatic());
-    }
-    // displayName
-    assertEquals("displayName1", item.getDisplayName());
-    assertEquals("displayName1", item.getBestName());
-    // memberElement
-    {
-      Element element = item.getMemberElement();
-      assertEquals(ElementKind.CLASS, element.getKind());
-      assertEquals("name2", element.getName());
-      Location location = element.getLocation();
-      assertEquals("/test2.dart", location.getFile());
-      assertEquals(5, location.getOffset());
-      assertEquals(6, location.getLength());
-      assertEquals(7, location.getStartLine());
-      assertEquals(8, location.getStartColumn());
-      assertFalse(element.isAbstract());
-      assertFalse(element.isConst());
-      assertFalse(element.isDeprecated());
-      assertFalse(element.isFinal());
-      assertFalse(element.isPrivate());
-      assertFalse(element.isTopLevelOrStatic());
-    }
-    // extendedType
-    {
-      TypeHierarchyItem childItem = item.getSuperclass();
-      assertNotNull(childItem);
-      {
-        Element element = childItem.getClassElement();
-        assertEquals(ElementKind.CLASS, element.getKind());
-        assertEquals("name3", element.getName());
-        assertEquals("name3", childItem.getBestName());
-        Location location = element.getLocation();
-        assertEquals("/test3.dart", location.getFile());
-        assertEquals(9, location.getOffset());
-        assertEquals(10, location.getLength());
-        assertEquals(11, location.getStartLine());
-        assertEquals(12, location.getStartColumn());
-      }
-      assertNull(childItem.getDisplayName());
-      assertNull(childItem.getMemberElement());
-      assertNull(childItem.getSuperclass());
-      assertThat(childItem.getInterfaces()).hasSize(0);
-      assertThat(childItem.getMixins()).hasSize(0);
-      assertThat(childItem.getSubclasses()).hasSize(0);
-    }
-    // implementedTypes/ withTypes/ subtypes
-    assertThat(item.getInterfaces()).hasSize(0);
-    assertThat(item.getMixins()).hasSize(0);
-    assertThat(item.getSubclasses()).hasSize(0);
+    @SuppressWarnings("unchecked")
+    List<TypeHierarchyItem> items = (List<TypeHierarchyItem>) itemsArray[0];
+    assertThat(items).hasSize(1);
   }
 
   public void test_search_notification_results() throws Exception {
@@ -2146,10 +2126,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    SearchResult[] results = listener.getSearchResults("searchId7");
+    List<SearchResult> results = listener.getSearchResults("searchId7");
     assertThat(results).hasSize(1);
     {
-      SearchResult result = results[0];
+      SearchResult result = results.get(0);
       assertLocation(result.getLocation(), "someFile.dart", 9, 10, 11, 12);
       assertEquals(SearchResultKind.DECLARATION, result.getKind());
       assertEquals(true, result.isPotential());

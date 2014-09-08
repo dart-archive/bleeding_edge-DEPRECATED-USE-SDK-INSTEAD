@@ -13,26 +13,25 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.SearchIdConsumer;
-import com.google.gson.JsonElement;
+import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.gson.JsonObject;
 
 /**
- * Instances of {@code SearchIdProcessor} translate JSON result objects for a given
- * {@link SearchIdConsumer}.
+ * Instances of {@code FindMemberReferencesProcessor} translate JSON result objects for a given
+ * {@link FindMemberReferencesConsumer}.
  * 
  * @coverage dart.server.remote
  */
-public class SearchIdProcessor extends ResultProcessor {
+public class FindMemberReferencesProcessor extends ResultProcessor {
 
-  private final SearchIdConsumer consumer;
+  private final FindMemberReferencesConsumer consumer;
 
-  public SearchIdProcessor(SearchIdConsumer consumer) {
+  public FindMemberReferencesProcessor(FindMemberReferencesConsumer consumer) {
     this.consumer = consumer;
   }
 
   public void process(JsonObject resultObject) {
-    JsonElement jsonElement = resultObject.get("id");
-    consumer.computedSearchId(jsonElement != null ? jsonElement.getAsString() : null);
+    String searchId = resultObject.get("id").getAsString();
+    consumer.computedSearchId(searchId);
   }
 }

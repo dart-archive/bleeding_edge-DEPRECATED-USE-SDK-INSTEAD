@@ -13,17 +13,9 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultKind;
-import com.google.dart.server.generated.types.Element;
-import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
-import com.google.dart.server.internal.SearchResultImpl;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import java.util.Iterator;
 
 /**
  * Processor for "search.results" notification.
@@ -41,29 +33,7 @@ public class NotificationSearchResultsProcessor extends NotificationProcessor {
     JsonObject params = response.getAsJsonObject("params");
     getListener().computedSearchResults(
         params.get("id").getAsString(),
-        constructSearchResultArray(params.getAsJsonArray("results")),
+        SearchResult.fromJsonArray(params.getAsJsonArray("results")),
         params.get("last").getAsBoolean());
-  }
-
-  protected SearchResult[] constructSearchResultArray(JsonArray jsonArray) {
-    if (jsonArray == null) {
-      return new SearchResult[] {};
-    }
-    int i = 0;
-    SearchResult[] results = new SearchResult[jsonArray.size()];
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      results[i] = constructSearchResult(iterator.next().getAsJsonObject());
-      ++i;
-    }
-    return results;
-  }
-
-  private SearchResult constructSearchResult(JsonObject resultObject) {
-    return new SearchResultImpl(
-        Element.fromJsonArray(resultObject.getAsJsonArray("path")),
-        SearchResultKind.valueOf(resultObject.get("kind").getAsString()),
-        Location.fromJson(resultObject.getAsJsonObject("location")),
-        resultObject.get("isPotential").getAsBoolean());
   }
 }

@@ -13,11 +13,22 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Element;
+
 /**
- * The interface {@code FindElementReferencesConsumer} defines the behavior of objects that .. TODO
+ * The interface {@code FindElementReferencesConsumer} defines the behavior of objects consume the
+ * find element references request.
  * 
  * @coverage dart.server
  */
-public class FindElementReferencesConsumer implements Consumer {
-  // TODO (jwren) implement, class added simply to have AnalysisServer compile
+public interface FindElementReferencesConsumer extends Consumer {
+  /**
+   * A search id {@link String}.
+   * 
+   * @param searchId the identifier used to associate results with this search request
+   * @param element the element referenced or defined at the given offset and whose references will
+   *          be returned in the search results. If no element was found at the given location, this
+   *          field will be absent.
+   */
+  public void computedElementReferences(String searchId, Element element);
 }

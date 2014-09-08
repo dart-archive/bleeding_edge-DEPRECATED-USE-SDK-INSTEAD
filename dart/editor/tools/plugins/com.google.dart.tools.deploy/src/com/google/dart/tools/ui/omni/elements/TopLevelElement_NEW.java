@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.server.SearchResult;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
