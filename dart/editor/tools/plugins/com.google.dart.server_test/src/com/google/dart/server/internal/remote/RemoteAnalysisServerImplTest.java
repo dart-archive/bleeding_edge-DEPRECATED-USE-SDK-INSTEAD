@@ -49,6 +49,7 @@ import com.google.dart.server.generated.types.ExtractMethodOptions;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
+import com.google.dart.server.generated.types.InlineLocalVariableFeedback;
 import com.google.dart.server.generated.types.InlineMethodOptions;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.NavigationRegion;
@@ -1768,6 +1769,50 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(feedback.getParameters()).hasSize(0);
     assertThat(feedback.getOffsets()).hasSize(3).contains(3, 4, 5);
     assertThat(feedback.getLengths()).hasSize(4).contains(6, 7, 8, 9);
+  }
+
+  public void test_edit_getRefactoring_response_feedback_inlineLocalVariable() throws Exception {
+    final RefactoringFeedback[] feedbackArray = {null};
+    RefactoringOptions options = null;
+    server.edit_getRefactoring(
+        RefactoringKind.INLINE_LOCAL_VARIABLE,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems,
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+            feedbackArray[0] = feedback;
+          }
+        });
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'problems': [",
+        "      {",
+        "        'severity': 'INFO',",
+        "        'message': 'message1'",
+        "      }",
+        "    ],",
+        "    'feedback': {",
+        "      'name': myVar,",
+        "      'occurrences': 3",
+        "    },",
+        "    'change': " + getSourceChangeJson() + ",",
+        "    'potentialEdits': ['one']",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'feedback'
+    InlineLocalVariableFeedback feedback = (InlineLocalVariableFeedback) feedbackArray[0];
+    assertEquals("myVar", feedback.getName());
+    assertEquals(3, feedback.getOccurrences());
   }
 
   public void test_edit_getRefactoring_response_feedback_rename() throws Exception {
