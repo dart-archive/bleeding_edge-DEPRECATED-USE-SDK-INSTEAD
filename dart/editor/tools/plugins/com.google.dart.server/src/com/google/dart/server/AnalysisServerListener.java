@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
@@ -68,6 +69,18 @@ public interface AnalysisServerListener {
    * @param highlights the highlight regions contained in the file
    */
   public void computedHighlights(String file, List<HighlightRegion> highlights);
+
+  /**
+   * New launch data has been computed.
+   * 
+   * @param executables a list of the files that are executable
+   * @param dartToHtml a mapping from the paths of Dart files that are referenced by HTML files to a
+   *          list of the HTML files that reference the Dart files
+   * @param htmlToDart a mapping from the paths of HTML files that reference Dart files to a list of
+   *          the Dart files they reference
+   */
+  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
+      Map<String, List<String>> htmlToDart);
 
   /**
    * A new collection of navigation regions has been computed for the given file. Each navigation

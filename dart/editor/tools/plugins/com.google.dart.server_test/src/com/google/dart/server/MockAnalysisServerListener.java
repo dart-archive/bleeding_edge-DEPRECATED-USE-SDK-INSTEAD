@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
+import java.util.Map;
 
 public class MockAnalysisServerListener implements AnalysisServerListener {
 
@@ -40,6 +41,12 @@ public class MockAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedHighlights(String file, List<HighlightRegion> highlights) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
+      Map<String, List<String>> htmlToDart) {
     throw new UnsupportedOperationException();
   }
 

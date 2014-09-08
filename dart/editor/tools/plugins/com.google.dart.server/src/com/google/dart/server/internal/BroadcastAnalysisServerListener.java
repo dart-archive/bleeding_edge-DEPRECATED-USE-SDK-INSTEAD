@@ -27,6 +27,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The class {@code BroadcastAnalysisServerListener} implements {@link AnalysisServerListener} that
@@ -76,6 +77,14 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   public void computedHighlights(String file, List<HighlightRegion> highlights) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedHighlights(file, highlights);
+    }
+  }
+
+  @Override
+  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
+      Map<String, List<String>> htmlToDart) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.computedLaunchData(executables, dartToHtml, htmlToDart);
     }
   }
 

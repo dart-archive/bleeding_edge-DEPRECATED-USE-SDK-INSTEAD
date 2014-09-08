@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This adapter class provides default implementations for the methods described by the
@@ -42,6 +43,11 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
 
   @Override
   public void computedHighlights(String file, List<HighlightRegion> highlights) {
+  }
+
+  @Override
+  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
+      Map<String, List<String>> htmlToDart) {
   }
 
   @Override

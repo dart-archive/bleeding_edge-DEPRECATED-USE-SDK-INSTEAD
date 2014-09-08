@@ -165,6 +165,12 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public synchronized void computedLaunchData(List<String> executables,
+      Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart) {
+    // TODO(brianwilkerson) Add tests for this notification and implement this method appropriately
+  }
+
+  @Override
   public synchronized void computedNavigation(String file, List<NavigationRegion> targets) {
     navigationMap.put(file, targets);
   }
