@@ -204,8 +204,6 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       return "class";
     } else if (type.equals(HighlightRegionType.CONSTRUCTOR)) {
       return "constructor";
-    } else if (type.equals(HighlightRegionType.DIRECTIVE)) {
-      return "directive";
     } else if (type.equals(HighlightRegionType.DYNAMIC_TYPE)) {
       return "dynamicType";
     } else if (type.equals(HighlightRegionType.FIELD)) {
@@ -247,9 +245,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       return "setterDeclaration";
     } else if (type.equals(HighlightRegionType.TOP_LEVEL_VARIABLE)) {
       return "staticField";
-    }
-
-    else if (type.equals(HighlightRegionType.TYPE_NAME_DYNAMIC)) {
+    } else if (type.equals(HighlightRegionType.TYPE_NAME_DYNAMIC)) {
       return "builtin";
     } else if (type.equals(HighlightRegionType.TYPE_PARAMETER)) {
       return "typeParameter";
@@ -258,6 +254,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 //    COMMENT_BLOCK:
 //    COMMENT_DOCUMENTATION:
 //    COMMENT_END_OF_LINE:
+//    DIRECTIVE:
 //    IDENTIFIER_DEFAULT:
 //    LITERAL_LIST:
 //    LITERAL_MAP:
