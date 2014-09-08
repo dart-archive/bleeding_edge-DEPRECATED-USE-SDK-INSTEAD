@@ -109,7 +109,11 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       // skip if outside of the damaged region
       int hiOffset = position.getOffset();
       int hiLength = position.getLength();
-      if (hiOffset + hiLength < daOffset || hiOffset >= daEnd) {
+      int hiEnd = hiOffset + hiLength;
+      if (hiEnd < daOffset || hiOffset >= daEnd) {
+        continue;
+      }
+      if (hiEnd > daEnd) {
         continue;
       }
       // prepare highlight key
