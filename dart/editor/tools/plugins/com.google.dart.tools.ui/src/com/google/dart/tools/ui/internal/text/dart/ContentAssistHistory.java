@@ -306,7 +306,7 @@ public final class ContentAssistHistory {
     }
   }
 
-  private static final RHSHistory EMPTY_HISTORY = new RHSHistory(null);
+  public static final RHSHistory EMPTY_HISTORY = new RHSHistory(null);
   private static final int DEFAULT_TRACKED_LHS = 100;
   private static final int DEFAULT_TRACKED_RHS = 10;
 

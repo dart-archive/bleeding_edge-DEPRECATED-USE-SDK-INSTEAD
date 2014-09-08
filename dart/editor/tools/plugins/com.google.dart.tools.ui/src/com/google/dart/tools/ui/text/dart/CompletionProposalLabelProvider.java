@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;

@@ -17,8 +17,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.DartCompletionReceiver;
-import com.google.dart.tools.mock.ui.SignatureUtil;
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -212,17 +211,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    */
   private RHSHistory getRHSHistory() {
     if (fRHSHistory == null) {
-      CompletionContext context = getCoreContext();
-      if (context != null) {
-        char[][] expectedTypes = context.getExpectedTypesSignatures();
-        if (expectedTypes != null && expectedTypes.length > 0) {
-          String expected = SignatureUtil.stripSignatureToFQN(String.valueOf(expectedTypes[0]));
-          fRHSHistory = DartToolsPlugin.getDefault().getContentAssistHistory().getHistory(expected);
-        }
-      }
-      if (fRHSHistory == null) {
-        fRHSHistory = DartToolsPlugin.getDefault().getContentAssistHistory().getHistory(null);
-      }
+      fRHSHistory = ContentAssistHistory.EMPTY_HISTORY;
     }
     return fRHSHistory;
   }

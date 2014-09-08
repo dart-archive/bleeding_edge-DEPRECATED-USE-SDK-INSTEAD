@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.mock.ui.IIncludePathEntry;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
 import com.google.dart.tools.ui.text.IDartColorConstants;
