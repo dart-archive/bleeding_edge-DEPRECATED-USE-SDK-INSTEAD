@@ -34,7 +34,7 @@ public interface SdkLibrary {
   public String getPath();
 
   /**
-   * Return the short name of the library. This is the name used after {@code dart:} in a URI.
+   * Return the short name of the library. This is the URI of the library, including {@code dart:}.
    * 
    * @return the short name of the library
    */
