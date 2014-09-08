@@ -28,6 +28,7 @@ import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -914,7 +915,8 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     // i.e. multiple enabled messages may be sent out.
     // we have to make sure that we disable first when getting an enable message.
     handleProjectionDisabled();
-    if (isInstalled()) {
+    // TODO (danrubel) fix for use with analysis server
+    if (isInstalled() && !DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       initialize();
       dartEditor.addReconcileListener(reconcileListener);
     }
