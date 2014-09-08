@@ -14,17 +14,16 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code DebugCreateContextConsumer} defines the behavior of objects that consume
- * create context responses.
+ * The interface {@code CreateContextConsumer} defines the behavior of objects that consume create
+ * context responses.
  * 
  * @coverage dart.server
  */
 public interface CreateContextConsumer extends Consumer {
-
   /**
-   * A set of {@link HoverInformation}s that have been computed.
+   * An execution context has been created.
    * 
-   * @param hovers an array of computed {@link HoverInformation}s
+   * @param contextId the id of the context that was computed
    */
-  public void computedDebugContextId(String debugContextId);
+  public void computedExecutionContext(String contextId);
 }

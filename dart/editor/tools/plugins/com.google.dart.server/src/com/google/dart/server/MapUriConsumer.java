@@ -20,7 +20,6 @@ package com.google.dart.server;
  * @coverage dart.server
  */
 public interface MapUriConsumer extends Consumer {
-
   /**
    * A file or uri to which the path was mapped.
    * 

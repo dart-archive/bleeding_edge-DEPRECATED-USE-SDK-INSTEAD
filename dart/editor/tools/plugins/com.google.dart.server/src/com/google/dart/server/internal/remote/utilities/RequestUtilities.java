@@ -36,13 +36,15 @@ import java.util.Map.Entry;
  * @coverage dart.server.remote
  */
 public class RequestUtilities {
-
-  private static final String ID = "id";
-  private static final String METHOD = "method";
-  private static final String PARAMS = "params";
+  private static final String CONTEXT_ROOT = "contextRoot";
   private static final String FILE = "file";
-  private static final String OFFSET = "offset";
+  private static final String ID = "id";
   private static final String LENGTH = "length";
+  private static final String METHOD = "method";
+  private static final String OFFSET = "offset";
+  private static final String PARAMS = "params";
+  private static final String SUBSCRIPTIONS = "subscriptions";
+  private static final String URI = "uri";
 
   // Server domain
   private static final String METHOD_SERVER_GET_VERSION = "server.getVersion";
@@ -75,11 +77,11 @@ public class RequestUtilities {
   private static final String METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS = "search.findTopLevelDeclarations";
   private static final String METHOD_SEARCH_GET_TYPE_HIERARCHY = "search.getTypeHierarchy";
 
-  // Debug domain
-//  private static final String METHOD_DEBUG_CREATE_CONTEXT = "debug.createContext";
-//  private static final String METHOD_DEBUG_DELETE_CONTEXT = "debug.deleteContext";
-//  private static final String METHOD_DEBUG_MAP_URI = "debug.mapUri";
-//  private static final String METHOD_DEBUG_SET_SUBSCRIPTIONS = "debug.setSubscriptions";
+  // Execution domain
+  private static final String METHOD_EXECUTION_CREATE_CONTEXT = "execution.createContext";
+  private static final String METHOD_EXECUTION_DELETE_CONTEXT = "execution.deleteContext";
+  private static final String METHOD_EXECUTION_MAP_URI = "execution.mapUri";
+  private static final String METHOD_EXECUTION_SET_SUBSCRIPTIONS = "execution.setSubscriptions";
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -245,7 +247,7 @@ public class RequestUtilities {
   public static JsonObject generateAnalysisSetSubscriptions(String id,
       Map<String, List<String>> subscriptions) {
     JsonObject params = new JsonObject();
-    params.add("subscriptions", buildJsonElement(subscriptions));
+    params.add(SUBSCRIPTIONS, buildJsonElement(subscriptions));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_SUBSCRIPTIONS, params);
   }
 
@@ -410,6 +412,97 @@ public class RequestUtilities {
   }
 
   /**
+   * Generate and return a {@value #METHOD_EXECUTION_CREATE_CONTEXT} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "execution.createContext"
+   *   "params": {
+   *     "contextRoot": FilePath
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateExecutionCreateContext(String idValue, String contextRoot) {
+    JsonObject params = new JsonObject();
+    params.addProperty(CONTEXT_ROOT, contextRoot);
+    return buildJsonObjectRequest(idValue, METHOD_EXECUTION_CREATE_CONTEXT, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EXECUTION_DELETE_CONTEXT} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "execution.deleteContext"
+   *   "params": {
+   *     "id": ExecutionContextId
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateExecutionDeleteContext(String idValue, String contextId) {
+    JsonObject params = new JsonObject();
+    params.addProperty(ID, contextId);
+    return buildJsonObjectRequest(idValue, METHOD_EXECUTION_DELETE_CONTEXT, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EXECUTION_MAP_URI} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "execution.mapUri"
+   *   "params": {
+   *     "id": ExecutionContextId
+   *     "file": FilePath
+   *     "uri": String
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateExecutionMapUri(String idValue, String contextId, String file,
+      String uri) {
+    JsonObject params = new JsonObject();
+    params.addProperty(ID, contextId);
+    if (file == null) {
+      if (uri == null) {
+        throw new IllegalArgumentException("Exactly one of 'file' and 'uri' must be non-null");
+      }
+      params.addProperty(URI, uri);
+    } else {
+      if (uri != null) {
+        throw new IllegalArgumentException("Exactly one of 'file' and 'uri' must be non-null");
+      }
+      params.addProperty(FILE, file);
+    }
+    return buildJsonObjectRequest(idValue, METHOD_EXECUTION_MAP_URI, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EXECUTION_SET_SUBSCRIPTIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "execution.setSubscriptions"
+   *   "params": {
+   *     "subscriptions": List<ExecutionService>
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateExecutionSetSubscriptions(String idValue,
+      List<String> subscriptions) {
+    JsonObject params = new JsonObject();
+    params.add(SUBSCRIPTIONS, buildJsonElement(subscriptions));
+    return buildJsonObjectRequest(idValue, METHOD_EXECUTION_SET_SUBSCRIPTIONS, params);
+  }
+
+  /**
    * Generate and return a {@value #METHOD_SEARCH_FIND_ELEMENT_REFERENCES} request.
    * 
    * <pre>
@@ -540,7 +633,7 @@ public class RequestUtilities {
    */
   public static JsonObject generateServerSetSubscriptions(String idValue, List<String> subscriptions) {
     JsonObject params = new JsonObject();
-    params.add("subscriptions", buildJsonElement(subscriptions));
+    params.add(SUBSCRIPTIONS, buildJsonElement(subscriptions));
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SET_SUBSCRIPTIONS, params);
   }
 
@@ -573,7 +666,7 @@ public class RequestUtilities {
 
   private static JsonObject buildJsonObjectLocation(Location location) {
     JsonObject locationJsonObject = new JsonObject();
-    locationJsonObject.addProperty("file", location.getFile());
+    locationJsonObject.addProperty(FILE, location.getFile());
     locationJsonObject.addProperty(OFFSET, location.getOffset());
     locationJsonObject.addProperty(LENGTH, location.getLength());
     locationJsonObject.addProperty("startLine", location.getStartLine());

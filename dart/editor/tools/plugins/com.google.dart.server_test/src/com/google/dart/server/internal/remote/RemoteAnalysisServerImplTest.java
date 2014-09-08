@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.dart.server.CreateContextConsumer;
 import com.google.dart.server.FindElementReferencesConsumer;
 import com.google.dart.server.FindMemberDeclarationsConsumer;
 import com.google.dart.server.FindMemberReferencesConsumer;
@@ -29,6 +30,7 @@ import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
+import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
@@ -42,6 +44,7 @@ import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.ExecutionService;
 import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
 import com.google.dart.server.generated.types.ExtractLocalVariableOptions;
 import com.google.dart.server.generated.types.ExtractMethodFeedback;
@@ -1921,6 +1924,165 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
+  }
+
+  public void test_execution_createContext() throws Exception {
+    final String[] contextIds = {null};
+    server.execution_createContext("/a/b", new CreateContextConsumer() {
+      @Override
+      public void computedExecutionContext(String contextId) {
+        contextIds[0] = contextId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.createContext',",
+        "  'params': {",
+        "    'contextRoot': '/a/b'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id' : '23'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertEquals("23", contextIds[0]);
+  }
+
+  public void test_execution_deleteContext() throws Exception {
+    server.execution_deleteContext("23");
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.deleteContext',",
+        "  'params': {",
+        "    'id': '23'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_execution_mapUri_file() throws Exception {
+    final String[] files = {null};
+    final String[] uris = {null};
+    server.execution_mapUri("23", "/a/b", null, new MapUriConsumer() {
+      @Override
+      public void computedFileOrUri(String file, String uri) {
+        files[0] = file;
+        uris[0] = uri;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.mapUri',",
+        "  'params': {",
+        "    'id': '23',",
+        "    'file': '/a/b'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'uri' : 'package:/foo/foo.dart'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(files[0]);
+    assertEquals("package:/foo/foo.dart", uris[0]);
+  }
+
+  public void test_execution_mapUri_uri() throws Exception {
+    final String[] files = {null};
+    final String[] uris = {null};
+    server.execution_mapUri("23", null, "package:/foo/foo.dart", new MapUriConsumer() {
+      @Override
+      public void computedFileOrUri(String file, String uri) {
+        files[0] = file;
+        uris[0] = uri;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.mapUri',",
+        "  'params': {",
+        "    'id': '23',",
+        "    'uri' : 'package:/foo/foo.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'file': '/a/b'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertEquals("/a/b", files[0]);
+    assertNull(uris[0]);
+  }
+
+  public void test_execution_setSubscriptions_emptyList() throws Exception {
+    server.execution_setSubscriptions(new ArrayList<String>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_execution_setSubscriptions_launchData() throws Exception {
+    ArrayList<String> subscriptions = new ArrayList<String>();
+    subscriptions.add(ExecutionService.LAUNCH_DATA);
+    server.execution_setSubscriptions(subscriptions);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': [LAUNCH_DATA]",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_execution_setSubscriptions_nullList() throws Exception {
+    server.execution_setSubscriptions(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
   public void test_search_findElementReferences() throws Exception {

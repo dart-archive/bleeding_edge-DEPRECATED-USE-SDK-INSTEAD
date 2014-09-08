@@ -42,6 +42,7 @@ import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
+import com.google.dart.server.internal.remote.processor.CreateContextProcessor;
 import com.google.dart.server.internal.remote.processor.FindElementReferencesProcessor;
 import com.google.dart.server.internal.remote.processor.FindMemberDeclarationsProcessor;
 import com.google.dart.server.internal.remote.processor.FindMemberReferencesProcessor;
@@ -49,6 +50,7 @@ import com.google.dart.server.internal.remote.processor.FindTopLevelDeclarations
 import com.google.dart.server.internal.remote.processor.FixesProcessor;
 import com.google.dart.server.internal.remote.processor.GetRefactoringProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
+import com.google.dart.server.internal.remote.processor.MapUriProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisFlushResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
@@ -57,6 +59,7 @@ import com.google.dart.server.internal.remote.processor.NotificationAnalysisOccu
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOverridesProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationCompletionResultsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationExecutionLaunchDataProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationSearchResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
@@ -72,6 +75,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -158,6 +162,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   // Search domain
   private static final String SEARCH_NOTIFICATION_RESULTS = "search.results";
+
+  // Execution domain
+  private static final String LAUNCH_DATA_NOTIFICATION_RESULTS = "execution.launchData";
 
   private final static List<String> EMPTY_STR_LIST = Lists.newArrayList();
 
@@ -328,22 +335,35 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void execution_createContext(String contextRoot, CreateContextConsumer consumer) {
-    // TODO (jwren) debug domain not implemented yet
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateExecutionCreateContext(id, contextRoot),
+        consumer);
   }
 
   @Override
-  public void execution_deleteContext(String id) {
-    // TODO (jwren) debug domain not implemented yet
+  public void execution_deleteContext(String contextId) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateExecutionDeleteContext(id, contextId));
   }
 
   @Override
-  public void execution_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
-    // TODO (jwren) debug domain not implemented yet
+  public void execution_mapUri(String contextId, String file, String uri, MapUriConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateExecutionMapUri(id, contextId, file, uri),
+        consumer);
   }
 
   @Override
   public void execution_setSubscriptions(List<String> subscriptions) {
-    // TODO (jwren) debug domain not implemented yet
+    String id = generateUniqueId();
+    if (subscriptions == null) {
+      subscriptions = new ArrayList<String>();
+    }
+    sendRequestToServer(id, RequestUtilities.generateExecutionSetSubscriptions(id, subscriptions));
   }
 
   @Override
@@ -505,6 +525,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(SERVER_NOTIFICATION_CONNECTED)) {
       // server.connected
       new NotificationServerConnectedProcessor(listener).process(response);
+    } else if (event.equals(LAUNCH_DATA_NOTIFICATION_RESULTS)) {
+      new NotificationExecutionLaunchDataProcessor(listener).process(response);
     }
     // it is a notification, even if we did not handle it
     return true;
@@ -570,6 +592,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetErrorsConsumer) {
       new AnalysisErrorsProcessor((GetErrorsConsumer) consumer).process(resultObject);
+    }
+    //
+    // Execution Domain
+    //
+    else if (consumer instanceof CreateContextConsumer) {
+      new CreateContextProcessor((CreateContextConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof MapUriConsumer) {
+      new MapUriProcessor((MapUriConsumer) consumer).process(resultObject);
     }
     //
     // Server Domain
