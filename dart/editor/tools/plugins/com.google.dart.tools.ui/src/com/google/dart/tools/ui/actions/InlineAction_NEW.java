@@ -29,14 +29,12 @@ import org.eclipse.ui.PlatformUI;
  */
 public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
   private final InlineLocalAction_NEW inlineLocal;
-
-//  private final InlineMethodAction inlineMethod;
+  private final InlineMethodAction_NEW inlineMethod;
 
   public InlineAction_NEW(DartEditor editor) {
     super(editor);
     inlineLocal = new InlineLocalAction_NEW(editor);
-    // TODO(scheglov) implement
-//    inlineMethod = new InlineMethodAction(editor);
+    inlineMethod = new InlineMethodAction_NEW(editor);
   }
 
   @Override
@@ -50,10 +48,10 @@ public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
       inlineLocal.run();
       return;
     }
-    // TODO(scheglov) implement
-//    if (inlineMethod.isEnabled() && inlineMethod.tryInline(shell)) {
-//      return;
-//    }
+    if (inlineMethod.isEnabled()) {
+      inlineMethod.run();
+      return;
+    }
     // complain
     MessageDialogHelper.openInformation(
         shell,
@@ -65,10 +63,8 @@ public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
     inlineLocal.selectionChanged(event);
-    setEnabled(inlineLocal.isEnabled());
-    // TODO(scheglov) implement
-//    inlineMethod.selectionChanged(event);
-//    setEnabled(inlineLocal.isEnabled() || inlineMethod.isEnabled());
+    inlineMethod.selectionChanged(event);
+    setEnabled(inlineLocal.isEnabled() || inlineMethod.isEnabled());
   }
 
   @Override

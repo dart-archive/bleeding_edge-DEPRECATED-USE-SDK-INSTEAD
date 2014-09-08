@@ -31,12 +31,12 @@ import org.eclipse.ui.PlatformUI;
  */
 public class InlineAction_OLD extends AbstractRefactoringAction_OLD {
   private final InlineLocalAction_OLD inlineLocal;
-  private final InlineMethodAction inlineMethod;
+  private final InlineMethodAction_OLD inlineMethod;
 
   public InlineAction_OLD(DartEditor editor) {
     super(editor);
     inlineLocal = new InlineLocalAction_OLD(editor);
-    inlineMethod = new InlineMethodAction(editor);
+    inlineMethod = new InlineMethodAction_OLD(editor);
   }
 
   @Override

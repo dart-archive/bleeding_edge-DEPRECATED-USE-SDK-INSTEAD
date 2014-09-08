@@ -16,16 +16,16 @@ package com.google.dart.tools.ui.internal.refactoring;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineMethodWizard extends ServiceRefactoringWizard {
+public class InlineMethodWizard_OLD extends ServiceRefactoringWizard {
   static final String DIALOG_SETTING_SECTION = "InlineMethodWizard"; //$NON-NLS-1$
 
-  public InlineMethodWizard(ServiceInlineMethodRefactoring ref) {
+  public InlineMethodWizard_OLD(ServiceInlineMethodRefactoring ref) {
     super(ref, DIALOG_BASED_USER_INTERFACE);
     setDefaultPageTitle(RefactoringMessages.InlineMethodWizard_page_title);
   }
 
   @Override
   protected void addUserInputPages() {
-    addPage(new InlineMethodInputPage());
+    addPage(new InlineMethodInputPage_OLD());
   }
 }

@@ -34,7 +34,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineMethodInputPage extends UserInputWizardPage {
+public class InlineMethodInputPage_OLD extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "InlineMethodInputPage";//$NON-NLS-1$
   private static final String DESCRIPTION = RefactoringMessages.InlineMethodInputPage_description;
@@ -42,7 +42,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   private ServiceInlineMethodRefactoring fRefactoring;
   private Button fRemove;
 
-  public InlineMethodInputPage() {
+  public InlineMethodInputPage_OLD() {
     super(PAGE_NAME);
     setImageDescriptor(DartPluginImages.DESC_WIZBAN_REFACTOR_CU);
     setDescription(DESCRIPTION);

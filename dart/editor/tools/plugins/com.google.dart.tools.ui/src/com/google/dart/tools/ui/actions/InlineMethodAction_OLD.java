@@ -19,7 +19,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.ServiceInlineMethodRefactoring;
@@ -37,8 +37,8 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineMethodAction extends AbstractRefactoringAction_OLD {
-  public InlineMethodAction(DartEditor editor) {
+public class InlineMethodAction_OLD extends AbstractRefactoringAction_OLD {
+  public InlineMethodAction_OLD(DartEditor editor) {
     super(editor);
   }
 
@@ -71,7 +71,7 @@ public class InlineMethodAction extends AbstractRefactoringAction_OLD {
       ServiceInlineMethodRefactoring ltkRefactoring = new ServiceInlineMethodRefactoring(
           refactoring);
       new RefactoringStarter().activate(
-          new InlineMethodWizard(ltkRefactoring),
+          new InlineMethodWizard_OLD(ltkRefactoring),
           shell,
           RefactoringMessages.InlineMethodAction_dialog_title,
           RefactoringSaveHelper.SAVE_NOTHING);
