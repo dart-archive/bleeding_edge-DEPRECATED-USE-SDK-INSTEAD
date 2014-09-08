@@ -47,30 +47,30 @@ public class RefactoringMethodParameter {
    * The unique identifier of the parameter. Clients may omit this field for the parameters they want
    * to add.
    */
-  private final String id;
+  private String id;
 
   /**
    * The kind of the parameter.
    */
-  private final String kind;
+  private String kind;
 
   /**
    * The type that should be given to the parameter, or the return type of the parameter's function
    * type.
    */
-  private final String type;
+  private String type;
 
   /**
    * The name that should be given to the parameter.
    */
-  private final String name;
+  private String name;
 
   /**
    * The parameter list of the parameter's function type. If the parameter is not of a function type,
    * this field will not be defined. If the function type has zero parameters, this field will have a
    * value of "()".
    */
-  private final String parameters;
+  private String parameters;
 
   /**
    * Constructor for {@link RefactoringMethodParameter}.
@@ -166,6 +166,45 @@ public class RefactoringMethodParameter {
     builder.append(name);
     builder.append(parameters);
     return builder.toHashCode();
+  }
+
+  /**
+   * The unique identifier of the parameter. Clients may omit this field for the parameters they want
+   * to add.
+   */
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  /**
+   * The kind of the parameter.
+   */
+  public void setKind(String kind) {
+    this.kind = kind;
+  }
+
+  /**
+   * The name that should be given to the parameter.
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  /**
+   * The parameter list of the parameter's function type. If the parameter is not of a function type,
+   * this field will not be defined. If the function type has zero parameters, this field will have a
+   * value of "()".
+   */
+  public void setParameters(String parameters) {
+    this.parameters = parameters;
+  }
+
+  /**
+   * The type that should be given to the parameter, or the return type of the parameter's function
+   * type.
+   */
+  public void setType(String type) {
+    this.type = type;
   }
 
   public JsonObject toJson() {
