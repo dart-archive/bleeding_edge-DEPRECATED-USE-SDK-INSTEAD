@@ -17,6 +17,7 @@ import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
 import com.google.dart.server.generated.types.ExtractMethodFeedback;
 import com.google.dart.server.generated.types.InlineLocalVariableFeedback;
+import com.google.dart.server.generated.types.InlineMethodFeedback;
 import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringProblem;
@@ -72,6 +73,8 @@ public class GetRefactoringProcessor extends ResultProcessor {
         feedback = ExtractMethodFeedback.fromJson(feedbackObject);
       } else if (RefactoringKind.INLINE_LOCAL_VARIABLE.equals(kind)) {
         feedback = InlineLocalVariableFeedback.fromJson(feedbackObject);
+      } else if (RefactoringKind.INLINE_METHOD.equals(kind)) {
+        feedback = InlineMethodFeedback.fromJson(feedbackObject);
       } else if (RefactoringKind.RENAME.equals(kind)) {
         feedback = RenameFeedback.fromJson(feedbackObject);
       }

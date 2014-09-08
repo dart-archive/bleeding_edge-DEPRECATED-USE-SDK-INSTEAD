@@ -50,6 +50,7 @@ import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.InlineLocalVariableFeedback;
+import com.google.dart.server.generated.types.InlineMethodFeedback;
 import com.google.dart.server.generated.types.InlineMethodOptions;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.NavigationRegion;
@@ -1800,7 +1801,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      }",
         "    ],",
         "    'feedback': {",
-        "      'name': myVar,",
+        "      'name': 'myVar',",
         "      'occurrences': 3",
         "    },",
         "    'change': " + getSourceChangeJson() + ",",
@@ -1813,6 +1814,52 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     InlineLocalVariableFeedback feedback = (InlineLocalVariableFeedback) feedbackArray[0];
     assertEquals("myVar", feedback.getName());
     assertEquals(3, feedback.getOccurrences());
+  }
+
+  public void test_edit_getRefactoring_response_feedback_inlineMethod() throws Exception {
+    final RefactoringFeedback[] feedbackArray = {null};
+    RefactoringOptions options = null;
+    server.edit_getRefactoring(
+        RefactoringKind.INLINE_METHOD,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> problems,
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+            feedbackArray[0] = feedback;
+          }
+        });
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'problems': [",
+        "      {",
+        "        'severity': 'INFO',",
+        "        'message': 'message1'",
+        "      }",
+        "    ],",
+        "    'feedback': {",
+        "      'className': 'myClassName',",
+        "      'methodName': 'myMethodName',",
+        "      'isDeclaration': true",
+        "    },",
+        "    'change': " + getSourceChangeJson() + ",",
+        "    'potentialEdits': ['one']",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'feedback'
+    InlineMethodFeedback feedback = (InlineMethodFeedback) feedbackArray[0];
+    assertEquals("myClassName", feedback.getClassName());
+    assertEquals("myMethodName", feedback.getMethodName());
+    assertEquals(true, feedback.isDeclaration());
   }
 
   public void test_edit_getRefactoring_response_feedback_rename() throws Exception {
