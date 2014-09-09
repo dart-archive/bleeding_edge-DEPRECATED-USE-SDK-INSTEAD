@@ -63,7 +63,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL parameter. It is an error
    * if a REQUIRED or POSITIONAL parameter follows a NAMED parameter.
    *
-   * - To change the order and/or update proposed paramerers, add parameters with the same
+   * - To change the order and/or update proposed parameters, add parameters with the same
    *   identifiers as proposed.
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
@@ -153,7 +153,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL parameter. It is an error
    * if a REQUIRED or POSITIONAL parameter follows a NAMED parameter.
    *
-   * - To change the order and/or update proposed paramerers, add parameters with the same
+   * - To change the order and/or update proposed parameters, add parameters with the same
    *   identifiers as proposed.
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
@@ -210,7 +210,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
    * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL parameter. It is an error
    * if a REQUIRED or POSITIONAL parameter follows a NAMED parameter.
    *
-   * - To change the order and/or update proposed paramerers, add parameters with the same
+   * - To change the order and/or update proposed parameters, add parameters with the same
    *   identifiers as proposed.
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.

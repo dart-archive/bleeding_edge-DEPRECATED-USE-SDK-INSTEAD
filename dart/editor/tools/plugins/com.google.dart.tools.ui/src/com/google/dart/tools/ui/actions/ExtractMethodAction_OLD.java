@@ -18,7 +18,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.refactoring.ExtractMethodWizard;
+import com.google.dart.tools.ui.internal.refactoring.ExtractMethodWizard_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.ServiceExtractMethodRefactoring;
@@ -37,8 +37,8 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractMethodAction extends AbstractRefactoringAction_OLD {
-  public ExtractMethodAction(DartEditor editor) {
+public class ExtractMethodAction_OLD extends AbstractRefactoringAction_OLD {
+  public ExtractMethodAction_OLD(DartEditor editor) {
     super(editor);
   }
 
@@ -84,7 +84,7 @@ public class ExtractMethodAction extends AbstractRefactoringAction_OLD {
       ServiceExtractMethodRefactoring ltkRefactoring = new ServiceExtractMethodRefactoring(
           newRefactoring);
       new RefactoringStarter().activate(
-          new ExtractMethodWizard(ltkRefactoring),
+          new ExtractMethodWizard_OLD(ltkRefactoring),
           getShell(),
           RefactoringMessages.ExtractMethodAction_dialog_title,
           RefactoringSaveHelper.SAVE_NOTHING);

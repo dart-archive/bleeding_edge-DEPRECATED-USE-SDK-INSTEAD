@@ -13,23 +13,23 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.Parameter;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public interface IParameterListChangeListener {
+public interface IParameterListChangeListener_NEW {
 
   /**
-   * Empty implementation of {@link IParameterListChangeListener}.
+   * Empty implementation of {@link IParameterListChangeListener_NEW}.
    */
-  class Empty implements IParameterListChangeListener {
+  class Empty implements IParameterListChangeListener_NEW {
     @Override
-    public void parameterAdded(Parameter parameter) {
+    public void parameterAdded(RefactoringMethodParameter parameter) {
     }
 
     @Override
-    public void parameterChanged(Parameter parameter) {
+    public void parameterChanged(RefactoringMethodParameter parameter) {
     }
 
     @Override
@@ -42,14 +42,14 @@ public interface IParameterListChangeListener {
    * 
    * @param parameter the parameter that has been added.
    */
-  void parameterAdded(Parameter parameter);
+  void parameterAdded(RefactoringMethodParameter parameter);
 
   /**
    * Gets fired when the given parameter has changed
    * 
    * @param parameter the parameter that has changed.
    */
-  void parameterChanged(Parameter parameter);
+  void parameterChanged(RefactoringMethodParameter parameter);
 
   /**
    * Gets fired if the parameter list got modified by reordering or removing parameters (note that

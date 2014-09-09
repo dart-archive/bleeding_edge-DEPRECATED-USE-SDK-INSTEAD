@@ -30,8 +30,8 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
   private RenameAction_NEW renameAction;
   private ExtractLocalAction_NEW extractLocalAction;
   private InlineAction_NEW inlineAction;
+  private ExtractMethodAction_NEW extractMethodAction;
 
-//  private ExtractMethodAction extractMethodAction;
 //  private ConvertMethodToGetterAction convertMethodToGetterAction;
 //  private ConvertGetterToMethodAction convertGetterToMethodAction;
 
@@ -40,13 +40,12 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     renameAction = new RenameAction_NEW(editor);
     extractLocalAction = new ExtractLocalAction_NEW(editor);
     inlineAction = new InlineAction_NEW(editor);
-//    extractMethodAction = new ExtractMethodAction(editor);
+    extractMethodAction = new ExtractMethodAction_NEW(editor);
 //    convertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
 //    convertGetterToMethodAction = new ConvertGetterToMethodAction(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
-    addActions(renameAction, extractLocalAction, inlineAction
-//        extractMethodAction,
+    addActions(renameAction, extractLocalAction, extractMethodAction, inlineAction
 //        convertMethodToGetterAction,
 //        convertGetterToMethodAction
     );
@@ -58,7 +57,7 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     super.dispose();
     renameAction = null;
     extractLocalAction = null;
-//    extractMethodAction = null;
+    extractMethodAction = null;
     inlineAction = null;
 //    convertMethodToGetterAction = null;
 //    convertGetterToMethodAction = null;
@@ -69,8 +68,8 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     super.fillActionBars(actionBars);
     actionBars.setGlobalActionHandler(DartActionConstants.RENAME, renameAction);
     actionBars.setGlobalActionHandler(DartActionConstants.EXTRACT_LOCAL, extractLocalAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.EXTRACT_METHOD, extractMethodAction);
     actionBars.setGlobalActionHandler(DartActionConstants.INLINE, inlineAction);
-//    actionBars.setGlobalActionHandler(DartActionConstants.EXTRACT_METHOD, extractMethodAction);
 //    actionBars.setGlobalActionHandler(
 //        DartActionConstants.CONVERT_METHOD_TO_GETTER,
 //        convertMethodToGetterAction);

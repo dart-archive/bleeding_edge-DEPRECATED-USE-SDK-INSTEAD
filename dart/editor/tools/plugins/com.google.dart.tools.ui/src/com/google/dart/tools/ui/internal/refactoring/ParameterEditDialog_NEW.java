@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.Parameter;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -38,9 +38,9 @@ import org.eclipse.swt.widgets.Text;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ParameterEditDialog extends StatusDialog {
+public class ParameterEditDialog_NEW extends StatusDialog {
 
-  private final Parameter fParameter;
+  private final RefactoringMethodParameter fParameter;
   private final boolean fEditType;
   private final boolean fEditDefault;
   private Text fType;
@@ -55,8 +55,8 @@ public class ParameterEditDialog extends StatusDialog {
    * @param context the <code>IPackageFragment</code> for type ContentAssist. Can be
    *          <code>null</code> if <code>canEditType</code> is <code>false</code>.
    */
-  public ParameterEditDialog(Shell parentShell, Parameter parameter, boolean canEditType,
-      boolean canEditDefault) {
+  public ParameterEditDialog_NEW(Shell parentShell, RefactoringMethodParameter parameter,
+      boolean canEditType, boolean canEditDefault) {
     super(parentShell);
     fParameter = parameter;
     fEditType = canEditType;
@@ -79,7 +79,7 @@ public class ParameterEditDialog extends StatusDialog {
     GridData gd;
 
     label = new Label(result, SWT.NONE);
-    String newName = fParameter.getNewName();
+    String newName = fParameter.getName();
     if (newName.length() == 0) {
       label.setText(RefactoringMessages.ParameterEditDialog_message_new);
     } else {
@@ -95,7 +95,7 @@ public class ParameterEditDialog extends StatusDialog {
       fType = new Text(result, SWT.BORDER);
       gd = new GridData(GridData.FILL_HORIZONTAL);
       fType.setLayoutData(gd);
-      fType.setText(fParameter.getNewTypeName());
+      fType.setText(fParameter.getType());
       fType.addModifyListener(new ModifyListener() {
         @Override
         public void modifyText(ModifyEvent e) {
@@ -128,21 +128,21 @@ public class ParameterEditDialog extends StatusDialog {
     });
     TextFieldNavigationHandler.install(fName);
 
-    if (fEditDefault && fParameter.isAdded()) {
-      label = new Label(result, SWT.NONE);
-      label.setText(RefactoringMessages.ParameterEditDialog_defaultValue);
-      fDefaultValue = new Text(result, SWT.BORDER);
-      gd = new GridData(GridData.FILL_HORIZONTAL);
-      fDefaultValue.setLayoutData(gd);
-      fDefaultValue.setText(fParameter.getDefaultValue());
-      fDefaultValue.addModifyListener(new ModifyListener() {
-        @Override
-        public void modifyText(ModifyEvent e) {
-          validate((Text) e.widget);
-        }
-      });
-      TextFieldNavigationHandler.install(fDefaultValue);
-    }
+//    if (fEditDefault && fParameter.isAdded()) {
+//      label = new Label(result, SWT.NONE);
+//      label.setText(RefactoringMessages.ParameterEditDialog_defaultValue);
+//      fDefaultValue = new Text(result, SWT.BORDER);
+//      gd = new GridData(GridData.FILL_HORIZONTAL);
+//      fDefaultValue.setLayoutData(gd);
+//      fDefaultValue.setText(fParameter.getDefaultValue());
+//      fDefaultValue.addModifyListener(new ModifyListener() {
+//        @Override
+//        public void modifyText(ModifyEvent e) {
+//          validate((Text) e.widget);
+//        }
+//      });
+//      TextFieldNavigationHandler.install(fDefaultValue);
+//    }
     applyDialogFont(result);
     return result;
   }
@@ -150,12 +150,12 @@ public class ParameterEditDialog extends StatusDialog {
   @Override
   protected void okPressed() {
     if (fType != null) {
-      fParameter.setNewTypeName(fType.getText());
+      fParameter.setType(fType.getText());
     }
-    fParameter.setNewName(fName.getText());
-    if (fDefaultValue != null) {
-      fParameter.setDefaultValue(fDefaultValue.getText());
-    }
+    fParameter.setName(fName.getText());
+//    if (fDefaultValue != null) {
+//      fParameter.setDefaultValue(fDefaultValue.getText());
+//    }
     super.okPressed();
   }
 

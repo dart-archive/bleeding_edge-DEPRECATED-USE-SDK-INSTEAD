@@ -22,11 +22,11 @@ import org.eclipse.ltk.core.refactoring.Change;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractMethodWizard extends ServiceRefactoringWizard {
+public class ExtractMethodWizard_OLD extends ServiceRefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ExtractMethodWizard"; //$NON-NLS-1$
 
-  public ExtractMethodWizard(ServiceExtractMethodRefactoring ref) {
+  public ExtractMethodWizard_OLD(ServiceExtractMethodRefactoring ref) {
     super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
     setDefaultPageTitle(RefactoringMessages.ExtractMethodWizard_extract_method);
     setDialogSettings(DartToolsPlugin.getDefault().getDialogSettings());
@@ -44,6 +44,6 @@ public class ExtractMethodWizard extends ServiceRefactoringWizard {
 
   @Override
   protected void addUserInputPages() {
-    addPage(new ExtractMethodInputPage());
+    addPage(new ExtractMethodInputPage_OLD());
   }
 }

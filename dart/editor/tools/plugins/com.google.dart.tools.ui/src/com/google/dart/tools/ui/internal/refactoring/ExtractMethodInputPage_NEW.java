@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.Parameter;
+import com.google.dart.server.generated.types.RefactoringMethodParameter;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -48,11 +48,11 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractMethodInputPage extends UserInputWizardPage {
+public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$
 
-  private ServiceExtractMethodRefactoring fRefactoring;
+  private ServerExtractMethodRefactoring refactoring;
   private Text fTextField;
   private boolean fFirstTime;
   private DartSourceViewer fSignaturePreview;
@@ -63,7 +63,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
 //  private static final String GENERATE_JAVADOC = "GenerateJavadoc"; //$NON-NLS-1$
 
-  public ExtractMethodInputPage() {
+  public ExtractMethodInputPage_NEW() {
     super(PAGE_NAME);
     setImageDescriptor(DartPluginImages.DESC_WIZBAN_REFACTOR_CU);
     setDescription(DESCRIPTION);
@@ -73,7 +73,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   @Override
   public void createControl(Composite parent) {
-    fRefactoring = (ServiceExtractMethodRefactoring) getRefactoring();
+    refactoring = (ServerExtractMethodRefactoring) getRefactoring();
     loadSettings();
 
     Composite result = new Composite(parent, SWT.NONE);
@@ -94,15 +94,15 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
     layouter.perform(label, fTextField, 1);
 
-    if (!fRefactoring.getParameters().isEmpty()) {
+    if (!refactoring.getParameters().isEmpty()) {
       // TODO(scheglov) pass some StubTypeContext
-      ChangeParametersControl cp = new ChangeParametersControl(
+      ChangeParametersControl_NEW cp = new ChangeParametersControl_NEW(
           result,
           SWT.NONE,
           RefactoringMessages.ExtractMethodInputPage_parameters,
-          new IParameterListChangeListener.Empty() {
+          new IParameterListChangeListener_NEW.Empty() {
             @Override
-            public void parameterChanged(Parameter parameter) {
+            public void parameterChanged(RefactoringMethodParameter parameter) {
               parameterModified();
             }
 
@@ -111,11 +111,11 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
               parameterModified();
             }
           },
-          ChangeParametersControl.Mode.EXTRACT_METHOD);
+          ChangeParametersControl_NEW.Mode.EXTRACT_METHOD);
       gd = new GridData(GridData.FILL_BOTH);
       gd.horizontalSpan = 2;
       cp.setLayoutData(gd);
-      cp.setInput(fRefactoring.getParameters());
+      cp.setInput(refactoring.getParameters());
     }
 
 //    checkBox = new Button(result, SWT.CHECK);
@@ -133,7 +133,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
     // occurrences
     {
-      int occurrences = fRefactoring.getNumberOfOccurrences();
+      int occurrences = refactoring.getOccurrences();
       Button checkBox = new Button(result, SWT.CHECK);
       if (occurrences == 1) {
         checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_none);
@@ -149,7 +149,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          fRefactoring.setReplaceAllOccurrences(((Button) e.widget).getSelection());
+          refactoring.setExtractAll(((Button) e.widget).getSelection());
         }
       });
       layouter.perform(checkBox);
@@ -157,17 +157,17 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
     // getter
     {
-      boolean canExtractGetter = fRefactoring.canExtractGetter();
+      boolean canExtractGetter = refactoring.canExtractGetter();
       Button checkBox = new Button(result, SWT.CHECK);
       checkBox.setText(RefactoringMessages.ExtractMethodInputPage_getter);
       checkBox.setEnabled(canExtractGetter);
       if (canExtractGetter) {
-        checkBox.setSelection(fRefactoring.getExtractGetter());
+        checkBox.setSelection(true);
       }
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          fRefactoring.setExtractGetter(((Button) e.widget).getSelection());
+          refactoring.setCreateGetter(((Button) e.widget).getSelection());
         }
       });
       layouter.perform(checkBox);
@@ -191,7 +191,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
       if (fFirstTime) {
         fFirstTime = false;
         setPageComplete(false);
-        fRefactoring.setMethodName("methodName");
+        refactoring.setName("methodName");
         updatePreview();
         fTextField.setFocus();
       } else {
@@ -282,7 +282,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
   }
 
   private void textModified(String text) {
-    fRefactoring.setMethodName(text);
+    refactoring.setName(text);
     RefactoringStatus status = validatePage(true);
     if (!status.hasFatalError()) {
       updatePreview();
@@ -300,7 +300,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
     int top = fSignaturePreview.getTextWidget().getTopPixel();
     String signature;
     try {
-      signature = fRefactoring.getSignature();
+      signature = refactoring.getSignature();
     } catch (IllegalArgumentException e) {
       signature = ""; //$NON-NLS-1$
     }
@@ -315,7 +315,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
       result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyMethodName);
       return result;
     }
-    result.merge(fRefactoring.checkMethodName());
+    result.merge(refactoring.setName(text));
     return result;
   }
 
@@ -333,8 +333,8 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   private RefactoringStatus validateParameters() {
     RefactoringStatus result = new RefactoringStatus();
-    for (Parameter parameter : fRefactoring.getParameters()) {
-      if ("".equals(parameter.getNewName())) {
+    for (RefactoringMethodParameter parameter : refactoring.getParameters()) {
+      if ("".equals(parameter.getName())) {
         result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
         return result;
       }
@@ -343,7 +343,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 //          parameter.getNewTypeName(),
 //          fRefactoring.getUnit()));
     }
-    result.merge(fRefactoring.checkParameterNames());
+    result.merge(refactoring.setOptions(true));
     return result;
   }
 }
