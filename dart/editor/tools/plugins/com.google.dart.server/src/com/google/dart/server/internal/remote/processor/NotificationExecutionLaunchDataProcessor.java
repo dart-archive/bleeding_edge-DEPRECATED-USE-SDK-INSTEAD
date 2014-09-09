@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -47,7 +48,7 @@ public class NotificationExecutionLaunchDataProcessor extends NotificationProces
     JsonObject dartToHtml = paramsObject.get("dartToHtml").getAsJsonObject();
     JsonObject htmlToDart = paramsObject.get("htmlToDart").getAsJsonObject();
     getListener().computedLaunchData(
-        JsonUtilities.decodeStringList(executables),
+        ExecutableFile.fromJsonArray(executables),
         toMap(dartToHtml),
         toMap(htmlToDart));
   }

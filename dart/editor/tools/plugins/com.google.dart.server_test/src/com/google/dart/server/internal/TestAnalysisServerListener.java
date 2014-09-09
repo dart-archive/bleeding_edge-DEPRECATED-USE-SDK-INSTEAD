@@ -23,6 +23,7 @@ import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -165,7 +166,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void computedLaunchData(List<String> executables,
+  public synchronized void computedLaunchData(List<ExecutableFile> executables,
       Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart) {
     // TODO(brianwilkerson) Add tests for this notification and implement this method appropriately
   }

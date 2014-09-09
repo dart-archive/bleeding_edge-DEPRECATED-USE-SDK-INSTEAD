@@ -16,6 +16,7 @@ package com.google.dart.server;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -79,8 +80,8 @@ public interface AnalysisServerListener {
    * @param htmlToDart a mapping from the paths of HTML files that reference Dart files to a list of
    *          the Dart files they reference
    */
-  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
-      Map<String, List<String>> htmlToDart);
+  public void computedLaunchData(List<ExecutableFile> executables,
+      Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart);
 
   /**
    * A new collection of navigation regions has been computed for the given file. Each navigation

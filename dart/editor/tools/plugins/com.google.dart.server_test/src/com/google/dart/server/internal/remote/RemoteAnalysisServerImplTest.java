@@ -2041,6 +2041,33 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertNull(uris[0]);
   }
 
+  public void test_execution_notification_launchData() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'execution.launchData',",
+        "  'params': {",
+        "    'executables': [{",
+        "      'file': '/a.dart',",
+        "      'kind': 'CLIENT'",
+        "    }, {",
+        "      'file': '/b.dart',",
+        "      'kind': 'EITHER'",
+        "    }, {",
+        "      'file': '/c.dart',",
+        "      'kind': 'SERVER'",
+        "    }],",
+        "    'dartToHtml': {",
+        "      '/d.dart': ['/e.html', '/f.html']",
+        "    },",
+        "    'htmlToDart': {",
+        "      '/g.html': ['/h.dart', '/i.dart']",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+  }
+
   public void test_execution_setSubscriptions_emptyList() throws Exception {
     server.execution_setSubscriptions(new ArrayList<String>(0));
     List<JsonObject> requests = requestSink.getRequests();

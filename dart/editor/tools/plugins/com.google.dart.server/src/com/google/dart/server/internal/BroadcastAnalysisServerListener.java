@@ -19,6 +19,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -81,8 +82,8 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedLaunchData(List<String> executables, Map<String, List<String>> dartToHtml,
-      Map<String, List<String>> htmlToDart) {
+  public void computedLaunchData(List<ExecutableFile> executables,
+      Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedLaunchData(executables, dartToHtml, htmlToDart);
     }
