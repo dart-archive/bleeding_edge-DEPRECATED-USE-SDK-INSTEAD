@@ -16,10 +16,16 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartElementImageDescriptor;
+import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.completion.DartServerProposalCollector;
+import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
+import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -49,6 +55,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   private final CompletionSuggestion suggestion;
   private final int relevance;
   private final StyledString styledCompletion;
+  private Image image;
 
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
@@ -110,8 +117,10 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Image getImage() {
-    //TODO (danrubel): compute image based upon type of suggestion
-    return null;
+    if (image == null) {
+      image = computeImage();
+    }
+    return image;
   }
 
   @Override
@@ -185,6 +194,137 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     } catch (BadLocationException x) {
       return false;
     }
+  }
+
+  private Image computeImage() {
+    ImageDescriptorRegistry fRegistry = DartToolsPlugin.getImageDescriptorRegistry();
+    ImageDescriptor descriptor = null;
+    int overlay = 0;
+
+    String kind = suggestion.getKind();
+    // TODO (danrubel) additional info needed from suggestion
+    boolean isInInterfaceOrAnnotation = false;
+    boolean isPrivate = false;
+    boolean isStatic = false;
+    boolean isAbstract = false;
+
+    if ("CLASS".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_CLASS_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_CLASS_PUBLIC;
+      }
+      if (isAbstract) {
+        overlay = DartElementImageDescriptor.ABSTRACT;
+      }
+    }
+
+    else if ("CLASS_ALIAS".equals(kind)) {
+      descriptor = DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
+    }
+
+    else if ("CONSTRUCTOR".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      overlay = DartElementImageDescriptor.CONSTRUCTOR;
+    }
+
+    else if ("FUNCTION_TYPE_ALIAS".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
+      }
+    }
+
+    else if ("FIELD".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_FIELD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_FIELD_PUBLIC;
+      }
+      if (isStatic) {
+        overlay = DartElementImageDescriptor.STATIC;
+      }
+    }
+
+    else if ("FUNCTION".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      if (isStatic) {
+        overlay = DartElementImageDescriptor.STATIC;
+      }
+    }
+
+    else if ("GETTER".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      overlay = DartElementImageDescriptor.GETTER;
+    }
+
+    else if ("IMPORT".equals(kind)) {
+      descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
+    }
+
+    else if ("KEYWORD".equals(kind)) {
+      descriptor = DartPluginImages.DESC_DART_KEYWORD;
+    }
+
+    else if ("LIBRARY_PREFIX".equals(kind)) {
+      descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
+    }
+
+    else if ("LOCAL_VARIABLE".equals(kind)) {
+      descriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
+    }
+
+    else if ("METHOD".equals(kind) || "METHOD_NAME".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      if (isStatic) {
+        overlay = DartElementImageDescriptor.STATIC;
+      }
+    }
+
+    else if ("SETTER".equals(kind)) {
+      if (isPrivate && !isInInterfaceOrAnnotation) {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
+      } else {
+        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      overlay = DartElementImageDescriptor.SETTER;
+    }
+
+    else if ("TOP_LEVEL_VARIABLE".equals(kind)) {
+      descriptor = DartPluginImages.DESC_OBJS_TOP_LEVEL_VARIABLE;
+    }
+
+    if (descriptor != null) {
+      if (suggestion.isDeprecated()) {
+        overlay |= DartElementImageDescriptor.DEPRECATED;
+      }
+      if (overlay != 0) {
+        descriptor = new DartElementImageDescriptor(
+            descriptor,
+            overlay,
+            DartElementImageProvider.SMALL_SIZE);
+      }
+    } else {
+      descriptor = DartPluginImages.DESC_BLANK;
+    }
+    return fRegistry.get(descriptor);
   }
 
   private int computeRelevance() {

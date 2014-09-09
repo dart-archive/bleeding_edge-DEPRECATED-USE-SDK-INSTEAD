@@ -204,6 +204,8 @@ public class DartPluginImages {
       T_DART,
       "angular_16_yellow.png");
 
+  public static final ImageDescriptor DESC_BLANK = createUnManaged(T_DART, "blank.png"); //$NON-NLS-1$
+
   /*
    * Set of predefined Image Descriptors.
    */
@@ -252,6 +254,7 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_DART_FIELD_PRIVATE = createUnManaged(
       T_DART,
       "field_private.png"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_DART_KEYWORD = DESC_BLANK;
 
   public static final ImageDescriptor DESC_DART_TEST_CASE = createUnManaged(T_DART, "test_case.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_DART_TEST_GROUP = createUnManaged(
@@ -577,6 +580,7 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_OBJS_LOCAL_VARIABLE = createManagedFromKey(
       T_OBJ,
       IMG_OBJS_LOCAL_VARIABLE);
+  public static final ImageDescriptor DESC_OBJS_TOP_LEVEL_VARIABLE = DESC_DART_CLASS_TYPE_ALIAS;
 
   public static final ImageDescriptor DESC_OBJS_HELP = createManagedFromKey(T_ELCL, IMG_OBJS_HELP);
   public static final ImageDescriptor DESC_ELCL_ADD_TO_BP = createUnManaged(
