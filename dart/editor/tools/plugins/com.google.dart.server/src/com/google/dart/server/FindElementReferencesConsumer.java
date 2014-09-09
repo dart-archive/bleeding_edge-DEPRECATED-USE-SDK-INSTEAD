@@ -16,8 +16,8 @@ package com.google.dart.server;
 import com.google.dart.server.generated.types.Element;
 
 /**
- * The interface {@code FindElementReferencesConsumer} defines the behavior of objects consume the
- * find element references request.
+ * The interface {@code FindElementReferencesConsumer} defines the behavior of objects that consume
+ * the find element references request.
  * 
  * @coverage dart.server
  */

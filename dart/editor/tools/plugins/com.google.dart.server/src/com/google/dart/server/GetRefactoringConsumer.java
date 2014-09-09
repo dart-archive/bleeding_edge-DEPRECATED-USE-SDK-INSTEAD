@@ -20,8 +20,8 @@ import com.google.dart.server.generated.types.SourceChange;
 import java.util.List;
 
 /**
- * The interface {@code GetRefactoringConsumer} defines the behavior of objects that get the changes
- * required to perform a refactoring.
+ * The interface {@code GetRefactoringConsumer} defines the behavior of objects that consume the
+ * changes required to perform a refactoring.
  * 
  * @coverage dart.server
  */

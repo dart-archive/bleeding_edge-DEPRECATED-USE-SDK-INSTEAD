@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RefactoringKind;
+
 import java.util.List;
 
 /**

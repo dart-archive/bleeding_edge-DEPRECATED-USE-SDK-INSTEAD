@@ -14,8 +14,8 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code FindMemberReferencesConsumer} defines the behavior of objects consume the
- * find member references request.
+ * The interface {@code FindMemberReferencesConsumer} defines the behavior of objects that consume
+ * the find member references request.
  * 
  * @coverage dart.server
  */
