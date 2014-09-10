@@ -86,7 +86,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   public FunctionTypeImpl(ExecutableElement element) {
-    super(element, element == null ? null : element.getName());
+    super(element, null);
   }
 
   /**
@@ -96,6 +96,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   public FunctionTypeImpl(FunctionTypeAliasElement element) {
+    // Here we use [element.getName()] as [name] to avoid infinite loops in [getDisplayName]
+    // when displaying self-referential typedefs.
     super(element, element == null ? null : element.getName());
   }
 
