@@ -58,7 +58,7 @@ class LocalizedExampleElement extends PolymerElement {
   //      pub run intl:extract_to_arb.dart web/localized.dart
   // That will produce intl_messages.arb. We can then use whatever process
   // we want to produce translation_fr.arb and translation_pt.arb.
-  // In this example we uploaded them to http://translate.google.com/toolkit, 
+  // In this example we uploaded them to http://translate.google.com/toolkit,
   // accepted the machine translations, downloaded the files, renamed them and
   // moved them to the translations directory, then ran
   //      pub run intl:generate_from_arb --output-dir=lib web/localized.dart

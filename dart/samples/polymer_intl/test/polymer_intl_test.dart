@@ -12,7 +12,7 @@ import 'package:unittest/html_config.dart';
 // TODO(alanknight): It would be better to import this with package:, but
 // that doesn't work because these samples aren't in the fake packages 
 // directory that then tests run against.
-import '../lib/localized.dart';
+import '../web/localized.dart';
 
 /**
  * A trivial test to get the analyzer plugged into this sample. See
