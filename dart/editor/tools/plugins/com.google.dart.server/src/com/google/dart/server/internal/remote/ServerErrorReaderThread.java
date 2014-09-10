@@ -115,7 +115,7 @@ public class ServerErrorReaderThread extends Thread {
       JsonObject response = new JsonObject();
       response.addProperty("event", RemoteAnalysisServerImpl.SERVER_NOTIFICATION_ERROR);
       JsonObject paramsObject = new JsonObject();
-      paramsObject.addProperty("fatal", true);
+      paramsObject.addProperty("isFatal", true);
       paramsObject.addProperty("message", message.toString());
       paramsObject.addProperty("stackTrace", stack.toString());
       response.add("params", paramsObject);
