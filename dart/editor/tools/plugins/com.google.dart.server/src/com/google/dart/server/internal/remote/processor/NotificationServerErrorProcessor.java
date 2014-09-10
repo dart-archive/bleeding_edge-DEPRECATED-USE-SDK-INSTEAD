@@ -30,7 +30,7 @@ public class NotificationServerErrorProcessor extends NotificationProcessor {
   @Override
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
-    boolean isFatal = paramsObject.get("fatal").getAsBoolean();
+    boolean isFatal = paramsObject.get("isFatal").getAsBoolean();
     String message = paramsObject.get("message").getAsString();
     String stackTrace = paramsObject.get("stackTrace").getAsString();
     // notify listener
