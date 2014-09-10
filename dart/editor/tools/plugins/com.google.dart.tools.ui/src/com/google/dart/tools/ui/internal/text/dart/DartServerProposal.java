@@ -24,6 +24,22 @@ import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.CLASS;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.CLASS_ALIAS;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.CONSTRUCTOR;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.FIELD;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.FUNCTION;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.GETTER;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.LIBRARY_PREFIX;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.LOCAL_VARIABLE;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.METHOD;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.METHOD_NAME;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.SETTER;
+import static com.google.dart.server.generated.types.CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.BadLocationException;
@@ -50,6 +66,8 @@ import org.eclipse.swt.graphics.Point;
 public class DartServerProposal implements ICompletionProposal, ICompletionProposalExtension,
     ICompletionProposalExtension2, ICompletionProposalExtension3, ICompletionProposalExtension4,
     ICompletionProposalExtension5, ICompletionProposalExtension6, IDartCompletionProposal {
+
+  private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
@@ -202,13 +220,14 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     int overlay = 0;
 
     String kind = suggestion.getKind();
+    String completion = suggestion.getCompletion();
+    boolean isPrivate = completion != null && completion.startsWith("_");
     // TODO (danrubel) additional info needed from suggestion
     boolean isInInterfaceOrAnnotation = false;
-    boolean isPrivate = false;
     boolean isStatic = false;
     boolean isAbstract = false;
 
-    if ("CLASS".equals(kind)) {
+    if (CLASS.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_CLASS_PRIVATE;
       } else {
@@ -219,11 +238,11 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if ("CLASS_ALIAS".equals(kind)) {
+    else if (CLASS_ALIAS.equals(kind)) {
       descriptor = DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
     }
 
-    else if ("CONSTRUCTOR".equals(kind)) {
+    else if (CONSTRUCTOR.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -232,7 +251,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       overlay = DartElementImageDescriptor.CONSTRUCTOR;
     }
 
-    else if ("FUNCTION_TYPE_ALIAS".equals(kind)) {
+    else if (FUNCTION_TYPE_ALIAS.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE;
       } else {
@@ -240,7 +259,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if ("FIELD".equals(kind)) {
+    else if (FIELD.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_FIELD_PRIVATE;
       } else {
@@ -251,7 +270,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if ("FUNCTION".equals(kind)) {
+    else if (FUNCTION.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -262,7 +281,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if ("GETTER".equals(kind)) {
+    else if (GETTER.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -271,23 +290,23 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       overlay = DartElementImageDescriptor.GETTER;
     }
 
-    else if ("IMPORT".equals(kind)) {
+    else if (IMPORT.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
     }
 
-    else if ("KEYWORD".equals(kind)) {
+    else if (KEYWORD.equals(kind)) {
       descriptor = DartPluginImages.DESC_DART_KEYWORD;
     }
 
-    else if ("LIBRARY_PREFIX".equals(kind)) {
+    else if (LIBRARY_PREFIX.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
     }
 
-    else if ("LOCAL_VARIABLE".equals(kind)) {
+    else if (LOCAL_VARIABLE.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
     }
 
-    else if ("METHOD".equals(kind) || "METHOD_NAME".equals(kind)) {
+    else if (METHOD.equals(kind) || METHOD_NAME.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -298,7 +317,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if ("SETTER".equals(kind)) {
+    else if (SETTER.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -307,7 +326,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       overlay = DartElementImageDescriptor.SETTER;
     }
 
-    else if ("TOP_LEVEL_VARIABLE".equals(kind)) {
+    else if (TOP_LEVEL_VARIABLE.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_TOP_LEVEL_VARIABLE;
     }
 
@@ -339,14 +358,16 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private StyledString computeStyledDisplayString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append(getCompletion());
-    String declaringType = suggestion.getDeclaringType();
-    if (declaringType != null && declaringType.length() > 0) {
-      builder.append(" - ");
-      builder.append(declaringType);
+    StyledString buf = new StyledString();
+    buf.append(getCompletion());
+
+    String returnType = suggestion.getReturnType();
+    if (returnType != null && returnType.length() > 0) {
+      buf.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+      buf.append(returnType, StyledString.QUALIFIER_STYLER);
     }
-    return new StyledString(builder.toString());
+
+    return buf;
   }
 
   private String getCompletion() {
