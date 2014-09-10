@@ -54,21 +54,20 @@ class LocalizedExampleElement extends PolymerElement {
   // This is our message, a function that would take parameters if we have any
   // and then gives us back the appropriate translated message.
   // Of course, in order to make this happen we need to extract the messages
-  // from our program. We don't have an integration with a real translation
-  // system, but you can produce some custom JSON by running (assuming you have
-  // the full Intl package available somewhere, like in a built SDK).
-  //      dart --package-root=<some-path-to-packages>
-  //          <path-to-intl>/intl/test/message_extraction/extract_to_json.dart
-  //          localized.dart
-  // That will produce intl_messages.json. We can then use whatever process
-  // we want to produce translation_fr.json and translation_pt.json. I used
-  // hand-editing, but that doesn't scale. Then
-  //      dart --package-root=<some-path-to-packages>
-  //          <path-to-intl>/intl/test/message_extraction/generate_from_json.dart
-  //          localized.dart translation_fr.json translation_pt.json
-  // will produce messages_all.dart, messages_fr.dart and messages_pt.dart.
+  // from our program. We can do this by running
+  //      pub run intl:extract_to_arb.dart web/localized.dart
+  // That will produce intl_messages.arb. We can then use whatever process
+  // we want to produce translation_fr.arb and translation_pt.arb.
+  // In this example we uploaded them to http://translate.google.com/toolkit, 
+  // accepted the machine translations, downloaded the files, renamed them and
+  // moved them to the translations directory, then ran
+  //      pub run intl:generate_from_arb --output-dir=lib web/localized.dart
+  //          translations/translation_fr.arb translations/translation_pt_PT.arb
+  // will produce messages_all.dart, messages_fr.dart and messages_pt_PT.dart.
   // We import messages_all.dart, and we're done.
-  helloFromDart() => Intl.message("Hello World from Dart!", name: 'helloWorld',
+  helloFromDart() => Intl.message(
+      "Hello World from Dart!",
+      name: 'helloFromDart',
       desc: "This is just a simple Hello World message that doesn't"
         "take any parameters.",
       args: [], // This would be required if we had any arguments.

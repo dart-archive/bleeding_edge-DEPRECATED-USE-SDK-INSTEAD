@@ -3,8 +3,8 @@ description: An example of using Polymer with localized Intl messages
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  intl: '>=0.9.0 <0.10.0'
-  polymer: '>=0.12.0 <0.13.0'
+  intl: '>=0.11.6 <0.12.0'
+  polymer: '>=0.13.0 <0.14.0'
   unittest: any
 transformers:
 - polymer:
