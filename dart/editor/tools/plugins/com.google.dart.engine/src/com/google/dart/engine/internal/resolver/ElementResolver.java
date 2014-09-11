@@ -100,24 +100,31 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ElementAnnotationImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
+import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
+import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.internal.type.UnionTypeImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Instances of the class {@code ElementResolver} are used by instances of {@link ResolverVisitor}
@@ -255,6 +262,82 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Return a method representing the merge of the given elements. The type of the merged element is
+   * the component-wise union of the types of the given elements. If not all input elements have the
+   * same shape then [null] is returned.
+   * 
+   * @param elements the {@code ExecutableElement}s to merge
+   * @return an {@code ExecutableElement} representing the merge of {@code elements}
+   */
+  // TODO (collinsn): somehow return [dynamic] here, or at least in the callers, when not all
+  // given methods have the same shape.
+  private static ExecutableElement computeMergedExecutableElement(Set<ExecutableElement> elements) {
+    ExecutableElement[] elementArrayToMerge = elements.toArray(new ExecutableElement[elements.size()]);
+    if (elementArrayToMerge.length == 0) {
+      return null;
+    } else {
+      // Flatten methods structurally. Based on
+      // [InheritanceManager.computeMergedExecutableElement] and
+      // [InheritanceManager.createSyntheticExecutableElement].
+      //
+      // However, the approach we take here is much simpler, but expected to work
+      // well in the common case. It degrades gracefully in the uncommon case,
+      // by computing the type [dynamic] for the method, preventing any
+      // hints from being generated (TODO: not done yet).
+      //
+      // The approach is: we require that each [ExecutableElement] has the
+      // same shape: the same number of required, optional positional, and optional named
+      // parameters, in the same positions, and with the named parameters in the
+      // same order. We compute a type by unioning pointwise.
+      ExecutableElement e_0 = elementArrayToMerge[0];
+      ParameterElement[] ps_0 = e_0.getParameters();
+      ParameterElementImpl[] ps_out = new ParameterElementImpl[ps_0.length];
+      for (int j = 0; j < ps_out.length; j++) {
+        ps_out[j] = new ParameterElementImpl(ps_0[j].getName(), 0);
+        ps_out[j].setSynthetic(true);
+        ps_out[j].setType(ps_0[j].getType());
+        ps_out[j].setParameterKind(ps_0[j].getParameterKind());
+      }
+      Type r_out = e_0.getReturnType();
+
+      for (int i = 1; i < elementArrayToMerge.length; i++) {
+        ExecutableElement e_i = elementArrayToMerge[i];
+        r_out = UnionTypeImpl.union(r_out, e_i.getReturnType());
+
+        ParameterElement[] ps_i = e_i.getParameters();
+        // Each function must have the same number of params.
+        if (ps_0.length != ps_i.length) {
+          return null; // TODO (collinsn): return an element representing [dynamic] here instead.
+        } else {
+          // Each function must have the same kind of params, with the same names,
+          // in the same order.
+          for (int j = 0; j < ps_i.length; j++) {
+            if (ps_0[j].getParameterKind() != ps_i[j].getParameterKind()
+                || ps_0[j].getName() != ps_i[j].getName()) {
+              return null;
+            } else {
+              // The output parameter type is the union of the input parameter types.
+              ps_out[j].setType(UnionTypeImpl.union(ps_out[j].getType(), ps_i[j].getType()));
+            }
+          }
+        }
+      }
+      // TODO (collinsn): this code should work for functions and methods,
+      // so we may want [FunctionElementImpl]
+      // instead here in some cases? And then there are constructors and property accessors.
+      // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
+      // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
+      // and [MultiplyInheritedPropertyAcessorElementImpl].
+      ExecutableElementImpl e_out = new MethodElementImpl(e_0.getName(), 0);
+      e_out.setSynthetic(true);
+      e_out.setReturnType(r_out);
+      e_out.setParameters(ps_out);
+      e_out.setType(new FunctionTypeImpl(e_out));
+      return e_out;
+    }
   }
 
   /**
@@ -2061,6 +2144,21 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
       return lookUpMethodInInterfaces(interfaceType, false, methodName, new HashSet<ClassElement>());
     }
+
+    if (type instanceof UnionType) {
+      Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+      for (Type t : ((UnionType) type).getElements()) {
+        MethodElement m = lookUpMethod(target, t, methodName);
+        if (m != null) {
+          methods.add(m);
+        }
+      }
+      // TODO (collinsn): I want [computeMergedExecutableElement] to be general
+      // and work with functions, methods, constructors, and property accessors. However,
+      // I won't be able to assume it returns [MethodElement] here then.
+      return (MethodElement) computeMergedExecutableElement(methods);
+    }
+
     return null;
   }
 
@@ -2619,14 +2717,14 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
    */
   private Element resolveInvokedElementWithTarget(Expression target, Type targetType,
       SimpleIdentifier methodName) {
-    if (targetType instanceof InterfaceType) {
-      InterfaceType classType = (InterfaceType) targetType;
-      Element element = lookUpMethod(target, classType, methodName.getName());
+    if (targetType instanceof InterfaceType || targetType instanceof UnionType) {
+      Element element = lookUpMethod(target, targetType, methodName.getName());
       if (element == null) {
         //
         // If there's no method, then it's possible that 'm' is a getter that returns a function.
         //
-        element = lookUpGetter(target, classType, methodName.getName());
+        // TODO (collinsn): need to add union type support here too, in the style of [lookUpMethod].
+        element = lookUpGetter(target, targetType, methodName.getName());
       }
       return element;
     } else if (target instanceof SimpleIdentifier) {

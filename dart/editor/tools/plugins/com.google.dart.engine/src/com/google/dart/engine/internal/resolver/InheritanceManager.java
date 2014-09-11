@@ -73,9 +73,14 @@ public class InheritanceManager {
    * <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
    * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    * <p>
-   * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
-   * bounds instead of dynamic
    */
+  // TODO (jwren) Associate a propagated type to the synthetic method element using least upper
+  // bounds instead of dynamic
+  //
+  // TODO (collinsn) @jwren's above TODO could maybe be addressed using the union-type method merge
+  // code I'm adding: [ElementResolver.computeMergedExecutableElement].
+  // The difference is that I don't plan to handle unioning of methods with
+  // different shapes very well: I'm just going to fall back to [dynamic] in that case.
   private static ExecutableElement computeMergedExecutableElement(
       ExecutableElement[] elementArrayToMerge) {
     int h = getNumOfPositionalParameters(elementArrayToMerge[0]);
