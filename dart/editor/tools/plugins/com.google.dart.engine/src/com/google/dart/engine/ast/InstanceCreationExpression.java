@@ -126,7 +126,7 @@ public class InstanceCreationExpression extends Expression {
 
   @Override
   public int getPrecedence() {
-    return 15;
+    return 16;
   }
 
   /**
