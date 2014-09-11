@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.build;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -48,10 +50,12 @@ public class CleanLibrariesAction extends InstrumentedAction implements
 
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-    Job job = new CleanLibrariesJob();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartCore.getAnalysisServer().analysis_reanalyze();
+    } else {
+      Job job = new CleanLibrariesJob();
 
-    job.schedule();
-
+      job.schedule();
+    }
   }
-
 }
