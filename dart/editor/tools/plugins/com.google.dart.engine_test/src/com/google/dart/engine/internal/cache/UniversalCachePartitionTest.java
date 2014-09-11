@@ -25,17 +25,17 @@ import java.util.Map.Entry;
 
 public class UniversalCachePartitionTest extends EngineTestCase {
   public void test_contains() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
     assertTrue(partition.contains(source));
   }
 
   public void test_creation() {
-    assertNotNull(new UniversalCachePartition(8, null));
+    assertNotNull(new UniversalCachePartition(null, 8, null));
   }
 
   public void test_entrySet() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     partition.put(source, entry);
@@ -48,13 +48,13 @@ public class UniversalCachePartitionTest extends EngineTestCase {
   }
 
   public void test_get() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
     assertNull(partition.get(source));
   }
 
   public void test_put_noFlush() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     partition.put(source, entry);
@@ -62,7 +62,7 @@ public class UniversalCachePartitionTest extends EngineTestCase {
   }
 
   public void test_remove() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     partition.put(source, entry);
@@ -72,12 +72,15 @@ public class UniversalCachePartitionTest extends EngineTestCase {
   }
 
   public void test_setMaxCacheSize() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, new CacheRetentionPolicy() {
-      @Override
-      public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
-        return RetentionPriority.LOW;
-      }
-    });
+    UniversalCachePartition partition = new UniversalCachePartition(
+        null,
+        8,
+        new CacheRetentionPolicy() {
+          @Override
+          public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
+            return RetentionPriority.LOW;
+          }
+        });
     int size = 6;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource(createFile("/test" + i + ".dart"), "");
@@ -93,7 +96,7 @@ public class UniversalCachePartitionTest extends EngineTestCase {
   }
 
   public void test_size() {
-    UniversalCachePartition partition = new UniversalCachePartition(8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
     int size = 4;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource(createFile("/test" + i + ".dart"), "");

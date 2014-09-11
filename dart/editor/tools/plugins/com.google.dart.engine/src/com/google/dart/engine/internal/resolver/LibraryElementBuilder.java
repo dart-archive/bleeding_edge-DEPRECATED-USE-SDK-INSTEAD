@@ -159,7 +159,9 @@ public class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl(analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl(
+        analysisContext.getContextFor(librarySource),
+        libraryNameNode);
     libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);
@@ -263,7 +265,9 @@ public class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl(analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl(
+        analysisContext.getContextFor(librarySource),
+        libraryNameNode);
     libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);

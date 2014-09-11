@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 
 import java.util.HashMap;
@@ -48,7 +49,9 @@ public class PartitionManager {
   public SdkCachePartition forSdk(DartSdk sdk) {
     SdkCachePartition partition = sdkPartitions.get(sdk);
     if (partition == null) {
-      partition = new SdkCachePartition(DEFAULT_SDK_CACHE_SIZE);
+      partition = new SdkCachePartition(
+          (InternalAnalysisContext) sdk.getContext(),
+          DEFAULT_SDK_CACHE_SIZE);
       sdkPartitions.put(sdk, partition);
     }
     return partition;

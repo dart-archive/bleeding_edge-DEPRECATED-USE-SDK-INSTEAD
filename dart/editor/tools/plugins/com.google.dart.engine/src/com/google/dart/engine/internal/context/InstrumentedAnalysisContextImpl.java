@@ -353,6 +353,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public InternalAnalysisContext getContextFor(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getContextFor");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getContextFor(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public DeclaredVariables getDeclaredVariables() {
     return basis.getDeclaredVariables();
   }

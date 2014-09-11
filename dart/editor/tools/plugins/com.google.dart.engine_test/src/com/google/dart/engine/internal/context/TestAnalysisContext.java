@@ -182,6 +182,12 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @Override
+  public InternalAnalysisContext getContextFor(Source source) {
+    fail("Unexpected invocation of getContextFor");
+    return null;
+  }
+
+  @Override
   public DeclaredVariables getDeclaredVariables() {
     fail("Unexpected invocation of getDeclaredVariables");
     return null;

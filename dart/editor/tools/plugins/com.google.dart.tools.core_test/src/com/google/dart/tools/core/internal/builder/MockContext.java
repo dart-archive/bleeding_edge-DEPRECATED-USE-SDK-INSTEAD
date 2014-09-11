@@ -392,6 +392,11 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
+  public InternalAnalysisContext getContextFor(Source source) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public DeclaredVariables getDeclaredVariables() {
     return declaredVariables;
   }

@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.cache;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContextStatistics.PartitionData;
 import com.google.dart.engine.internal.context.AnalysisContextStatisticsImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.collection.MultipleMapIterator;
@@ -78,6 +79,11 @@ public class AnalysisCache {
         return partitions[i].get(source);
       }
     }
+    //
+    // We should never get to this point because the last partition should always be a universal
+    // partition, except in the case of the SDK context, in which case the source should always be
+    // part of the SDK.
+    //
     return null;
   }
 
@@ -88,6 +94,30 @@ public class AnalysisCache {
    */
   public int getAstSize() {
     return partitions[partitions.length - 1].getAstSize();
+  }
+
+  /**
+   * Return context that owns the given source.
+   * 
+   * @param source the source whose context is to be returned
+   * @return the context that owns the partition that contains the source
+   */
+  public InternalAnalysisContext getContextFor(Source source) {
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        return partitions[i].getContext();
+      }
+    }
+    //
+    // We should never get to this point because the last partition should always be a universal
+    // partition, except in the case of the SDK context, in which case the source should always be
+    // part of the SDK.
+    //
+    AnalysisEngine.getInstance().getLogger().logInformation(
+        "Could not find context for " + source.getFullName(),
+        new Exception());
+    return null;
   }
 
   /**

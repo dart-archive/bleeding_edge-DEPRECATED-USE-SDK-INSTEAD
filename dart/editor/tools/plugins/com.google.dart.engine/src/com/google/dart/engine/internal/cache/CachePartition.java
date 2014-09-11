@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.collection.SingleMapIterator;
@@ -27,9 +28,10 @@ import java.util.Map;
  */
 public abstract class CachePartition {
   /**
-   * A table mapping the sources known to the context to the information known about the source.
+   * The context that owns this partition. Multiple contexts can reference a partition, but only one
+   * context can own it.
    */
-  private final HashMap<Source, SourceEntry> sourceMap = new HashMap<Source, SourceEntry>();
+  private InternalAnalysisContext context;
 
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
@@ -42,6 +44,12 @@ public abstract class CachePartition {
   private CacheRetentionPolicy retentionPolicy;
 
   /**
+   * A table mapping the sources belonging to this partition to the information known about those
+   * sources.
+   */
+  private final HashMap<Source, SourceEntry> sourceMap = new HashMap<Source, SourceEntry>();
+
+  /**
    * A list containing the most recently accessed sources with the most recently used at the end of
    * the list. When more sources are added than the maximum allowed then the least recently used
    * source will be removed and will have it's cached AST structure flushed.
@@ -52,12 +60,15 @@ public abstract class CachePartition {
    * Initialize a newly created cache to maintain at most the given number of AST structures in the
    * cache.
    * 
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  public CachePartition(int maxCacheSize, CacheRetentionPolicy retentionPolicy) {
+  public CachePartition(InternalAnalysisContext context, int maxCacheSize,
+      CacheRetentionPolicy retentionPolicy) {
+    this.context = context;
     this.maxCacheSize = maxCacheSize;
     this.retentionPolicy = retentionPolicy;
     recentlyUsed = new ArrayList<Source>(maxCacheSize);
@@ -121,6 +132,15 @@ public abstract class CachePartition {
       }
     }
     return astSize;
+  }
+
+  /**
+   * Return the context that owns this partition.
+   * 
+   * @return the context that owns this partition
+   */
+  public InternalAnalysisContext getContext() {
+    return context;
   }
 
   /**

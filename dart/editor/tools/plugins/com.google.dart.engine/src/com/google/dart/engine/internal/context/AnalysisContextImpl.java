@@ -989,6 +989,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     super();
     resultRecorder = new AnalysisTaskResultRecorder();
     privatePartition = new UniversalCachePartition(
+        this,
         AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
         new ContextRetentionPolicy());
     cache = createCacheFromSourceFactory(null);
@@ -1412,6 +1413,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     source.getContentsToReceiver(receiver);
+  }
+
+  @Override
+  public InternalAnalysisContext getContextFor(Source source) {
+    synchronized (cacheLock) {
+      InternalAnalysisContext context = cache.getContextFor(source);
+      return context == null ? this : context;
+    }
   }
 
   @Override
@@ -1981,9 +1990,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry != null) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
           recordElementData(dartCopy, library, library.getSource(), htmlSource);
-          dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+          dartCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+          dartCopy.setValue(SourceEntry.LINE_INFO, new LineInfo(new int[] {0}));
+          dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+          // DartEntry.ELEMENT - set in recordElementData
+          dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+          dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+          dartCopy.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_ARRAY);
+          // DartEntry.IS_CLIENT - set in recordElementData
+          // DartEntry.IS_LAUNCHABLE - set in recordElementData
           dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
           dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+          dartCopy.setState(DartEntry.PUBLIC_NAMESPACE, CacheState.FLUSHED);
+          dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+          dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+          dartCopy.setState(DartEntry.TOKEN_STREAM, CacheState.FLUSHED);
+
           dartCopy.setValueInLibrary(
               DartEntry.RESOLUTION_ERRORS,
               librarySource,
@@ -1993,7 +2015,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               DartEntry.VERIFICATION_ERRORS,
               librarySource,
               AnalysisError.NO_ERRORS);
-          dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
           dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
           cache.put(librarySource, dartCopy);
         }

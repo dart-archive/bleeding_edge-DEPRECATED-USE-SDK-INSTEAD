@@ -87,6 +87,14 @@ public interface InternalAnalysisContext extends AnalysisContext {
       InternalAnalysisContext newContext);
 
   /**
+   * Return context that owns the given source.
+   * 
+   * @param source the source whose context is to be returned
+   * @return the context that owns the partition that contains the source
+   */
+  public InternalAnalysisContext getContextFor(Source source);
+
+  /**
    * Return an array containing all of the sources that have been marked as priority sources.
    * Clients must not modify the returned array.
    * 

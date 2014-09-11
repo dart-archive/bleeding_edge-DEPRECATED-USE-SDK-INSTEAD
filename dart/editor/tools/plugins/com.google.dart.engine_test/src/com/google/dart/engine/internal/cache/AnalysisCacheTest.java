@@ -32,7 +32,7 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_iterator() {
-    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
     AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
@@ -45,7 +45,7 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_put_noFlush() {
-    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
     AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
@@ -54,7 +54,7 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_setMaxCacheSize() {
-    CachePartition partition = new UniversalCachePartition(8, new CacheRetentionPolicy() {
+    CachePartition partition = new UniversalCachePartition(null, 8, new CacheRetentionPolicy() {
       @Override
       public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
         return RetentionPriority.LOW;
@@ -76,7 +76,7 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_size() {
-    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
     AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     int size = 4;
     for (int i = 0; i < size; i++) {

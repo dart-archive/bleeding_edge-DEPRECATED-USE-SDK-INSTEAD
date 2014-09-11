@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -23,11 +24,12 @@ public class SdkCachePartition extends CachePartition {
   /**
    * Initialize a newly created partition.
    * 
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    */
-  public SdkCachePartition(int maxCacheSize) {
-    super(maxCacheSize, DefaultRetentionPolicy.POLICY);
+  public SdkCachePartition(InternalAnalysisContext context, int maxCacheSize) {
+    super(context, maxCacheSize, DefaultRetentionPolicy.POLICY);
   }
 
   @Override

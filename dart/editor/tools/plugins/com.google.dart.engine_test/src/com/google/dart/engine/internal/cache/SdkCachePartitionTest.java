@@ -22,13 +22,13 @@ import com.google.dart.engine.source.TestSource;
 
 public class SdkCachePartitionTest extends EngineTestCase {
   public void test_contains_false() {
-    SdkCachePartition partition = new SdkCachePartition(8);
+    SdkCachePartition partition = new SdkCachePartition(null, 8);
     Source source = new TestSource();
     assertFalse(partition.contains(source));
   }
 
   public void test_contains_true() {
-    SdkCachePartition partition = new SdkCachePartition(8);
+    SdkCachePartition partition = new SdkCachePartition(null, 8);
     SourceFactory factory = new SourceFactory(new DartUriResolver(
         DirectoryBasedDartSdk.getDefaultSdk()));
     Source source = factory.forUri("dart:core");
@@ -36,6 +36,6 @@ public class SdkCachePartitionTest extends EngineTestCase {
   }
 
   public void test_creation() {
-    assertNotNull(new SdkCachePartition(8));
+    assertNotNull(new SdkCachePartition(null, 8));
   }
 }

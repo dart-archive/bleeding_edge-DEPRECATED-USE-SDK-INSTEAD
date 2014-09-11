@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -23,13 +24,15 @@ public class UniversalCachePartition extends CachePartition {
   /**
    * Initialize a newly created partition.
    * 
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  public UniversalCachePartition(int maxCacheSize, CacheRetentionPolicy retentionPolicy) {
-    super(maxCacheSize, retentionPolicy);
+  public UniversalCachePartition(InternalAnalysisContext context, int maxCacheSize,
+      CacheRetentionPolicy retentionPolicy) {
+    super(context, maxCacheSize, retentionPolicy);
   }
 
   @Override

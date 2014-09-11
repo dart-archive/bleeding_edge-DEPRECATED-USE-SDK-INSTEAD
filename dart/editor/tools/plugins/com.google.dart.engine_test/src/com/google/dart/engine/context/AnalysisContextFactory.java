@@ -107,16 +107,17 @@ public final class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   public static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
-        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver());
+    DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
+    AnalysisContext coreContext = sdk.getContext();
     //
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    context.setContents(coreSource, "");
+    coreContext.setContents(coreSource, "");
     coreUnit.setSource(coreSource);
     ClassElementImpl proxyClassElement = classElement("_Proxy");
     coreUnit.setTypes(new ClassElement[] {
@@ -149,7 +150,7 @@ public final class AnalysisContextFactory {
         deprecatedTopLevelVariableElt.getGetter(), deprecatedTopLevelVariableElt.getSetter()});
     coreUnit.setTopLevelVariables(new TopLevelVariableElement[] {
         proxyTopLevelVariableElt, deprecatedTopLevelVariableElt});
-    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, libraryIdentifier(
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(coreContext, libraryIdentifier(
         "dart",
         "core"));
     coreLibrary.setDefiningCompilationUnit(coreUnit);
@@ -158,7 +159,7 @@ public final class AnalysisContextFactory {
     //
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    context.setContents(asyncSource, "");
+    coreContext.setContents(asyncSource, "");
     asyncUnit.setSource(asyncSource);
     // Future
     ClassElementImpl futureElement = classElement("Future", "T");
@@ -198,7 +199,7 @@ public final class AnalysisContextFactory {
 
     asyncUnit.setTypes(new ClassElement[] {
         completerElement, futureElement, classElement("Stream", "T")});
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl(context, libraryIdentifier(
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl(coreContext, libraryIdentifier(
         "dart",
         "async"));
     asyncLibrary.setDefiningCompilationUnit(asyncUnit);
@@ -207,7 +208,7 @@ public final class AnalysisContextFactory {
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    context.setContents(htmlSource, "");
+    coreContext.setContents(htmlSource, "");
     htmlUnit.setSource(htmlSource);
     ClassElementImpl elementElement = classElement("Element");
     InterfaceType elementType = elementElement.getType();
@@ -247,7 +248,7 @@ public final class AnalysisContextFactory {
         htmlDocumentElement.getType());
     htmlUnit.setTopLevelVariables(new TopLevelVariableElement[] {document});
     htmlUnit.setAccessors(new PropertyAccessorElement[] {document.getGetter()});
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, libraryIdentifier(
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(coreContext, libraryIdentifier(
         "dart",
         "dom",
         "html"));
