@@ -18,6 +18,52 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonHintCodeTest extends ResolverTestCase {
+  public void fail_issue20904BuggyTypePromotionAtIfJoin_1() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(createSource(//
+        "f(var message, var dynamic_) {",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  }",
+        "  int s = message;", // Here [message] could have any type.
+        "}",
+        ""));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void fail_issue20904BuggyTypePromotionAtIfJoin_2() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(createSource(//
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  int s = message;", // Here [message] could have any type.
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void fail_issue20904BuggyTypePromotionAtIfJoin_3() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(createSource(//
+        "f(var message) {",
+        "  var dynamic_;",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  int s = message;", // Here [message] could have any type.
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_conditionalElse_debugConst() throws Exception {
     Source source = addSource(createSource(//
         "const bool DEBUG = true;",
@@ -245,6 +291,22 @@ public class NonHintCodeTest extends ResolverTestCase {
                 "main() { lib1.f(); }")},
         new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {});
+  }
+
+  public void test_issue20904BuggyTypePromotionAtIfJoin_4() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(createSource(//
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  String s = message;", // Here [message] is necessarily a string.
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
   }
 
   public void test_missingReturn_emptyFunctionBody() throws Exception {

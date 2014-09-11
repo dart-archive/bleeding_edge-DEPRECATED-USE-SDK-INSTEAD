@@ -45,6 +45,20 @@ import com.google.dart.engine.type.Type;
 import junit.framework.AssertionFailedError;
 
 public class TypePropagationTest extends ResolverTestCase {
+  public void fail_issue20904BuggyTypePromotionAtIfJoin_2() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    String code = createSource(//
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  message; // marker", // Here [message] could have any type.
+        "}");
+    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
+    assertFalse(getTypeProvider().getStringType().equals(t));
+    assertFalse(getTypeProvider().getFunctionType().equals(t));
+  }
+
   public void fail_mergePropagatedTypesAtJoinPoint_1() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=19929
     assertTypeOfMarkedExpression(
