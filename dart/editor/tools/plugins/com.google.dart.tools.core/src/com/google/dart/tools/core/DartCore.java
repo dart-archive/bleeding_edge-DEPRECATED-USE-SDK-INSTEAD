@@ -25,6 +25,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.ServerService;
+import com.google.dart.server.internal.remote.DebugPrintStream;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 import com.google.dart.server.utilities.logging.Logging;
@@ -453,15 +454,29 @@ public class DartCore extends Plugin implements DartSdkListener {
         String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
         try {
           // prepare debug stream
-          PrintStream debugStream;
+          DebugPrintStream debugStream;
           {
             String logPath = DartCoreDebug.ANALYSIS_SERVER_LOG_FILE;
             if (StringUtils.isBlank(logPath)) {
               debugStream = null;
             } else if ("console".equals(logPath)) {
-              debugStream = System.out;
+              debugStream = new DebugPrintStream() {
+                @Override
+                public void println(String s) {
+                  if (s.length() > 1000) {
+                    s = s.substring(0, 1000) + "...";
+                  }
+                  System.out.println(s);
+                }
+              };
             } else {
-              debugStream = new PrintStream(logPath);
+              final PrintStream fileStream = new PrintStream(logPath);
+              debugStream = new DebugPrintStream() {
+                @Override
+                public void println(String s) {
+                  fileStream.println(s);
+                }
+              };
             }
           }
           // start server

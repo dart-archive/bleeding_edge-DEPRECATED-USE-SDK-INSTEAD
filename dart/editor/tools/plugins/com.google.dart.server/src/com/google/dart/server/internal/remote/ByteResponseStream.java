@@ -35,9 +35,9 @@ public class ByteResponseStream implements ResponseStream {
   private final BufferedReader reader;
 
   /**
-   * The {@link PrintStream} to print all lines to.
+   * The {@link DebugPrintStream} to print all lines to.
    */
-  private PrintStream debugStream;
+  private DebugPrintStream debugStream;
 
   /**
    * Initializes a newly created response stream.
@@ -45,7 +45,7 @@ public class ByteResponseStream implements ResponseStream {
    * @param stream the byte stream to read JSON strings from
    * @param debugStream the {@link PrintStream} to print all lines to, may be {@code null}
    */
-  public ByteResponseStream(InputStream stream, PrintStream debugStream) {
+  public ByteResponseStream(InputStream stream, DebugPrintStream debugStream) {
     reader = new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
     this.debugStream = debugStream;
   }

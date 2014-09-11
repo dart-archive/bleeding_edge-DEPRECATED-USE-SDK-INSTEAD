@@ -35,7 +35,7 @@ public class ByteRequestSink implements RequestSink {
   /**
    * The {@link PrintStream} to print all lines to.
    */
-  private PrintStream debugStream;
+  private DebugPrintStream debugStream;
 
   /**
    * Initializes a newly created request sink.
@@ -43,7 +43,7 @@ public class ByteRequestSink implements RequestSink {
    * @param stream the byte stream to write JSON strings to
    * @param debugStream the {@link PrintStream} to print all lines to, may be {@code null}
    */
-  public ByteRequestSink(OutputStream stream, PrintStream debugStream) {
+  public ByteRequestSink(OutputStream stream, DebugPrintStream debugStream) {
     writer = new PrintWriter(new OutputStreamWriter(stream, Charsets.UTF_8));
     this.debugStream = debugStream;
   }

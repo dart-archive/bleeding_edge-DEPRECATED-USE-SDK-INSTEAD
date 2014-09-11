@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.dart.server.AnalysisServerSocket;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
 
   private final String runtimePath;
   private final String analysisServerPath;
-  private final PrintStream debugStream;
+  private final DebugPrintStream debugStream;
   private final boolean debugRemoteProcess;
   private RequestSink requestSink;
   private ResponseStream responseStream;
@@ -53,13 +52,13 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private Process process;
   private final String[] additionalProgramArguments;
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream,
-      boolean debugRemoteProcess) {
+  public StdioServerSocket(String runtimePath, String analysisServerPath,
+      DebugPrintStream debugStream, boolean debugRemoteProcess) {
     this(runtimePath, analysisServerPath, debugStream, new String[] {}, debugRemoteProcess);
   }
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream,
-      String[] additionalProgramArguments, boolean debugRemoteProcess) {
+  public StdioServerSocket(String runtimePath, String analysisServerPath,
+      DebugPrintStream debugStream, String[] additionalProgramArguments, boolean debugRemoteProcess) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.debugStream = debugStream;
