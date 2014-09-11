@@ -134,6 +134,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
       return;
     }
     // do search
+    final int offset = selectionOffset;
     view.showPage(new SearchResultPage_NEW(view, "Searching for references...") {
       private Element element;
 
@@ -161,11 +162,17 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
         final CountDownLatch latch = new CountDownLatch(1);
         DartCore.getAnalysisServer().search_findElementReferences(
             file,
-            selectionOffset,
+            offset,
             true,
             new FindElementReferencesConsumer() {
               @Override
               public void computedElementReferences(String searchId, Element _element) {
+                // no element at the offset
+                if (searchId == null) {
+                  latch.countDown();
+                  return;
+                }
+                // wait for search results
                 element = _element;
                 DartCore.getAnalysisServerData().addSearchResultsListener(
                     searchId,

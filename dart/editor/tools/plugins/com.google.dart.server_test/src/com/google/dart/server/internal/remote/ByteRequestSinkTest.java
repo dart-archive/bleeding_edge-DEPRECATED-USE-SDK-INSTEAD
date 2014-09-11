@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 /**
  * Test for {@link ByteRequestSink}.
@@ -50,7 +49,7 @@ public class ByteRequestSinkTest extends TestCase {
   }
 
   public void test_add_debugStream() throws Exception {
-    PrintStream debugStream = mock(PrintStream.class);
+    DebugPrintStream debugStream = mock(DebugPrintStream.class);
     ByteRequestSink requestSink = new ByteRequestSink(byteStream, debugStream);
     requestSink.add(parseJson("{}"));
     // verify

@@ -2163,7 +2163,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertNotNull(elementArray[0]);
   }
 
-  public void test_search_findElementReferences_nullElt() throws Exception {
+  public void test_search_findElementReferences_noElement() throws Exception {
     final String[] searchIdArray = new String[] {null};
     final Element[] elementArray = new Element[] {null};
     server.search_findElementReferences(
@@ -2193,12 +2193,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     putResponse(//
         "{",
         "  'id': '0',",
-        "  'result': {",
-        "    'id': 'searchId0'",
-        "  }",
+        "  'result': {}",
         "}");
     server.test_waitForWorkerComplete();
-    assertEquals("searchId0", searchIdArray[0]);
+    assertNull(searchIdArray[0]);
     assertNull(elementArray[0]);
   }
 

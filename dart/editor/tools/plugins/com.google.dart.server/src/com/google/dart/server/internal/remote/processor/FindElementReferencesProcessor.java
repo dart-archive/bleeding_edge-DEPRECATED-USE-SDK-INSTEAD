@@ -32,7 +32,7 @@ public class FindElementReferencesProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    String searchId = resultObject.get("id").getAsString();
+    String searchId = resultObject.has("id") ? resultObject.get("id").getAsString() : null;
     Element element = resultObject.has("element")
         ? Element.fromJson(resultObject.get("element").getAsJsonObject()) : null;
     consumer.computedElementReferences(searchId, element);

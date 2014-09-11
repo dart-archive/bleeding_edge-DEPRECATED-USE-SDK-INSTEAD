@@ -25,7 +25,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
-import java.io.PrintStream;
 
 /**
  * Test for {@link ByteResponseStream}.
@@ -54,7 +53,7 @@ public class ByteResposeStreamTest extends TestCase {
   }
 
   public void test_take_debugStream() throws Exception {
-    PrintStream debugStream = mock(PrintStream.class);
+    DebugPrintStream debugStream = mock(DebugPrintStream.class);
     byte[] bytes = ("some text\n" + "{}\n").getBytes(Charsets.UTF_8);
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
     ByteResponseStream responseStream = new ByteResponseStream(byteStream, debugStream);
