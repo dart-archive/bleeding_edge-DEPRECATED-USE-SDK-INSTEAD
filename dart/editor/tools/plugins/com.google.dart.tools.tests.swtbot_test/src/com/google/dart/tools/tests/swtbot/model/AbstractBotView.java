@@ -35,6 +35,7 @@ import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
 import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.results.WidgetResult;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -272,6 +273,20 @@ abstract public class AbstractBotView {
    */
   protected void notify(int eventType, Widget widget) {
     notify(eventType, createEvent(), widget);
+  }
+
+  /**
+   * Set the given check box to be either selected or deselected.
+   * 
+   * @param c the check box
+   * @param b <code>true</code> to select the check box
+   */
+  protected void setSelected(SWTBotCheckBox c, boolean b) {
+    if (b) {
+      c.select();
+    } else {
+      c.deselect();
+    }
   }
 
   abstract protected String viewName();

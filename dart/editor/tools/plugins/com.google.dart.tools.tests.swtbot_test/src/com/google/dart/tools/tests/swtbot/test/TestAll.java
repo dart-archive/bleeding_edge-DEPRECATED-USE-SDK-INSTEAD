@@ -34,6 +34,7 @@ import org.junit.runners.Suite;
     TestDartDocDoubleClick.class, //
     TestEmbeddedScripting.class, //
     TestInspector.class, //
+    TestManageLaunches.class, //
 //
 })
 public final class TestAll {
