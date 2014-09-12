@@ -37,7 +37,7 @@ main() {
     expect(app.modelId, 'model', reason: 'modelId is set via attribute');
 
     // Validate the stylesheet was loaded
-    if (js.context.hasProperty('ShadowDOMPolyfill')) {
+    if (js.context['ShadowDOMPolyfill'] != null) {
       final style = document.head.querySelector('style[shim-shadowdom-css]');
       expect(style.text, contains('\ntd-todos #todoapp {'));
     } else {
