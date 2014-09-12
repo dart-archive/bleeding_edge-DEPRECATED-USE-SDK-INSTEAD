@@ -5,9 +5,6 @@
 [ $compiler == dart2js && $runtime == drt ]	
 swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 
-[ $runtime == ie9 ]
-swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
-
 [ $runtime == safari ]	
 swarm/test/swarm_test: Pass, Fail # Issue 14523
 
@@ -33,9 +30,6 @@ swarm/test/swarm_test: Fail # Issue 5633
 
 [ $compiler == dart2js && $runtime == drt && $system == windows ]	
 swarm/test/swarm_test: Fail # Issue 4517
-
-[ $compiler == dart2js && $runtime == ie9 ]	
-swarm/test/swarm_test: Timeout, Fail # Issue 5633
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]	
 swarm/test/swarm_test: StaticWarning	
