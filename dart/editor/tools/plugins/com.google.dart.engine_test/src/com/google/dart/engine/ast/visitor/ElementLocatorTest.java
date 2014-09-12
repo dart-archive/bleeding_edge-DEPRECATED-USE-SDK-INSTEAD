@@ -212,13 +212,15 @@ public class ElementLocatorTest extends ResolverTestCase {
     InstanceCreationExpression creation = instanceCreationExpression(
         Keyword.NEW,
         typeName(prefixedIdentifier));
-    // set ConstructorElement
+    // set ClassElement
     ClassElement classElement = classElement("A");
+    identifier.setStaticElement(classElement);
+    // set ConstructorElement
     ConstructorElement constructorElement = constructorElement(classElement, null);
     creation.getConstructorName().setStaticElement(constructorElement);
     // verify that "A" is resolved to ConstructorElement
     Element element = ElementLocator.locate(identifier);
-    assertSame(constructorElement, element);
+    assertSame(classElement, element);
   }
 
   public void test_locate_InstanceCreationExpression_type_simpleIdentifier() throws Exception {
@@ -227,13 +229,15 @@ public class ElementLocatorTest extends ResolverTestCase {
     InstanceCreationExpression creation = instanceCreationExpression(
         Keyword.NEW,
         typeName(identifier));
-    // set ConstructorElement
+    // set ClassElement
     ClassElement classElement = classElement("A");
+    identifier.setStaticElement(classElement);
+    // set ConstructorElement
     ConstructorElement constructorElement = constructorElement(classElement, null);
     creation.getConstructorName().setStaticElement(constructorElement);
     // verify that "A" is resolved to ConstructorElement
     Element element = ElementLocator.locate(identifier);
-    assertSame(constructorElement, element);
+    assertSame(classElement, element);
   }
 
   public void test_locate_LibraryDirective() throws Exception {

@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
@@ -36,7 +35,6 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
@@ -99,25 +97,6 @@ public class ElementLocator {
         Annotation annotation = (Annotation) parent;
         if (annotation.getName() == node && annotation.getConstructorName() == null) {
           return annotation.getElement();
-        }
-      }
-      // Type name in InstanceCreationExpression
-      {
-        AstNode typeNameCandidate = parent;
-        // new prefix.node[.constructorName]()
-        if (typeNameCandidate instanceof PrefixedIdentifier) {
-          PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) typeNameCandidate;
-          if (prefixedIdentifier.getIdentifier() == node) {
-            typeNameCandidate = prefixedIdentifier.getParent();
-          }
-        }
-        // new typeName[.constructorName]()
-        if (typeNameCandidate instanceof TypeName) {
-          TypeName typeName = (TypeName) typeNameCandidate;
-          if (typeName.getParent() instanceof ConstructorName) {
-            ConstructorName constructorName = (ConstructorName) typeName.getParent();
-            return constructorName.getStaticElement();
-          }
         }
       }
       // Extra work to map Constructor Declarations to their associated Constructor Elements
