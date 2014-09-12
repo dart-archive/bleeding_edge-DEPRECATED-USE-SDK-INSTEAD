@@ -12,7 +12,7 @@
  * the License.
  *
  * This file has been automatically generated.  Please do not edit it manually.
- * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
+ * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package com.google.dart.server.generated.types;
 
