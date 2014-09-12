@@ -54,6 +54,11 @@ public class RequestErrorCode {
   public static final String SERVER_ALREADY_STARTED = "SERVER_ALREADY_STARTED";
 
   /**
+   * An internal error occurred in the analysis server. Also see the server.error notification.
+   */
+  public static final String SERVER_ERROR = "SERVER_ERROR";
+
+  /**
    * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
    *
    * This is a legacy error; it will be removed before the API reaches version 1.0.
