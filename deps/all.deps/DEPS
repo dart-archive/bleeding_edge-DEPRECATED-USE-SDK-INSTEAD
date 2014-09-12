@@ -47,7 +47,7 @@ vars = {
   "petitparser_rev" : "@37878",
   "snakeyaml_rev" : "@19997",
   "websocket_rev" : "@35854",
-  "WebCore_rev" : "@34173",
+  "WebCore_rev" : "@40184",
   "weberknecht_rev" : "@33599",
   "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
