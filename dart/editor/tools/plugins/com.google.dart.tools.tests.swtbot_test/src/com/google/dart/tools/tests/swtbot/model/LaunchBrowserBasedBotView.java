@@ -45,6 +45,15 @@ public abstract class LaunchBrowserBasedBotView extends AbstractBotView {
   }
 
   /**
+   * Get the path to the html file.
+   * 
+   * @return the html file path
+   */
+  public String htmlFile() {
+    return htmlTextField().getText();
+  }
+
+  /**
    * Select the HTML button and set the path to the HTML file.
    * 
    * @param path the path to the HTML file
@@ -53,6 +62,15 @@ public abstract class LaunchBrowserBasedBotView extends AbstractBotView {
     deselectDefaultSelection(1);
     htmlRadioButton().click();
     htmlTextField().setText(path);
+  }
+
+  /**
+   * Return true if HTML is selected.
+   * 
+   * @return true if HTML is selected
+   */
+  public boolean isHtml() {
+    return htmlRadioButton().isSelected();
   }
 
   /**

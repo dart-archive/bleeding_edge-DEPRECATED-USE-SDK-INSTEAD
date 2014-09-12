@@ -35,6 +35,27 @@ public class LaunchDartBotView extends AbstractBotView {
   }
 
   /**
+   * Return true if the checked mode check box is selected.
+   */
+  public boolean isCheckedMode() {
+    return shellBot.checkBox("Run in checked mode").isChecked();
+  }
+
+  /**
+   * Return true if the checked mode check box is selected.
+   */
+  public boolean isPauseIsolateOnExit() {
+    return shellBot.checkBox("Pause isolate on exit").isChecked();
+  }
+
+  /**
+   * Return true if the checked mode check box is selected.
+   */
+  public boolean isPauseIsolateOnStart() {
+    return shellBot.checkBox("Pause isolate on start").isChecked();
+  }
+
+  /**
    * Set the pause on exit check box to the given boolean value.
    * 
    * @param b <code>true</code> if the check box should be selected
@@ -53,12 +74,26 @@ public class LaunchDartBotView extends AbstractBotView {
   }
 
   /**
+   * Get the path to the Dart script.
+   */
+  public String script() {
+    return shellBot.textInGroup("Application", 0).getText();
+  }
+
+  /**
    * Set the Dart script to the given path.
    * 
    * @param path the path to the Dart script
    */
   public void script(String path) {
     shellBot.textInGroup("Application", 0).setText(path);
+  }
+
+  /**
+   * Get the path to the working directory.
+   */
+  public String workingDirectory() {
+    return shellBot.textInGroup("Application", 1).getText();
   }
 
   /**

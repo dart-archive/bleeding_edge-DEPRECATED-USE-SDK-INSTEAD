@@ -35,6 +35,20 @@ public class LaunchChromeBotView extends AbstractBotView {
   }
 
   /**
+   * Return true if the checked mode check box is selected.
+   */
+  public boolean isCheckedMode() {
+    return shellBot.checkBox("Run in checked mode").isChecked();
+  }
+
+  /**
+   * Get the path to the launch target.
+   */
+  public String target() {
+    return shellBot.textInGroup("Launch target").getText();
+  }
+
+  /**
    * Set the path to the manifest.json to the given argument.
    * 
    * @param path the path to manifest.json

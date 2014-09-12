@@ -35,6 +35,7 @@ import org.junit.runners.Suite;
     TestEmbeddedScripting.class, //
     TestInspector.class, //
     TestManageLaunches.class, //
+    TestRemoteConnection.class, //
 //
 })
 public final class TestAll {

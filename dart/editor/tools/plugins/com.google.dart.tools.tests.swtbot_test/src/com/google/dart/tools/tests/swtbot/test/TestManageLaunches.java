@@ -29,6 +29,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -77,6 +79,7 @@ public class TestManageLaunches extends EditorTestHarness {
     launchBrowser.url("file://sunflower/web/sunflower.html", "sunflower/web");
     launchBrowser.htmlFile("sunflower/web/sunflower.html");
     launches.apply();
+    int index = launches.launchSelection();
 
     LaunchMobileBotView launchMobile = launches.createMobileLaunch();
     launchMobile.url("file://sunflower/web/sunflower.html", "sunflower/web");
@@ -84,6 +87,14 @@ public class TestManageLaunches extends EditorTestHarness {
     launchMobile.useUSB();
     launchMobile.useWifi();
     // Changes cannot be saved because there is no debug connection.
+
+    launches.close();
+    editor.menu("Run").menu("Manage Launches").click();
+    launches = new ManageLaunchesBotView(bot);
+    launches.selectLaunch(index);
+    launchBrowser = launches.selectedBrowserLaunch();
+    assertTrue(launchBrowser.isHtml());
+    assertEquals("sunflower/web/sunflower.html", launchBrowser.htmlFile());
 
     launches.close();
     files.deleteProject("sunflower");
@@ -97,7 +108,17 @@ public class TestManageLaunches extends EditorTestHarness {
     LaunchChromeBotView launchChrome = launches.createChromeLaunch();
     launchChrome.target("sample/web/manifest.json");
     launchChrome.checkedMode(false);
+    int index = launches.launchSelection();
     launches.apply();
+    launches.close();
+
+    editor.menu("Run").menu("Manage Launches").click();
+    launches = new ManageLaunchesBotView(bot);
+    launches.selectLaunch(index);
+    launchChrome = launches.selectedChromeLaunch();
+    assertEquals("sample/web/manifest.json", launchChrome.target());
+    assertFalse(launchChrome.isCheckedMode());
+
     launches.close();
     deleteSample();
   }
@@ -108,12 +129,25 @@ public class TestManageLaunches extends EditorTestHarness {
     editor.menu("Run").menu("Manage Launches").click();
     ManageLaunchesBotView launches = new ManageLaunchesBotView(bot);
     LaunchDartBotView launchDart = launches.createDartLaunch();
-    launchDart.script("sample/bin/sample.dart");
+    launchDart.script("sample/bin/sample.dart"); // field is not editable
     launchDart.workingDirectory("/tmp");
     launchDart.checkedMode(false);
     launchDart.pauseIsolateOnExit(true);
     launchDart.pauseIsolateOnStart(true);
+    int index = launches.launchSelection();
     launches.apply();
+    launches.close();
+
+    editor.menu("Run").menu("Manage Launches").click();
+    launches = new ManageLaunchesBotView(bot);
+    launches.selectLaunch(index);
+    launchDart = launches.selectedDartLaunch();
+//    assertEquals("sample/bin/sample.dart", launchDart.script()); // value is not saved
+    assertEquals("/tmp", launchDart.workingDirectory());
+    assertFalse(launchDart.isCheckedMode());
+    assertTrue(launchDart.isPauseIsolateOnExit());
+    assertTrue(launchDart.isPauseIsolateOnStart());
+
     launches.close();
     deleteSample();
   }

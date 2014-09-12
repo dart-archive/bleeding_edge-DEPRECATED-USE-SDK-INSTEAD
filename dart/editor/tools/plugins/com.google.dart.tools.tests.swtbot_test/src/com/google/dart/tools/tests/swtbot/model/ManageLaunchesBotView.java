@@ -15,8 +15,11 @@ package com.google.dart.tools.tests.swtbot.model;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.results.IntResult;
 import org.eclipse.swtbot.swt.finder.waits.Conditions;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 
 public class ManageLaunchesBotView extends AbstractBotView {
@@ -80,6 +83,43 @@ public class ManageLaunchesBotView extends AbstractBotView {
     SWTBotToolbarButton button = shellBot.toolbarButtonWithTooltip("Create a new Mobile launch");
     button.click();
     return new LaunchMobileBotView(bot, shellBot);
+  }
+
+  public int launchSelection() {
+    SWTBotShell botShell = manageLaunchesShell();
+    SWTBot shellBot = botShell.bot();
+    final SWTBotTable table = shellBot.table();
+    return UIThreadRunnable.syncExec(new IntResult() {
+      @Override
+      public Integer run() {
+        return table.widget.getSelectionIndex();
+      }
+    });
+  }
+
+  public LaunchBrowserBotView selectedBrowserLaunch() {
+    SWTBotShell botShell = manageLaunchesShell();
+    SWTBot shellBot = botShell.bot();
+    return new LaunchBrowserBotView(bot, shellBot);
+  }
+
+  public LaunchChromeBotView selectedChromeLaunch() {
+    SWTBotShell botShell = manageLaunchesShell();
+    SWTBot shellBot = botShell.bot();
+    return new LaunchChromeBotView(bot, shellBot);
+  }
+
+  public LaunchDartBotView selectedDartLaunch() {
+    SWTBotShell botShell = manageLaunchesShell();
+    SWTBot shellBot = botShell.bot();
+    return new LaunchDartBotView(bot, shellBot);
+  }
+
+  public void selectLaunch(final int index) {
+    SWTBotShell botShell = manageLaunchesShell();
+    SWTBot shellBot = botShell.bot();
+    final SWTBotTable table = shellBot.table();
+    table.select(index);
   }
 
   @Override
