@@ -61,7 +61,8 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW {
     if (elements.length != 0) {
       Element element = elements[0];
       String kind = element.getKind();
-      setEnabled(ElementKind.METHOD.equals(kind) || ElementKind.FUNCTION.equals(kind));
+      setEnabled(ElementKind.METHOD.equals(kind) || ElementKind.FUNCTION.equals(kind)
+          || ElementKind.GETTER.equals(kind) || ElementKind.SETTER.equals(kind));
     }
   }
 
