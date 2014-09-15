@@ -86,6 +86,8 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
       return DartPluginImages.DESC_DART_COMP_UNIT;
     } else if (elementKind.equals(ElementKind.LIBRARY)) {
       return DartPluginImages.DESC_DART_LIB_FILE;
+    } else if (elementKind.equals(ElementKind.LABEL)) {
+      return DartPluginImages.DESC_DART_LABEL;
     } else if (elementKind.equals(ElementKind.LOCAL_VARIABLE)
         || elementKind.equals(ElementKind.PARAMETER)) {
       return DartPluginImages.DESC_DART_LOCAL_VARIABLE;
