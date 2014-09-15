@@ -185,12 +185,12 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction_OLD {
       url += libraryName;
       // class
       if (className != null) {
-        url += '/' + className;
+        url += '.' + className;
       }
       url += ".html";
       // specific element
-      if (elementName != null) {
-        url += "#" + elementName;
+      if (elementName != null && !elementName.isEmpty()) {
+        url += "#id_" + elementName;
       }
     }
 
