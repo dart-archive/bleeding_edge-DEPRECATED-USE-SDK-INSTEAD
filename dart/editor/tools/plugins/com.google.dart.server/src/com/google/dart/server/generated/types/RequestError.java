@@ -54,18 +54,17 @@ public class RequestError {
   private final String message;
 
   /**
-   * Additional data related to the error. This field is omitted if there is no additional data
-   * available.
+   * The stack trace associated with processing the request, used for debugging the server.
    */
-  private final Object data;
+  private final String stackTrace;
 
   /**
    * Constructor for {@link RequestError}.
    */
-  public RequestError(String code, String message, Object data) {
+  public RequestError(String code, String message, String stackTrace) {
     this.code = code;
     this.message = message;
-    this.data = data;
+    this.stackTrace = stackTrace;
   }
 
   @Override
@@ -75,7 +74,7 @@ public class RequestError {
       return
         ObjectUtilities.equals(other.code, code) &&
         ObjectUtilities.equals(other.message, message) &&
-        ObjectUtilities.equals(other.data, data);
+        ObjectUtilities.equals(other.stackTrace, stackTrace);
     }
     return false;
   }
@@ -83,8 +82,8 @@ public class RequestError {
   public static RequestError fromJson(JsonObject jsonObject) {
     String code = jsonObject.get("code").getAsString();
     String message = jsonObject.get("message").getAsString();
-    Object data = jsonObject.get("data") == null ? null : jsonObject.get("data").getAsJsonArray();
-    return new RequestError(code, message, data);
+    String stackTrace = jsonObject.get("stackTrace") == null ? null : jsonObject.get("stackTrace").getAsString();
+    return new RequestError(code, message, stackTrace);
   }
 
   public static List<RequestError> fromJsonArray(JsonArray jsonArray) {
@@ -107,18 +106,17 @@ public class RequestError {
   }
 
   /**
-   * Additional data related to the error. This field is omitted if there is no additional data
-   * available.
-   */
-  public Object getData() {
-    return data;
-  }
-
-  /**
    * A short description of the error.
    */
   public String getMessage() {
     return message;
+  }
+
+  /**
+   * The stack trace associated with processing the request, used for debugging the server.
+   */
+  public String getStackTrace() {
+    return stackTrace;
   }
 
   @Override
@@ -126,7 +124,7 @@ public class RequestError {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(code);
     builder.append(message);
-    builder.append(data);
+    builder.append(stackTrace);
     return builder.toHashCode();
   }
 
@@ -134,6 +132,9 @@ public class RequestError {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("code", code);
     jsonObject.addProperty("message", message);
+    if (stackTrace != null) {
+      jsonObject.addProperty("stackTrace", stackTrace);
+    }
     return jsonObject;
   }
 
@@ -145,8 +146,8 @@ public class RequestError {
     builder.append(code + ", ");
     builder.append("message=");
     builder.append(message + ", ");
-    builder.append("data=");
-    builder.append(data);
+    builder.append("stackTrace=");
+    builder.append(stackTrace);
     builder.append("]");
     return builder.toString();
   }
