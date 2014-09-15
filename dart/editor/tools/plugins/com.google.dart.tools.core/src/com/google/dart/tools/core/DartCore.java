@@ -443,21 +443,23 @@ public class DartCore extends Plugin implements DartSdkListener {
           DartCore.logError("Add the dart sdk (com.google.dart.sdk) as a JVM argument");
           System.exit(1);
         }
-        File analysisServerSnapshot = null;
         String svnRoot = System.getProperty("com.google.dart.svnRoot");
+        String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
+        String analysisServerPath = null;
         if (svnRoot == null) {
-          analysisServerSnapshot = new File(
+          File analysisServerSnapshot = new File(
               DartCore.getEclipseInstallationDirectory(),
               "dart-sdk/bin/snapshots/analysis_server.dart.snapshot");
+          analysisServerPath = analysisServerSnapshot.getAbsolutePath();
           if (!analysisServerSnapshot.exists()) {
-            DartCore.logError("Snapshot was not found in "
-                + analysisServerSnapshot.getAbsolutePath()
-                + ", add the the dart svnRoot (com.google.dart.svnRoot) as a JVM argument");
+            DartCore.logError("Analysis Server snapshot was not found in "
+                + analysisServerSnapshot.getAbsolutePath() + ", SDK is corrupt.");
             System.exit(1);
           }
+        } else {
+          analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
         }
-        String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
-        String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
+
         try {
           // prepare debug stream
           DebugPrintStream debugStream;
@@ -488,8 +490,9 @@ public class DartCore extends Plugin implements DartSdkListener {
           // create server, if "com.google.dart.svnRoot" flag was not set then use snapshot
           StdioServerSocket socket = new StdioServerSocket(
               runtimePath,
-              analysisServerSnapshot != null ? analysisServerSnapshot.getAbsolutePath()
-                  : analysisServerPath, debugStream, DartCoreDebug.ANALYSIS_SERVER_DEBUG);
+              analysisServerPath,
+              debugStream,
+              DartCoreDebug.ANALYSIS_SERVER_DEBUG);
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
           analysisServer.start(DartCoreDebug.ANALYSIS_SERVER_DEBUG ? 0 : 15000);
