@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.translation.DartName;
 
@@ -39,15 +40,9 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   private ParameterKind parameterKind;
 
   /**
-   * The offset to the beginning of the default value range for this element.
+   * The Dart code of the default value.
    */
-  private int defaultValueRangeOffset;
-
-  /**
-   * The length of the default value range for this element, or {@code -1} if this element does not
-   * have a default value.
-   */
-  private int defaultValueRangeLength = -1;
+  private String defaultValueCode;
 
   /**
    * The offset to the beginning of the visible range for this element.
@@ -102,11 +97,8 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
-  public SourceRange getDefaultValueRange() {
-    if (defaultValueRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(defaultValueRangeOffset, defaultValueRangeLength);
+  public String getDefaultValueCode() {
+    return defaultValueCode;
   }
 
   @Override
@@ -162,16 +154,10 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   /**
-   * Set the range of the default value for this parameter to the range starting at the given offset
-   * with the given length.
-   * 
-   * @param offset the offset to the beginning of the default value range for this element
-   * @param length the length of the default value range for this element, or {@code -1} if this
-   *          element does not have a default value
+   * Set Dart code of the default value.
    */
-  public void setDefaultValueRange(int offset, int length) {
-    defaultValueRangeOffset = offset;
-    defaultValueRangeLength = length;
+  public void setDefaultValueCode(String defaultValueCode) {
+    this.defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   /**
@@ -218,7 +204,7 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   protected void appendTo(StringBuilder builder) {
     String left = "";
     String right = "";
-    switch (getParameterKind()) {
+    switch (parameterKind) {
       case NAMED:
         left = "{";
         right = "}";
@@ -245,5 +231,14 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
     builder.append(getType());
     builder.append(" ");
     builder.append(getDisplayName());
+    if (defaultValueCode != null) {
+      if (parameterKind == ParameterKind.NAMED) {
+        builder.append(": ");
+      }
+      if (parameterKind == ParameterKind.POSITIONAL) {
+        builder.append(" = ");
+      }
+      builder.append(defaultValueCode);
+    }
   }
 }

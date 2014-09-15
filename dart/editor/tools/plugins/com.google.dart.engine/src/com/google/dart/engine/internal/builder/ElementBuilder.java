@@ -373,7 +373,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       initializer.setSynthetic(true);
 
       parameter.setInitializer(initializer);
-      parameter.setDefaultValueRange(defaultValue.getOffset(), defaultValue.getLength());
+      parameter.setDefaultValueCode(defaultValue.toSource());
     }
 
     // visible range

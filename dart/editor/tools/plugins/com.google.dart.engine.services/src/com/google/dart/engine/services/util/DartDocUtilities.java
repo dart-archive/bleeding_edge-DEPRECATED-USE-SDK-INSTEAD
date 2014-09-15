@@ -17,7 +17,6 @@ package com.google.dart.engine.services.util;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -34,10 +33,8 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -244,28 +241,10 @@ public final class DartDocUtilities {
         buf.append(typeName + " " + paramName);
       }
 
-      SourceRange defaultValueRange = param.getDefaultValueRange();
-      if (defaultValueRange != null) {
-
-        CompilationUnitElement cu = param.getAncestor(CompilationUnitElement.class);
-        if (cu != null) {
-
-          Source source = cu.getSource();
-          if (source != null) {
-
-            try {
-              String result = cu.getContext().getContents(source).getData().toString();
-              if (result != null) {
-                buf.append(": ");
-                buf.append(result.substring(
-                    defaultValueRange.getOffset(),
-                    defaultValueRange.getEnd()));
-              }
-            } catch (Exception e) {
-              AnalysisEngine.getInstance().getLogger().logError("Exception in gettting summary", e);
-            }
-          }
-        }
+      String defaultValueCode = param.getDefaultValueCode();
+      if (defaultValueCode != null) {
+        buf.append(": ");
+        buf.append(defaultValueCode);
       }
 
       return buf.toString();

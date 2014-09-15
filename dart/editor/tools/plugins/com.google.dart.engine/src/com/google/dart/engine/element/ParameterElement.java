@@ -14,7 +14,6 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.utilities.dart.ParameterKind;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
@@ -24,12 +23,11 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public interface ParameterElement extends LocalElement, VariableElement {
   /**
-   * Return a source range that covers the portion of the source in which the default value for this
-   * parameter is specified, or {@code null} if there is no default value.
+   * Return the Dart code of the default value, or {@code null} if no default value.
    * 
-   * @return the range of characters in which the default value of this parameter is specified
+   * @return the Dart code of the default value
    */
-  public SourceRange getDefaultValueRange();
+  public String getDefaultValueCode();
 
   /**
    * Return the kind of this parameter.

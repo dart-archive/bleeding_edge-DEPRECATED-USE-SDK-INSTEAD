@@ -110,8 +110,8 @@ public class ParameterMember extends VariableMember implements ParameterElement 
   }
 
   @Override
-  public SourceRange getDefaultValueRange() {
-    return getBaseElement().getDefaultValueRange();
+  public String getDefaultValueCode() {
+    return getBaseElement().getDefaultValueCode();
   }
 
   @Override

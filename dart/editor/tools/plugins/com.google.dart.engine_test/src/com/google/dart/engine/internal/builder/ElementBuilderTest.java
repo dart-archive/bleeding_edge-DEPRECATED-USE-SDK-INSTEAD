@@ -973,7 +973,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "p";
     DefaultFormalParameter formalParameter = namedFormalParameter(
         simpleFormalParameter(parameterName),
-        identifier("b"));
+        identifier("42"));
     useParameterInMethod(formalParameter, 100, 110);
 
     formalParameter.accept(builder);
@@ -988,6 +988,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isSynthetic());
     assertEquals(ParameterKind.NAMED, parameter.getParameterKind());
     assertEquals(rangeStartEnd(100, 110), parameter.getVisibleRange());
+    assertEquals("42", parameter.getDefaultValueCode());
 
     FunctionElement initializer = parameter.getInitializer();
     assertNotNull(initializer);

@@ -2118,19 +2118,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private Map<ParameterElement, String> getDefaultValueMap(ParameterElement[] parameters)
       throws Exception {
     Map<ParameterElement, String> defaultSourceMap = Maps.newHashMap();
-    Map<Source, String> sourceContentMap = Maps.newHashMap();
     for (ParameterElement parameter : parameters) {
-      SourceRange valueRange = parameter.getDefaultValueRange();
-      if (valueRange != null) {
-        Source source = parameter.getSource();
-        String sourceContent = sourceContentMap.get(source);
-        if (sourceContent == null) {
-          sourceContent = CorrectionUtils.getSourceContent(parameter.getContext(), source);
-          sourceContentMap.put(source, sourceContent);
-        }
-        String valueSource = sourceContent.substring(valueRange.getOffset(), valueRange.getEnd());
-        defaultSourceMap.put(parameter, valueSource);
-      }
+      defaultSourceMap.put(parameter, parameter.getDefaultValueCode());
     }
     return defaultSourceMap;
   }
