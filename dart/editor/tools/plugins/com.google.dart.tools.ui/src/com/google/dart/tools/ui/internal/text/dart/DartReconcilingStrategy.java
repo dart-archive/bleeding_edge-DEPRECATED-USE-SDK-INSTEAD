@@ -209,7 +209,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     }
     if (!applyResolvedUnit()) {
       Source source = editor.getInputSource();
-      if (ignoreManager.isAnalyzed(source.getFullName())) {
+      if (source != null && ignoreManager.isAnalyzed(source.getFullName())) {
         try {
           AnalysisContext context = editor.getInputAnalysisContext();
           if (context != null && source != null) {
