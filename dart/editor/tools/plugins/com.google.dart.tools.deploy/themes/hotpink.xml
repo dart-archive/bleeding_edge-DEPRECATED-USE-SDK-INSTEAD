@@ -31,6 +31,7 @@
     <javadocTag color="#4162bc" />
     <keyword color="#7e0854" bold="true" />
     <keywordReturn color="#800390" bold="true" />
+    <label color="#449944" />
     <lineNumber color="#999999" />
     <localVariable color="#FF00FF" />
     <localVariableDeclaration color="#008080" />

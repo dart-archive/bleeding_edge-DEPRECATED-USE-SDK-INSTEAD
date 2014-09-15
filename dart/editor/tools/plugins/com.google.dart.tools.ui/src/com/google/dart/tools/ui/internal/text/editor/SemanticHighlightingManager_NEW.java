@@ -220,6 +220,8 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       return "getterDeclaration";
     } else if (type.equals(HighlightRegionType.IMPORT_PREFIX)) {
       return "importPrefix";
+    } else if (type.equals(HighlightRegionType.LABEL)) {
+      return "label";
     } else if (type.equals(HighlightRegionType.LITERAL_BOOLEAN)) {
       return "builtin";
     } else if (type.equals(HighlightRegionType.LITERAL_DOUBLE)
