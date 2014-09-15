@@ -39,6 +39,8 @@ public class ElementKind {
 
   public static final String GETTER = "GETTER";
 
+  public static final String LABEL = "LABEL";
+
   public static final String LIBRARY = "LIBRARY";
 
   public static final String LOCAL_VARIABLE = "LOCAL_VARIABLE";

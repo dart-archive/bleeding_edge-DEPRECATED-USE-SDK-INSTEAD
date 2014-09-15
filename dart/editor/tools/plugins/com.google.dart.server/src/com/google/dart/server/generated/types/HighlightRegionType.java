@@ -59,6 +59,8 @@ public class HighlightRegionType {
 
   public static final String KEYWORD = "KEYWORD";
 
+  public static final String LABEL = "LABEL";
+
   public static final String LITERAL_BOOLEAN = "LITERAL_BOOLEAN";
 
   public static final String LITERAL_DOUBLE = "LITERAL_DOUBLE";

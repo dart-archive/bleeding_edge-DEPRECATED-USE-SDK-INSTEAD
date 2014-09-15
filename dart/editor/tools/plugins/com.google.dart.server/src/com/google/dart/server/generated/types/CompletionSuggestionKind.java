@@ -43,6 +43,8 @@ public class CompletionSuggestionKind {
 
   public static final String KEYWORD = "KEYWORD";
 
+  public static final String LABEL = "LABEL";
+
   public static final String LIBRARY_PREFIX = "LIBRARY_PREFIX";
 
   public static final String LOCAL_VARIABLE = "LOCAL_VARIABLE";
