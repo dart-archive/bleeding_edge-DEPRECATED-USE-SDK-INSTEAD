@@ -17,6 +17,7 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
@@ -59,10 +60,8 @@ public class DartNavigationRegionHyperlink_NEW implements IHyperlink {
     InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       List<Element> targets = region.getTargets();
-      // Server API has changed, Element not returned in getTargets anymore
       if (targets.size() != 0) {
-        throw new IllegalStateException("Not yet implemented: cannot open NavigationTargets.");
-//        DartUI.openInEditor(context, targets[0]);
+        DartUI.openInEditor(targets.get(0), true);
       }
       instrumentation.metric("Run", "Completed");
     } catch (Throwable e) {
@@ -70,6 +69,5 @@ public class DartNavigationRegionHyperlink_NEW implements IHyperlink {
     } finally {
       instrumentation.log();
     }
-
   }
 }
