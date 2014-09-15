@@ -78,7 +78,6 @@ import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.server.internal.AnalysisServerError;
-import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
