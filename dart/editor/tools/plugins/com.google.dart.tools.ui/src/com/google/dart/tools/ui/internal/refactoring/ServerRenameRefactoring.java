@@ -47,7 +47,10 @@ public class ServerRenameRefactoring extends ServerRefactoring {
 
   public RefactoringStatus setNewName(String newName) {
     options.setNewName(newName);
-    return setOptions(true);
+    if (!setOptions(true)) {
+      return TIMEOUT_STATUS;
+    }
+    return optionsStatus;
   }
 
   @Override

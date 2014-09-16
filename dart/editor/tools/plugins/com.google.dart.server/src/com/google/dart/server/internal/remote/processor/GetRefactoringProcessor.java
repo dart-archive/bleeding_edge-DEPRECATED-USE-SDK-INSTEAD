@@ -47,8 +47,13 @@ public class GetRefactoringProcessor extends ResultProcessor {
 
   public void process(String requestId, JsonObject resultObject) {
     // problems
-    List<RefactoringProblem> problems = RefactoringProblem.fromJsonArray(resultObject.get(
-        "problems").getAsJsonArray());
+    List<RefactoringProblem> initialProblems = getRefactoringProblems(
+        resultObject,
+        "initialProblems");
+    List<RefactoringProblem> optionsProblems = getRefactoringProblems(
+        resultObject,
+        "optionsProblems");
+    List<RefactoringProblem> finalProblems = getRefactoringProblems(resultObject, "finalProblems");
 
     // change
     SourceChange change = null;
@@ -79,6 +84,16 @@ public class GetRefactoringProcessor extends ResultProcessor {
         feedback = RenameFeedback.fromJson(feedbackObject);
       }
     }
-    consumer.computedRefactorings(problems, feedback, change, potentialEdits);
+    consumer.computedRefactorings(
+        initialProblems,
+        optionsProblems,
+        finalProblems,
+        feedback,
+        change,
+        potentialEdits);
+  }
+
+  private List<RefactoringProblem> getRefactoringProblems(JsonObject resultObject, String name) {
+    return RefactoringProblem.fromJsonArray(resultObject.get(name).getAsJsonArray());
   }
 }

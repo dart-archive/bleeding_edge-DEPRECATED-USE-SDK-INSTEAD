@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public abstract class ServerRefactoring extends Refactoring {
+  protected static final RefactoringStatus TIMEOUT_STATUS = RefactoringStatus.createFatalErrorStatus("Timeout");
+
   public static String[] toStringArray(List<String> list) {
     return list.toArray(new String[list.size()]);
   }
@@ -51,9 +53,10 @@ public abstract class ServerRefactoring extends Refactoring {
   private final int offset;
   private final int length;
 
-  private boolean timeout;
-  private RefactoringStatus ltkStatus;
-  private Change ltkChange;
+  protected RefactoringStatus initialStatus;
+  protected RefactoringStatus optionsStatus;
+  protected RefactoringStatus finalStatus;
+  private Change change;
 
   public ServerRefactoring(String kind, String name, String file, int offset, int length) {
     this.kind = kind;
@@ -65,21 +68,27 @@ public abstract class ServerRefactoring extends Refactoring {
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) {
-    return setOptions(true);
+    if (!setOptions(true)) {
+      return TIMEOUT_STATUS;
+    }
+    return finalStatus;
   }
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) {
-    return setOptions(true);
+    if (!setOptions(true)) {
+      return TIMEOUT_STATUS;
+    }
+    return initialStatus;
   }
 
   @Override
   public Change createChange(IProgressMonitor pm) {
-    setOptions(false);
+    boolean timeout = !setOptions(false);
     if (timeout) {
       throw new OperationCanceledException();
     }
-    return ltkChange;
+    return change;
   }
 
   @Override
@@ -105,7 +114,7 @@ public abstract class ServerRefactoring extends Refactoring {
    */
   protected abstract void setFeedback(RefactoringFeedback feedback);
 
-  protected RefactoringStatus setOptions(boolean validateOnly) {
+  protected boolean setOptions(boolean validateOnly) {
     final CountDownLatch latch = new CountDownLatch(1);
     RefactoringOptions options = getOptions();
     DartCore.getAnalysisServer().edit_getRefactoring(
@@ -117,19 +126,19 @@ public abstract class ServerRefactoring extends Refactoring {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
-              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
+              RefactoringFeedback feedback, SourceChange _change, List<String> potentialEdits) {
             if (feedback != null) {
               setFeedback(feedback);
             }
-            ltkStatus = toRefactoringStatus(problems);
-            ltkChange = toLTK(change);
+            initialStatus = toRefactoringStatus(initialProblems);
+            optionsStatus = toRefactoringStatus(optionsProblems);
+            finalStatus = toRefactoringStatus(finalProblems);
+            change = toLTK(_change);
             latch.countDown();
           }
         });
-    if (Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS)) {
-      return ltkStatus;
-    }
-    return RefactoringStatus.createFatalErrorStatus("Timeout");
+    return Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS);
   }
 }

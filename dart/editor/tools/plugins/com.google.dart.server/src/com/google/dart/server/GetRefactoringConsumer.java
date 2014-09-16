@@ -28,11 +28,16 @@ import java.util.List;
 public interface GetRefactoringConsumer extends Consumer {
   /**
    * The changes required to perform a refactoring.
-   * <p>
-   * TODO (jwren) can feedback be changed to Map<String, Object>?
    * 
-   * @param problems The status of the refactoring. The array will be empty if there are no known
-   *          problems
+   * @param initialProblems The initial status of the refactoring, i.e. problems related to the
+   *          context in which the refactoring is requested. The array will be empty if there are no
+   *          known problems.
+   * @param optionsProblems The options validation status, i.e. problems in the given options, such
+   *          as light-weight validation of a new name, flags compatibility, etc. The array will be
+   *          empty if there are no known problems.
+   * @param finalProblems The final status of the refactoring, i.e. problems identified in the
+   *          result of a full, potentially expensive validation and / or change creation. The array
+   *          will be empty if there are no known problems.
    * @param feedback Data used to provide feedback to the user. The structure of the data is
    *          dependent on the kind of refactoring being created. The data that is returned is
    *          documented in the section titled Refactorings, labeled as “Feedback”.
@@ -47,6 +52,7 @@ public interface GetRefactoringConsumer extends Consumer {
    *          will be omitted if the change field is omitted or if there are no potential edits for
    *          the refactoring.
    */
-  public void computedRefactorings(List<RefactoringProblem> problems, RefactoringFeedback feedback,
-      SourceChange change, List<String> potentialEdits);
+  public void computedRefactorings(List<RefactoringProblem> initialProblems,
+      List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
+      RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits);
 }

@@ -343,7 +343,10 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 //          parameter.getNewTypeName(),
 //          fRefactoring.getUnit()));
     }
-    result.merge(refactoring.setOptions(true));
+    if (!refactoring.setOptions(true)) {
+      return ServerRefactoring.TIMEOUT_STATUS;
+    }
+    result.merge(refactoring.optionsStatus);
     return result;
   }
 }

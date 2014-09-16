@@ -51,7 +51,10 @@ public class ServerExtractLocalRefactoring extends ServerRefactoring {
 
   public RefactoringStatus setName(String name) {
     options.setName(name);
-    return setOptions(true);
+    if (!setOptions(true)) {
+      return TIMEOUT_STATUS;
+    }
+    return optionsStatus;
   }
 
   @Override

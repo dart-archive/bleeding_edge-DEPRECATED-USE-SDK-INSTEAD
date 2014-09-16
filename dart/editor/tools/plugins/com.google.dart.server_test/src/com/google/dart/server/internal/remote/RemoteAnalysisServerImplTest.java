@@ -1397,7 +1397,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
@@ -1449,7 +1450,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
@@ -1507,7 +1509,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
@@ -1545,7 +1548,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
@@ -1580,7 +1584,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
           }
         });
@@ -1604,7 +1609,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_response() throws Exception {
-    final Object[] problemsArray = {null};
+    final Object[] initialProblemsArray = {null};
+    final Object[] optionsProblemsArray = {null};
+    final Object[] finalProblemsArray = {null};
     final RefactoringFeedback[] feedbackArray = {null};
     final SourceChange[] changeArray = {null};
     final Object[] potentialEditsArray = {null};
@@ -1618,9 +1625,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
-            problemsArray[0] = problems;
+            initialProblemsArray[0] = initialProblems;
+            optionsProblemsArray[0] = optionsProblems;
+            finalProblemsArray[0] = finalProblems;
             feedbackArray[0] = feedback;
             changeArray[0] = change;
             potentialEditsArray[0] = potentialEdits;
@@ -1631,10 +1641,22 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
+        "    'initialProblems': [",
         "      {",
         "        'severity': 'INFO',",
         "        'message': 'message1'",
+        "      }",
+        "    ],",
+        "    'optionsProblems': [",
+        "      {",
+        "        'severity': 'WARNING',",
+        "        'message': 'message2'",
+        "      }",
+        "    ],",
+        "    'finalProblems': [",
+        "      {",
+        "        'severity': 'FATAL',",
+        "        'message': 'message3'",
         "      }",
         "    ],",
         "    'feedback': {",
@@ -1650,11 +1672,27 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
 
     // assertions on 'problems' (List<ErrorFixes>)
-    @SuppressWarnings("unchecked")
-    List<RefactoringProblem> refactoringProblem = (List<RefactoringProblem>) problemsArray[0];
-    assertThat(refactoringProblem).hasSize(1);
-    assertEquals(refactoringProblem.get(0).getSeverity(), RefactoringProblemSeverity.INFO);
-    assertEquals(refactoringProblem.get(0).getMessage(), "message1");
+    {
+      @SuppressWarnings("unchecked")
+      List<RefactoringProblem> problem = (List<RefactoringProblem>) initialProblemsArray[0];
+      assertThat(problem).hasSize(1);
+      assertEquals(problem.get(0).getSeverity(), RefactoringProblemSeverity.INFO);
+      assertEquals(problem.get(0).getMessage(), "message1");
+    }
+    {
+      @SuppressWarnings("unchecked")
+      List<RefactoringProblem> problem = (List<RefactoringProblem>) optionsProblemsArray[0];
+      assertThat(problem).hasSize(1);
+      assertEquals(problem.get(0).getSeverity(), RefactoringProblemSeverity.WARNING);
+      assertEquals(problem.get(0).getMessage(), "message2");
+    }
+    {
+      @SuppressWarnings("unchecked")
+      List<RefactoringProblem> problem = (List<RefactoringProblem>) finalProblemsArray[0];
+      assertThat(problem).hasSize(1);
+      assertEquals(problem.get(0).getSeverity(), RefactoringProblemSeverity.FATAL);
+      assertEquals(problem.get(0).getMessage(), "message3");
+    }
 
     // assertions on 'feedback'
     RenameFeedback feedback = (RenameFeedback) feedbackArray[0];
@@ -1684,7 +1722,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
@@ -1694,12 +1733,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
-        "      {",
-        "        'severity': 'INFO',",
-        "        'message': 'message1'",
-        "      }",
-        "    ],",
+        "    'initialProblems': [],",
+        "    'optionsProblems': [],",
+        "    'finalProblems': [],",
         "    'feedback': {",
         "      'names': ['one', 'two'],",
         "      'offsets': [1, 2],",
@@ -1730,7 +1766,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
@@ -1740,12 +1777,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
-        "      {",
-        "        'severity': 'INFO',",
-        "        'message': 'message1'",
-        "      }",
-        "    ],",
+        "    'initialProblems': [],",
+        "    'optionsProblems': [],",
+        "    'finalProblems': [],",
         "    'feedback': {",
         "      'offset': 1,",
         "      'length': 2,",
@@ -1786,7 +1820,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
@@ -1796,12 +1831,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
-        "      {",
-        "        'severity': 'INFO',",
-        "        'message': 'message1'",
-        "      }",
-        "    ],",
+        "    'initialProblems': [],",
+        "    'optionsProblems': [],",
+        "    'finalProblems': [],",
         "    'feedback': {",
         "      'name': 'myVar',",
         "      'occurrences': 3",
@@ -1830,7 +1862,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
@@ -1840,12 +1873,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
-        "      {",
-        "        'severity': 'INFO',",
-        "        'message': 'message1'",
-        "      }",
-        "    ],",
+        "    'initialProblems': [],",
+        "    'optionsProblems': [],",
+        "    'finalProblems': [],",
         "    'feedback': {",
         "      'className': 'myClassName',",
         "      'methodName': 'myMethodName',",
@@ -1876,7 +1906,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         options,
         new GetRefactoringConsumer() {
           @Override
-          public void computedRefactorings(List<RefactoringProblem> problems,
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
           }
@@ -1886,12 +1917,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'problems': [",
-        "      {",
-        "        'severity': 'INFO',",
-        "        'message': 'message1'",
-        "      }",
-        "    ],",
+        "    'initialProblems': [],",
+        "    'optionsProblems': [],",
+        "    'finalProblems': [],",
         "    'feedback': {",
         "      offset: 1,",
         "      length: 2,",
