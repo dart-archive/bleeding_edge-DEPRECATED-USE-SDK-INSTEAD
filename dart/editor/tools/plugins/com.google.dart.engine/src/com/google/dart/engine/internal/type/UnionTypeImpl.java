@@ -148,49 +148,77 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
   @Override
   protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
-    // TODO(collinsn): what version of subtyping do we want?
+    // What version of subtyping do we want? See discussion below in [internalIsSubtypeOf].
     //
     // The more unsound version: any.
-    /*
     for (Type t : types) {
       if (((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     return false;
-    */
     // The less unsound version: all.
+    /*
     for (Type t : types) {
       if (!((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
         return false;
       }
     }
     return true;
+    */
   }
 
   @Override
   protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
     // Premature optimization opportunity: if [type] is also a union type, we could instead
-    // do a subset test on the underlying element tests.
+    // do a subset test on the underlying element sets.
 
-    // TODO(collinsn): what version of subtyping do we want?
+    // What version of union-type subtyping do we want? We choose the more unsound version,
+    // motivated by the following example. Suppose classes [A] and [B] are unrelated
+    // and that [C] extends [B]:
     //
+    //   A  B
+    //      |
+    //      C
+    //
+    // If [ab : {A, B}] and [ac : {A, C}] then we'd intuitively expect either
+    // both or neither of the assignments
+    //
+    //   B b1 = ab;
+    //   B b2 = ac;
+    //
+    // to be allowed; they're both allowed under the more unsound subtyping rule.
+    //
+    // However, under the less unsound subtyping rule, the assignment to [b1] is
+    // allowed, but the assignment to [b2] is not. The reason is that assignment
+    // compatible [T1 <=> T1] for interface types is defined by [T1 <: T2] or
+    // [T2 <: T1]. So, in the [b1 = ab] case, the test [B <: {A, B}] always passes,
+    // for both definitions of union-type subtyping.  On the other hand, the test
+    // [B <: {A, C}] always fails, leaving only [{A, C} <: B], which only passes
+    // for the more unsound rule.
+    //
+    // An interesting consequence: we usually think of [A <: B] meaning that
+    // knowing an expression has type [A] is more informative than knowing it has type [B].
+    // Of course, this intuition is already wrong once we have [dynamic], but it becomes
+    // more wrong when we define union-type subtyping in the more unsound way.  We now e.g.
+    // have [{A, B} <: B], where the LHS is surely less informative than the RHS!
+
     // The more unsound version: any.
-    /*
     for (Type t : types) {
       if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
         return true;
       }
     }
     return false;
-    */
     // The less unsound version: all.
+    /*
     for (Type t : types) {
       if (!((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
         return false;
       }
     }
     return true;
+    */
   }
 
   /**

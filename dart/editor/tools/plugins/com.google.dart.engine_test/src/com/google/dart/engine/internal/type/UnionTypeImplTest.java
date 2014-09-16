@@ -93,12 +93,12 @@ public class UnionTypeImplTest extends EngineTestCase {
     }
   }
 
-  // This tests the more strict (less unsound) subtype semantics for union types.
-  // It will break if we change to the less strict definition of subtyping.
+  // This tests the less strict (more unsound) subtype semantics for union types.
+  // It will break if we change to the more strict definition of subtyping.
   public void test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
-    // Unions are not subtypes when some element is not a subtype
-    assertFalse(uAB.isMoreSpecificThan(uB));
-    assertFalse(uAB.isMoreSpecificThan(typeB));
+    // Unions are subtypes when some element is a subtype
+    assertTrue(uAB.isMoreSpecificThan(uB));
+    assertTrue(uAB.isMoreSpecificThan(typeB));
   }
 
   public void test_isMoreSpecificThan_subtypeOfSomeElement() {
@@ -129,12 +129,12 @@ public class UnionTypeImplTest extends EngineTestCase {
     }
   }
 
-  // This tests the more strict (less unsound) subtype semantics for union types.
-  // It will break if we change to the less strict definition of subtyping.
+  // This tests the less strict (more unsound) subtype semantics for union types.
+  // It will break if we change to the more strict definition of subtyping.
   public void test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
-    // Unions are not subtypes when some element is not a subtype
-    assertFalse(uAB.isSubtypeOf(uB));
-    assertFalse(uAB.isSubtypeOf(typeB));
+    // Unions are subtypes when some element is a subtype
+    assertTrue(uAB.isSubtypeOf(uB));
+    assertTrue(uAB.isSubtypeOf(typeB));
   }
 
   public void test_isSubtypeOf_subtypeOfSomeElement() {
