@@ -68,7 +68,7 @@ public abstract class ServerRefactoring extends Refactoring {
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) {
-    if (!setOptions(true)) {
+    if (!setOptions(false)) {
       return TIMEOUT_STATUS;
     }
     return finalStatus;
