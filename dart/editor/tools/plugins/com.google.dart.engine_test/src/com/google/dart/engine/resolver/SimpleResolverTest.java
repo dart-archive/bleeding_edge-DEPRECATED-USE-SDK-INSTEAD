@@ -254,7 +254,6 @@ public class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.getRightHandSide();
-    assertNull(rhs.getPropagatedParameterElement());
     ParameterElement parameter = rhs.getStaticParameterElement();
     assertNotNull(parameter);
     assertEquals("x", parameter.getDisplayName());
@@ -289,7 +288,6 @@ public class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.getRightHandSide();
-    assertNull(rhs.getPropagatedParameterElement());
     ParameterElement parameter = rhs.getStaticParameterElement();
     assertNotNull(parameter);
     assertEquals("x", parameter.getDisplayName());

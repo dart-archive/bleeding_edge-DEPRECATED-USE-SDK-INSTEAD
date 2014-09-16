@@ -1017,6 +1017,59 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(typeA, variableName.getPropagatedType());
   }
 
+  public void test_issue20904BuggyTypePromotionAtIfJoin_5() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // This is not an example of the 20904 bug, but rather,
+    // an example of something that one obvious fix changes inadvertently: we
+    // want to avoid using type information from is-checks when it
+    // loses precision. I can't see how to get a bad hint this way, since
+    // it seems the propagated type is not used to generate hints when a
+    // more precise type would cause no hint. For example, for code like the
+    // following, when the propagated type of [x] is [A] -- as happens for the
+    // fix these tests aim to warn against -- there is no warning for
+    // calling a method defined on [B] but not [A] (there aren't any, but pretend),
+    // but there is for calling a method not defined on either.
+    // By not overriding the propagated type via an is-check that loses
+    // precision, we get more precise completion under an is-check. However,
+    // I can only imagine strange code would make use of this feature.
+    //
+    // Here the is-check improves precision, so we use it.
+    String code = createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var a = new A();",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (a is B) {",
+        "    return a; // marker",
+        "  }",
+        "}");
+    Type tB = findMarkedIdentifier(code, "; // B").getPropagatedType();
+    assertTypeOfMarkedExpression(code, null, tB);
+  }
+
+  public void test_issue20904BuggyTypePromotionAtIfJoin_6() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // The other half of the *_5() test.
+    //
+    // Here the is-check loses precision, so we don't use it.
+    String code = createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (b is A) {",
+        "    return b; // marker",
+        "  }",
+        "}");
+    Type tB = findMarkedIdentifier(code, "; // B").getPropagatedType();
+    assertTypeOfMarkedExpression(code, null, tB);
+  }
+
   public void test_listLiteral_different() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -1344,10 +1397,10 @@ public class TypePropagationTest extends ResolverTestCase {
       Type expectedPropagatedType) throws Exception {
     SimpleIdentifier identifier = findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
-      assertSame(expectedStaticType, identifier.getStaticType());
+      assertEquals(expectedStaticType, identifier.getStaticType());
     }
     if (expectedPropagatedType != null) {
-      assertSame(expectedPropagatedType, identifier.getPropagatedType());
+      assertEquals(expectedPropagatedType, identifier.getPropagatedType());
     }
   }
 

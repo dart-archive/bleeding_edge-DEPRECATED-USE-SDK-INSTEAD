@@ -251,7 +251,10 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    overrideExpression(node.getExpression(), node.getType().getType());
+    // Since an as-statement doesn't actually change the type, we don't
+    // let it affect the propagated type when it would result in a loss
+    // of precision.
+    overrideExpression(node.getExpression(), node.getType().getType(), false);
     return null;
   }
 
@@ -1012,32 +1015,39 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression used to access the static and propagated elements whose types
    *          might be overridden
    * @param potentialType the potential type of the elements
+   * @param allowPrecisionLoss see @{code overrideVariable} docs
    */
-  protected void overrideExpression(Expression expression, Type potentialType) {
+  protected void overrideExpression(Expression expression, Type potentialType,
+      boolean allowPrecisionLoss) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
-      overrideVariable(element, potentialType);
+      overrideVariable(element, potentialType, allowPrecisionLoss);
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
-      overrideVariable(element, potentialType);
+      overrideVariable(element, potentialType, allowPrecisionLoss);
     }
   }
 
   /**
    * If it is appropriate to do so, override the current type of the given element with the given
-   * type. Generally speaking, it is appropriate if the given type is more specific than the current
    * type.
    * 
    * @param element the element whose type might be overridden
    * @param potentialType the potential type of the element
+   * @param allowPrecisionLoss true if {@code potentialType} is allowed to be less precise than the
+   *          current best type
    */
-  protected void overrideVariable(VariableElement element, Type potentialType) {
+  protected void overrideVariable(VariableElement element, Type potentialType,
+      boolean allowPrecisionLoss) {
     if (potentialType == null || potentialType.isBottom()) {
       return;
     }
+
     Type currentType = getBestType(element);
-    if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
+    // If we aren't allowing precision loss then the third condition checks that we
+    // aren't losing precision.
+    if (currentType == null || allowPrecisionLoss || !currentType.isMoreSpecificThan(potentialType)) {
       if (element instanceof PropertyInducingElement) {
         PropertyInducingElement variable = (PropertyInducingElement) element;
         if (!variable.isConst() && !variable.isFinal()) {
@@ -1069,14 +1079,14 @@ public class ResolverVisitor extends ScopedVisitor {
           LocalVariableElement loopElement = loopVariable.getElement();
           if (loopElement != null) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            overrideVariable(loopElement, iteratorElementType);
+            overrideVariable(loopElement, iteratorElementType, true);
             recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
           }
         } else if (identifier != null && iterator != null) {
           Element identifierElement = identifier.getStaticElement();
           if (identifierElement instanceof VariableElement) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            overrideVariable((VariableElement) identifierElement, iteratorElementType);
+            overrideVariable((VariableElement) identifierElement, iteratorElementType, true);
             recordPropagatedType(identifier, iteratorElementType);
           }
         }
@@ -1454,7 +1464,10 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
-        overrideExpression(is.getExpression(), is.getType().getType());
+        // Since an is-statement doesn't actually change the type, we don't
+        // let it affect the propagated type when it would result in a loss
+        // of precision.
+        overrideExpression(is.getExpression(), is.getType().getType(), false);
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;
@@ -1492,7 +1505,10 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
-        overrideExpression(is.getExpression(), is.getType().getType());
+        // Since an is-statement doesn't actually change the type, we don't
+        // let it affect the propagated type when it would result in a loss
+        // of precision.
+        overrideExpression(is.getExpression(), is.getType().getType(), false);
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;
