@@ -102,6 +102,11 @@ public class CompletionSuggestion {
   private final String declaringType;
 
   /**
+   * Information about the element reference being suggested.
+   */
+  private final Element element;
+
+  /**
    * The return type of the getter, function or method being suggested. This field is omitted if the
    * suggested element is not a getter, function or method.
    */
@@ -146,7 +151,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -157,6 +162,7 @@ public class CompletionSuggestion {
     this.docSummary = docSummary;
     this.docComplete = docComplete;
     this.declaringType = declaringType;
+    this.element = element;
     this.returnType = returnType;
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
@@ -181,6 +187,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.docSummary, docSummary) &&
         ObjectUtilities.equals(other.docComplete, docComplete) &&
         ObjectUtilities.equals(other.declaringType, declaringType) &&
+        ObjectUtilities.equals(other.element, element) &&
         ObjectUtilities.equals(other.returnType, returnType) &&
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
         ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
@@ -203,6 +210,7 @@ public class CompletionSuggestion {
     String docSummary = jsonObject.get("docSummary") == null ? null : jsonObject.get("docSummary").getAsString();
     String docComplete = jsonObject.get("docComplete") == null ? null : jsonObject.get("docComplete").getAsString();
     String declaringType = jsonObject.get("declaringType") == null ? null : jsonObject.get("declaringType").getAsString();
+    Element element = jsonObject.get("element") == null ? null : Element.fromJson(jsonObject.get("element").getAsJsonObject());
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
     List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
     List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
@@ -210,7 +218,7 @@ public class CompletionSuggestion {
     Integer positionalParameterCount = jsonObject.get("positionalParameterCount") == null ? null : jsonObject.get("positionalParameterCount").getAsInt();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, returnType, parameterNames, parameterTypes, requiredParameterCount, positionalParameterCount, parameterName, parameterType);
+    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, element, returnType, parameterNames, parameterTypes, requiredParameterCount, positionalParameterCount, parameterName, parameterType);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -256,6 +264,13 @@ public class CompletionSuggestion {
    */
   public String getDocSummary() {
     return docSummary;
+  }
+
+  /**
+   * Information about the element reference being suggested.
+   */
+  public Element getElement() {
+    return element;
   }
 
   /**
@@ -371,6 +386,7 @@ public class CompletionSuggestion {
     builder.append(docSummary);
     builder.append(docComplete);
     builder.append(declaringType);
+    builder.append(element);
     builder.append(returnType);
     builder.append(parameterNames);
     builder.append(parameterTypes);
@@ -398,6 +414,9 @@ public class CompletionSuggestion {
     }
     if (declaringType != null) {
       jsonObject.addProperty("declaringType", declaringType);
+    }
+    if (element != null) {
+      jsonObject.add("element", element.toJson());
     }
     if (returnType != null) {
       jsonObject.addProperty("returnType", returnType);
@@ -455,6 +474,8 @@ public class CompletionSuggestion {
     builder.append(docComplete + ", ");
     builder.append("declaringType=");
     builder.append(declaringType + ", ");
+    builder.append("element=");
+    builder.append(element + ", ");
     builder.append("returnType=");
     builder.append(returnType + ", ");
     builder.append("parameterNames=");
