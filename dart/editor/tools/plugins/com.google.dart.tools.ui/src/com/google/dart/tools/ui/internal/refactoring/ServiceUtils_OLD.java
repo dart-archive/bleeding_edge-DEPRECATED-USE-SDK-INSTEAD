@@ -39,7 +39,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
-import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_OLD;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
@@ -198,7 +198,7 @@ public class ServiceUtils_OLD {
     if (context == null) {
       return null;
     }
-    return new DartStatusContext(context.getContext(), context.getSource(), context.getRange());
+    return new DartStatusContext_OLD(context.getContext(), context.getSource(), context.getRange());
   }
 
   /**

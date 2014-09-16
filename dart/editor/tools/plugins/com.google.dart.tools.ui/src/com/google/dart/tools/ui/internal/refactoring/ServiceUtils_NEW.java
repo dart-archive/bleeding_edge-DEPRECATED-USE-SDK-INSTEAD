@@ -27,6 +27,7 @@ import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_NEW;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_NEW;
@@ -254,11 +255,9 @@ public class ServiceUtils_NEW {
    * @return the Dart status context for the given {@link Location}.
    */
   private static RefactoringStatusContext toRefactoringContext(Location location) {
-    // TODO(scheglov)
-    return null;
-//    if (context == null) {
-//      return null;
-//    }
-//    return new DartStatusContext(context.getContext(), context.getSource(), context.getRange());
+    if (location == null) {
+      return null;
+    }
+    return new DartStatusContext_NEW(location);
   }
 }

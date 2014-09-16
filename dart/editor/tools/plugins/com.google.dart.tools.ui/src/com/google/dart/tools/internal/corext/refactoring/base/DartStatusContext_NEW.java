@@ -13,55 +13,49 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.base;
 
-import com.google.dart.engine.context.AnalysisContext;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
-import com.google.dart.tools.ui.internal.refactoring.WorkbenchSourceAdapter;
+import com.google.dart.server.generated.types.Location;
+import com.google.dart.tools.ui.internal.refactoring.WorkbenchSourceAdapter_NEW;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
+import java.io.File;
+
 /**
- * {@link DartStatusContext} is the wrapper of the {@link Source} and {@link SourceRange} in it
+ * {@link DartStatusContext_NEW} is the wrapper of the {@link Source} and {@link SourceRange} in it
  * where some problem was detected.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class DartStatusContext extends RefactoringStatusContext implements IAdaptable {
-  /**
-   * @return the {@link String} content of the given {@link Source}.
-   */
-  private static String getSourceContent(final AnalysisContext context, final Source source) {
-    final String result[] = {""};
-    ExecutionUtils.runIgnore(new RunnableEx() {
-      @Override
-      public void run() throws Exception {
-        result[0] = context.getContents(source).getData().toString();
-      }
-    });
-    return result[0];
-  }
+public class DartStatusContext_NEW extends RefactoringStatusContext implements IAdaptable {
+  private final String file;
+  private String content;
+  private IRegion region;
 
-  private final Source source;
-  private final String content;
-  private final SourceRange sourceRange;
-
-  public DartStatusContext(AnalysisContext context, Source source, SourceRange range) {
-    this.source = source;
-    Assert.isNotNull(source);
-    this.content = getSourceContent(context, source);
-    this.sourceRange = range;
+  public DartStatusContext_NEW(Location location) {
+    file = location.getFile();
+    Assert.isNotNull(file);
+    try {
+      this.content = Files.toString(new File(file), Charsets.UTF_8);
+    } catch (Throwable e) {
+      this.content = e.getMessage();
+    }
+    this.region = new Region(location.getOffset(), location.getLength());
   }
 
   @Override
   @SuppressWarnings("rawtypes")
   public Object getAdapter(Class adapter) {
     if (adapter == IWorkbenchAdapter.class) {
-      return new WorkbenchSourceAdapter(source);
+      return new WorkbenchSourceAdapter_NEW(file);
     }
     return null;
   }
@@ -75,7 +69,7 @@ public class DartStatusContext extends RefactoringStatusContext implements IAdap
     return null;
   }
 
-  public SourceRange getSourceRange() {
-    return sourceRange;
+  public IRegion getRegion() {
+    return region;
   }
 }

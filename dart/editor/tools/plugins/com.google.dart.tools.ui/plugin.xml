@@ -196,11 +196,20 @@
     
     <extension point="org.eclipse.ltk.ui.refactoring.statusContextViewers">
         <statusContextViewer
-            class="com.google.dart.tools.ui.internal.refactoring.DartStatusContextViewer"
+            class="com.google.dart.tools.ui.internal.refactoring.DartStatusContextViewer_NEW"
             id="com.google.dart.tools.ui.dartStatusContextViewer">
             <enablement>
                 <or>
-                    <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext"/>
+                    <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_NEW"/>
+                </or>
+            </enablement>
+        </statusContextViewer>
+        <statusContextViewer
+            class="com.google.dart.tools.ui.internal.refactoring.DartStatusContextViewer_OLD"
+            id="com.google.dart.tools.ui.dartStatusContextViewer">
+            <enablement>
+                <or>
+                    <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_OLD"/>
                 </or>
             </enablement>
         </statusContextViewer>

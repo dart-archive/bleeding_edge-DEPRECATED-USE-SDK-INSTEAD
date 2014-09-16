@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,21 +14,23 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.utilities.io.FilenameUtils;
 import com.google.dart.tools.ui.DartPluginImages;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
-/**
- * Adapter of {@link Source} to {@link IWorkbenchAdapter}.
- */
-public class WorkbenchSourceAdapter implements IWorkbenchAdapter {
-  private final Source source;
+import java.io.File;
 
-  public WorkbenchSourceAdapter(Source source) {
-    this.source = source;
+/**
+ * Adapter of {@link File} to {@link IWorkbenchAdapter}.
+ */
+public class WorkbenchSourceAdapter_NEW implements IWorkbenchAdapter {
+  private final String file;
+
+  public WorkbenchSourceAdapter_NEW(String file) {
+    this.file = file;
   }
 
   @Override
@@ -43,7 +45,7 @@ public class WorkbenchSourceAdapter implements IWorkbenchAdapter {
 
   @Override
   public String getLabel(Object o) {
-    return source.getShortName();
+    return FilenameUtils.getName(file);
   }
 
   @Override

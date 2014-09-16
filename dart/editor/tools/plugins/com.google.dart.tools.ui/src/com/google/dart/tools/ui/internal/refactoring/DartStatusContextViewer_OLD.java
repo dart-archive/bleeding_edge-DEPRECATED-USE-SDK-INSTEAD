@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartSourceViewer;
@@ -33,7 +33,7 @@ import org.eclipse.ltk.ui.refactoring.TextStatusContextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class DartStatusContextViewer extends TextStatusContextViewer {
+public class DartStatusContextViewer_OLD extends TextStatusContextViewer {
 
   private static IRegion createRegion(SourceRange range) {
     return new Region(range.getOffset(), range.getLength());
@@ -55,8 +55,8 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
 
   @Override
   public void setInput(RefactoringStatusContext context) {
-    if (context instanceof DartStatusContext) {
-      DartStatusContext sc = (DartStatusContext) context;
+    if (context instanceof DartStatusContext_OLD) {
+      DartStatusContext_OLD sc = (DartStatusContext_OLD) context;
       setInput(newDocument(sc.getContent()), createRegion(sc.getSourceRange()));
       updateTitle(sc);
     }
