@@ -49,6 +49,14 @@ public class SourceFileEdit {
   private final String file;
 
   /**
+   * The modification stamp of the file at the moment when the change was created, in milliseconds
+   * since the "Unix epoch". Will be -1 if the file did not exist and should be created. The client
+   * may use this field to make sure that the file was not changed since then, so it is safe to apply
+   * the change.
+   */
+  private final long fileStamp;
+
+  /**
    * A list of the edits used to effect the change.
    */
   private final List<SourceEdit> edits;
@@ -56,8 +64,9 @@ public class SourceFileEdit {
   /**
    * Constructor for {@link SourceFileEdit}.
    */
-  public SourceFileEdit(String file, List<SourceEdit> edits) {
+  public SourceFileEdit(String file, long fileStamp, List<SourceEdit> edits) {
     this.file = file;
+    this.fileStamp = fileStamp;
     this.edits = edits;
   }
 
@@ -67,6 +76,7 @@ public class SourceFileEdit {
       SourceFileEdit other = (SourceFileEdit) obj;
       return
         ObjectUtilities.equals(other.file, file) &&
+        other.fileStamp == fileStamp &&
         ObjectUtilities.equals(other.edits, edits);
     }
     return false;
@@ -74,8 +84,9 @@ public class SourceFileEdit {
 
   public static SourceFileEdit fromJson(JsonObject jsonObject) {
     String file = jsonObject.get("file").getAsString();
+    long fileStamp = jsonObject.get("fileStamp").getAsLong();
     List<SourceEdit> edits = SourceEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
-    return new SourceFileEdit(file, edits);
+    return new SourceFileEdit(file, fileStamp, edits);
   }
 
   public static List<SourceFileEdit> fromJsonArray(JsonArray jsonArray) {
@@ -104,10 +115,21 @@ public class SourceFileEdit {
     return file;
   }
 
+  /**
+   * The modification stamp of the file at the moment when the change was created, in milliseconds
+   * since the "Unix epoch". Will be -1 if the file did not exist and should be created. The client
+   * may use this field to make sure that the file was not changed since then, so it is safe to apply
+   * the change.
+   */
+  public long getFileStamp() {
+    return fileStamp;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(file);
+    builder.append(fileStamp);
     builder.append(edits);
     return builder.toHashCode();
   }
@@ -115,6 +137,7 @@ public class SourceFileEdit {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("file", file);
+    jsonObject.addProperty("fileStamp", fileStamp);
     JsonArray jsonArrayEdits = new JsonArray();
     for(SourceEdit elt : edits) {
       jsonArrayEdits.add(elt.toJson());
@@ -129,6 +152,8 @@ public class SourceFileEdit {
     builder.append("[");
     builder.append("file=");
     builder.append(file + ", ");
+    builder.append("fileStamp=");
+    builder.append(fileStamp + ", ");
     builder.append("edits=");
     builder.append(StringUtils.join(edits, ", "));
     builder.append("]");
