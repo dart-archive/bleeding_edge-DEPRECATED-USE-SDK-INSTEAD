@@ -156,7 +156,7 @@ public class SearchResult {
     jsonObject.addProperty("kind", kind);
     jsonObject.addProperty("isPotential", isPotential);
     JsonArray jsonArrayPath = new JsonArray();
-    for(Element elt : path) {
+    for (Element elt : path) {
       jsonArrayPath.add(elt.toJson());
     }
     jsonObject.add("path", jsonArrayPath);

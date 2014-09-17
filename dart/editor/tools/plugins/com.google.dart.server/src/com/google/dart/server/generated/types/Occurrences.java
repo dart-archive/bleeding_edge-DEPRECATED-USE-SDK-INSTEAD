@@ -141,7 +141,7 @@ public class Occurrences {
     JsonObject jsonObject = new JsonObject();
     jsonObject.add("element", element.toJson());
     JsonArray jsonArrayOffsets = new JsonArray();
-    for(int elt : offsets) {
+    for (int elt : offsets) {
       jsonArrayOffsets.add(new JsonPrimitive(elt));
     }
     jsonObject.add("offsets", jsonArrayOffsets);

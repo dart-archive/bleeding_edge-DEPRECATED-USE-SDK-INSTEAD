@@ -148,12 +148,12 @@ public class SourceChange {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("message", message);
     JsonArray jsonArrayEdits = new JsonArray();
-    for(SourceFileEdit elt : edits) {
+    for (SourceFileEdit elt : edits) {
       jsonArrayEdits.add(elt.toJson());
     }
     jsonObject.add("edits", jsonArrayEdits);
     JsonArray jsonArrayLinkedEditGroups = new JsonArray();
-    for(LinkedEditGroup elt : linkedEditGroups) {
+    for (LinkedEditGroup elt : linkedEditGroups) {
       jsonArrayLinkedEditGroups.add(elt.toJson());
     }
     jsonObject.add("linkedEditGroups", jsonArrayLinkedEditGroups);

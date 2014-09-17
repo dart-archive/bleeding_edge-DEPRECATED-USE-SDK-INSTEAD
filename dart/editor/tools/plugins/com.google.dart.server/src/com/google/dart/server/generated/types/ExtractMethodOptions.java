@@ -232,7 +232,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
     jsonObject.addProperty("createGetter", createGetter);
     jsonObject.addProperty("name", name);
     JsonArray jsonArrayParameters = new JsonArray();
-    for(RefactoringMethodParameter elt : parameters) {
+    for (RefactoringMethodParameter elt : parameters) {
       jsonArrayParameters.add(elt.toJson());
     }
     jsonObject.add("parameters", jsonArrayParameters);

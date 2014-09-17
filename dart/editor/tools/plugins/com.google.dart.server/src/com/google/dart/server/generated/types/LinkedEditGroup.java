@@ -135,13 +135,13 @@ public class LinkedEditGroup {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     JsonArray jsonArrayPositions = new JsonArray();
-    for(Position elt : positions) {
+    for (Position elt : positions) {
       jsonArrayPositions.add(elt.toJson());
     }
     jsonObject.add("positions", jsonArrayPositions);
     jsonObject.addProperty("length", length);
     JsonArray jsonArraySuggestions = new JsonArray();
-    for(LinkedEditSuggestion elt : suggestions) {
+    for (LinkedEditSuggestion elt : suggestions) {
       jsonArraySuggestions.add(elt.toJson());
     }
     jsonObject.add("suggestions", jsonArraySuggestions);

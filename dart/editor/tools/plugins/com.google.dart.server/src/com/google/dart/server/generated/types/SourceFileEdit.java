@@ -139,7 +139,7 @@ public class SourceFileEdit {
     jsonObject.addProperty("file", file);
     jsonObject.addProperty("fileStamp", fileStamp);
     JsonArray jsonArrayEdits = new JsonArray();
-    for(SourceEdit elt : edits) {
+    for (SourceEdit elt : edits) {
       jsonArrayEdits.add(elt.toJson());
     }
     jsonObject.add("edits", jsonArrayEdits);

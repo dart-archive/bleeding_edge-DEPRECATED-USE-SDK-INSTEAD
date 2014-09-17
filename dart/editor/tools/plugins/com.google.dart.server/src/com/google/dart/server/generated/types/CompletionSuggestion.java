@@ -423,14 +423,14 @@ public class CompletionSuggestion {
     }
     if (parameterNames != null) {
       JsonArray jsonArrayParameterNames = new JsonArray();
-      for(String elt : parameterNames) {
+      for (String elt : parameterNames) {
         jsonArrayParameterNames.add(new JsonPrimitive(elt));
       }
       jsonObject.add("parameterNames", jsonArrayParameterNames);
     }
     if (parameterTypes != null) {
       JsonArray jsonArrayParameterTypes = new JsonArray();
-      for(String elt : parameterTypes) {
+      for (String elt : parameterTypes) {
         jsonArrayParameterTypes.add(new JsonPrimitive(elt));
       }
       jsonObject.add("parameterTypes", jsonArrayParameterTypes);

@@ -133,17 +133,17 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     JsonArray jsonArrayNames = new JsonArray();
-    for(String elt : names) {
+    for (String elt : names) {
       jsonArrayNames.add(new JsonPrimitive(elt));
     }
     jsonObject.add("names", jsonArrayNames);
     JsonArray jsonArrayOffsets = new JsonArray();
-    for(int elt : offsets) {
+    for (int elt : offsets) {
       jsonArrayOffsets.add(new JsonPrimitive(elt));
     }
     jsonObject.add("offsets", jsonArrayOffsets);
     JsonArray jsonArrayLengths = new JsonArray();
-    for(int elt : lengths) {
+    for (int elt : lengths) {
       jsonArrayLengths.add(new JsonPrimitive(elt));
     }
     jsonObject.add("lengths", jsonArrayLengths);

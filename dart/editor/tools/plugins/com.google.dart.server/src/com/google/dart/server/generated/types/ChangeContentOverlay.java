@@ -120,7 +120,7 @@ public class ChangeContentOverlay {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("type", type);
     JsonArray jsonArrayEdits = new JsonArray();
-    for(SourceEdit elt : edits) {
+    for (SourceEdit elt : edits) {
       jsonArrayEdits.add(elt.toJson());
     }
     jsonObject.add("edits", jsonArrayEdits);

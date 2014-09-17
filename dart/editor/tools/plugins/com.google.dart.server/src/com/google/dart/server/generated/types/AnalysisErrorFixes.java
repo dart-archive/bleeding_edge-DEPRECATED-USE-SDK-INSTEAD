@@ -116,7 +116,7 @@ public class AnalysisErrorFixes {
     JsonObject jsonObject = new JsonObject();
     jsonObject.add("error", error.toJson());
     JsonArray jsonArrayFixes = new JsonArray();
-    for(SourceChange elt : fixes) {
+    for (SourceChange elt : fixes) {
       jsonArrayFixes.add(elt.toJson());
     }
     jsonObject.add("fixes", jsonArrayFixes);

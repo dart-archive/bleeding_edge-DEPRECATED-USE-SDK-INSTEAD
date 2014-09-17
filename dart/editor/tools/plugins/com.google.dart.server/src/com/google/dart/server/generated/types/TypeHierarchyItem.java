@@ -229,17 +229,17 @@ public class TypeHierarchyItem {
       jsonObject.addProperty("superclass", superclass);
     }
     JsonArray jsonArrayInterfaces = new JsonArray();
-    for(int elt : interfaces) {
+    for (int elt : interfaces) {
       jsonArrayInterfaces.add(new JsonPrimitive(elt));
     }
     jsonObject.add("interfaces", jsonArrayInterfaces);
     JsonArray jsonArrayMixins = new JsonArray();
-    for(int elt : mixins) {
+    for (int elt : mixins) {
       jsonArrayMixins.add(new JsonPrimitive(elt));
     }
     jsonObject.add("mixins", jsonArrayMixins);
     JsonArray jsonArraySubclasses = new JsonArray();
-    for(int elt : subclasses) {
+    for (int elt : subclasses) {
       jsonArraySubclasses.add(new JsonPrimitive(elt));
     }
     jsonObject.add("subclasses", jsonArraySubclasses);

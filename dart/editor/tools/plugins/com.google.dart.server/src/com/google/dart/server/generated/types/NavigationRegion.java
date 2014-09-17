@@ -139,7 +139,7 @@ public class NavigationRegion {
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("length", length);
     JsonArray jsonArrayTargets = new JsonArray();
-    for(Element elt : targets) {
+    for (Element elt : targets) {
       jsonArrayTargets.add(elt.toJson());
     }
     jsonObject.add("targets", jsonArrayTargets);

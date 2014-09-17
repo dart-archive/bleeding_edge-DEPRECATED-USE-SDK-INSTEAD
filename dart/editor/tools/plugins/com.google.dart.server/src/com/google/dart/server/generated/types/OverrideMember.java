@@ -159,7 +159,7 @@ public class OverrideMember {
     }
     if (interfaceMembers != null) {
       JsonArray jsonArrayInterfaceMembers = new JsonArray();
-      for(OverriddenMember elt : interfaceMembers) {
+      for (OverriddenMember elt : interfaceMembers) {
         jsonArrayInterfaceMembers.add(elt.toJson());
       }
       jsonObject.add("interfaceMembers", jsonArrayInterfaceMembers);
