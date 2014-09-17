@@ -157,6 +157,8 @@ public class SimpleIdentifier extends Identifier {
       return this == ((FunctionDeclaration) parent).getName();
     } else if (parent instanceof FunctionTypeAlias) {
       return this == ((FunctionTypeAlias) parent).getName();
+    } else if (parent instanceof ImportDirective) {
+      return this == ((ImportDirective) parent).getPrefix();
     } else if (parent instanceof Label) {
       return this == ((Label) parent).getLabel()
           && (parent.getParent() instanceof LabeledStatement);

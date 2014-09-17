@@ -27,6 +27,7 @@ import static com.google.dart.engine.ast.AstFactory.emptyStatement;
 import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.AstFactory.functionDeclaration;
 import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.importDirective;
 import static com.google.dart.engine.ast.AstFactory.integer;
 import static com.google.dart.engine.ast.AstFactory.label;
 import static com.google.dart.engine.ast.AstFactory.labeledStatement;
@@ -127,6 +128,11 @@ public class SimpleIdentifierTest extends ParserTestCase {
   public void test_inDeclarationContext_methodDeclaration() {
     SimpleIdentifier identifier = identifier("m");
     methodDeclaration(null, null, null, null, identifier, null, null);
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_prefix() {
+    SimpleIdentifier identifier = importDirective("uri", "pref").getPrefix();
     assertTrue(identifier.inDeclarationContext());
   }
 
