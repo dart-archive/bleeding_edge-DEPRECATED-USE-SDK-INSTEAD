@@ -17,12 +17,26 @@ import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 
+import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.results.VoidResult;
+import org.eclipse.ui.PlatformUI;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
  * Delete samples and reset anything that needs to be initialized.
  */
 public class TestInit extends EditorTestHarness {
+
+  @BeforeClass
+  public static void setup() throws Exception {
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell().forceActive();
+      }
+    });
+  }
 
   @Test
   public void testInit() throws Exception {
