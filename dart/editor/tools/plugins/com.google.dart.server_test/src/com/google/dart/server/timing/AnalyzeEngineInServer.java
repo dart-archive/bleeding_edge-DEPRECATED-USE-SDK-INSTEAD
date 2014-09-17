@@ -111,7 +111,7 @@ public class AnalyzeEngineInServer extends TimingTest {
         null,
         false);
     server = new RemoteAnalysisServerImpl(serverSocket);
-    server.start(0);
+    server.start();
   }
 
   @Override

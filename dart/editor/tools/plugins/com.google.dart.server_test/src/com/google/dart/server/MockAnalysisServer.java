@@ -164,7 +164,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void start(long millisToRestart) throws Exception {
+  public void start() throws Exception {
     throw new UnsupportedOperationException();
   }
 }

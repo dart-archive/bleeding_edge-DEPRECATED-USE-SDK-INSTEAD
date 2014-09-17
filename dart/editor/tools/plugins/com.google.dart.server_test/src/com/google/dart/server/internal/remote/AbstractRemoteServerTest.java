@@ -27,7 +27,7 @@ public abstract class AbstractRemoteServerTest extends AbstractServerTest {
   @Override
   protected AnalysisServer createServer() throws Exception {
     server = new RemoteAnalysisServerImpl(socket);
-    server.start(0);
+    server.start();
     requestSink = socket.getRequestSink();
     responseStream = socket.getResponseStream();
     return server;

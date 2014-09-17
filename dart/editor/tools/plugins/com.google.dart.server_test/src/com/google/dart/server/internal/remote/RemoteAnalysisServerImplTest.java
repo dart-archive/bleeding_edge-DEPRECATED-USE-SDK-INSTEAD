@@ -2654,16 +2654,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_server_startup() throws Exception {
-    server.start(10);
+    server.start();
     // Simulate a response
     putResponse(//
         "{",
         "  'id': '0'",
         "}");
-    assertTrue(socket.isStarted());
-    assertTrue(socket.waitForRestart(500));
-    assertTrue(socket.getRequestSink().getRequests().size() > 0);
-    assertTrue(socket.isStopped());
     assertTrue(socket.isStarted());
     server.server_shutdown();
   }

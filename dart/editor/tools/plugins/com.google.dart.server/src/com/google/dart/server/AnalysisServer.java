@@ -399,10 +399,7 @@ public interface AnalysisServer {
 
   /**
    * Start the analysis server.
-   *
-   * @param millisToRestart the number of milliseconds to wait for an unresponsive server before
-   *          restarting it, or zero if the server should not be restarted.
    */
-  public void start(long millisToRestart) throws Exception;
+  public void start() throws Exception;
 
 }

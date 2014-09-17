@@ -445,9 +445,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void start(long millisToRestart) throws Exception {
+  public void start() throws Exception {
     startServer();
-    startWatcher(millisToRestart);
+    //startWatcher(millisToRestart);
   }
 
   @VisibleForTesting
@@ -659,6 +659,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
   }
 
+  @SuppressWarnings("unused")
   private void startWatcher(final long millisToRestart) {
     if (millisToRestart <= 0 || watcher != null) {
       return;
