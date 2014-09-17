@@ -329,6 +329,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     e_out.setReturnType(r_out);
     e_out.setParameters(ps_out);
     e_out.setType(new FunctionTypeImpl(e_out));
+    // Get NPE in [toString()] w/o this.
+    e_out.setEnclosingElement(e_0.getEnclosingElement());
     return e_out;
   }
 
