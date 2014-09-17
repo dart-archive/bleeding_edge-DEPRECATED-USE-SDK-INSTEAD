@@ -111,7 +111,8 @@ public abstract class AbstractDartSelectionAction_OLD extends InstrumentedSelect
     if (selection.size() == 1) {
       Object object = selection.getFirstElement();
       if (object instanceof TypeItem) {
-        object = ((TypeItem) object).getElement();
+        TypeItem typeItem = (TypeItem) object;
+        return typeItem.getElementToOpen();
       }
       if (object instanceof com.google.dart.server.generated.types.Element) {
         return (com.google.dart.server.generated.types.Element) object;

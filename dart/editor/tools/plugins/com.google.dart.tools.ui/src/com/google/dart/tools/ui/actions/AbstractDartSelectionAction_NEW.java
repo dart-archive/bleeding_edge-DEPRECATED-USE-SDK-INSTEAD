@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * Abstract class selection-based actions.
@@ -54,6 +55,10 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
 
   protected Shell getShell() {
     return editor.getSite().getShell();
+  }
+
+  protected IWorkbenchWindow getWorkbenchWindow() {
+    return editor.getSite().getWorkbenchWindow();
   }
 
   /**

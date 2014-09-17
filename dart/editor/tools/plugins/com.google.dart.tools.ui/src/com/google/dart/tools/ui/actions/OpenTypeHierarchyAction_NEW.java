@@ -13,59 +13,35 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
+import com.google.dart.tools.ui.internal.text.functions.PositionElement;
+import com.google.dart.tools.ui.internal.util.OpenTypeHierarchyUtil;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * {@link Action} to show "Type Hierarchy" view.
  */
-public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_OLD {
+public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW {
   public OpenTypeHierarchyAction_NEW(DartEditor editor) {
     super(editor);
   }
 
-  public OpenTypeHierarchyAction_NEW(IWorkbenchSite site) {
-    super(site);
+  @Override
+  public void run() {
+    IWorkbenchWindow window = getWorkbenchWindow();
+    PositionElement element = new PositionElement(file, selectionOffset);
+    OpenTypeHierarchyUtil.open(element, window);
   }
 
   @Override
-  public void selectionChanged(DartSelection selection) {
-    boolean hasTarget = OpenAction.getNavigationTargets(selection).length != 0;
-    setEnabled(hasTarget);
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(false);
-    // TODO(scheglov) Analysis Server: implement (maybe)
-//    Element element = getSelectionElement(selection);
-//    setEnabled(element instanceof ClassElement);
-  }
-
-  @Override
-  protected void doRun(DartSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) Analysis Server: implement for new API
-//    Element[] targets = OpenAction.getNavigationTargets(selection);
-//    if (targets.length != 0) {
-//      OpenTypeHierarchyUtil.open(targets[0], getSite().getWorkbenchWindow());
-//    }
-  }
-
-  @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) Analysis Server: implement (maybe)
-//    Element element = getSelectionElement(selection);
-//    openElement(element);
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+    setEnabled(true);
   }
 
   @Override

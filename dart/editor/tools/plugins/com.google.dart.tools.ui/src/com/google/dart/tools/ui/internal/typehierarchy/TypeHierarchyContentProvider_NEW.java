@@ -66,6 +66,17 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
       return element;
     }
 
+    /**
+     * @return the {@link Element} for given selection.
+     */
+    public Element getElementToOpen() {
+      Element memberElement = type.getMemberElement();
+      if (memberElement != null) {
+        return memberElement;
+      }
+      return type.getClassElement();
+    }
+
     @Override
     public int hashCode() {
       return element.hashCode();
@@ -183,12 +194,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
    * @return the {@link Element} for given selection.
    */
   Object convertSelectedElement(Object o) {
-    TypeHierarchyItem type = ((TypeItem) o).type;
-    Element memberElement = type.getMemberElement();
-    if (memberElement != null) {
-      return memberElement;
-    }
-    return type.getClassElement();
+    return ((TypeItem) o).getElementToOpen();
   }
 
   /**

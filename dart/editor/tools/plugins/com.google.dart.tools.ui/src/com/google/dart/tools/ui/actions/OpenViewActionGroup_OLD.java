@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
@@ -23,28 +22,20 @@ import org.eclipse.ui.IWorkbenchSite;
 /**
  * Action group that with "Open..." actions
  */
-public class OpenViewActionGroup extends AbstractDartSelectionActionGroup {
+public class OpenViewActionGroup_OLD extends AbstractDartSelectionActionGroup {
   private AbstractDartSelectionAction_OLD typeHierarchyAction;
 
-  public OpenViewActionGroup(DartEditor editor) {
+  public OpenViewActionGroup_OLD(DartEditor editor) {
     super(editor);
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      typeHierarchyAction = new OpenTypeHierarchyAction_NEW(editor);
-    } else {
-      typeHierarchyAction = new OpenTypeHierarchyAction_OLD(editor);
-    }
+    typeHierarchyAction = new OpenTypeHierarchyAction_OLD(editor);
     initActions();
     addActions(typeHierarchyAction);
     addActionDartSelectionListeners();
   }
 
-  public OpenViewActionGroup(IWorkbenchSite site) {
+  public OpenViewActionGroup_OLD(IWorkbenchSite site) {
     super(site);
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      typeHierarchyAction = new OpenTypeHierarchyAction_NEW(site);
-    } else {
-      typeHierarchyAction = new OpenTypeHierarchyAction_OLD(site);
-    }
+    typeHierarchyAction = new OpenTypeHierarchyAction_OLD(site);
     initActions();
     addActions(typeHierarchyAction);
     addActionSelectionListeners();

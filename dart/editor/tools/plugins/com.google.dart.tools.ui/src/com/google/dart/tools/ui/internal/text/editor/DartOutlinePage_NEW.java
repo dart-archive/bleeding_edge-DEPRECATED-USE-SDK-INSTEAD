@@ -20,7 +20,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
-import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -415,7 +414,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     // register "viewer" as selection provide for this view
     IPageSite site = getSite();
     site.setSelectionProvider(viewer);
-    actionGroups = new CompositeActionGroup(new ActionGroup[] {new OpenViewActionGroup(site)});
+    actionGroups = new CompositeActionGroup(new ActionGroup[] {});
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();

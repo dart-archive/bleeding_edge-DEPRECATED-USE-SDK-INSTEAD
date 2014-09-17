@@ -13,12 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.typehierarchy;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
-import com.google.dart.tools.ui.actions.OpenViewActionGroup;
+import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 
 import org.eclipse.jface.action.IMenuListener;
@@ -62,8 +63,9 @@ public class TypeHierarchyViewPart extends ViewPart {
   private Object inputType;
   private IMemento fMemento;
 
-  private SashForm fTypeMethodsSplitter;
   private PageBook fPagebook;
+  private Control typeViewerControl;
+  private SashForm fTypeMethodsSplitter;
 
   private Label fNoHierarchyShownLabel;
   private ViewForm fTypeViewerViewForm;
@@ -87,31 +89,36 @@ public class TypeHierarchyViewPart extends ViewPart {
       fNoHierarchyShownLabel.setText(TypeHierarchyMessages.TypeHierarchyViewPart_empty);
     }
     // page 2 of page book (viewers)
-    {
-      fTypeMethodsSplitter = new SashForm(fPagebook, SWT.VERTICAL);
-      fTypeMethodsSplitter.setVisible(false);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      typeViewerControl = createTypeViewerControl(fPagebook);
+      fPagebook.showPage(fNoHierarchyShownLabel);
+    } else {
+      {
+        fTypeMethodsSplitter = new SashForm(fPagebook, SWT.VERTICAL);
+        fTypeMethodsSplitter.setVisible(false);
 
-      fTypeViewerViewForm = new ViewForm(fTypeMethodsSplitter, SWT.NONE);
+        fTypeViewerViewForm = new ViewForm(fTypeMethodsSplitter, SWT.NONE);
 
-      Control typeViewerControl = createTypeViewerControl(fTypeViewerViewForm);
-      fTypeViewerViewForm.setContent(typeViewerControl);
+        Control typeViewerControl = createTypeViewerControl(fTypeViewerViewForm);
+        fTypeViewerViewForm.setContent(typeViewerControl);
 
-      fMethodViewerViewForm = new ViewForm(fTypeMethodsSplitter, SWT.NONE);
-      fTypeMethodsSplitter.setWeights(new int[] {65, 35});
+        fMethodViewerViewForm = new ViewForm(fTypeMethodsSplitter, SWT.NONE);
+        fTypeMethodsSplitter.setWeights(new int[] {65, 35});
 
-      Control methodViewerPart = createMethodViewerControl(fMethodViewerViewForm);
-      fMethodViewerViewForm.setContent(methodViewerPart);
-    }
+        Control methodViewerPart = createMethodViewerControl(fMethodViewerViewForm);
+        fMethodViewerViewForm.setContent(methodViewerPart);
+      }
 
-    fPagebook.showPage(fNoHierarchyShownLabel);
+      fPagebook.showPage(fNoHierarchyShownLabel);
 
-    // fill the tool bar
-    IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
-    methodsViewer.contributeToToolBar(toolbarManager);
-    toolbarManager.update(true);
+      // fill the tool bar
+      IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
+      methodsViewer.contributeToToolBar(toolbarManager);
+      toolbarManager.update(true);
 
-    if (fMemento != null) {
-      restoreState(fMemento);
+      if (fMemento != null) {
+        restoreState(fMemento);
+      }
     }
 
     fOpenAction = new OpenAction(getSite());
@@ -130,20 +137,23 @@ public class TypeHierarchyViewPart extends ViewPart {
 
   @Override
   public void saveState(IMemento memento) {
-    // part is not created yet, keep old state
-    if (fPagebook == null) {
-      if (fMemento != null) {
-        memento.putMemento(fMemento);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+    } else {
+      // part is not created yet, keep old state
+      if (fPagebook == null) {
+        if (fMemento != null) {
+          memento.putMemento(fMemento);
+        }
+        return;
       }
-      return;
+      // save state
+      {
+        int weigths[] = fTypeMethodsSplitter.getWeights();
+        int ratio = (weigths[0] * 1000) / (weigths[0] + weigths[1]);
+        memento.putInteger(TAG_RATIO, ratio);
+      }
+      methodsViewer.saveState(memento);
     }
-    // save state
-    {
-      int weigths[] = fTypeMethodsSplitter.getWeights();
-      int ratio = (weigths[0] * 1000) / (weigths[0] + weigths[1]);
-      memento.putInteger(TAG_RATIO, ratio);
-    }
-    methodsViewer.saveState(memento);
   }
 
   @Override
@@ -158,7 +168,7 @@ public class TypeHierarchyViewPart extends ViewPart {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       // show hierarchy
       inputType = element;
-      fPagebook.showPage(fTypeMethodsSplitter);
+      fPagebook.showPage(typeViewerControl);
       typesViewer.setInput(inputType);
       typesViewer.expandToLevel(inputType, 1);
       typesViewer.setSelection(new StructuredSelection(inputType));
@@ -204,8 +214,10 @@ public class TypeHierarchyViewPart extends ViewPart {
     Tree tree = typesViewer.getTree();
 
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      typesViewer.setContentProvider(new TypeHierarchyContentProvider_NEW());
-      typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_NEW(Predicates.alwaysFalse()));
+      TypeHierarchyContentProvider_NEW contentProvider = new TypeHierarchyContentProvider_NEW();
+      typesViewer.setContentProvider(contentProvider);
+      Predicate<Object> predicate = contentProvider.getLightPredicate();
+      typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_NEW(predicate));
     } else {
       typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
       typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
@@ -214,7 +226,11 @@ public class TypeHierarchyViewPart extends ViewPart {
     IViewSite site = getViewSite();
     site.setSelectionProvider(typesViewer);
     // configure actions
-    actionGroups = new CompositeActionGroup(new ActionGroup[] {new OpenViewActionGroup(site)});
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      actionGroups = new CompositeActionGroup(new ActionGroup[] {});
+    } else {
+      actionGroups = new CompositeActionGroup(new ActionGroup[] {new OpenViewActionGroup_OLD(site)});
+    }
     // configure actions
     {
       IActionBars actionBars = site.getActionBars();
@@ -232,17 +248,20 @@ public class TypeHierarchyViewPart extends ViewPart {
     contextMenu = manager.createContextMenu(tree);
     tree.setMenu(contextMenu);
 
-    typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
-      @Override
-      public void selectionChanged(SelectionChangedEvent event) {
-        ISelection selection = event.getSelection();
-        if (selection instanceof IStructuredSelection) {
-          IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-          Object selectedElement = structuredSelection.getFirstElement();
-          methodsViewer.setInputType(selectedElement);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+    } else {
+      typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
+        @Override
+        public void selectionChanged(SelectionChangedEvent event) {
+          ISelection selection = event.getSelection();
+          if (selection instanceof IStructuredSelection) {
+            IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+            Object selectedElement = structuredSelection.getFirstElement();
+            methodsViewer.setInputType(selectedElement);
+          }
         }
-      }
-    });
+      });
+    }
     typesViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
@@ -259,13 +278,16 @@ public class TypeHierarchyViewPart extends ViewPart {
    * Restores the type hierarchy settings from a memento.
    */
   private void restoreState(IMemento memento) {
-    {
-      Integer ratio = memento.getInteger(TAG_RATIO);
-      if (ratio != null) {
-        fTypeMethodsSplitter.setWeights(new int[] {ratio.intValue(), 1000 - ratio.intValue()});
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+    } else {
+      {
+        Integer ratio = memento.getInteger(TAG_RATIO);
+        if (ratio != null) {
+          fTypeMethodsSplitter.setWeights(new int[] {ratio.intValue(), 1000 - ratio.intValue()});
+        }
       }
+      methodsViewer.restoreState(memento);
     }
-    methodsViewer.restoreState(memento);
   }
 
 }
