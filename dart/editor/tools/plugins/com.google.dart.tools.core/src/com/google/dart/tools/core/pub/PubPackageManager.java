@@ -169,7 +169,7 @@ public class PubPackageManager {
    * pub.dartlang apiv2 - returns more info for each package
    */
   private URLConnection getApiUrl2(int page) throws IOException, MalformedURLException {
-    return new URL("http://pub.dartlang.org/api/packages?page=" + page).openConnection();
+    return new URL("https://pub.dartlang.org/api/packages?page=" + page).openConnection();
   }
 
   // {"new_version_url":"http://pub.dartlang.org/api/packages/mongo_dart_query/versions/new",
