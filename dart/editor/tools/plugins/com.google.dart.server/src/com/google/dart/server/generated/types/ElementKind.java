@@ -49,6 +49,8 @@ public class ElementKind {
 
   public static final String PARAMETER = "PARAMETER";
 
+  public static final String PREFIX = "PREFIX";
+
   public static final String SETTER = "SETTER";
 
   public static final String TOP_LEVEL_VARIABLE = "TOP_LEVEL_VARIABLE";
