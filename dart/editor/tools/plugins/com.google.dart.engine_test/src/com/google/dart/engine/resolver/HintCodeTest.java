@@ -558,6 +558,26 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deprecatedAnnotationUse_deprecatedMethodCalledOnUnionType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated f() => 0;",
+        "}",
+        "class B extends A {}",
+        "main(A a, B b) {",
+        "  var x;",
+        "  if (0 < 1) {",
+        "    x = a;",
+        "  } else {",
+        "    x = b;",
+        "  }",
+        "  x.f(); // Here [x] has type [{A,B}] but we still want the deprecation warning.",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
   public void test_deprecatedAnnotationUse_export() throws Exception {
     Source source = addSource(createSource(//
     "export 'deprecated_library.dart';"));

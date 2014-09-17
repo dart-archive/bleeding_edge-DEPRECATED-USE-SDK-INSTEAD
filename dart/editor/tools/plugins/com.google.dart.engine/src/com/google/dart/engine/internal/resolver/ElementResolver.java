@@ -265,79 +265,71 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   }
 
   /**
-   * Return a method representing the merge of the given elements. The type of the merged element is
-   * the component-wise union of the types of the given elements. If not all input elements have the
-   * same shape then [null] is returned.
+   * Helper function for {@code maybeMergeExecutableElements} that does the actual merging.
    * 
-   * @param elements the {@code ExecutableElement}s to merge
-   * @return an {@code ExecutableElement} representing the merge of {@code elements}
+   * @param elementArrayToMerge non-empty array of elements to merge.
+   * @return
    */
-  // TODO (collinsn): somehow return [dynamic] here, or at least in the callers, when not all
-  // given methods have the same shape.
-  private static ExecutableElement computeMergedExecutableElement(Set<ExecutableElement> elements) {
-    ExecutableElement[] elementArrayToMerge = elements.toArray(new ExecutableElement[elements.size()]);
-    if (elementArrayToMerge.length == 0) {
-      return null;
-    } else {
-      // Flatten methods structurally. Based on
-      // [InheritanceManager.computeMergedExecutableElement] and
-      // [InheritanceManager.createSyntheticExecutableElement].
-      //
-      // However, the approach we take here is much simpler, but expected to work
-      // well in the common case. It degrades gracefully in the uncommon case,
-      // by computing the type [dynamic] for the method, preventing any
-      // hints from being generated (TODO: not done yet).
-      //
-      // The approach is: we require that each [ExecutableElement] has the
-      // same shape: the same number of required, optional positional, and optional named
-      // parameters, in the same positions, and with the named parameters in the
-      // same order. We compute a type by unioning pointwise.
-      ExecutableElement e_0 = elementArrayToMerge[0];
-      ParameterElement[] ps_0 = e_0.getParameters();
-      ParameterElementImpl[] ps_out = new ParameterElementImpl[ps_0.length];
-      for (int j = 0; j < ps_out.length; j++) {
-        ps_out[j] = new ParameterElementImpl(ps_0[j].getName(), 0);
-        ps_out[j].setSynthetic(true);
-        ps_out[j].setType(ps_0[j].getType());
-        ps_out[j].setParameterKind(ps_0[j].getParameterKind());
-      }
-      Type r_out = e_0.getReturnType();
+  private static ExecutableElement computeMergedExecutableElement(
+      ExecutableElement[] elementArrayToMerge) {
+    // Flatten methods structurally. Based on
+    // [InheritanceManager.computeMergedExecutableElement] and
+    // [InheritanceManager.createSyntheticExecutableElement].
+    //
+    // However, the approach we take here is much simpler, but expected to work
+    // well in the common case. It degrades gracefully in the uncommon case,
+    // by computing the type [dynamic] for the method, preventing any
+    // hints from being generated (TODO: not done yet).
+    //
+    // The approach is: we require that each [ExecutableElement] has the
+    // same shape: the same number of required, optional positional, and optional named
+    // parameters, in the same positions, and with the named parameters in the
+    // same order. We compute a type by unioning pointwise.
+    ExecutableElement e_0 = elementArrayToMerge[0];
+    ParameterElement[] ps_0 = e_0.getParameters();
+    ParameterElementImpl[] ps_out = new ParameterElementImpl[ps_0.length];
+    for (int j = 0; j < ps_out.length; j++) {
+      ps_out[j] = new ParameterElementImpl(ps_0[j].getName(), 0);
+      ps_out[j].setSynthetic(true);
+      ps_out[j].setType(ps_0[j].getType());
+      ps_out[j].setParameterKind(ps_0[j].getParameterKind());
+    }
+    Type r_out = e_0.getReturnType();
 
-      for (int i = 1; i < elementArrayToMerge.length; i++) {
-        ExecutableElement e_i = elementArrayToMerge[i];
-        r_out = UnionTypeImpl.union(r_out, e_i.getReturnType());
+    for (int i = 1; i < elementArrayToMerge.length; i++) {
+      ExecutableElement e_i = elementArrayToMerge[i];
+      r_out = UnionTypeImpl.union(r_out, e_i.getReturnType());
 
-        ParameterElement[] ps_i = e_i.getParameters();
-        // Each function must have the same number of params.
-        if (ps_0.length != ps_i.length) {
-          return null; // TODO (collinsn): return an element representing [dynamic] here instead.
-        } else {
-          // Each function must have the same kind of params, with the same names,
-          // in the same order.
-          for (int j = 0; j < ps_i.length; j++) {
-            if (ps_0[j].getParameterKind() != ps_i[j].getParameterKind()
-                || ps_0[j].getName() != ps_i[j].getName()) {
-              return null;
-            } else {
-              // The output parameter type is the union of the input parameter types.
-              ps_out[j].setType(UnionTypeImpl.union(ps_out[j].getType(), ps_i[j].getType()));
-            }
+      ParameterElement[] ps_i = e_i.getParameters();
+      // Each function must have the same number of params.
+      if (ps_0.length != ps_i.length) {
+        return null; // TODO (collinsn): return an element representing [dynamic] here instead.
+      } else {
+        // Each function must have the same kind of params, with the same names,
+        // in the same order.
+        for (int j = 0; j < ps_i.length; j++) {
+          if (ps_0[j].getParameterKind() != ps_i[j].getParameterKind()
+              || ps_0[j].getName() != ps_i[j].getName()) {
+            return null;
+          } else {
+            // The output parameter type is the union of the input parameter types.
+            ps_out[j].setType(UnionTypeImpl.union(ps_out[j].getType(), ps_i[j].getType()));
           }
         }
       }
-      // TODO (collinsn): this code should work for functions and methods,
-      // so we may want [FunctionElementImpl]
-      // instead here in some cases? And then there are constructors and property accessors.
-      // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
-      // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
-      // and [MultiplyInheritedPropertyAcessorElementImpl].
-      ExecutableElementImpl e_out = new MethodElementImpl(e_0.getName(), 0);
-      e_out.setSynthetic(true);
-      e_out.setReturnType(r_out);
-      e_out.setParameters(ps_out);
-      e_out.setType(new FunctionTypeImpl(e_out));
-      return e_out;
     }
+    // TODO (collinsn): this code should work for functions and methods,
+    // so we may want [FunctionElementImpl]
+    // instead here in some cases? And then there are constructors and property accessors.
+    // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
+    // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
+    // and [MultiplyInheritedPropertyAcessorElementImpl].
+    ExecutableElementImpl e_out = new MethodElementImpl(e_0.getName(), 0);
+    e_out.setSynthetic(true);
+    e_out.setReturnType(r_out);
+    e_out.setParameters(ps_out);
+    e_out.setType(new FunctionTypeImpl(e_out));
+    return e_out;
   }
 
   /**
@@ -392,6 +384,28 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * Return a method representing the merge of the given elements. The type of the merged element is
+   * the component-wise union of the types of the given elements. If not all input elements have the
+   * same shape then [null] is returned.
+   * 
+   * @param elements the {@code ExecutableElement}s to merge
+   * @return an {@code ExecutableElement} representing the merge of {@code elements}
+   */
+  // TODO (collinsn): somehow return [dynamic] here, or at least in the callers, when not all
+  // given methods have the same shape.
+  private static ExecutableElement maybeMergeExecutableElements(Set<ExecutableElement> elements) {
+    ExecutableElement[] elementArrayToMerge = elements.toArray(new ExecutableElement[elements.size()]);
+    if (elementArrayToMerge.length == 0) {
+      return null;
+    } else if (elementArrayToMerge.length == 1) {
+      // If all methods are equal, don't bother building a new one.
+      return elementArrayToMerge[0];
+    } else {
+      return computeMergedExecutableElement(elementArrayToMerge);
+    }
   }
 
   /**
@@ -2156,7 +2170,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       // TODO (collinsn): I want [computeMergedExecutableElement] to be general
       // and work with functions, methods, constructors, and property accessors. However,
       // I won't be able to assume it returns [MethodElement] here then.
-      return (MethodElement) computeMergedExecutableElement(methods);
+      return (MethodElement) maybeMergeExecutableElements(methods);
     }
 
     return null;
