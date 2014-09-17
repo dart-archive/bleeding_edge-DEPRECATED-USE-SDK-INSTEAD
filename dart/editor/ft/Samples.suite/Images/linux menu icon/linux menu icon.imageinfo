@@ -1,20 +1,19 @@
 ﻿{
-    CaptureDate = "2014-01-06 20:49:41 +0000";
-    CaptureHost = kyodai;
+    CaptureDate = "2013-12-18 17:30:40 +0000";
+    CaptureHost = "kyodai.pdx.corp.google.com:0.0";
     CaptureScreenSize =     (
         1920,
         1200
     );
     HasAlpha = 1;
     HonorAlpha = 1;
-    HotSpotX = 54;
-    HotSpotY = 31;
+    HotSpotX = 28;
+    HotSpotY = 9;
     ImageDescription = <>;
     LastKnownLocationX = 0;
     LastKnownLocationY = 0;
-    OriginalLocationX = 34;
-    OriginalLocationY = 35;
+    OriginalLocationX = 4;
+    OriginalLocationY = 2;
     Pulsing = 0;
     Scale = 1;
-    SearchAlgorithm = TextSmoothSquare;
 }

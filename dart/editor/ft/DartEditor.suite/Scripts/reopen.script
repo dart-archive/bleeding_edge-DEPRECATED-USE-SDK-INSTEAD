@@ -27,3 +27,4 @@ TypeText downArrow
 TypeText downArrow
 util.expandTreeNode (* expand web *)
 TypeText downArrow
+write(util.isLinux)

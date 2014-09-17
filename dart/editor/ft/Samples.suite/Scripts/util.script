@@ -299,7 +299,7 @@ end closePreferences
 (* Start the editor, typically only run at the beginning of a script *)
 to startDartEditor
   init()
-  set the SearchRectangle to ((0,0),(200,200))
+  set the SearchRectangle to ((0,0),(200,600))
   DoubleClick "StartDartEditor"
   xWaitFor 40,"MaximizeWindowIcon"
   Click "MaximizeWindowIcon"
@@ -334,7 +334,7 @@ to killAll
   stopProcess()
   Click (800,800)
   stopProcess()
-  end KillAll
+end KillAll
 
 to doKeyCmd key
   if isMacOSX()

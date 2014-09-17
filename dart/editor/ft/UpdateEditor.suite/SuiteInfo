@@ -1,1 +1,14 @@
-﻿{EPVersionNumber = 1408050212; Schedules = (); ScriptMetaData = {exec = {}; }; helperSuitesInfo = ({filePath = "./Samples.suite"; }); }
+﻿{
+    EPVersionNumber = 1408141550;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        exec =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}

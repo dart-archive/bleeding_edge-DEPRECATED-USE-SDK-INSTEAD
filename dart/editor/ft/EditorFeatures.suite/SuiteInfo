@@ -1,1 +1,34 @@
-﻿{EPVersionNumber = 1408050212; Schedules = (); ScriptMetaData = {Untitled = {}; "create pop" = {}; "disable analysis" = {}; "do it" = {}; exec = {}; "files menu" = {}; outline = {}; "paste multiline string" = {}; "platform nav" = {}; pubspec = {}; "tab size adjust" = {}; }; helperSuitesInfo = ({filePath = "./Samples.suite"; }); }
+﻿{
+    EPVersionNumber = 1408141550;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        Untitled =         {
+        };
+        "create pop" =         {
+        };
+        "disable analysis" =         {
+        };
+        "do it" =         {
+        };
+        exec =         {
+        };
+        "files menu" =         {
+        };
+        outline =         {
+        };
+        "paste multiline string" =         {
+        };
+        "platform nav" =         {
+        };
+        pubspec =         {
+        };
+        "tab size adjust" =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}
