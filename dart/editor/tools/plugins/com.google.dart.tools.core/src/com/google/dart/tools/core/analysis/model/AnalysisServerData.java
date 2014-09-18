@@ -76,7 +76,7 @@ public interface AnalysisServerData {
   /**
    * Specifies that the client wants to request occurrences.
    */
-  void subscribeOccurrences(String file);
+  void subscribeOccurrences(String file, AnalysisServerOccurrencesListener listener);
 
   /**
    * Specifies that the client wants to be notified about new {@link Outline}.
@@ -101,7 +101,7 @@ public interface AnalysisServerData {
   /**
    * Specifies that the client doesn't need occurrences information for the given file anymore.
    */
-  void unsubscribeOccurrences(String file);
+  void unsubscribeOccurrences(String file, AnalysisServerOccurrencesListener listener);
 
   /**
    * Specifies that the client doesn't want to be notified about {@link Outline} anymore.

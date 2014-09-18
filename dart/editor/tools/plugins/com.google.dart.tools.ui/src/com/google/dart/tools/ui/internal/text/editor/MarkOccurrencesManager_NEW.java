@@ -17,6 +17,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.Maps;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOccurrencesListener;
 import com.google.dart.tools.ui.internal.text.functions.DartWordFinder;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -38,13 +39,16 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class MarkOccurrencesManager_NEW {
+public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesListener {
   private static final String TYPE = "com.google.dart.tools.ui.occurrences";
 
   private final DartEditor editor;
   private final DartSourceViewer viewer;
   private final IEditorInput editorInput;
   private final String file;
+
+  private int selectionOffset;
+  private int selectionLength;
 
   private ISelectionChangedListener occurrencesResponder;
   private Annotation[] fOccurrenceAnnotations;
@@ -55,6 +59,7 @@ public class MarkOccurrencesManager_NEW {
     this.viewer = viewer;
     this.editorInput = editor.getEditorInput();
     this.file = editor.getInputFilePath();
+    DartCore.getAnalysisServerData().subscribeOccurrences(file, this);
     // track selection
     occurrencesResponder = new ISelectionChangedListener() {
       @Override
@@ -74,7 +79,14 @@ public class MarkOccurrencesManager_NEW {
     }
   }
 
+  @Override
+  public void computedOccurrences(String file, Occurrences[] occurrences) {
+    fMarkOccurrenceTargetRegion = null;
+    updateOccurrenceAnnotations();
+  }
+
   public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeOccurrences(file, this);
     if (occurrencesResponder != null) {
       editor.removeDartSelectionListener(occurrencesResponder);
       occurrencesResponder = null;
@@ -158,16 +170,7 @@ public class MarkOccurrencesManager_NEW {
     }
   }
 
-  /**
-   * Updates the occurrences annotations based on the current selection.
-   */
-  private void updateOccurrenceAnnotations(ITextSelection selection) {
-    if (selection == null) {
-      return;
-    }
-    int selectionOffset = selection.getOffset();
-    int selectionLength = selection.getLength();
-
+  private void updateOccurrenceAnnotations() {
     IDocument document = viewer.getDocument();
     if (document == null) {
       return;
@@ -215,5 +218,18 @@ public class MarkOccurrencesManager_NEW {
 
     // Add occurrence annotations
     addAnnotations(document, positions);
+  }
+
+  /**
+   * Updates the occurrences annotations based on the current selection.
+   */
+  private void updateOccurrenceAnnotations(ITextSelection selection) {
+    if (selection == null) {
+      return;
+    }
+    selectionOffset = selection.getOffset();
+    selectionLength = selection.getLength();
+
+    updateOccurrenceAnnotations();
   }
 }

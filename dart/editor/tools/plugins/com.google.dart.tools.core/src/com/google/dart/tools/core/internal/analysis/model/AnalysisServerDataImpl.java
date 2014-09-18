@@ -31,6 +31,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOccurrencesListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOverridesListener;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
@@ -48,6 +49,7 @@ import java.util.Set;
 public class AnalysisServerDataImpl implements AnalysisServerData {
   private boolean isAnalyzing = false;
   private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<AnalysisServerOccurrencesListener>> occurrencesSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOverridesListener>> overridesSubscriptions = Maps.newHashMap();
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
@@ -151,8 +153,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeOccurrences(String file) {
-    addAnalysisSubscription(AnalysisService.OCCURRENCES, file);
+  public void subscribeOccurrences(String file, AnalysisServerOccurrencesListener listener) {
+    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      occurrencesSubscriptions.put(file, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      addAnalysisSubscription(AnalysisService.OCCURRENCES, file);
+    }
   }
 
   @Override
@@ -198,8 +207,16 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void unsubscribeOccurrences(String file) {
-    removeAnalysisSubscription(AnalysisService.OCCURRENCES, file);
+  public void unsubscribeOccurrences(String file, AnalysisServerOccurrencesListener listener) {
+    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        removeAnalysisSubscription(AnalysisService.OCCURRENCES, file);
+      }
+    }
   }
 
   @Override
@@ -247,8 +264,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     navigationData.put(file, targets);
   }
 
-  void internalComputedOccurrences(String file, Occurrences[] occurrencesArray) {
-    occurrencesData.put(file, occurrencesArray);
+  void internalComputedOccurrences(String file, Occurrences[] occurrences) {
+    occurrencesData.put(file, occurrences);
+    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
+    if (subscriptions != null) {
+      subscriptions = ImmutableSet.copyOf(subscriptions);
+      for (AnalysisServerOccurrencesListener listener : subscriptions) {
+        listener.computedOccurrences(file, occurrences);
+      }
+    }
   }
 
   void internalComputedOutline(String file, Outline outline) {

@@ -1710,7 +1710,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.unsubscribeNavigation(file);
-        analysisServerData.unsubscribeOccurrences(file);
         analysisServerData.unsubscribeOutline(file, analysisServerOutlineListener);
       }
     }
@@ -4053,7 +4052,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.subscribeNavigation(file);
-        analysisServerData.subscribeOccurrences(file);
       }
     }
 
