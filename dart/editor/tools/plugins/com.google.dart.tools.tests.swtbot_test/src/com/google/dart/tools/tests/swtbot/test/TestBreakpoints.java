@@ -59,6 +59,10 @@ public class TestBreakpoints extends EditorTestHarness {
       // stack when a breakpoint is triggered. If the editor is occluded SWTBot is dead.
       return;
     }
+    if (!isDartiumInstalled()) {
+      // The SWTBot test script run on the bots does not build the SDK.
+      return;
+    }
     // Test dartium breakpoints set both before and after execution starts.
     TextBotEditor editor = createSunflower();
     editor.setBreakPointOnLine(31);

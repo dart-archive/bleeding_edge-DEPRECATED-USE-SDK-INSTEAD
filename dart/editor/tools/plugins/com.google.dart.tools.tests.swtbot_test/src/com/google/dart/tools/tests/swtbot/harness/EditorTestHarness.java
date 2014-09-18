@@ -13,11 +13,15 @@
  */
 package com.google.dart.tools.tests.swtbot.harness;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class EditorTestHarness {
@@ -35,5 +39,13 @@ public class EditorTestHarness {
   @BeforeClass
   public static void setUp() throws Exception {
     bot = new SWTWorkbenchBot();
+  }
+
+  public boolean isDartiumInstalled() {
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
+    if (sdkDirectory == null) {
+      return false;
+    }
+    return new DirectoryBasedDartSdk(sdkDirectory).isDartiumInstalled();
   }
 }

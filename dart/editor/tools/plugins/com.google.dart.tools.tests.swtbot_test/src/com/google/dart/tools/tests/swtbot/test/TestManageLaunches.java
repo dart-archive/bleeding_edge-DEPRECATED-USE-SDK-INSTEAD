@@ -44,7 +44,7 @@ public class TestManageLaunches extends EditorTestHarness {
     assertNotNull(bot); // initialized in superclass
     editor = new EditorBotWindow(bot);
     files = editor.filesView();
-    files.deleteExistingProject("Sunflower");
+    files.deleteExistingProject("sunflower");
     assertTrue(files.isEmpty());
   }
 
