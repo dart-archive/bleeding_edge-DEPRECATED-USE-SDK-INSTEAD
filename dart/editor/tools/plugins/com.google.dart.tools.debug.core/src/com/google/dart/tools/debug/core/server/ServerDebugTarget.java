@@ -216,6 +216,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       // If this is our first break then resume.
       if (isolate.isFirstBreak()) {
         isolate.setFirstBreak(false);
+        breakpointManager.handleIsolateCreated(isolate);
         if (!hasBreakpointAtTopFrame(frames)) {
           resumed = true;
           try {
@@ -321,8 +322,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void isolateCreated(VmIsolate isolate) {
     addThread(new ServerDebugThread(this, isolate));
-
-    breakpointManager.handleIsolateCreated(isolate);
 
     try {
       connection.enableAllSteppingSync(isolate);

@@ -23,10 +23,10 @@ import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
-import org.eclipse.debug.core.model.ILineBreakpoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -127,16 +127,26 @@ class ServerBreakpointManager implements IBreakpointListener {
   }
 
   public boolean hasBreakpointAtLine(VmLocation location) {
+    String locationUrl = location.getUrl();
+    if (locationUrl == null) {
+      return false;
+    }
+    // prepare line (requires lines table)
     VmConnection connection = getConnection();
     int locationLine = location.getLineNumber(connection);
-    for (IBreakpoint bp : createdBreakpoints.keySet()) {
-      if (bp instanceof ILineBreakpoint) {
-        ILineBreakpoint lineBreakpoint = (ILineBreakpoint) bp;
-        try {
-          if (lineBreakpoint.getLineNumber() == locationLine) {
-            return true;
+    // check every breakpoint's line + file
+    for (IBreakpoint _bp : createdBreakpoints.keySet()) {
+      if (_bp instanceof DartBreakpoint) {
+        DartBreakpoint bp = (DartBreakpoint) _bp;
+        if (bp.getLine() == locationLine) {
+          IFile bpFile = bp.getFile();
+          if (bpFile != null) {
+            URI bpUri = bpFile.getLocationURI();
+            String bpUriString = bpUri.toString();
+            if (bpUri != null && bpUriString.equals(locationUrl)) {
+              return true;
+            }
           }
-        } catch (Throwable e) {
         }
       }
     }
