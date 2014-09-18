@@ -60,5 +60,4 @@ public abstract class VMListenerAdapter implements VmListener {
   public void isolateShutdown(VmIsolate isolate) {
 
   }
-
 }

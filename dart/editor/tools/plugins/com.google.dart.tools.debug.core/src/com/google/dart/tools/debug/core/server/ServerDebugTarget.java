@@ -206,17 +206,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     if (firstBreak) {
       firstBreak = false;
 
-      // init everything
+      // Init everything.
       firstIsolateInit(isolate);
+    }
 
-      if (PausedReason.breakpoint == reason) {
-        DartBreakpoint breakpoint = getBreakpointFor(frames);
+    if (PausedReason.breakpoint == reason) {
+      //DartBreakpoint breakpoint = getBreakpointFor(frames);
 
-        // If this is our first break, and there is no user breakpoint here, and the stop is on the
-        // main() method, then resume.
-        if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
+      // If this is our first break then resume.
+      if (isolate.isFirstBreak()) {
+        isolate.setFirstBreak(false);
+        if (!hasBreakpointAtTopFrame(frames)) {
           resumed = true;
-
           try {
             getVmConnection().resume(isolate);
           } catch (IOException ioe) {
@@ -320,11 +321,29 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void isolateCreated(VmIsolate isolate) {
     addThread(new ServerDebugThread(this, isolate));
+
+    breakpointManager.handleIsolateCreated(isolate);
+
+    try {
+      connection.enableAllSteppingSync(isolate);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
+    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
+    // Turn on break-on-exceptions.
+    try {
+      connection.setPauseOnExceptionSync(isolate, getPauseType());
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
   }
 
   @Override
   public void isolateShutdown(VmIsolate isolate) {
     removeThread(findThread(isolate));
+
+    breakpointManager.handleIsolateShutdown(isolate);
   }
 
   @Override
@@ -441,20 +460,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private void firstIsolateInit(VmIsolate isolate) {
     breakpointManager.connect(isolate);
-
-    try {
-      connection.enableAllSteppingSync(isolate);
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
-    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
-    // Turn on break-on-exceptions.
-    try {
-      connection.setPauseOnExceptionSync(isolate, getPauseType());
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
   }
 
   private DartBreakpoint getBreakpointFor(VmLocation location) {
@@ -510,6 +515,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return pauseType;
+  }
+
+  private boolean hasBreakpointAtTopFrame(List<VmCallFrame> frames) {
+    VmCallFrame frame = frames.get(0);
+    VmLocation location = frame.getLocation();
+    return breakpointManager.hasBreakpointAtLine(location);
   }
 
   private void printExceptionToStdout(VmValue exception) {

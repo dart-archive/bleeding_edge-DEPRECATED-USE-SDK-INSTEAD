@@ -181,9 +181,13 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     if (launchConfig.getPauseIsolateOnExit()) {
       commandsList.add("--pause-isolates-on-exit");
     }
+
     if (launchConfig.getPauseIsolateOnStart()) {
       commandsList.add("--pause-isolates-on-start");
     }
+
+    // This lets us debug isolates.
+    commandsList.add("--break-at-isolate-spawn");
 
     String coverageTempDir = null;
     if (DartCoreDebug.ENABLE_COVERAGE) {

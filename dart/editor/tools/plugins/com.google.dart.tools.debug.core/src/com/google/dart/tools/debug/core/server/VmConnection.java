@@ -1199,38 +1199,41 @@ public class VmConnection {
   }
 
   private VmIsolate getCreateIsolate(int isolateId) {
+    return getCreateIsolate(isolateId, false);
+  }
+
+  private VmIsolate getCreateIsolate(int isolateId, boolean paused) {
     if (isolateId == -1) {
       return null;
     }
 
     if (isolateMap.get(isolateId) == null) {
-      isolateMap.put(isolateId, new VmIsolate(isolateId));
+      isolateMap.put(isolateId, new VmIsolate(isolateId, paused));
     }
 
     return isolateMap.get(isolateId);
   }
 
   private void handleBreakpointResolved(VmIsolate isolate, int breakpointId, VmLocation location) {
-    VmBreakpoint breakpoint = null;
-
+    boolean foundBreakpoint = false;
     synchronized (breakpoints) {
-      for (VmBreakpoint bp : breakpoints) {
-        if (bp.getBreakpointId() == breakpointId) {
-          breakpoint = bp;
-
-          break;
+      for (VmBreakpoint breakpoint : breakpoints) {
+        if (breakpoint.getBreakpointId() == breakpointId) {
+          foundBreakpoint = true;
+          breakpoint.updateLocation(location);
+          notifyBreakpointResolved(isolate, breakpoint);
         }
       }
     }
 
-    if (breakpoint == null) {
-      breakpoint = new VmBreakpoint(isolate, location, breakpointId);
-
+    if (!foundBreakpoint) {
+      VmBreakpoint breakpoint = new VmBreakpoint(isolate, location, breakpointId);
       breakpoints.add(breakpoint);
-    } else {
-      breakpoint.updateLocation(location);
+      notifyBreakpointResolved(isolate, breakpoint);
     }
+  }
 
+  private void notifyBreakpointResolved(VmIsolate isolate, VmBreakpoint breakpoint) {
     for (VmListener listener : listeners) {
       listener.breakpointResolved(isolate, breakpoint);
     }
@@ -1325,7 +1328,7 @@ public class VmConnection {
         String reason = params.optString("reason", null);
         int isolateId = params.optInt("id", -1);
 
-        final VmIsolate isolate = getCreateIsolate(isolateId);
+        final VmIsolate isolate = getCreateIsolate(isolateId, "created".equals(reason));
 
         if ("created".equals(reason)) {
           for (VmListener listener : listeners) {
@@ -1491,6 +1494,9 @@ public class VmConnection {
 
   private void sendDelayedDebuggerPaused(final PausedReason reason, final VmIsolate isolate,
       final VmLocation location, final VmValue exception) throws JSONException, IOException {
+    // Request lines now, while the isolate is current.
+    // Otherwise VM will never respond to the "getLineNumberTable" request.
+    getLineNumberFromLocation(location.getIsolate(), location);
     // If we're stepping, check here to see if we should continue stepping.
     if (sameSourceLine(currentLocation, location) && reason == PausedReason.breakpoint
         && isStepping) {
