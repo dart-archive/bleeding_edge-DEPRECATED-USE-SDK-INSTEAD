@@ -952,6 +952,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
     Element staticElement;
     Element propagatedElement;
+    Type staticType = null;
+    Type propagatedType = null;
     if (target == null) {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -961,7 +963,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       methodName.setStaticElement(importedLibrary.getLoadLibraryFunction());
       return null;
     } else {
-      Type staticType = getStaticType(target);
+      staticType = getStaticType(target);
+      propagatedType = getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class, then we don't call
       // resolveInvokedElement(..) which walks up the class hierarchy, instead we just look for the
@@ -972,10 +975,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         staticElement = propagatedElement = resolveElement(typeReference, methodName);
       } else {
         staticElement = resolveInvokedElementWithTarget(target, staticType, methodName);
-        propagatedElement = resolveInvokedElementWithTarget(
-            target,
-            getPropagatedType(target),
-            methodName);
+        propagatedElement = resolveInvokedElementWithTarget(target, propagatedType, methodName);
       }
     }
     staticElement = convertSetterToGetter(staticElement);
@@ -1006,6 +1006,16 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     ErrorCode errorCode = checkForInvocationError(target, true, staticElement);
     boolean generatedWithTypePropagation = false;
     if (enableHints && errorCode == null && staticElement == null) {
+      // The method lookup may have failed because there were multiple
+      // incompatible choices. In this case we don't want to generate a hint.
+      if (propagatedElement == null && propagatedType instanceof UnionType) {
+        // TODO(collinsn): an improvement here is to make the propagated type of the method call
+        // the union of the propagated types of all possible calls.
+        if (lookupMethods(target, (UnionType) propagatedType, methodName.getName()).size() > 1) {
+          return null;
+        }
+      }
+
       errorCode = checkForInvocationError(target, false, propagatedElement);
       if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
         ClassElement classElementContext = null;
@@ -2159,20 +2169,14 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         return method;
       }
       return lookUpMethodInInterfaces(interfaceType, false, methodName, new HashSet<ClassElement>());
-    }
-
-    if (type instanceof UnionType) {
-      Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
-      for (Type t : ((UnionType) type).getElements()) {
-        MethodElement m = lookUpMethod(target, t, methodName);
-        if (m != null) {
-          methods.add(m);
-        }
-      }
+    } else if (type instanceof UnionType) {
       // TODO (collinsn): I want [computeMergedExecutableElement] to be general
       // and work with functions, methods, constructors, and property accessors. However,
       // I won't be able to assume it returns [MethodElement] here then.
-      return (MethodElement) maybeMergeExecutableElements(methods);
+      return (MethodElement) maybeMergeExecutableElements(lookupMethods(
+          target,
+          (UnionType) type,
+          methodName));
     }
 
     return null;
@@ -2232,6 +2236,25 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return null;
     }
     return lookUpMethodInInterfaces(superclass, true, methodName, visitedInterfaces);
+  }
+
+  /**
+   * Look up all methods of a given name defined on a union type.
+   * 
+   * @param target
+   * @param type
+   * @param methodName
+   * @return all methods named {@code methodName} defined on the union type {@code type}.
+   */
+  private Set<ExecutableElement> lookupMethods(Expression target, UnionType type, String methodName) {
+    Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+    for (Type t : type.getElements()) {
+      MethodElement m = lookUpMethod(target, t, methodName);
+      if (m != null) {
+        methods.add(m);
+      }
+    }
+    return methods;
   }
 
   /**

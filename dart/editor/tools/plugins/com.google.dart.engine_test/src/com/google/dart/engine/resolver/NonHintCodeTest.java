@@ -569,6 +569,46 @@ public class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors(source);
   }
 
+  public void test_undefinedMethod_unionType_all() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m(int x) => 0;",
+        "}",
+        "class B {",
+        "  String m() => '0';",
+        "}",
+        "f(A a, B b) {",
+        "  var ab;",
+        "  if (0 < 1) {",
+        "    ab = a;",
+        "  } else {",
+        "    ab = b;",
+        "  }",
+        "  ab.m();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedMethod_unionType_some() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m(int x) => 0;",
+        "}",
+        "class B {}",
+        "f(A a, B b) {",
+        "  var ab;",
+        "  if (0 < 1) {",
+        "    ab = a;",
+        "  } else {",
+        "    ab = b;",
+        "  }",
+        "  ab.m(0);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   public void test_undefinedOperator_binaryExpression_inSubtype() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

@@ -511,6 +511,28 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_notEnoughRequiredArguments_mergedUnionTypeMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m(int x) => 0;",
+        "}",
+        "class B {",
+        "  String m(String x) => '0';",
+        "}",
+        "f(A a, B b) {",
+        "  var ab;",
+        "  if (0 < 1) {",
+        "    ab = a;",
+        "  } else {",
+        "    ab = b;",
+        "  }",
+        "  ab.m();",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_expressionFunctionBody_function() throws Exception {
     Source source = addSource(createSource(//
     "int f() => '0';"));

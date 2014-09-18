@@ -130,6 +130,28 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_unionTypeMethodMerge() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m(int x) => 0;",
+        "}",
+        "class B {",
+        "  String m(String x) => '0';",
+        "}",
+        "f(A a, B b) {",
+        "  var ab;",
+        "  if (0 < 1) {",
+        "    ab = a;",
+        "  } else {",
+        "    ab = b;",
+        "  }",
+        "  ab.m(0.5);",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -1026,6 +1048,27 @@ public class HintCodeTest extends ResolverTestCase {
         "    a2 = new A();",
         "    a += a2;",
         "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_METHOD);
+  }
+
+  public void test_undefinedMethod_unionType_noSuchMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m(int x) => 0;",
+        "}",
+        "class B {",
+        "  String m() => '0';",
+        "}",
+        "f(A a, B b) {",
+        "  var ab;",
+        "  if (0 < 1) {",
+        "    ab = a;",
+        "  } else {",
+        "    ab = b;",
+        "  }",
+        "  ab.n();",
         "}"));
     resolve(source);
     assertErrors(source, HintCode.UNDEFINED_METHOD);
