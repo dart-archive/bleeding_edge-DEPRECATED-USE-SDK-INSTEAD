@@ -19,7 +19,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.internal.resolver.TestTypeProvider;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 
@@ -313,6 +313,10 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertValue(5L, "2 + 3");
   }
 
+  public void test_plus_string_string() throws Exception {
+    assertValue("ab", "'a' + 'b'");
+  }
+
   public void test_remainder_double_double() throws Exception {
     assertValue(3.2 % 2.3, "3.2 % 2.3");
   }
@@ -323,6 +327,14 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
 
   public void test_rightShift() throws Exception {
     assertValue(16L, "64 >> 2");
+  }
+
+  public void test_stringLength_complex() throws Exception {
+    assertValue(6L, "('qwe' + 'rty').length");
+  }
+
+  public void test_stringLength_simple() throws Exception {
+    assertValue(6L, "'Dvorak'.length");
   }
 
   public void test_times_double_double() throws Exception {
@@ -382,7 +394,9 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertInstanceOf(TopLevelVariableDeclaration.class, declaration);
     NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) declaration).getVariables().getVariables();
     assertSizeOfList(1, variables);
-    ConstantEvaluator evaluator = new ConstantEvaluator(source, new TestTypeProvider());
+    ConstantEvaluator evaluator = new ConstantEvaluator(
+        source,
+        ((AnalysisContextImpl) getAnalysisContext()).getTypeProvider());
     return evaluator.evaluate(variables.get(0).getInitializer());
   }
 }

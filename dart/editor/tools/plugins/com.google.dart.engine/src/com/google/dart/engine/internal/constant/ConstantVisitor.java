@@ -394,7 +394,11 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // validate prefix
+    Element element = node.getStaticElement();
+    if (isStringLength(element)) {
+      EvaluationResultImpl target = node.getPrefix().accept(this);
+      return target.stringLength(typeProvider, node);
+    }
     SimpleIdentifier prefixNode = node.getPrefix();
     Element prefixElement = prefixNode.getStaticElement();
     if (!(prefixElement instanceof PrefixElement)) {
@@ -428,7 +432,12 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitPropertyAccess(PropertyAccess node) {
-    return getConstantValue(node, node.getPropertyName().getStaticElement());
+    Element element = node.getPropertyName().getStaticElement();
+    if (isStringLength(element)) {
+      EvaluationResultImpl target = node.getRealTarget().accept(this);
+      return target.stringLength(typeProvider, node);
+    }
+    return getConstantValue(node, element);
   }
 
   @Override
@@ -563,6 +572,24 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
+  }
+
+  /**
+   * Return {@code true} if the given element represents the 'length' getter in class 'String'.
+   * 
+   * @param element the element being tested.
+   * @return
+   */
+  private boolean isStringLength(Element element) {
+    if (!(element instanceof PropertyAccessorElement)) {
+      return false;
+    }
+    PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+    if (!accessor.isGetter() || !accessor.getName().equals("length")) {
+      return false;
+    }
+    Element parent = accessor.getEnclosingElement();
+    return parent.equals(typeProvider.getStringType().getElement());
   }
 
   /**

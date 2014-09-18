@@ -100,6 +100,15 @@ public abstract class EvaluationResultImpl {
   public abstract EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand);
 
+  /**
+   * Return the result of invoking the 'length' getter on this result.
+   * 
+   * @param typeProvider the type provider used to access known types
+   * @param node the node against which errors should be reported
+   * @return the result of invoking the 'length' getter on this result
+   */
+  public abstract EvaluationResultImpl stringLength(TypeProvider typeProvider, Expression node);
+
   public abstract EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand);
 

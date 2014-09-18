@@ -29,7 +29,10 @@ public abstract class InstanceState {
    * @return the result of invoking the '+' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  public NumState add(InstanceState rightOperand) throws EvaluationException {
+  public InstanceState add(InstanceState rightOperand) throws EvaluationException {
+    if (this instanceof StringState || rightOperand instanceof StringState) {
+      return concatenate(rightOperand);
+    }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
@@ -93,6 +96,7 @@ public abstract class InstanceState {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   public StringState concatenate(InstanceState rightOperand) throws EvaluationException {
+    assertString(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
@@ -360,6 +364,17 @@ public abstract class InstanceState {
   public IntState shiftRight(InstanceState rightOperand) throws EvaluationException {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the 'length' getter on this object.
+   * 
+   * @return the result of invoking the 'length' getter on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  public IntState stringLength() throws EvaluationException {
+    assertString(this);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 

@@ -273,6 +273,15 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
+  public EvaluationResultImpl stringLength(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.stringLength(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
+    }
+  }
+
+  @Override
   public EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
     return rightOperand.timesValid(typeProvider, node, this);

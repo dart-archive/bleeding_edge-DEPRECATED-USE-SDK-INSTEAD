@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.object;
 
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
+import java.math.BigInteger;
+
 /**
  * Instances of the class {@code StringState} represent the state of an object representing a
  * string.
@@ -113,6 +115,14 @@ public class StringState extends InstanceState {
   @Override
   public boolean isUnknown() {
     return value == null;
+  }
+
+  @Override
+  public IntState stringLength() throws EvaluationException {
+    if (value == null) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    return new IntState(BigInteger.valueOf(value.length()));
   }
 
   @Override

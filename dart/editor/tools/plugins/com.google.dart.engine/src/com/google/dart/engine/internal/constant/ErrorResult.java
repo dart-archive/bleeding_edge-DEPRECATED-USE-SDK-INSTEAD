@@ -251,6 +251,11 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
+  public EvaluationResultImpl stringLength(TypeProvider typeProvider, Expression node) {
+    return this;
+  }
+
+  @Override
   public EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
     return rightOperand.timesError(node, this);

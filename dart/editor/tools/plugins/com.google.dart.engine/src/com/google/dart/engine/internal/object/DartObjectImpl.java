@@ -64,6 +64,8 @@ public class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.getDoubleType(), result);
     } else if (result instanceof NumState) {
       return new DartObjectImpl(typeProvider.getNumType(), result);
+    } else if (result instanceof StringState) {
+      return new DartObjectImpl(typeProvider.getStringType(), result);
     }
     // We should never get here.
     throw new IllegalStateException("add returned a " + result.getClass().getName());
@@ -533,6 +535,17 @@ public class DartObjectImpl implements DartObject {
   public DartObjectImpl shiftRight(TypeProvider typeProvider, DartObjectImpl rightOperand)
       throws EvaluationException {
     return new DartObjectImpl(typeProvider.getIntType(), state.shiftRight(rightOperand.state));
+  }
+
+  /**
+   * Return the result of invoking the 'length' getter on this object.
+   * 
+   * @param typeProvider the type provider used to find known types
+   * @return the result of invoking the 'length' getter on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  public DartObjectImpl stringLength(TypeProvider typeProvider) throws EvaluationException {
+    return new DartObjectImpl(typeProvider.getIntType(), state.stringLength());
   }
 
   /**
