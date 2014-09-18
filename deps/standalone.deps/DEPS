@@ -7,17 +7,18 @@ vars = {
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
   "dart_branch": "/branches/bleeding_edge",
-  "chromium_url": "http://src.chromium.org/svn",
 
   "gyp_rev": "@1752",
-  "nss_rev": "@257452",
-
-  # Stuff needed to run pkg tests.
-  "fake_async_rev": "@38614",
-  "petitparser_rev" : "@37878",
-
-  # co19 tests.
   "co19_rev": "@761",
+  "chromium_git": "https://chromium.googlesource.com",
+
+  # Revisions of /third_party/* dependencies.
+  "fake_async_rev": "@38614",
+  "net_nss_rev": "@bf6305a7aa19bdcf8f590ceb5e16384f9af63745",
+  "nss_rev": "@7b5b6ec41cf9105bd6e1c9a5157982f821282a4c",
+  "petitparser_rev" : "@37878",
+  "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
 
 deps = {
@@ -34,16 +35,19 @@ deps = {
 
   # Stuff needed for secure sockets.
   "dart/third_party/nss":
-      Var("chromium_url") + "/trunk/deps/third_party/nss" + Var("nss_rev"),
+      Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
 
   "dart/third_party/sqlite":
-      Var("chromium_url") + "/trunk/src/third_party/sqlite" + Var("nss_rev"),
+      Var("chromium_git") + "/chromium/src/third_party/sqlite.git" +
+      Var("sqlite_rev"),
 
   "dart/third_party/zlib":
-      Var("chromium_url") + "/trunk/src/third_party/zlib" + Var("nss_rev"),
+      Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
+      Var("zlib_rev"),
 
   "dart/third_party/net_nss":
-      Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
+      Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
+      Var("net_nss_rev"),
 
   # Stuff needed to run pkg tests.
   "dart/third_party/pkg/fake_async":
@@ -55,7 +59,8 @@ deps = {
 deps_os = {
   "win": {
     "third_party/cygwin":
-      Var("chromium_url") + "/trunk/deps/third_party/cygwin@66844",
+      Var("chromium_git") + "/chromium/deps/cygwin.git" +
+      "@c89e446b273697fadf3a10ff1007a97c0b7de6df",
   },
 }
 
