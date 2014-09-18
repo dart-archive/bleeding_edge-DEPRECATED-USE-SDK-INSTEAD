@@ -11,6 +11,7 @@ import os
 import subprocess
 from os.path import join, exists
 from os import getenv
+from xvfbwrapper import Xvfb
 
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
@@ -85,12 +86,15 @@ def ExecTestRunner(tempDir):
     # Start DartEditor in a sub process.
     # SWTBot test results will be sent to the socket on the given port.
     os = utils.GuessOS()
+    vdisplay = None
     if os is 'macos':
       os = 'macosx'
       ws = 'cocoa'
       cmd = [java, '-XstartOnFirstThread']
     elif os is 'linux':
       ws = 'gtk'
+      vdisplay = Xvfb()
+      vdisplay.start()
       cmd = [java]
     else:
       return 4, None
@@ -132,6 +136,8 @@ def ExecTestRunner(tempDir):
       tmpfile.close()
       editorOutputFile.close()
       editor.terminate()
+      if vdisplay:
+        vdisplay.stop()
 
   if getenv('DEBUG_SWTBOT_RUNNER'):
     out = open(editorOutputFile.name, 'r')
