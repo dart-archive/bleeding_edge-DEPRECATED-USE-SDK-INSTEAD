@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.AbstractRefactoringAction_NEW;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -81,8 +83,14 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
         }
       }
       // wait for background analysis
-      if (!RefactoringUtils.waitReadyForRefactoring2()) {
-        return false;
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        if (!AbstractRefactoringAction_NEW.waitReadyForRefactoring()) {
+          return false;
+        }
+      } else {
+        if (!RefactoringUtils.waitReadyForRefactoring2()) {
+          return false;
+        }
       }
       // execute MoveRefactoring
       try {

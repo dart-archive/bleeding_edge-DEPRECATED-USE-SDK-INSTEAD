@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
@@ -23,6 +24,7 @@ import com.google.dart.tools.core.pub.PubManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
+import com.google.dart.tools.ui.actions.AbstractRefactoringAction_NEW;
 import com.google.dart.tools.ui.actions.CleanFoldersAction;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
@@ -811,8 +813,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree()) {
       @Override
       public void run() {
-        if (!RefactoringUtils.waitReadyForRefactoring2()) {
-          return;
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          if (!AbstractRefactoringAction_NEW.waitReadyForRefactoring()) {
+            return;
+          }
+        } else {
+          if (!RefactoringUtils.waitReadyForRefactoring2()) {
+            return;
+          }
         }
         super.run();
       }
