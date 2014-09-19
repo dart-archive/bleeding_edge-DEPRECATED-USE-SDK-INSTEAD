@@ -35,6 +35,8 @@ public class RefactoringKind {
 
   public static final String INLINE_METHOD = "INLINE_METHOD";
 
+  public static final String MOVE_FILE = "MOVE_FILE";
+
   public static final String RENAME = "RENAME";
 
 }
