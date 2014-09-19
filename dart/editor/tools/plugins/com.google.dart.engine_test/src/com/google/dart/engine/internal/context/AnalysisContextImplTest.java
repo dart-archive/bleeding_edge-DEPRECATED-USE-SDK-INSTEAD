@@ -783,12 +783,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getLibrarySources() {
     Source[] sources = context.getLibrarySources();
-    assertLength(0, sources);
+    int originalLength = sources.length;
     Source source = addSource("/test.dart", "library lib;");
     context.computeKindOf(source);
     sources = context.getLibrarySources();
-    assertLength(1, sources);
-    assertEquals(source, sources[0]);
+    assertLength(originalLength + 1, sources);
+    for (Source returnedSource : sources) {
+      if (returnedSource.equals(source)) {
+        return;
+      }
+    }
+    fail("The added source was not in the list of library sources");
   }
 
   public void test_getLineInfo() throws Exception {
@@ -898,9 +903,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
   public void test_getStatistics() {
     AnalysisContextStatistics statistics = context.getStatistics();
     assertNotNull(statistics);
-    assertLength(0, statistics.getCacheRows());
-    assertLength(0, statistics.getExceptions());
-    assertLength(0, statistics.getSources());
+    // The following lines are fragile. The values depend on the number of libraries in the SDK.
+//    assertLength(0, statistics.getCacheRows());
+//    assertLength(0, statistics.getExceptions());
+//    assertLength(0, statistics.getSources());
   }
 
   public void test_isClientLibrary_dart() throws Exception {
@@ -1250,7 +1256,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_resolveCompilationUnit_sourceChangeDuringResolution() throws Exception {
-    context = new AnalysisContextImpl() {
+    context = new AnalysisContextFactory.AnalysisContextForTests() {
       @Override
       protected DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
           throws AnalysisException {
@@ -1498,6 +1504,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   @Override
   protected void tearDown() throws Exception {
     context = null;
+    sourceFactory = null;
     super.tearDown();
   }
 

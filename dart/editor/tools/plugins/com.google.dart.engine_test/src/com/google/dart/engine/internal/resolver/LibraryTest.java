@@ -46,11 +46,6 @@ public class LibraryTest extends EngineTestCase {
    */
   private Library library;
 
-  /*
-   * In order to keep the tests fast there are no tests for getAST(Source),
-   * getCompilationUnitSources(), getDefiningCompilationUnit()
-   */
-
   @Override
   public void setUp() {
     sourceFactory = new SourceFactory(new FileUriResolver());
@@ -59,6 +54,11 @@ public class LibraryTest extends EngineTestCase {
     errorListener = new GatheringErrorListener();
     library = createLibrary("/lib.dart");
   }
+
+  /*
+   * In order to keep the tests fast there are no tests for getAST(Source),
+   * getCompilationUnitSources(), getDefiningCompilationUnit()
+   */
 
   public void test_getExplicitlyImportsCore() {
     assertFalse(library.getExplicitlyImportsCore());
@@ -122,6 +122,15 @@ public class LibraryTest extends EngineTestCase {
     LibraryElementImpl element = new LibraryElementImpl(analysisContext, libraryIdentifier("lib"));
     library.setLibraryElement(element);
     assertSame(element, library.getLibraryElement());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    errorListener = null;
+    sourceFactory = null;
+    analysisContext = null;
+    library = null;
+    super.tearDown();
   }
 
   private Library createLibrary(String definingCompilationUnitPath) {

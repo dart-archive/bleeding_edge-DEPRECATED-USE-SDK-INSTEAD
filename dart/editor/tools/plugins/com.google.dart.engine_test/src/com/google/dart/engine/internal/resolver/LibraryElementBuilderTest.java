@@ -173,6 +173,12 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     return source;
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    context = null;
+    super.tearDown();
+  }
+
   /**
    * Ensure that there are elements representing all of the types in the given array of type names.
    * 

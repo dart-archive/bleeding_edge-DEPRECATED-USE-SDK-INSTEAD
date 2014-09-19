@@ -75,6 +75,15 @@ public class HtmlWarningCodeTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    sourceFactory = null;
+    context = null;
+    contents = null;
+    errors = null;
+    super.tearDown();
+  }
+
   private void assertErrorLocation(AnalysisError error, int expectedOffset, int expectedLength) {
     assertEquals(error.toString(), expectedOffset, error.getOffset());
     assertEquals(error.toString(), expectedLength, error.getLength());

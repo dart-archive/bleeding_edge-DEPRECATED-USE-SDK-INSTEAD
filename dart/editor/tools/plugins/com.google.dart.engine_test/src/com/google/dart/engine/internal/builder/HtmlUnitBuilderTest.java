@@ -179,6 +179,12 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
     context = AnalysisContextFactory.contextWithCore();
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    context = null;
+    super.tearDown();
+  }
+
   ExpectedLibrary l(ExpectedVariable... expectedVariables) {
     return new ExpectedLibrary(expectedVariables);
   }

@@ -103,6 +103,12 @@ public class DirectoryBasedDartSdk implements DartSdk {
   private LibraryMap libraryMap;
 
   /**
+   * The default SDK, or {@code null} if the default SDK either has not yet been created or cannot
+   * be created for some reason.
+   */
+  private static DirectoryBasedDartSdk DEFAULT_SDK;
+
+  /**
    * The name of the directory within the SDK directory that contains executables.
    */
   private static final String BIN_DIRECTORY_NAME = "bin"; //$NON-NLS-1$
@@ -212,11 +218,14 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * @return the default Dart SDK
    */
   public static DirectoryBasedDartSdk getDefaultSdk() {
-    File sdkDirectory = getDefaultSdkDirectory();
-    if (sdkDirectory == null) {
-      return null;
+    if (DEFAULT_SDK == null) {
+      File sdkDirectory = getDefaultSdkDirectory();
+      if (sdkDirectory == null) {
+        return null;
+      }
+      DEFAULT_SDK = new DirectoryBasedDartSdk(sdkDirectory);
     }
-    return new DirectoryBasedDartSdk(sdkDirectory);
+    return DEFAULT_SDK;
   }
 
   /**

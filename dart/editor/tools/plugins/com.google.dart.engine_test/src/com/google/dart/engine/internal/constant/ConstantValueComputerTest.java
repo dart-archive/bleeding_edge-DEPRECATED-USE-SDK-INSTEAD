@@ -35,7 +35,6 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
-import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
@@ -171,7 +170,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     validate(true, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
   }
 
-  public void test_computeValues_empty() {
+  public void test_computeValues_empty() throws Exception {
     ConstantValueComputer computer = makeConstantValueComputer();
     computer.computeValues();
   }
@@ -935,9 +934,9 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     return ((InstanceCreationExpression) expression).getEvaluationResult();
   }
 
-  private ConstantValueComputer makeConstantValueComputer() {
+  private ConstantValueComputer makeConstantValueComputer() throws AnalysisException {
     return new ValidatingConstantValueComputer(
-        new TestTypeProvider(),
+        analysisContext.getTypeProvider(),
         analysisContext.getDeclaredVariables());
   }
 
