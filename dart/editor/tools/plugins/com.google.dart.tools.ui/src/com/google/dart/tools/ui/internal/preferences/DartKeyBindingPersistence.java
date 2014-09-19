@@ -117,6 +117,8 @@ public class DartKeyBindingPersistence {
         attribs = new HashMap<String, String>();
         String commandName = attributes.getValue(XML_ATTRIBUTE_COMMANDID);
         attribs.put(XML_ATTRIBUTE_COMMANDID, commandName);
+        String context = attributes.getValue(XML_ATTRIBUTE_CONTEXTID);
+        attribs.put(XML_ATTRIBUTE_CONTEXTID, context);
         String dartkeys = attributes.getValue(XML_ATTRIBUTE_KEYS);
         attribs.put(XML_ATTRIBUTE_KEYS, dartkeys);
         String platform = attributes.getValue(XML_ATTRIBUTE_PLATFORM);
@@ -154,12 +156,14 @@ public class DartKeyBindingPersistence {
   private static final String XML_ATTRIBUTE_KEYS = "keySequence"; //$NON-NLS-1$
   // the command name is first in a lexical sort of attribute names
   private static final String XML_ATTRIBUTE_COMMANDID = "commandName"; //$NON-NLS-1$
+  private static final String XML_ATTRIBUTE_CONTEXTID = "context"; //$NON-NLS-1$
   private static final String XML_ATTRIBUTE_PLATFORM = "platform"; //$NON-NLS-1$// optional attribute
   private static final String XML_UNKNOWN = ""; //$NON-NLS-1$ // should never be used
-  private static final String DESCR_FORMAT = "The format is straightforward, consisting of two attributes plus one that is optional.\n"
+  private static final String DESCR_FORMAT = "The format is straightforward, consisting of three attributes plus one that is optional.\n"
       + "The required attributes are the command name, which is the same as it appears in\n"
-      + "menus, and the key sequence, which is all uppercase. The optional attribute is the\n"
-      + "name of the platform to which the binding applies if it is not universal.";
+      + "menus, and the key sequence, which is all uppercase. The context is an internal identifier\n"
+      + "used to indicate in which portion of the UI the binding is active. The optional attribute\n"
+      + "is the name of the platform to which the binding applies if it is not universal.";
 
   private static DartUiException createException(Throwable ex, String message) {
     return new DartUiException(DartUiStatus.createError(IStatus.ERROR, message, ex));
@@ -197,11 +201,13 @@ public class DartKeyBindingPersistence {
     this.commandService = commandService;
   }
 
-  public Binding findBinding(String commandName, String platform) throws NotDefinedException {
+  public Binding findBinding(String commandName, String platform, String context)
+      throws NotDefinedException {
     Binding[] bindings = bindingService.getBindings();
     if (bindings != null) {
       for (Binding binding : bindings) {
-        if (binding.getSchemeId().equals(DART_BINDING_SCHEME)) {
+        if (binding.getSchemeId().equals(DART_BINDING_SCHEME)
+            && (context == null || context.equals(binding.getContextId()))) {
           if ((platform != null && platform.equals(binding.getPlatform()))
               || binding.getPlatform() == null) {
             ParameterizedCommand pc = binding.getParameterizedCommand();
@@ -336,13 +342,15 @@ public class DartKeyBindingPersistence {
     // binding is known to have a ParameterizedCommand whose command ID matches a registered Command
     String keys = binding.getTriggerSequence().toString();
     String platform = binding.getPlatform();
+    String context = binding.getContextId();
+    System.out.println(context);
     String commandName;
     try {
       commandName = binding.getParameterizedCommand().getName();
     } catch (NotDefinedException ex) {
       return null;
     }
-    String id = keys + commandName + (platform == null ? "" : platform);
+    String id = keys + commandName + (platform == null ? "" : platform) + context;
     if (knownBindings.containsKey(id)) {
       if (binding.getType() == Binding.USER) {
         // A SYSTEM binding has already been created
@@ -357,6 +365,7 @@ public class DartKeyBindingPersistence {
     Element element = document.createElement(XML_NODE_BINDING);
     element.setAttribute(XML_ATTRIBUTE_KEYS, keys);
     element.setAttribute(XML_ATTRIBUTE_COMMANDID, commandName);
+    element.setAttribute(XML_ATTRIBUTE_CONTEXTID, context);
     if (platform != null) {
       element.setAttribute(XML_ATTRIBUTE_PLATFORM, platform);
     }
@@ -472,8 +481,9 @@ public class DartKeyBindingPersistence {
     try {
       String platform = map.get(XML_ATTRIBUTE_PLATFORM);
       String commandName = map.get(XML_ATTRIBUTE_COMMANDID);
+      String context = map.get(XML_ATTRIBUTE_CONTEXTID);
       String stdKeys = map.get(XML_ATTRIBUTE_KEYS);
-      Binding binding = findBinding(commandName, platform);
+      Binding binding = findBinding(commandName, platform, context);
       if (binding == null) {
         return;
       }
@@ -486,7 +496,7 @@ public class DartKeyBindingPersistence {
       int type = Binding.USER;
       KeySequence stdSeq = KeySequence.getInstance(stdKeys);
       Binding newBind = new KeyBinding(stdSeq, cmd, schemeId, contextId, locale, platform, wm, type);
-      bindingManager.removeBindings(stdSeq, schemeId, contextId, null, null, null, type);
+      bindingManager.removeBindings(stdSeq, schemeId, contextId, null, platform, null, type);
       bindingManager.addBinding(newBind);
     } catch (NotDefinedException ex) {
       throw createException(ex, ex.getMessage());

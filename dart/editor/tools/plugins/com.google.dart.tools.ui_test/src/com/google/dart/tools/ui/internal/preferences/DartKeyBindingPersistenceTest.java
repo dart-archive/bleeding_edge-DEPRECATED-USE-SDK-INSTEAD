@@ -113,7 +113,7 @@ public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
   private boolean hasKeyBinding(DartKeyBindingPersistence persist, String commandName,
       String keySequence) {
     try {
-      Binding bind = persist.findBinding(commandName, null);
+      Binding bind = persist.findBinding(commandName, null, null);
       if (bind == null) {
         return false;
       }
