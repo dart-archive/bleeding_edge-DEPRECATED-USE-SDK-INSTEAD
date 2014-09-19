@@ -606,4 +606,11 @@ public class SplitIndexStoreImplTest extends EngineTestCase {
     when(libraryElement.getSource()).thenReturn(librarySource);
     when(libraryElement.getDefiningCompilationUnit()).thenReturn(libraryUnitElement);
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    nodeManager = null;
+    store = null;
+    super.tearDown();
+  }
 }

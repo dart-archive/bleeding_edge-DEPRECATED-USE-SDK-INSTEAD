@@ -170,4 +170,14 @@ public class IndexImplTest extends EngineTestCase {
     index.stop();
     verify(processor).stop(false);
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    context = null;
+    store = null;
+    queue = null;
+    processor = null;
+    index = null;
+    super.tearDown();
+  }
 }

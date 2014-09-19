@@ -572,6 +572,13 @@ public class DartReconcilingStrategyTest extends TestCase {
     if (strategy != null) {
       strategy.dispose();
     }
+    mockEditor = null;
+    mockSource = null;
+    mockContext = null;
+    mockDocument = null;
+    analysisManager = null;
+    ignoreManager = null;
+    strategy = null;
   }
 
   /**

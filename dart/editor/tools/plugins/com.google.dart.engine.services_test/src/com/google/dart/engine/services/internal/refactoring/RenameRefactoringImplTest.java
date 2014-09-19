@@ -79,4 +79,11 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
     context.setSourceFactory(sourceFactory);
     return context;
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    refactoring = null;
+    refactoringChange = null;
+  }
 }

@@ -182,4 +182,14 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
     project = new MockProjectImpl(projectContainer, sdk, sdkContextId, manager.getIndex());
     processor = new Target(manager);
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    rootContainer = null;
+    projectContainer = null;
+    manager = null;
+    project = null;
+    processor = null;
+    super.tearDown();
+  }
 }

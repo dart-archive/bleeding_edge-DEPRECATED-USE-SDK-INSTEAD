@@ -203,6 +203,16 @@ public class FileNodeManagerTest extends TestCase {
     when(contextCodec.decode(contextId)).thenReturn(context);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    fileManager = null;
+    stringCodec = null;
+    elementCodec = null;
+    relationshipCodec = null;
+    nodeManager = null;
+    super.tearDown();
+  }
+
   private void assertHasLocation(Location[] locations, Element element, int offset, int length) {
     for (Location location : locations) {
       if (Objects.equal(location.getElement(), element) && location.getOffset() == offset

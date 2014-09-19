@@ -24,4 +24,10 @@ public class StringCodecTest extends TestCase {
     assertEquals("aaa", codec.decode(idA));
     assertEquals("bbb", codec.decode(idB));
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    codec = null;
+    super.tearDown();
+  }
 }

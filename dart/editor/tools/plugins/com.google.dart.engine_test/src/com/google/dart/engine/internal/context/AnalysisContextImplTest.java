@@ -1495,6 +1495,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    context = null;
+    super.tearDown();
+  }
+
   private Source addSource(String fileName, String contents) {
     Source source = new FileBasedSource(createFile(fileName));
     ChangeSet changeSet = new ChangeSet();

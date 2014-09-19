@@ -283,6 +283,15 @@ public class ConvertMethodToGetterRefactoringImplTest extends RefactoringImplTes
     assertTestChangeResult(refactoringChange, makeSource(lines));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    selectionElement = null;
+    refactoring = null;
+    refactoringStatus = null;
+    refactoringChange = null;
+    super.tearDown();
+  }
+
   /**
    * Creates {@link ConvertMethodToGetterRefactoring} in {@link #refactoring}.
    */

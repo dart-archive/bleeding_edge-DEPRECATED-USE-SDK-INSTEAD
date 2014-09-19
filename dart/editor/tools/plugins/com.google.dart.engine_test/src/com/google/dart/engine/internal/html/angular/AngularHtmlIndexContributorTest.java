@@ -261,6 +261,12 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         "attr"));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    index = null;
+    super.tearDown();
+  }
+
   private List<RecordedRelation> captureRecordedRelations() {
     return captureRelations(store);
   }

@@ -1052,6 +1052,13 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     assertTestChangeResult(change, makeSource(lines));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    refactoring = null;
+    refactoringStatus = null;
+    super.tearDown();
+  }
+
   /**
    * Asserts that {@link refactoringStatus} has fatal error caused by selection.
    */

@@ -213,6 +213,19 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     assertNotNull(project);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    ignoreManager = null;
+    analysisManager = null;
+    markerManager = null;
+    projectManager = null;
+    project = null;
+    projectImpl = null;
+    listener = null;
+    index = null;
+    super.tearDown();
+  }
+
   private void assertAnalyzed(MockResource res, MockContext context) {
     MockFile[] allDartAndHtmlFiles;
     if (res instanceof MockContainer) {

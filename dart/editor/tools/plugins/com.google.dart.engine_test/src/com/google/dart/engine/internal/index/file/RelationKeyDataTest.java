@@ -59,4 +59,12 @@ public class RelationKeyDataTest extends TestCase {
     assertFalse(keyData.equals(null));
     assertTrue(keyData.equals(keyData));
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    stringCodec = null;
+    elementCodec = null;
+    relationshipCodec = null;
+    super.tearDown();
+  }
 }

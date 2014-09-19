@@ -218,4 +218,12 @@ public class AnalysisMarkerManagerTest extends TestCase {
     File file = fileRes.getLocation().toFile();
     source = new FileBasedSource(file);
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    sdk = null;
+    projectManager = null;
+    project = null;
+    super.tearDown();
+  }
 }

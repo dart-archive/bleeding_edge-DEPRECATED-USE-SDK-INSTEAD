@@ -5,9 +5,14 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.RelationshipCallback;
+import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.search.SearchEngine;
@@ -35,7 +40,6 @@ public class CompletionTestCase extends ResolverTestCase {
   }
 
   protected Index index;
-
   protected SearchEngine searchEngine;
 
   @Override
@@ -46,6 +50,7 @@ public class CompletionTestCase extends ResolverTestCase {
       @Override
       public void run() {
         index.run();
+        index = null;
       }
     }.start();
     searchEngine = SearchEngineFactory.createSearchEngine(index);
@@ -73,6 +78,21 @@ public class CompletionTestCase extends ResolverTestCase {
       }
     }
     return libraryUnit;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    index.getRelationships(
+        IndexConstants.UNIVERSE,
+        IndexConstants.IS_READ_BY,
+        new RelationshipCallback() {
+          @Override
+          public void hasRelationships(Element a, Relationship b, Location[] c) {
+            index.stop();
+          }
+        });
+    searchEngine = null;
+    super.tearDown();
   }
 
   /**

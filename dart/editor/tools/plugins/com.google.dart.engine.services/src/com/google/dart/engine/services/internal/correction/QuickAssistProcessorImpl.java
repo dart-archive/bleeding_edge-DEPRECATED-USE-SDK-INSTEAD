@@ -228,7 +228,11 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     // call proposal methods
     addUnresolvedProposal_addPart();
     // done
-    return proposals.toArray(new CorrectionProposal[proposals.size()]);
+    try {
+      return proposals.toArray(new CorrectionProposal[proposals.size()]);
+    } finally {
+      cleanUp();
+    }
   }
 
   @Override
@@ -285,6 +289,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {
       instrumentation.log();
+      cleanUp();
     }
   }
 
@@ -1268,15 +1273,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addUnitCorrectionProposal(QA_SPLIT_VARIABLE_DECLARATION);
   }
 
-//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
-//    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
-//    if (nodeProposals == null) {
-//      nodeProposals = Lists.newArrayList();
-//      linkedPositionProposals.put(group, nodeProposals);
-//    }
-//    nodeProposals.add(new TrackedNodeProposal(icon, text));
-//  }
-
   void addProposal_surroundWith() throws Exception {
     // prepare selected statements
     List<Statement> selectedStatements;
@@ -1545,6 +1541,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
   }
 
+//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
+//    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
+//    if (nodeProposals == null) {
+//      nodeProposals = Lists.newArrayList();
+//      linkedPositionProposals.put(group, nodeProposals);
+//    }
+//    nodeProposals.add(new TrackedNodeProposal(icon, text));
+//  }
+
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
   }
@@ -1676,6 +1681,24 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         proposals.add(new SourceCorrectionProposal(change, CorrectionKind.QA_ADD_PART_DIRECTIVE));
       }
     }
+  }
+
+  private void cleanUp() {
+    proposals.clear();
+    textEdits.clear();
+    positionStopEdits.clear();
+    linkedPositions.clear();
+    linkedPositionProposals.clear();
+    assistContext = null;
+    analysisContext = null;
+    source = null;
+    unit = null;
+    node = null;
+    unitLibrarySource = null;
+    unitLibraryElement = null;
+    unitLibraryFile = null;
+    unitLibraryFolder = null;
+    utils = null;
   }
 
   private Edit createInsertEdit(int offset, String text) {

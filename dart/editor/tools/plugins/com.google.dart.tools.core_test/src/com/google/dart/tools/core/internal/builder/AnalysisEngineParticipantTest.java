@@ -227,4 +227,19 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
       }
     };
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    workspace = null;
+    rootRes = null;
+    projectRes = null;
+    fileRes = null;
+    markerManager = null;
+    sdk = null;
+    manager = null;
+    project = null;
+    fileSource = null;
+    participant = null;
+    super.tearDown();
+  }
 }

@@ -139,4 +139,11 @@ public class ElementCodecTest extends TestCase {
         entry(UNIT, 1),
         entry("bar", 2));
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    stringCodec = null;
+    codec = null;
+    super.tearDown();
+  }
 }

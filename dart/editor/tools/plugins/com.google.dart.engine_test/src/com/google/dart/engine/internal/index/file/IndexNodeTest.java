@@ -104,6 +104,15 @@ public class IndexNodeTest extends TestCase {
     assertHasLocation(locations, elementC, 2, 20);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    stringCodec = null;
+    elementCodec = null;
+    relationshipCodec = null;
+    node = null;
+    super.tearDown();
+  }
+
   private void assertHasLocation(Location[] locations, Element element, int offset, int length) {
     for (Location location : locations) {
       if (Objects.equal(location.getElement(), element) && location.getOffset() == offset

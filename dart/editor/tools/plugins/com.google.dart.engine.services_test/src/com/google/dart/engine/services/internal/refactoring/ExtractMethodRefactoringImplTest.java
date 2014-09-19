@@ -143,6 +143,26 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         findRangeIdentifier("res() {} // marker"));
   }
 
+  public void test_bad_conflict_topLevel_alreadyDeclaresFunction() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void res() {}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.ERROR,
+        "Library already declares function with name 'res'.",
+        findRangeIdentifier("res() {}"));
+  }
+
   // TODO(scheglov) waiting for "library namespace" in Engine
 //  public void test_bad_conflict_method_willHideTopLevel() throws Exception {
 //    indexTestUnit(
@@ -175,26 +195,6 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
 ////          msg);
 ////    }
 //  }
-
-  public void test_bad_conflict_topLevel_alreadyDeclaresFunction() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "void res() {}",
-        "main() {",
-        "// start",
-        "  print(0);",
-        "// end",
-        "}",
-        "");
-    setSelectionFromStartEndComments();
-    createRefactoring();
-    // check conditions
-    assertRefactoringStatus(
-        refactoringStatus,
-        RefactoringStatusSeverity.ERROR,
-        "Library already declares function with name 'res'.",
-        findRangeIdentifier("res() {}"));
-  }
 
   public void test_bad_conflict_topLevel_willHideInheritedMemberUsage() throws Exception {
     indexTestUnit(
@@ -2558,6 +2558,13 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.OK, null);
     Change change = refactoring.createChange(pm);
     assertTestChangeResult(change, makeSource(lines));
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    refactoring = null;
+    refactoringStatus = null;
+    super.tearDown();
   }
 
   /**

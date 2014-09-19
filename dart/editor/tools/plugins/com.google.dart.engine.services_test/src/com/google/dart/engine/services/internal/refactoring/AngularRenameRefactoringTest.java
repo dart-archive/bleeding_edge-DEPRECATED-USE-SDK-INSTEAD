@@ -524,6 +524,10 @@ public class AngularRenameRefactoringTest extends AngularTest {
   @Override
   protected void tearDown() throws Exception {
     index.stop();
+    index = null;
+    searchEngine = null;
+    refactoring = null;
+    refactoringChange = null;
     super.tearDown();
   }
 

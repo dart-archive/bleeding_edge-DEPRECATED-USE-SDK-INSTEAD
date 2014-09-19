@@ -26,4 +26,11 @@ public class RelationshipCodecTest extends TestCase {
     int id = codec.encode(relationship);
     assertSame(relationship, codec.decode(id));
   }
+
+  @Override
+  protected void tearDown() throws Exception {
+    stringCodec = null;
+    codec = null;
+    super.tearDown();
+  }
 }

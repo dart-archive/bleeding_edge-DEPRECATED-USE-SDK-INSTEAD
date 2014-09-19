@@ -135,7 +135,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
   }
 
-  private final IndexStore indexStore = IndexFactory.newSplitIndexStore(new MemoryNodeManager());
+  private IndexStore indexStore = IndexFactory.newSplitIndexStore(new MemoryNodeManager());
 
   private static final AnalysisContext CONTEXT = mock(AnalysisContext.class);
   private int nextLocationId = 0;
@@ -1223,6 +1223,12 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(CONTEXT.getElement(elementE.getLocation())).thenReturn(elementE);
     // start indexing
     assertTrue(indexStore.aboutToIndexDart(CONTEXT, unitElement));
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    indexStore = null;
+    super.tearDown();
   }
 
   private void defineFunctionsAB(LibraryElement library) {

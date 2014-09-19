@@ -1351,6 +1351,13 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
     assertTestChangeResult(change, makeSource(lines));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    refactoring = null;
+    refactoringStatus = null;
+    super.tearDown();
+  }
+
 //  private void assert_fatalError_selection() {
 //    assertRefactoringStatus(
 //        refactoringStatus,
