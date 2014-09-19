@@ -23,7 +23,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
@@ -147,6 +149,15 @@ abstract public class AbstractBotView {
     });
   }
 
+  protected Rectangle absoluteLocation(final Control widget) {
+    return UIThreadRunnable.syncExec(new Result<Rectangle>() {
+      @Override
+      public Rectangle run() {
+        return widget.getDisplay().map(widget.getParent(), null, widget.getBounds());
+      }
+    });
+  }
+
   /**
    * Creates an event.
    * 
@@ -156,6 +167,18 @@ abstract public class AbstractBotView {
   protected Event createEvent() {
     Event event = new Event();
     event.time = (int) System.currentTimeMillis();
+    return event;
+  }
+
+  /**
+   * Create a key event with a particular character
+   * 
+   * @param ch the character
+   */
+  protected Event createKeyEvent(char ch) {
+    Event event = createEvent();
+    event.character = ch;
+    event.keyCode = ch;
     return event;
   }
 
@@ -219,6 +242,15 @@ abstract public class AbstractBotView {
     });
     assertNotNull(tree);
     return tree;
+  }
+
+  protected Rectangle getBounds(final Control widget) {
+    return UIThreadRunnable.syncExec(new Result<Rectangle>() {
+      @Override
+      public Rectangle run() {
+        return widget.getBounds();
+      }
+    });
   }
 
   /**

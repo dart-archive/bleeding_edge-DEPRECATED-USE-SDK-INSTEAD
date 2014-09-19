@@ -36,6 +36,7 @@ import org.junit.runners.Suite;
     TestInspector.class, //
     TestManageLaunches.class, //
     TestRemoteConnection.class, //
+    TestPubspecEditor.class, //
 //
 })
 public final class TestAll {

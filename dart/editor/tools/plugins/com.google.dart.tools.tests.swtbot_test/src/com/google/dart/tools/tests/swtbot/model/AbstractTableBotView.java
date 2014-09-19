@@ -39,6 +39,24 @@ abstract public class AbstractTableBotView extends AbstractBotView {
   }
 
   /**
+   * Select the indices in the given collection.
+   * 
+   * @param indices the names of table cells to select
+   * @return the selected items
+   */
+  public TableCollection select(int... indices) {
+    assertTrue(indices.length > 0);
+    SWTBotTable table = table();
+    waitForAnalysis();
+    waitForTableContent(table);
+    table.select(indices);
+    waitForAnalysis();
+    TableCollection selection = table.selection();
+    assertNotNull(selection);
+    return selection;
+  }
+
+  /**
    * Select the items in the given collection.
    * 
    * @param items the names of table cells to select
