@@ -30,6 +30,8 @@ import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_NEW;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileChange;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_NEW;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 
@@ -39,12 +41,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.TextChange;
-import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -75,7 +77,7 @@ public class ServiceUtils_NEW {
     CompositeChange ltkChange = new CompositeChange("Composite change");
     if (sourceChange != null) {
       for (SourceFileEdit fileEdit : sourceChange.getEdits()) {
-        TextChange textChange = toLTK(fileEdit);
+        Change textChange = toLTK(fileEdit);
         ltkChange.add(textChange);
       }
     }
@@ -83,9 +85,14 @@ public class ServiceUtils_NEW {
   }
 
   /**
-   * @return the LTK {@link TextFileChange} for the given {@link SourceFileEdit}.
+   * @return the LTK {@link Change} for the given {@link SourceFileEdit}.
    */
-  public static TextFileChange toLTK(SourceFileEdit change) {
+  public static Change toLTK(SourceFileEdit change) {
+    if (change.getFileStamp() == -1) {
+      String filePath = change.getFile();
+      File fileJava = new File(filePath);
+      return new CreateFileChange(filePath, fileJava, change.getEdits().get(0).getReplacement());
+    }
     // prepare IFile
     IFile file = getFile(change);
     if (file == null) {
@@ -136,21 +143,27 @@ public class ServiceUtils_NEW {
   /**
    * @return the {@link LinkedCorrectionProposal_NEW} for the given {@link SourceChange}.
    */
-  public static LinkedCorrectionProposal_NEW toUI(SourceChange sourceChange) {
+  public static ChangeCorrectionProposal toUI(SourceChange sourceChange) {
     List<SourceFileEdit> fileEdits = sourceChange.getEdits();
     if (fileEdits.size() != 1) {
       return null;
     }
     SourceFileEdit fileEdit = fileEdits.get(0);
+    // prepare presentation
+    Image image = DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
+    int relevance = 50;
     // prepare TextChange
-    TextChange textChange = toLTK(fileEdit);
-    if (textChange == null) {
+    TextChange textChange;
+    Change change = toLTK(fileEdit);
+    if (change instanceof TextChange) {
+      textChange = (TextChange) change;
+    } else if (change != null) {
+      return new ChangeCorrectionProposal(sourceChange.getMessage(), change, relevance, image);
+    } else {
       return null;
     }
     // prepare UI proposal
     // TODO(scheglov) expose "image" and "relevance" through the server API
-    Image image = DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-    int relevance = 50;
     LinkedCorrectionProposal_NEW uiProposal = new LinkedCorrectionProposal_NEW(
         sourceChange.getMessage(),
         fileEdit.getFile(),
