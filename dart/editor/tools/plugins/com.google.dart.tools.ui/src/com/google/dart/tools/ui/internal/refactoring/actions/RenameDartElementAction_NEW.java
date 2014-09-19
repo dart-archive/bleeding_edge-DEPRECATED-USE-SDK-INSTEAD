@@ -14,6 +14,9 @@
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.actions.AbstractRefactoringAction_NEW;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -30,9 +33,22 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
+public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW implements
+    AnalysisServerNavigationListener {
   public RenameDartElementAction_NEW(DartEditor editor) {
     super(editor);
+    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+  }
+
+  @Override
+  public void computedNavigation(String file, NavigationRegion[] regions) {
+    updateSelectedElement();
+  }
+
+  @Override
+  public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    super.dispose();
   }
 
   @Override
@@ -58,12 +74,16 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW {
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
-    Element[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    setEnabled(targets.length != 0);
+    updateSelectedElement();
   }
 
   @Override
   protected void init() {
     setText(RefactoringMessages.RenameAction_text);
+  }
+
+  private void updateSelectedElement() {
+    Element[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(targets.length != 0);
   }
 }

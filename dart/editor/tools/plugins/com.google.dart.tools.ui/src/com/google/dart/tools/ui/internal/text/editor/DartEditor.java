@@ -34,11 +34,13 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -1488,6 +1490,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected DartOutlinePage_NEW fOutlinePage_NEW;
   private Outline outline;
 
+  private AnalysisServerNavigationListener navigationListener = new AnalysisServerNavigationListener() {
+    @Override
+    public void computedNavigation(String file, NavigationRegion[] regions) {
+    }
+  };
+
   private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
     @Override
     public void computedOutline(String file, final Outline outline) {
@@ -1709,7 +1717,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerData.unsubscribeNavigation(file);
+        analysisServerData.unsubscribeNavigation(file, navigationListener);
         analysisServerData.unsubscribeOutline(file, analysisServerOutlineListener);
       }
     }
@@ -4051,7 +4059,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerData.subscribeNavigation(file);
+        analysisServerData.subscribeNavigation(file, navigationListener);
       }
     }
 

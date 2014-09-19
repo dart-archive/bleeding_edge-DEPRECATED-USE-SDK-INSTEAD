@@ -36,8 +36,12 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
 
   public AbstractDartSelectionAction_NEW(DartEditor editor) {
     this.editor = editor;
+    file = editor.getInputFilePath();
     init();
     setEnabled(SelectionConverter.canOperateOn(editor));
+  }
+
+  public void dispose() {
   }
 
   @Override
@@ -45,7 +49,6 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
     ISelection selection = event.getSelection();
     if (selection instanceof ITextSelection) {
       ITextSelection textSelection = (ITextSelection) selection;
-      file = editor.getInputFilePath();
       selectionOffset = textSelection.getOffset();
       selectionLength = textSelection.getLength();
     } else {

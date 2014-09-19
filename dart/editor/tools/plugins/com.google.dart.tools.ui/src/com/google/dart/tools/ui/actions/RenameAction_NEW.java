@@ -36,7 +36,7 @@ public class RenameAction_NEW extends AbstractDartSelectionAction_NEW {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (IAction.ENABLED.equals(event.getProperty())) {
-        setEnabled(computeEnabledState());
+        setEnabled(renameElement.isEnabled() || renameResource.isEnabled());
       }
     }
   };
@@ -68,9 +68,5 @@ public class RenameAction_NEW extends AbstractDartSelectionAction_NEW {
   @Override
   protected void init() {
     setText(RefactoringMessages.RenameAction_text);
-  }
-
-  private boolean computeEnabledState() {
-    return renameElement.isEnabled() || renameResource.isEnabled();
   }
 }

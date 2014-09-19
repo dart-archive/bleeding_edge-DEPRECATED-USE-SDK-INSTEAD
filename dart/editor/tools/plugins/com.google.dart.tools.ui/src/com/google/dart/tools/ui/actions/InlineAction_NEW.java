@@ -18,6 +18,9 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
@@ -31,10 +34,21 @@ public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
   private final InlineLocalAction_NEW inlineLocal;
   private final InlineMethodAction_NEW inlineMethod;
 
+  private IPropertyChangeListener enabledListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (IAction.ENABLED.equals(event.getProperty())) {
+        setEnabled(inlineLocal.isEnabled() || inlineMethod.isEnabled());
+      }
+    }
+  };
+
   public InlineAction_NEW(DartEditor editor) {
     super(editor);
     inlineLocal = new InlineLocalAction_NEW(editor);
     inlineMethod = new InlineMethodAction_NEW(editor);
+    inlineLocal.addPropertyChangeListener(enabledListener);
+    inlineMethod.addPropertyChangeListener(enabledListener);
   }
 
   @Override
@@ -64,7 +78,6 @@ public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
     super.selectionChanged(event);
     inlineLocal.selectionChanged(event);
     inlineMethod.selectionChanged(event);
-    setEnabled(inlineLocal.isEnabled() || inlineMethod.isEnabled());
   }
 
   @Override

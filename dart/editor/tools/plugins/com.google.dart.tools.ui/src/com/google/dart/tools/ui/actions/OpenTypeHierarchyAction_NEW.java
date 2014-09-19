@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.functions.PositionElement;
@@ -26,9 +31,22 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} to show "Type Hierarchy" view.
  */
-public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW {
+public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW implements
+    AnalysisServerNavigationListener {
   public OpenTypeHierarchyAction_NEW(DartEditor editor) {
     super(editor);
+    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+  }
+
+  @Override
+  public void computedNavigation(String file, NavigationRegion[] regions) {
+    updateSelectedElement();
+  }
+
+  @Override
+  public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    super.dispose();
   }
 
   @Override
@@ -41,7 +59,7 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
-    setEnabled(true);
+    updateSelectedElement();
   }
 
   @Override
@@ -52,5 +70,10 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.OPEN_TYPE_HIERARCHY_ACTION);
+  }
+
+  private void updateSelectedElement() {
+    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(elements.length != 0);
   }
 }

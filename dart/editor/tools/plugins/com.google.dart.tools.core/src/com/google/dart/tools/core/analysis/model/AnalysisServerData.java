@@ -71,7 +71,7 @@ public interface AnalysisServerData {
   /**
    * Specifies that the client wants to request navigation regions.
    */
-  void subscribeNavigation(String file);
+  void subscribeNavigation(String file, AnalysisServerNavigationListener listener);
 
   /**
    * Specifies that the client wants to request occurrences.
@@ -96,7 +96,7 @@ public interface AnalysisServerData {
   /**
    * Specifies that the client doesn't need navigation information for the given file anymore.
    */
-  void unsubscribeNavigation(String file);
+  void unsubscribeNavigation(String file, AnalysisServerNavigationListener listener);
 
   /**
    * Specifies that the client doesn't need occurrences information for the given file anymore.

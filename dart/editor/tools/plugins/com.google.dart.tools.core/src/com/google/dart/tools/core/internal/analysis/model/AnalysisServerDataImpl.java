@@ -31,6 +31,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOccurrencesListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOverridesListener;
@@ -49,6 +50,7 @@ import java.util.Set;
 public class AnalysisServerDataImpl implements AnalysisServerData {
   private boolean isAnalyzing = false;
   private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<AnalysisServerNavigationListener>> navigationSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOccurrencesListener>> occurrencesSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOverridesListener>> overridesSubscriptions = Maps.newHashMap();
@@ -148,8 +150,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeNavigation(String file) {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
+  public void subscribeNavigation(String file, AnalysisServerNavigationListener listener) {
+    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      navigationSubscriptions.put(file, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      addAnalysisSubscription(AnalysisService.NAVIGATION, file);
+    }
   }
 
   @Override
@@ -202,8 +211,16 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void unsubscribeNavigation(String file) {
-    removeAnalysisSubscription(AnalysisService.NAVIGATION, file);
+  public void unsubscribeNavigation(String file, AnalysisServerNavigationListener listener) {
+    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        removeAnalysisSubscription(AnalysisService.NAVIGATION, file);
+      }
+    }
   }
 
   @Override
@@ -262,6 +279,13 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   void internalComputedNavigation(String file, NavigationRegion[] targets) {
     navigationData.put(file, targets);
+    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
+    if (subscriptions != null) {
+      subscriptions = ImmutableSet.copyOf(subscriptions);
+      for (AnalysisServerNavigationListener listener : subscriptions) {
+        listener.computedNavigation(file, targets);
+      }
+    }
   }
 
   void internalComputedOccurrences(String file, Occurrences[] occurrences) {

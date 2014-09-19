@@ -15,6 +15,9 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -31,9 +34,22 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW {
+public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implements
+    AnalysisServerNavigationListener {
   public InlineMethodAction_NEW(DartEditor editor) {
     super(editor);
+    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+  }
+
+  @Override
+  public void computedNavigation(String file, NavigationRegion[] regions) {
+    updateSelectedElement();
+  }
+
+  @Override
+  public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    super.dispose();
   }
 
   @Override
@@ -56,6 +72,14 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW {
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
+    updateSelectedElement();
+  }
+
+  @Override
+  protected void init() {
+  }
+
+  private void updateSelectedElement() {
     setEnabled(false);
     Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
     if (elements.length != 0) {
@@ -64,9 +88,5 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW {
       setEnabled(ElementKind.METHOD.equals(kind) || ElementKind.FUNCTION.equals(kind)
           || ElementKind.GETTER.equals(kind) || ElementKind.SETTER.equals(kind));
     }
-  }
-
-  @Override
-  protected void init() {
   }
 }

@@ -18,8 +18,10 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.FindElementReferencesConsumer;
 import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_NEW;
@@ -46,7 +48,8 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.editor.ui.search
  */
-public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
+public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW implements
+    AnalysisServerNavigationListener {
   /**
    * Shows "Search" view with references to non-local elements with given name.
    */
@@ -125,6 +128,18 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
 
   public FindReferencesAction_NEW(DartEditor editor) {
     super(editor);
+    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+  }
+
+  @Override
+  public void computedNavigation(String file, NavigationRegion[] regions) {
+    updateSelectedElement();
+  }
+
+  @Override
+  public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    super.dispose();
   }
 
   @Override
@@ -196,8 +211,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    setEnabled(elements.length != 0);
+    updateSelectedElement();
   }
 
   @Override
@@ -207,5 +221,10 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW {
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
+  }
+
+  private void updateSelectedElement() {
+    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(elements.length != 0);
   }
 }

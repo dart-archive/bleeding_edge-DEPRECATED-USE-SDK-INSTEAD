@@ -50,6 +50,7 @@ public class AbstractDartSelectionActionGroup extends ActionGroup {
     for (IAction action : actions) {
       removeActionSelectionListeners(action);
     }
+    disposeActions();
     actions.clear();
     super.dispose();
   }
@@ -132,6 +133,18 @@ public class AbstractDartSelectionActionGroup extends ActionGroup {
     if (provider != null && action instanceof ISelectionChangedListener) {
       ISelectionChangedListener listener = (ISelectionChangedListener) action;
       provider.addSelectionChangedListener(listener);
+    }
+  }
+
+  /**
+   * Dispose previously registered actions.
+   */
+  private void disposeActions() {
+    for (IAction action : actions) {
+      if (action instanceof AbstractDartSelectionAction_NEW) {
+        AbstractDartSelectionAction_NEW dartAction = (AbstractDartSelectionAction_NEW) action;
+        dartAction.dispose();
+      }
     }
   }
 

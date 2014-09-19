@@ -15,6 +15,9 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -33,9 +36,22 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW {
+public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW implements
+    AnalysisServerNavigationListener {
   public InlineLocalAction_NEW(DartEditor editor) {
     super(editor);
+    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+  }
+
+  @Override
+  public void computedNavigation(String file, NavigationRegion[] regions) {
+    updateSelectedElement();
+  }
+
+  @Override
+  public void dispose() {
+    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    super.dispose();
   }
 
   @Override
@@ -58,17 +74,21 @@ public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW {
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     super.selectionChanged(event);
-    setEnabled(false);
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    if (elements.length != 0) {
-      Element element = elements[0];
-      setEnabled(element.getKind().equals(ElementKind.LOCAL_VARIABLE));
-    }
+    updateSelectedElement();
   }
 
   @Override
   protected void init() {
     setText(RefactoringMessages.InlineLocalAction_label);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
+  }
+
+  private void updateSelectedElement() {
+    setEnabled(false);
+    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    if (elements.length != 0) {
+      Element element = elements[0];
+      setEnabled(element.getKind().equals(ElementKind.LOCAL_VARIABLE));
+    }
   }
 }
