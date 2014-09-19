@@ -71,15 +71,37 @@ public class ServiceUtils_NEW {
   }
 
   /**
+   * Simplifies the given {@link Change}. If it is a {@link CompositeChange}, and it is zero
+   * children - returns {@code null}; if it has one child - attempts to simplify it; otherwise
+   * returns the current {@link Change}.
+   */
+  public static Change expandSingleChildCompositeChanges(Change change) {
+    while (change instanceof CompositeChange) {
+      CompositeChange compositeChange = (CompositeChange) change;
+      Change[] children = compositeChange.getChildren();
+      if (children.length == 0) {
+        return null;
+      } else if (children.length == 1) {
+        change = children[0];
+        compositeChange.remove(change);
+      } else {
+        break;
+      }
+    }
+    return change;
+  }
+
+  /**
    * @return the LTK change for the given Services {@link CompositeChange}.
    */
   public static CompositeChange toLTK(SourceChange sourceChange) {
-    CompositeChange ltkChange = new CompositeChange("Composite change");
-    if (sourceChange != null) {
-      for (SourceFileEdit fileEdit : sourceChange.getEdits()) {
-        Change textChange = toLTK(fileEdit);
-        ltkChange.add(textChange);
-      }
+    if (sourceChange == null) {
+      return null;
+    }
+    CompositeChange ltkChange = new CompositeChange(sourceChange.getMessage());
+    for (SourceFileEdit fileEdit : sourceChange.getEdits()) {
+      Change textChange = toLTK(fileEdit);
+      ltkChange.add(textChange);
     }
     return ltkChange;
   }
