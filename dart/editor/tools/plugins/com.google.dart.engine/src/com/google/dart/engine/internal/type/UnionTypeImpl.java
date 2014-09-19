@@ -197,6 +197,18 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     // [B <: {A, C}] always fails, leaving only [{A, C} <: B], which only passes
     // for the more unsound rule.
     //
+    // An alternative solution, which lets us keep the more sound version of
+    // union-type subtyping, is to instead redefine assignment compatibility [<=>] for
+    // union types. By instead defining
+    //
+    //   {T1, ..., Tn} <=> T
+    //
+    // iff
+    //
+    //   Ti <=> T
+    //
+    // for all [i], we reject both assignments above.
+    //
     // An interesting consequence: we usually think of [A <: B] meaning that
     // knowing an expression has type [A] is more informative than knowing it has type [B].
     // Of course, this intuition is already wrong once we have [dynamic], but it becomes
@@ -211,6 +223,9 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     }
     return false;
     // The less unsound version: all.
+    //
+    // For this version to make sense we also need to redefine assignment compatibility [<=>].
+    // See discussion above.
     /*
     for (Type t : types) {
       if (!((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
