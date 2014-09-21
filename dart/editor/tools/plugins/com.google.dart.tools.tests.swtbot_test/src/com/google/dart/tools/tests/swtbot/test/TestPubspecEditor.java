@@ -19,6 +19,7 @@ import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.PackagesBotView;
 import com.google.dart.tools.tests.swtbot.model.ProblemsBotView;
 import com.google.dart.tools.tests.swtbot.model.PubspecBotEditor;
+import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -62,8 +63,16 @@ public class TestPubspecEditor extends EditorTestHarness {
     SWTBotTreeItem item = files.select("sunflower", "pubspec.yaml");
     item.doubleClick();
     PubspecBotEditor pubspec = new PubspecBotEditor(bot);
+    pubspec.pubGet();
+    pubspec.pubBuild();
     PackagesBotView packages = pubspec.packagesView();
+    int count = packages.tableSize();
     packages.filter("unittest");
+    // Verify that filtering does something.
+    assertTrue(packages.tableSize() < count);
+    TextBotEditor yaml = pubspec.switchToYamlEditor();
+    // Fail if the text editor didn't appear or doesn't have expected content.
+    yaml.select("name:");
 
     files.deleteProject("sunflower");
   }

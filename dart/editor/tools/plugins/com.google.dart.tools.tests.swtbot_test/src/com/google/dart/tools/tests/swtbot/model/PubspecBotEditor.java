@@ -23,11 +23,15 @@ import org.eclipse.swtbot.forms.finder.widgets.SWTBotHyperlink;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
 import org.eclipse.swtbot.swt.finder.results.Result;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotLink;
 import org.hamcrest.Matcher;
 
 import java.util.List;
 
 public class PubspecBotEditor extends AbstractBotView {
+
+  private static final String SWITCH_TEXT = "Packages with advanced requirements e.g. transformers, currently \n"
+      + "require manual editing. <a href=\"" + "source" + "\">Switch to yaml editing mode</a>";
 
   public PubspecBotEditor(SWTWorkbenchBot bot) {
     super(bot);
@@ -53,6 +57,23 @@ public class PubspecBotEditor extends AbstractBotView {
     return new PackagesBotView(bot);
   }
 
+  public void pubBuild() {
+    clickActionLink("Run pub build");
+    waitMillis(20000); // No way to tell pub is finished
+  }
+
+  public void pubGet() {
+    clickActionLink("Run pub get");
+    waitMillis(10000); // No way to tell pub is finished
+  }
+
+  public TextBotEditor switchToYamlEditor() {
+    SWTFormsBot pubedit = editor();
+    SWTBotLink link = pubedit.link(SWITCH_TEXT);
+    link.click("Switch to yaml editing mode");
+    return new TextBotEditor(bot, "pubspec.yaml");
+  }
+
   /**
    * Get all the widgets that are accessible from the editor.
    * 
@@ -73,9 +94,9 @@ public class PubspecBotEditor extends AbstractBotView {
     return "pubspec.yaml";
   }
 
-  private void clickPackagesLink() {
+  private void clickActionLink(String linkText) {
     SWTFormsBot pubedit = editor();
-    SWTBotHyperlink link = pubedit.hyperlink("Show packages on pub.dartlang.org");
+    SWTBotHyperlink link = pubedit.hyperlink(linkText);
     link.setFocus();
     Rectangle bounds = getBounds(link.widget);
     int x = bounds.width / 2;
@@ -84,4 +105,7 @@ public class PubspecBotEditor extends AbstractBotView {
     notify(SWT.MouseUp, createMouseEvent(x, y, 1, 0, 1), link.widget);
   }
 
+  private void clickPackagesLink() {
+    clickActionLink("Show packages on pub.dartlang.org");
+  }
 }
