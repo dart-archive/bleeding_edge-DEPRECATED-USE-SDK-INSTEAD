@@ -646,7 +646,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
               return ScannerState.CODE.token;
             } else if (nextChar == '/') {
               if (scanner.peek(2) == '/') {
-                if (scanner.peek(3) == '/') {
+                if (scanner.peek(3) == '/' || scanner.peek(3) == '*') {
                   scannerState = ScannerState.SINGLE_LINE_COMMENT_PREFIX;
                 } else {
                   scannerState = ScannerState.SINGLE_LINE_DOC_COMMENT_PREFIX;
