@@ -1207,7 +1207,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(1, source.getReadCount());
     source.setGenerateExceptionOnRead(true);
     changeSource(source, "");
-    context.performAnalysisTask();
+    analyzeAll_assertFinished();
     assertNull(context.performAnalysisTask().getChangeNotices());
     assertEquals(2, source.getReadCount());
   }
