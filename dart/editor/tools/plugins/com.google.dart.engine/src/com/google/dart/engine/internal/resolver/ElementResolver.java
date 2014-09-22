@@ -480,7 +480,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          if (doesClassElementHaveProxy(staticType.getElement())) {
+          if (doesntHaveProxy(staticType.getElement())) {
             resolver.reportErrorForToken(
                 StaticTypeWarningCode.UNDEFINED_METHOD,
                 operator,
@@ -489,7 +489,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           }
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          if (doesClassElementHaveProxy(propagatedType.getElement())) {
+          if (doesntHaveProxy(propagatedType.getElement())) {
             resolver.reportErrorForToken(
                 HintCode.UNDEFINED_METHOD,
                 operator,
@@ -519,7 +519,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          if (doesClassElementHaveProxy(staticType.getElement())) {
+          if (doesntHaveProxy(staticType.getElement())) {
             resolver.reportErrorForToken(
                 StaticTypeWarningCode.UNDEFINED_OPERATOR,
                 operator,
@@ -528,7 +528,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           }
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          if (doesClassElementHaveProxy(propagatedType.getElement())) {
+          if (doesntHaveProxy(propagatedType.getElement())) {
             resolver.reportErrorForToken(
                 HintCode.UNDEFINED_OPERATOR,
                 operator,
@@ -1061,7 +1061,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        if (doesClassElementHaveProxy(resolver.getEnclosingClass())) {
+        if (doesntHaveProxy(resolver.getEnclosingClass())) {
           resolver.reportErrorForNode(
               proxyErrorCode,
               methodName,
@@ -1092,7 +1092,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        if (doesClassElementHaveProxy(targetType.getElement())) {
+        if (doesntHaveProxy(targetType.getElement())) {
           resolver.reportErrorForNode(
               proxyErrorCode,
               methodName,
@@ -1143,7 +1143,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     node.setPropagatedElement(propagatedMethod);
 
     if (shouldReportMissingMember(staticType, staticMethod)) {
-      if (doesClassElementHaveProxy(staticType.getElement())) {
+      if (doesntHaveProxy(staticType.getElement())) {
         resolver.reportErrorForToken(
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             node.getOperator(),
@@ -1152,7 +1152,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
         && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-      if (doesClassElementHaveProxy(propagatedType.getElement())) {
+      if (doesntHaveProxy(propagatedType.getElement())) {
         resolver.reportErrorForToken(
             HintCode.UNDEFINED_OPERATOR,
             node.getOperator(),
@@ -1259,7 +1259,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       node.setPropagatedElement(propagatedMethod);
 
       if (shouldReportMissingMember(staticType, staticMethod)) {
-        if (doesClassElementHaveProxy(staticType.getElement())) {
+        if (doesntHaveProxy(staticType.getElement())) {
           resolver.reportErrorForToken(
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
@@ -1268,7 +1268,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         }
       } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
           && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        if (doesClassElementHaveProxy(propagatedType.getElement())) {
+        if (doesntHaveProxy(propagatedType.getElement())) {
           resolver.reportErrorForToken(
               HintCode.UNDEFINED_OPERATOR,
               operator,
@@ -1368,7 +1368,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         Annotation annotation = (Annotation) node.getParent();
         resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
-        if (doesClassElementHaveProxy(resolver.getEnclosingClass())) {
+        if (doesntHaveProxy(resolver.getEnclosingClass())) {
           resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
         }
       }
@@ -1597,7 +1597,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
-        if (doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
+        if (doesntHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
             : propagatedType.getElement())) {
           resolver.reportErrorForNode(errorCode, node, methodName, shouldReportMissingMember_static
               ? staticType.getDisplayName() : propagatedType.getDisplayName());
@@ -1605,7 +1605,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       } else {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
-        if (doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
+        if (doesntHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
             : propagatedType.getElement())) {
           resolver.reportErrorForOffset(
               errorCode,
@@ -1690,19 +1690,15 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   }
 
   /**
-   * Return {@code true} iff the passed {@link Element} is a {@link ClassElement} and either has, or
-   * in that is or inherits proxy.
+   * Return {@code true} if the given element is not a proxy.
    * 
    * @param element the enclosing element
-   * @return {@code true} iff the passed {@link Element} is a {@link ClassElement} and either has,
-   *         or in that is or inherits proxy
+   * @return {@code false} iff the passed {@link Element} is a {@link ClassElement} that is a proxy
+   *         or inherits proxy
    * @see ClassElement#isOrInheritsProxy()
    */
-  private boolean doesClassElementHaveProxy(Element element) {
-    if (element instanceof ClassElement) {
-      return !((ClassElement) element).isOrInheritsProxy();
-    }
-    return true;
+  private boolean doesntHaveProxy(Element element) {
+    return !(element instanceof ClassElement && ((ClassElement) element).isOrInheritsProxy());
   }
 
   /**
@@ -2846,112 +2842,63 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
 
     boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticElement);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
-        ? shouldReportMissingMember(propagatedType, propagatedElement) : false;
+        && shouldReportMissingMember(propagatedType, propagatedElement) &&
+        // If we are about to generate the hint (propagated version of this warning), then check
+        // that the member is not in a subtype of the propagated type.
+        !memberFoundInSubclass(propagatedType.getElement(), propertyName.getName(), false, true);
 
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    if (shouldReportMissingMember_propagated) {
-      if (memberFoundInSubclass(propagatedType.getElement(), propertyName.getName(), false, true)) {
-        shouldReportMissingMember_propagated = false;
-      }
+    // TODO(collinsn): add support for errors on union types by extending
+    // [lookupGetter] and [lookupSetter] in analogy with the earlier [lookupMethod] extensions.
+    if (propagatedType instanceof UnionType) {
+      shouldReportMissingMember_propagated = false;
     }
 
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-      if (staticType.isVoid()) {
+      Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
+          ? staticType.getElement() : propagatedType.getElement();
+      boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
+      String displayName = staticOrPropagatedEnclosingElt != null
+          ? staticOrPropagatedEnclosingElt.getDisplayName() : propagatedType != null
+              ? propagatedType.getDisplayName() : staticType.getDisplayName();
+
+      // Special getter cases.
+      if (propertyName.inGetterContext()) {
+        if (!isStaticProperty && staticOrPropagatedEnclosingElt instanceof ClassElement) {
+          ClassElement classElement = (ClassElement) staticOrPropagatedEnclosingElt;
+          InterfaceType targetType = classElement.getType();
+          if (targetType != null && targetType.isDartCoreFunction()
+              && propertyName.getName().equals(FunctionElement.CALL_METHOD_NAME)) {
+            // TODO(brianwilkerson) Can we ever resolve the function being invoked?
+            //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+            return;
+          } else if (classElement.isEnum() && propertyName.getName().equals("_name")) {
+            resolver.reportErrorForNode(
+                CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
+                propertyName,
+                propertyName.getName());
+            return;
+          }
+        }
+      }
+
+      if (staticType.isVoid() || doesntHaveProxy(staticOrPropagatedEnclosingElt)) {
         if (propertyName.inSetterContext()) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-          resolver.reportErrorForNode(
-              errorCode,
-              propertyName,
-              propertyName.getName(),
-              staticType.getDisplayName());
+          ErrorCode staticErrorCode = isStaticProperty && !staticType.isVoid()
+              ? StaticWarningCode.UNDEFINED_SETTER : StaticTypeWarningCode.UNDEFINED_SETTER;
+          ErrorCode errorCode = shouldReportMissingMember_static ? staticErrorCode
+              : HintCode.UNDEFINED_SETTER;
+          resolver.reportErrorForNode(errorCode, propertyName, propertyName.getName(), displayName);
         } else if (propertyName.inGetterContext()) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-          resolver.reportErrorForNode(
-              errorCode,
-              propertyName,
-              propertyName.getName(),
-              staticType.getDisplayName());
+          ErrorCode staticErrorCode = isStaticProperty && !staticType.isVoid()
+              ? StaticWarningCode.UNDEFINED_GETTER : StaticTypeWarningCode.UNDEFINED_GETTER;
+          ErrorCode errorCode = shouldReportMissingMember_static ? staticErrorCode
+              : HintCode.UNDEFINED_GETTER;
+          resolver.reportErrorForNode(errorCode, propertyName, propertyName.getName(), displayName);
         } else {
           resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,
               propertyName.getName());
-        }
-      }
-      Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
-          ? staticType.getElement() : propagatedType.getElement();
-      if (staticOrPropagatedEnclosingElt != null) {
-        boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
-        if (propertyName.inSetterContext()) {
-          if (isStaticProperty) {
-            ErrorCode errorCode = shouldReportMissingMember_static
-                ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              resolver.reportErrorForNode(
-                  errorCode,
-                  propertyName,
-                  propertyName.getName(),
-                  staticOrPropagatedEnclosingElt.getDisplayName());
-            }
-          } else {
-            ErrorCode errorCode = shouldReportMissingMember_static
-                ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              resolver.reportErrorForNode(
-                  errorCode,
-                  propertyName,
-                  propertyName.getName(),
-                  staticOrPropagatedEnclosingElt.getDisplayName());
-            }
-          }
-        } else if (propertyName.inGetterContext()) {
-          if (isStaticProperty) {
-            ErrorCode errorCode = shouldReportMissingMember_static
-                ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              resolver.reportErrorForNode(
-                  errorCode,
-                  propertyName,
-                  propertyName.getName(),
-                  staticOrPropagatedEnclosingElt.getDisplayName());
-            }
-          } else {
-            if (staticOrPropagatedEnclosingElt instanceof ClassElement) {
-              ClassElement classElement = (ClassElement) staticOrPropagatedEnclosingElt;
-              InterfaceType targetType = classElement.getType();
-              if (targetType != null && targetType.isDartCoreFunction()
-                  && propertyName.getName().equals(FunctionElement.CALL_METHOD_NAME)) {
-                // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-                //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
-                return;
-              } else if (classElement.isEnum() && propertyName.getName().equals("_name")) {
-                resolver.reportErrorForNode(
-                    CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
-                    propertyName,
-                    propertyName.getName());
-                return;
-              }
-            }
-            ErrorCode errorCode = shouldReportMissingMember_static
-                ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              resolver.reportErrorForNode(
-                  errorCode,
-                  propertyName,
-                  propertyName.getName(),
-                  staticOrPropagatedEnclosingElt.getDisplayName());
-            }
-          }
-        } else {
-          if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-            resolver.reportErrorForNode(
-                StaticWarningCode.UNDEFINED_IDENTIFIER,
-                propertyName,
-                propertyName.getName());
-          }
         }
       }
     }
