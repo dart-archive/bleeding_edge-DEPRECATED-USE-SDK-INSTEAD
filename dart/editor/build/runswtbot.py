@@ -11,7 +11,6 @@ import os
 import subprocess
 from os.path import join, exists
 from os import getenv
-from xvfbwrapper import Xvfb
 
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
@@ -92,6 +91,7 @@ def ExecTestRunner(tempDir):
       ws = 'cocoa'
       cmd = [java, '-XstartOnFirstThread']
     elif os is 'linux':
+      from xvfbwrapper import Xvfb
       ws = 'gtk'
       vdisplay = Xvfb()
       vdisplay.start()
