@@ -22,7 +22,7 @@ import com.google.dart.engine.services.refactoring.ConvertMethodToGetterRefactor
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
+import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -42,7 +42,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} for "Convert Method To Getter" refactoring.
  */
-public class ConvertMethodToGetterAction extends AbstractRefactoringAction_OLD {
+public class ConvertMethodToGetterAction_OLD extends AbstractRefactoringAction_OLD {
   /**
    * @return the {@link ConvertMethodToGetterRefactoring} to process given {@link Element}, may be
    *         {@code null} if {@link Element} cannot be processed.
@@ -60,11 +60,11 @@ public class ConvertMethodToGetterAction extends AbstractRefactoringAction_OLD {
         executableElement);
   }
 
-  public ConvertMethodToGetterAction(DartEditor editor) {
+  public ConvertMethodToGetterAction_OLD(DartEditor editor) {
     super(editor);
   }
 
-  public ConvertMethodToGetterAction(IWorkbenchSite site) {
+  public ConvertMethodToGetterAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 
@@ -122,7 +122,7 @@ public class ConvertMethodToGetterAction extends AbstractRefactoringAction_OLD {
       ServiceConvertMethodToGetterRefactoring ltkRefactoring = new ServiceConvertMethodToGetterRefactoring(
           serviceRefactoring);
       new RefactoringStarter().activate(
-          new ConvertMethodToGetterWizard(ltkRefactoring),
+          new ConvertMethodToGetterWizard_OLD(ltkRefactoring),
           getShell(),
           RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
           RefactoringSaveHelper.SAVE_NOTHING);

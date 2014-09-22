@@ -13,18 +13,18 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
+import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction_OLD;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 /**
- * A quick assist proposal that runs {@link ConvertMethodToGetterAction}.
+ * A quick assist proposal that runs {@link ConvertMethodToGetterAction_OLD}.
  * 
  * @coverage dart.editor.ui.correction
  */
 public class ConvertMethodToGetterRefactoringProposal extends AbstractSelectionActionProposal {
-  public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction action,
+  public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction_OLD action,
       DartSelection selection) {
     super(action, CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name, selection);
   }

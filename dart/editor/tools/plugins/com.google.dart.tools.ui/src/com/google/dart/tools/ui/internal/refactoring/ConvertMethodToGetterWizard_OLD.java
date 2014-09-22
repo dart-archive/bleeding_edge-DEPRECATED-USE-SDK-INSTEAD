@@ -21,11 +21,11 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ConvertMethodToGetterWizard extends RefactoringWizard {
+public class ConvertMethodToGetterWizard_OLD extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ConvertMethodToGetterWizard"; //$NON-NLS-1$
 
-  public ConvertMethodToGetterWizard(Refactoring ref) {
+  public ConvertMethodToGetterWizard_OLD(Refactoring ref) {
     super(ref, DIALOG_BASED_USER_INTERFACE);
     setDefaultPageTitle(RefactoringMessages.ConvertMethodToGetterWizard_page_title);
     setDialogSettings(DartToolsPlugin.getDefault().getDialogSettings());
