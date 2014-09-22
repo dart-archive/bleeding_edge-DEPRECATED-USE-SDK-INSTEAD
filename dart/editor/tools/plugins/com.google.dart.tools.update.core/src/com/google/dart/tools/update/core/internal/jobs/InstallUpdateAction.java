@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -51,6 +52,45 @@ import java.util.List;
  * An action that installs an available Dart Editor update.
  */
 public class InstallUpdateAction extends Action {
+
+  /**
+   * Internal representation of an executable file that needs to be renamed before update and
+   * cleaned up after update.
+   */
+  private static class Executable {
+    private final String name;
+    private final File executable;
+    private final File oldExecutable;
+
+    Executable(String name, File executable) {
+      this.name = name;
+      this.executable = executable;
+      this.oldExecutable = new File(executable.getAbsolutePath() + ".old");
+    }
+
+    boolean deleteOld() {
+      return !oldExecutable.exists() || oldExecutable.delete();
+    }
+
+    String getExistingProcessMessage() {
+      return "Update complete, but existing " + name + " process still running.\n\n"
+          + oldExecutable.getAbsolutePath();
+    }
+
+    String getRenameFailedMessage() {
+      return "Could not update " + name + ". Please terminate any running\n" + name
+          + " processes, check the file permissions, and try again.\n\n"
+          + executable.getAbsolutePath() + "\n" + oldExecutable.getAbsolutePath();
+    }
+
+    boolean rename() {
+      return deleteOld() && executable.renameTo(oldExecutable);
+    }
+
+    void restore() {
+      oldExecutable.renameTo(executable);
+    }
+  }
 
   private static class RetryUpdateDialog extends MessageDialog {
 
@@ -146,8 +186,38 @@ public class InstallUpdateAction extends Action {
       }
     }
 
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
+    Executable[] executables = new Executable[] {
+        new Executable("Dart VM", sdk.getVmExecutable()),
+        new Executable("Dartium", sdk.getDartiumExecutable())};
+    int index = 0;
+    while (index < executables.length) {
+      if (!executables[index].rename()) {
+        Executable failedRename = executables[index];
+        --index;
+        while (index >= 0) {
+          executables[index].restore();
+          --index;
+        }
+        MessageDialog.openError(
+            getShell(),
+            UpdateJobMessages.InstallUpdateAction_errorTitle,
+            failedRename.getRenameFailedMessage());
+        return;
+      }
+      ++index;
+    }
+
     try {
       if (applyUpdate()) {
+        for (Executable executable : executables) {
+          if (!executable.deleteOld()) {
+            MessageDialog.openError(
+                getShell(),
+                UpdateJobMessages.InstallUpdateAction_errorTitle,
+                executable.getExistingProcessMessage());
+          }
+        }
         restart();
       }
     } catch (Throwable th) {
