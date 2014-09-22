@@ -2410,13 +2410,13 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="PAGE_UP">
-      </key>
+      </key>-->
       <key
             commandId="org.eclipse.ui.edit.text.cut.line.to.end"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M2+M3+DEL">
-      </key>-->
+      </key>
       <key
             commandId="org.eclipse.ui.navigate.nextTab"
             contextId="org.eclipse.ui.textEditorScope"
