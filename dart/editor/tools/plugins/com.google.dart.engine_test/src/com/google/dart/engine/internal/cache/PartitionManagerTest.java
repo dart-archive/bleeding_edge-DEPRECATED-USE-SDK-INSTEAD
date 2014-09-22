@@ -18,6 +18,15 @@ import com.google.dart.engine.internal.sdk.MockDartSdk;
 import com.google.dart.engine.sdk.DartSdk;
 
 public class PartitionManagerTest extends EngineTestCase {
+  public void test_clearCache() {
+    PartitionManager manager = new PartitionManager();
+    DartSdk sdk = new MockDartSdk();
+    SdkCachePartition oldPartition = manager.forSdk(sdk);
+    manager.clearCache();
+    SdkCachePartition newPartition = manager.forSdk(sdk);
+    assertNotSame(oldPartition, newPartition);
+  }
+
   public void test_creation() {
     assertNotNull(new PartitionManager());
   }

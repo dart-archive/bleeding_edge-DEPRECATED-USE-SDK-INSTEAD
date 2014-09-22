@@ -102,6 +102,14 @@ public final class AnalysisEngine {
   }
 
   /**
+   * Clear any caches holding on to analysis results so that a full re-analysis will be performed
+   * the next time an analysis context is created.
+   */
+  public void clearCaches() {
+    partitionManager.clearCache();
+  }
+
+  /**
    * Create a new context in which analysis can be performed.
    * 
    * @return the analysis context that was created

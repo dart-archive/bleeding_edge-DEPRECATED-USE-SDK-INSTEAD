@@ -41,6 +41,13 @@ public class PartitionManager {
   }
 
   /**
+   * Clear any cached data being maintained by this manager.
+   */
+  public void clearCache() {
+    sdkPartitions.clear();
+  }
+
+  /**
    * Return the partition being used for the given SDK, creating the partition if necessary.
    * 
    * @param sdk the SDK for which a partition is being requested
