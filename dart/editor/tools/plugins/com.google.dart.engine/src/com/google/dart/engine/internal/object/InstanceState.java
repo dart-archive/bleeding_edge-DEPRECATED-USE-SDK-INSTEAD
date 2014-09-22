@@ -30,9 +30,10 @@ public abstract class InstanceState {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   public InstanceState add(InstanceState rightOperand) throws EvaluationException {
-    if (this instanceof StringState || rightOperand instanceof StringState) {
-      return concatenate(rightOperand);
-    }
+    // TODO(brianwilkerson) Uncomment the code below when the new constant support can be added.
+//    if (this instanceof StringState || rightOperand instanceof StringState) {
+//      return concatenate(rightOperand);
+//    }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);

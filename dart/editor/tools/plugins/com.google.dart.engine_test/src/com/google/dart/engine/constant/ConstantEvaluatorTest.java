@@ -22,6 +22,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 
 public class ConstantEvaluatorTest extends ResolverTestCase {
   public void fail_constructor() throws Exception {
@@ -73,6 +74,10 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertEquals(null, value);
   }
 
+  public void fail_plus_string_string() throws Exception {
+    assertValue("ab", "'a' + 'b'");
+  }
+
   public void fail_prefixedIdentifier_invalid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
@@ -113,6 +118,14 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertTrue(result.isValid());
     DartObject value = result.getValue();
     assertEquals(null, value);
+  }
+
+  public void fail_stringLength_complex() throws Exception {
+    assertValue(6L, "('qwe' + 'rty').length");
+  }
+
+  public void fail_stringLength_simple() throws Exception {
+    assertValue(6L, "'Dvorak'.length");
   }
 
   public void test_bitAnd_int_int() throws Exception {
@@ -313,10 +326,6 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertValue(5L, "2 + 3");
   }
 
-  public void test_plus_string_string() throws Exception {
-    assertValue("ab", "'a' + 'b'");
-  }
-
   public void test_remainder_double_double() throws Exception {
     assertValue(3.2 % 2.3, "3.2 % 2.3");
   }
@@ -327,14 +336,6 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
 
   public void test_rightShift() throws Exception {
     assertValue(16L, "64 >> 2");
-  }
-
-  public void test_stringLength_complex() throws Exception {
-    assertValue(6L, "('qwe' + 'rty').length");
-  }
-
-  public void test_stringLength_simple() throws Exception {
-    assertValue(6L, "'Dvorak'.length");
   }
 
   public void test_times_double_double() throws Exception {
@@ -379,7 +380,10 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   private void assertValue(String expectedValue, String contents) throws Exception {
     EvaluationResult result = getExpressionValue(contents);
     DartObject value = result.getValue();
-    assertEquals("String", value.getType().getName());
+    assertNotNull(value);
+    InterfaceType type = value.getType();
+    assertNotNull(type);
+    assertEquals("String", type.getName());
     assertEquals(expectedValue, value.getStringValue());
   }
 

@@ -394,11 +394,12 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
-    Element element = node.getStaticElement();
-    if (isStringLength(element)) {
-      EvaluationResultImpl target = node.getPrefix().accept(this);
-      return target.stringLength(typeProvider, node);
-    }
+    // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
+//    Element element = node.getStaticElement();
+//    if (isStringLength(element)) {
+//      EvaluationResultImpl target = node.getPrefix().accept(this);
+//      return target.stringLength(typeProvider, node);
+//    }
     SimpleIdentifier prefixNode = node.getPrefix();
     Element prefixElement = prefixNode.getStaticElement();
     if (!(prefixElement instanceof PrefixElement)) {
@@ -433,10 +434,11 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   @Override
   public EvaluationResultImpl visitPropertyAccess(PropertyAccess node) {
     Element element = node.getPropertyName().getStaticElement();
-    if (isStringLength(element)) {
-      EvaluationResultImpl target = node.getRealTarget().accept(this);
-      return target.stringLength(typeProvider, node);
-    }
+    // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
+//    if (isStringLength(element)) {
+//      EvaluationResultImpl target = node.getRealTarget().accept(this);
+//      return target.stringLength(typeProvider, node);
+//    }
     return getConstantValue(node, element);
   }
 

@@ -25,6 +25,26 @@ import java.util.Map;
 public class DartObjectImplTest extends EngineTestCase {
   TypeProvider typeProvider = new TestTypeProvider();
 
+  public void fail_add_knownString_knownString() throws EvaluationException {
+    fail("New constant semantics are not yet enabled");
+    assertAdd(stringValue("ab"), stringValue("a"), stringValue("b"));
+  }
+
+  public void fail_add_knownString_unknownString() throws EvaluationException {
+    fail("New constant semantics are not yet enabled");
+    assertAdd(stringValue(null), stringValue("a"), stringValue(null));
+  }
+
+  public void fail_add_unknownString_knownString() throws EvaluationException {
+    fail("New constant semantics are not yet enabled");
+    assertAdd(stringValue(null), stringValue(null), stringValue("b"));
+  }
+
+  public void fail_add_unknownString_unknownString() throws EvaluationException {
+    fail("New constant semantics are not yet enabled");
+    assertAdd(stringValue(null), stringValue(null), stringValue(null));
+  }
+
   public void test_add_knownDouble_knownDouble() throws EvaluationException {
     assertAdd(doubleValue(3.0), doubleValue(1.0), doubleValue(2.0));
   }
@@ -61,14 +81,6 @@ public class DartObjectImplTest extends EngineTestCase {
     assertAdd(null, stringValue("1"), intValue(2));
   }
 
-  public void test_add_knownString_knownString() throws EvaluationException {
-    assertAdd(stringValue("ab"), stringValue("a"), stringValue("b"));
-  }
-
-  public void test_add_knownString_unknownString() throws EvaluationException {
-    assertAdd(stringValue(null), stringValue("a"), stringValue(null));
-  }
-
   public void test_add_unknownDouble_knownDouble() throws EvaluationException {
     assertAdd(doubleValue(null), doubleValue(null), doubleValue(2.0));
   }
@@ -83,14 +95,6 @@ public class DartObjectImplTest extends EngineTestCase {
 
   public void test_add_unknownInt_knownInt() throws EvaluationException {
     assertAdd(intValue(null), intValue(null), intValue(2));
-  }
-
-  public void test_add_unknownString_knownString() throws EvaluationException {
-    assertAdd(stringValue(null), stringValue(null), stringValue("b"));
-  }
-
-  public void test_add_unknownString_unknownString() throws EvaluationException {
-    assertAdd(stringValue(null), stringValue(null), stringValue(null));
   }
 
   public void test_bitAnd_knownInt_knownInt() throws EvaluationException {
