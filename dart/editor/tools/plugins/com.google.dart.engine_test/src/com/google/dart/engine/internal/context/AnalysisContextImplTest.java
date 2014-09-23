@@ -1206,9 +1206,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     analyzeAll_assertFinished();
     assertEquals(1, source.getReadCount());
     source.setGenerateExceptionOnRead(true);
+    long oldTimestamp = context.getModificationStamp(source);
     changeSource(source, "");
+    long newTimestamp = context.getModificationStamp(source);
+    // Assert that the change was noticed by the context
+    assertTrue(oldTimestamp != newTimestamp);
     analyzeAll_assertFinished();
-    assertNull(context.performAnalysisTask().getChangeNotices());
     assertEquals(2, source.getReadCount());
   }
 
