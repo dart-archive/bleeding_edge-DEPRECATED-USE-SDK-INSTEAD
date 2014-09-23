@@ -14,16 +14,9 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.generated.types.ExecutableFile;
-import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Instances of the class {@code NotificationExecutionLaunchDataProcessor} process
@@ -44,29 +37,11 @@ public class NotificationExecutionLaunchDataProcessor extends NotificationProces
   @Override
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
-    JsonArray executables = paramsObject.get("executables").getAsJsonArray();
-    JsonObject dartToHtml = paramsObject.get("dartToHtml").getAsJsonObject();
-    JsonObject htmlToDart = paramsObject.get("htmlToDart").getAsJsonObject();
-    getListener().computedLaunchData(
-        ExecutableFile.fromJsonArray(executables),
-        toMap(dartToHtml),
-        toMap(htmlToDart));
-  }
-
-  /**
-   * Convert the given JSON object to a map of strings to lists of strings.
-   * 
-   * @param object the object to be converted
-   * @return the result of converting the given JSON object to a map of strings to lists of strings
-   */
-  private Map<String, List<String>> toMap(JsonObject object) {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
-    for (Entry<String, JsonElement> entry : object.entrySet()) {
-      JsonElement value = entry.getValue();
-      if (value instanceof JsonArray) {
-        map.put(entry.getKey(), JsonUtilities.decodeStringList((JsonArray) value));
-      }
-    }
-    return map;
+    String file = paramsObject.get("file").getAsString();
+    JsonElement jsonKind = paramsObject.get("kind");
+    String kind = jsonKind == null ? null : jsonKind.getAsString();
+    JsonElement jsonFiles = paramsObject.get("referencedFiles");
+    JsonArray referencedFiles = jsonFiles == null ? null : jsonFiles.getAsJsonArray();
+    getListener().computedLaunchData(file, kind, constructStringArray(referencedFiles));
   }
 }

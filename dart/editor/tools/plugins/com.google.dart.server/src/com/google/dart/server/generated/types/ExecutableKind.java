@@ -27,6 +27,8 @@ public class ExecutableKind {
 
   public static final String EITHER = "EITHER";
 
+  public static final String NOT_EXECUTABLE = "NOT_EXECUTABLE";
+
   public static final String SERVER = "SERVER";
 
 }

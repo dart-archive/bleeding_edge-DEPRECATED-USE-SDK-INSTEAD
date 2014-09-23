@@ -16,7 +16,6 @@ package com.google.dart.server;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
-import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -25,7 +24,6 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
@@ -74,14 +72,12 @@ public interface AnalysisServerListener {
   /**
    * New launch data has been computed.
    * 
-   * @param executables a list of the files that are executable
-   * @param dartToHtml a mapping from the paths of Dart files that are referenced by HTML files to a
-   *          list of the HTML files that reference the Dart files
-   * @param htmlToDart a mapping from the paths of HTML files that reference Dart files to a list of
-   *          the Dart files they reference
+   * @param file the file for which launch data is being provided
+   * @param kind the kind of the executable file, or {@code null} for non-Dart files
+   * @param referencedFiles a list of the Dart files that are referenced by the file, or
+   *          {@code null} for non-HTML files
    */
-  public void computedLaunchData(List<ExecutableFile> executables,
-      Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart);
+  public void computedLaunchData(String file, String kind, String[] referencedFiles);
 
   /**
    * A new collection of navigation regions has been computed for the given file. Each navigation

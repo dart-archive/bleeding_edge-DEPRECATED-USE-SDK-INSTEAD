@@ -19,7 +19,6 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
-import com.google.dart.server.generated.types.ExecutableFile;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -38,7 +37,6 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Implementation of {@link AnalysisServerListener} for the Eclipse workspace.
@@ -77,8 +75,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedLaunchData(List<ExecutableFile> executables,
-      Map<String, List<String>> dartToHtml, Map<String, List<String>> htmlToDart) {
+  public void computedLaunchData(String file, String kind, String[] referencedFiles) {
     // TODO(brianwilkerson) not yet implemented
   }
 
