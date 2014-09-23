@@ -58,6 +58,12 @@ public class InstallUpdateAction extends Action {
    * cleaned up after update.
    */
   private static class Executable {
+    static void add(List<Executable> list, String name, File executable) {
+      if (executable != null) {
+        list.add(new Executable(name, executable));
+      }
+    }
+
     private final String name;
     private final File executable;
     private final File oldExecutable;
@@ -84,7 +90,7 @@ public class InstallUpdateAction extends Action {
     }
 
     boolean rename() {
-      return deleteOld() && executable.renameTo(oldExecutable);
+      return !executable.exists() || (deleteOld() && executable.renameTo(oldExecutable));
     }
 
     void restore() {
@@ -187,16 +193,16 @@ public class InstallUpdateAction extends Action {
     }
 
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
-    Executable[] executables = new Executable[] {
-        new Executable("Dart VM", sdk.getVmExecutable()),
-        new Executable("Dartium", sdk.getDartiumExecutable())};
+    List<Executable> executables = new ArrayList<Executable>();
+    Executable.add(executables, "Dart VM", sdk.getVmExecutable());
+    Executable.add(executables, "Dartium", sdk.getDartiumExecutable());
     int index = 0;
-    while (index < executables.length) {
-      if (!executables[index].rename()) {
-        Executable failedRename = executables[index];
+    while (index < executables.size()) {
+      if (!executables.get(index).rename()) {
+        Executable failedRename = executables.get(index);
         --index;
         while (index >= 0) {
-          executables[index].restore();
+          executables.get(index).restore();
           --index;
         }
         MessageDialog.openError(
