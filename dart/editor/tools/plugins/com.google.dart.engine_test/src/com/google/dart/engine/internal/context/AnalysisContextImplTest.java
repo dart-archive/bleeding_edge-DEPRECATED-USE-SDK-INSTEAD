@@ -1202,15 +1202,15 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_performAnalysisTask_IOException() throws Exception {
     TestSource source = addSourceWithException("/test.dart", "library test;");
+    long oldTimestamp = context.getModificationStamp(source);
     source.setGenerateExceptionOnRead(false);
     analyzeAll_assertFinished();
     assertEquals(1, source.getReadCount());
     source.setGenerateExceptionOnRead(true);
-    long oldTimestamp = context.getModificationStamp(source);
-    changeSource(source, "");
-    long newTimestamp = context.getModificationStamp(source);
-    // Assert that the change was noticed by the context
-    assertTrue(oldTimestamp != newTimestamp);
+    do {
+      changeSource(source, "");
+      // Ensure that the timestamp differs so that analysis engine notices the change
+    } while (oldTimestamp == context.getModificationStamp(source));
     analyzeAll_assertFinished();
     assertEquals(2, source.getReadCount());
   }
