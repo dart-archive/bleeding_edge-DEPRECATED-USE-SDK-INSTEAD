@@ -22,8 +22,6 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
@@ -381,17 +379,11 @@ public class AnalysisWorker {
 
       // Exit if no more analysis to be performed (changes == null)
       AnalysisResult result;
-      InstrumentationBuilder builder = Instrumentation.builder("AnalysisWorker.performAnalysis");
       try {
         result = context.performAnalysisTask();
-        builder.metric("getTime", result.getGetTime());
-        builder.metric("taskClassName", result.getTaskClassName());
-        builder.metric("performTime", result.getPerformTime());
       } catch (RuntimeException e) {
         DartCore.logError("Analysis Failed: " + contextManager, e);
         break;
-      } finally {
-        builder.log();
       }
       ChangeNotice[] changes = result.getChangeNotices();
       if (changes == null) {

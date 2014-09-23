@@ -177,7 +177,7 @@ public class Parser {
       currentToken = token;
       return parseCompilationUnit();
     } finally {
-      instrumentation.log(2); //Record if takes over 1ms
+      instrumentation.log(2); //Record if >= 2ms
     }
   }
 
@@ -195,7 +195,7 @@ public class Parser {
       currentToken = token;
       return parseDirectives();
     } finally {
-      instrumentation.log(2); //Record if takes over 1ms
+      instrumentation.log(2); //Record if >= 2ms
     }
   }
 
@@ -212,7 +212,7 @@ public class Parser {
       currentToken = token;
       return parseExpression();
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Record if >= 2ms
     }
   }
 
@@ -229,7 +229,7 @@ public class Parser {
       currentToken = token;
       return parseStatement();
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Record if >= 2ms
     }
   }
 
@@ -246,7 +246,7 @@ public class Parser {
       currentToken = token;
       return parseStatementList();
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Record if >= 2ms
     }
   }
 
@@ -374,7 +374,7 @@ public class Parser {
         arguments.add(argument);
         if (foundNamedArgument) {
           boolean blankArgument = argument instanceof SimpleIdentifier
-                                  && ((SimpleIdentifier) argument).getName().isEmpty();
+              && ((SimpleIdentifier) argument).getName().isEmpty();
           if (!generatedError && !(argument instanceof NamedExpression && !blankArgument)) {
             // Report the error, once, but allow the arguments to be in any order in the AST.
             reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);

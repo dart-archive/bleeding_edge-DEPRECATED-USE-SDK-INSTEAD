@@ -760,7 +760,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       }
       return result;
     } finally {
-      instrumentation.log(2); //Log if over 1ms
+      instrumentation.log(15); //Log if >= 15ms
     }
   }
 

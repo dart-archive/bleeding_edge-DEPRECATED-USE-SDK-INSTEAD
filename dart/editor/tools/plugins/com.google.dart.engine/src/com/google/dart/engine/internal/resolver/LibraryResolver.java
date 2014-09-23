@@ -326,7 +326,7 @@ public class LibraryResolver {
 
       return targetLibrary.getLibraryElement();
     } finally {
-      instrumentation.log();
+      instrumentation.log(15); //Log if >= than 15ms
     }
   }
 
