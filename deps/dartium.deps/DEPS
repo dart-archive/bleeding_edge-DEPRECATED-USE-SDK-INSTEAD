@@ -7,14 +7,17 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 # Now we need to override some settings and add some new ones.
 
 vars.update({
+  "googlecode_url": "http://%s.googlecode.com/svn",
+  "webkit_revision": "181352",
+
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/2062_2/src",
-  "dartium_chromium_revision": "292075",
+  "dartium_chromium_revision": "292100",
   "chromium_base_revision": "291710",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/2062_2",
-  "dartium_webkit_revision": "182467",
+  "dartium_webkit_revision": "182520",
 
   "co19_rev": "@761",
   "fake_async_rev": "@38614",
@@ -28,14 +31,6 @@ def massage_deps(deps):
       deps[key] = Var("chromium_url") + value
       continue
 
-    if value.startswith(Var("webkit_trunk")):
-      path, revision = value.split('@') # and svn revision.
-      path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
-               '@' + Var("dartium_webkit_revision"))
-      deps[key] = value
-      continue
-
 massage_deps(deps)
 for os_deps in deps_os.values():
   massage_deps(os_deps)
@@ -44,6 +39,14 @@ deps.update({
   "src":
     Var("dartium_base") + Var("dartium_chromium_branch") + "@" +
         Var("dartium_chromium_revision"),
+
+  "src/third_party/WebKit" : 
+    Var("dartium_base") + Var("dartium_webkit_branch") + "@" +
+        Var("dartium_webkit_revision"),
+
+  "src/third_party/WebKit/public" : 
+    Var("dartium_base") + Var("dartium_webkit_branch") + "/public@" +
+        Var("dartium_webkit_revision"),
 
   "src/dart":
     Var("dart_branch") + "/dart",
