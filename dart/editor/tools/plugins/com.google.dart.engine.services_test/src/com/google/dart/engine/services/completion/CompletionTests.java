@@ -1818,6 +1818,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCompletion_ifStmt_unionType() throws Exception {
+    enableUnionTypes(false);
     test(src(//
         "class A { a() => null; }",
         "class B { b() => null; }",
