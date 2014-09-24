@@ -512,6 +512,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_notEnoughRequiredArguments_mergedUnionTypeMethod() throws Exception {
+    enableUnionTypes(false);
     Source source = addSource(createSource(//
         "class A {",
         "  int m(int x) => 0;",

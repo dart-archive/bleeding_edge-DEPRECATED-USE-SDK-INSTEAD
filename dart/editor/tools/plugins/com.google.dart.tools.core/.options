@@ -41,6 +41,8 @@ com.google.dart.tools.core/experimental/analysisServer = false
 com.google.dart.tools.core/experimental/analysisServer/debug = false
 com.google.dart.tools.core/experimental/analysisServer/logFile =
 com.google.dart.tools.core/experimental/noPubPackages = false
+com.google.dart.tools.core/experimental/enableUnionTypes = false
+com.google.dart.tools.core/experimental/strictUnionTypes = false
 
 com.google.dart.tools.core/experimental/pubInWinXP = false
 

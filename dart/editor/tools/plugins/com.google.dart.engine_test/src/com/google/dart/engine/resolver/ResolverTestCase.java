@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -166,6 +167,16 @@ public class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
+  /**
+   * Enable optionally strict union types for the current test.
+   * 
+   * @param strictUnionTypes {@code true} if union types should be strict.
+   */
+  protected void enableUnionTypes(boolean strictUnionTypes) {
+    AnalysisEngine.getInstance().setEnableUnionTypes(true);
+    AnalysisEngine.getInstance().setStrictUnionTypes(strictUnionTypes);
+  }
+
   protected Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
     return findTopLevelDeclaration(compilationUnit, name).getInitializer();
   }
@@ -203,6 +214,10 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected void reset() {
     analysisContext = AnalysisContextFactory.contextWithCore();
+    // These defaults are duplicated for the editor in
+    // editor/tools/plugins/com.google.dart.tools.core/.options .
+    AnalysisEngine.getInstance().setEnableUnionTypes(false);
+    AnalysisEngine.getInstance().setStrictUnionTypes(false);
   }
 
   /**

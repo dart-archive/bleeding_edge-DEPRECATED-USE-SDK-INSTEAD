@@ -47,6 +47,7 @@ import junit.framework.AssertionFailedError;
 public class TypePropagationTest extends ResolverTestCase {
   public void fail_issue20904BuggyTypePromotionAtIfJoin_2() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=20904
+    enableUnionTypes(false);
     String code = createSource(//
         "f(var message) {",
         "  if (message is Function) {",
@@ -1181,6 +1182,7 @@ public class TypePropagationTest extends ResolverTestCase {
     // This is tricky: the [break] jumps back above the [if], making
     // it into a loop of sorts. The [if] type-propagation code assumes
     // that [break] does not introduce a loop.
+    enableUnionTypes(false);
     String code = createSource(
         "f() {",
         "  var x = 0;",

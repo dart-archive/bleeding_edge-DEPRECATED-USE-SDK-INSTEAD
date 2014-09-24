@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
@@ -729,13 +730,15 @@ public class ResolverVisitor extends ScopedVisitor {
         overrideManager.applyOverrides(elseOverrides);
       }
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
-      // It would be more precise to ignore the existing override for any variable that
-      // is overridden in both branches.
-      if (thenOverrides != null) {
-        overrideManager.mergeOverrides(thenOverrides);
-      }
-      if (elseOverrides != null) {
-        overrideManager.mergeOverrides(elseOverrides);
+      if (AnalysisEngine.getInstance().getEnableUnionTypes()) {
+        // It would be more precise to ignore the existing override for any variable that
+        // is overridden in both branches.
+        if (thenOverrides != null) {
+          overrideManager.mergeOverrides(thenOverrides);
+        }
+        if (elseOverrides != null) {
+          overrideManager.mergeOverrides(elseOverrides);
+        }
       }
     }
     return null;

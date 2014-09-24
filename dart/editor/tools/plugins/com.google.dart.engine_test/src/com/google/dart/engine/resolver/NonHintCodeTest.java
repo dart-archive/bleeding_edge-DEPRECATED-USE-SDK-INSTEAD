@@ -20,6 +20,7 @@ import com.google.dart.engine.source.Source;
 public class NonHintCodeTest extends ResolverTestCase {
   public void fail_issue20904BuggyTypePromotionAtIfJoin_2() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=20904
+    enableUnionTypes(false);
     Source source = addSource(createSource(//
         "f(var message) {",
         "  if (message is Function) {",

@@ -95,6 +95,17 @@ public final class AnalysisEngine {
   private PartitionManager partitionManager = new PartitionManager();
 
   /**
+   * A flag indicating whether union types should be used.
+   */
+  private boolean enableUnionTypes = false;
+
+  /**
+   * A flag indicating whether union types should have strict semantics. This option has no effect
+   * when {@code enabledUnionTypes} is {@code false}.
+   */
+  private boolean strictUnionTypes = false;
+
+  /**
    * Prevent the creation of instances of this class.
    */
   private AnalysisEngine() {
@@ -125,6 +136,15 @@ public final class AnalysisEngine {
   }
 
   /**
+   * Return {@code true} if union types are enabled.
+   * 
+   * @return {@code true} if union types are enabled.
+   */
+  public boolean getEnableUnionTypes() {
+    return enableUnionTypes;
+  }
+
+  /**
    * Return the logger that should receive information about errors within the analysis engine.
    * 
    * @return the logger that should receive information about errors within the analysis engine
@@ -143,6 +163,24 @@ public final class AnalysisEngine {
   }
 
   /**
+   * Return {@code true} if union types have strict semantics.
+   * 
+   * @return {@code true} if union types have strict semantics.
+   */
+  public boolean getStrictUnionTypes() {
+    return strictUnionTypes;
+  }
+
+  /**
+   * Set whether union types should be enabled.
+   * 
+   * @param enableUnionTypes {@code true} if union types should be enabled.
+   */
+  public void setEnableUnionTypes(boolean enableUnionTypes) {
+    this.enableUnionTypes = enableUnionTypes;
+  }
+
+  /**
    * Set the logger that should receive information about errors within the analysis engine to the
    * given logger.
    * 
@@ -151,5 +189,17 @@ public final class AnalysisEngine {
    */
   public void setLogger(Logger logger) {
     this.logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Set whether union types should be "strict". For example, for strict union types the subtyping
+   * relation is {A1,...,An} <: A iff Ai <: i for all i, and the assignment compatibility relation
+   * is {A1,...,An} <=> A iff Ai <=> A for all i. For non-strict (permissive) union types, in
+   * contrast, the "for all"s are replaced by "there exists".
+   * 
+   * @param strictUnionTypes
+   */
+  public void setStrictUnionTypes(boolean strictUnionTypes) {
+    this.strictUnionTypes = strictUnionTypes;
   }
 }

@@ -131,6 +131,7 @@ public class HintCodeTest extends ResolverTestCase {
   }
 
   public void test_argumentTypeNotAssignable_unionTypeMethodMerge() throws Exception {
+    enableUnionTypes(false);
     Source source = addSource(createSource(//
         "class A {",
         "  int m(int x) => 0;",
@@ -581,6 +582,7 @@ public class HintCodeTest extends ResolverTestCase {
   }
 
   public void test_deprecatedAnnotationUse_deprecatedMethodCalledOnUnionType() throws Exception {
+    enableUnionTypes(false);
     Source source = addSource(createSource(//
         "class A {",
         "  @deprecated f() => 0;",
@@ -1054,6 +1056,7 @@ public class HintCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedMethod_unionType_noSuchMethod() throws Exception {
+    enableUnionTypes(false);
     Source source = addSource(createSource(//
         "class A {",
         "  int m(int x) => 0;",

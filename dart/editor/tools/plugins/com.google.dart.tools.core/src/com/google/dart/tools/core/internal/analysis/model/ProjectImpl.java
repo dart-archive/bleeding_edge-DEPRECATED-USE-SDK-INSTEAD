@@ -865,6 +865,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     options.setAnalyzeAngular(DartCore.getPlugin().isAngularAnalysisEnabled());
     options.setIncremental(DartCoreDebug.EXPERIMENTAL);
 
+    AnalysisEngine.getInstance().setEnableUnionTypes(DartCoreDebug.ENABLE_UNION_TYPES);
+    AnalysisEngine.getInstance().setStrictUnionTypes(DartCoreDebug.STRICT_UNION_TYPES);
+
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);
 
