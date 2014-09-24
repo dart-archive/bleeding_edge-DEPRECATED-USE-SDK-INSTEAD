@@ -1767,14 +1767,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for non-priority sources that need to be analyzed.
       //
-      MapIterator<Source, SourceEntry> iterator = cache.iterator();
-      while (iterator.moveNext()) {
-        getSourcesNeedingProcessing(
-            iterator.getKey(),
-            iterator.getValue(),
-            false,
-            hintsEnabled,
-            sources);
+      WorkManager.WorkIterator iterator = workManager.iterator();
+      while (iterator.hasNext()) {
+        Source source = iterator.next();
+        getSourcesNeedingProcessing(source, cache.get(source), false, hintsEnabled, sources);
       }
     }
     return new ArrayList<Source>(sources);
@@ -3749,18 +3745,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           workManager.remove(sourcesToRemove.get(i));
         }
       }
-//      //
-//      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
-//      //
-//      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-//        source = entry.getKey();
-//        TaskData taskData = getNextAnalysisTaskForSource(source, entry.getValue(), false, hintsEnabled);
-//        AnalysisTask task = taskData.getTask();
-//        if (task != null) {
-//          System.out.println("Failed to analyze " + source.getFullName());
-//          return task;
-//        }
-//      }
       if (hasBlockedTask) {
         // All of the analysis work is blocked waiting for an asynchronous task to complete.
         return WaitForAsyncTask.getInstance();
