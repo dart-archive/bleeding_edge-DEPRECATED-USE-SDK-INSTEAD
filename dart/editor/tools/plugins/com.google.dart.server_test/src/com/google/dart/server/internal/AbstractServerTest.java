@@ -15,7 +15,6 @@
 package com.google.dart.server.internal;
 
 import com.google.common.base.Joiner;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 
 import junit.framework.TestCase;
@@ -29,36 +28,6 @@ public abstract class AbstractServerTest extends TestCase {
   }
 
   protected AnalysisServer server;
-  protected TestAnalysisServerListener serverListener = new TestAnalysisServerListener();
-
-  protected final void addSource(String contextId, Source source) {
-    // TODO(scheglov) restore or remove for the new API
-//    ChangeSet changeSet = new ChangeSet();
-//    changeSet.addedSource(source);
-//    server.applyChanges(contextId, changeSet);
-  }
-
-  protected final Source addSource(String contextId, String fileName, String contents) {
-    // TODO(scheglov) restore or remove for the new API
-    return null;
-//    Source source = new TestSource(createFile(fileName), contents);
-//    ChangeSet changeSet = new ChangeSet();
-//    changeSet.addedSource(source);
-//    changeSet.changedContent(source, contents);
-//    server.applyChanges(contextId, changeSet);
-//    return source;
-  }
-
-  /**
-   * Creates some test context and returns its identifier.
-   */
-  protected final String createContext(String name) {
-    // TODO(scheglov) restore or remove for the new API
-    return null;
-//    String sdkPath = DirectoryBasedDartSdk.getDefaultSdkDirectory().getAbsolutePath();
-//    Map<String, String> packagesMap = ImmutableMap.of("analyzer", "some/path");
-//    return server.createContext(name, sdkPath, packagesMap);
-  }
 
   /**
    * Creates a concrete {@link AnalysisServer} instance.
@@ -69,14 +38,10 @@ public abstract class AbstractServerTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     server = createServer();
-    server.addAnalysisServerListener(serverListener);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    server.server_shutdown();
-    server = null;
-    serverListener = null;
     super.tearDown();
   }
 }

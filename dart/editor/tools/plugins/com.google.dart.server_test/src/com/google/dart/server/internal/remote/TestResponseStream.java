@@ -28,6 +28,14 @@ public class TestResponseStream implements ResponseStream {
   private final Object lock = new Object();
   private final LinkedList<JsonObject> responses = Lists.newLinkedList();
   private boolean lastRequestProcessed;
+  private boolean done = false;
+
+  public void done() {
+    synchronized (lock) {
+      done = true;
+      lock.notifyAll();
+    }
+  }
 
   @Override
   public void lastRequestProcessed() {
@@ -57,7 +65,7 @@ public class TestResponseStream implements ResponseStream {
   @Override
   public JsonObject take() {
     synchronized (lock) {
-      while (true) {
+      while (!done) {
         if (!responses.isEmpty()) {
           lastRequestProcessed = false;
           return responses.removeFirst();
@@ -69,6 +77,7 @@ public class TestResponseStream implements ResponseStream {
         }
       }
     }
+    return null;
   }
 
   public void waitForEmpty() {
