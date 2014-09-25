@@ -131,7 +131,8 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       if (fileLocation.segmentCount() > index + 1) {
         IPath fileRelPath = fileLocation.removeFirstSegments(index + 1).setDevice(null);
         try {
-          uri = new URI("package:/" + fileLocation.segment(index) + "/" + fileRelPath.toOSString());
+          uri = new URI("package:/" + fileLocation.segment(index) + "/"
+              + fileRelPath.toPortableString());
         } catch (URISyntaxException exception) {
           return null;
         }
