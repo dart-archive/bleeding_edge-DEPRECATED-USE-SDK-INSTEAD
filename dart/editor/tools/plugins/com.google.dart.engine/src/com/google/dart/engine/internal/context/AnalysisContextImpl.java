@@ -1924,6 +1924,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     String taskDescription = task.toString();
     if (!reportedLoop && !recentTasks.add(taskDescription)) {
+      reportedLoop = true;
       @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Performing repeated task: ");
