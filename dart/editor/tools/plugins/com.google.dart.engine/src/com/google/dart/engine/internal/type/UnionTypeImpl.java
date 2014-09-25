@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.internal.type;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.UnionType;
@@ -149,23 +150,24 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
   protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
     // What version of subtyping do we want? See discussion below in [internalIsSubtypeOf].
-    //
-    // The more unsound version: any.
-    for (Type t : types) {
-      if (((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+      // The less unsound version: all.
+      for (Type t : types) {
+        if (!((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return false;
+        }
       }
-    }
-    return false;
-    // The less unsound version: all.
-    /*
-    for (Type t : types) {
-      if (!((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
-        return false;
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (Type t : types) {
+        if (((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return true;
+        }
       }
+      return false;
+
     }
-    return true;
-    */
   }
 
   @Override
@@ -215,25 +217,26 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     // more wrong when we define union-type subtyping in the more unsound way.  We now e.g.
     // have [{A, B} <: B], where the LHS is surely less informative than the RHS!
 
-    // The more unsound version: any.
-    for (Type t : types) {
-      if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+      // The less unsound version: all.
+      //
+      // For this version to make sense we also need to redefine assignment compatibility [<=>].
+      // See discussion above.
+      for (Type t : types) {
+        if (!((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return false;
+        }
       }
-    }
-    return false;
-    // The less unsound version: all.
-    //
-    // For this version to make sense we also need to redefine assignment compatibility [<=>].
-    // See discussion above.
-    /*
-    for (Type t : types) {
-      if (!((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
-        return false;
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (Type t : types) {
+        if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return true;
+        }
       }
+      return false;
     }
-    return true;
-    */
   }
 
   /**
@@ -245,7 +248,7 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
    * @param visitedTypePairs
    * @return true if {@code type} is more specific than this union type
    */
-  protected boolean internalUnionTypeIsMoreSpecificThan(Type type, boolean withDynamic,
+  protected boolean internalUnionTypeIsLessSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
     // This implementation does not make sense when [type] is a union type, at least
     // for the "less unsound" version of [internalIsMoreSpecificThan] above.
@@ -283,4 +286,5 @@ public class UnionTypeImpl extends TypeImpl implements UnionType {
     }
     return false;
   }
+
 }

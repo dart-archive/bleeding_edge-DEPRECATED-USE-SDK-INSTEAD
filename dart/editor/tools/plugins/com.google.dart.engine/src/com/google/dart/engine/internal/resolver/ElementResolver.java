@@ -122,6 +122,7 @@ import com.google.dart.engine.type.UnionType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -2244,13 +2245,25 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
    */
   private Set<ExecutableElement> lookupMethods(Expression target, UnionType type, String methodName) {
     Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+    boolean allElementsHaveMethod = true;
     for (Type t : type.getElements()) {
       MethodElement m = lookUpMethod(target, t, methodName);
       if (m != null) {
         methods.add(m);
+      } else {
+        allElementsHaveMethod = false;
       }
     }
-    return methods;
+    // For strict union types we require that all types in the union define the method.
+    if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+      if (allElementsHaveMethod) {
+        return methods;
+      } else {
+        return Collections.emptySet();
+      }
+    } else {
+      return methods;
+    }
   }
 
   /**

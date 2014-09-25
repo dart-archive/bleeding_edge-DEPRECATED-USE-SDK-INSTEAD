@@ -13,9 +13,11 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.UnionType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -173,8 +175,42 @@ public abstract class TypeImpl implements Type {
    * @return {@code true} if this type is assignable to the given type
    */
   public final boolean isAssignableTo(Type type, Set<TypePair> visitedTypePairs) {
-    return isSubtypeOf(type, visitedTypePairs)
-        || ((TypeImpl) type).isSubtypeOf(this, visitedTypePairs);
+    // Strictness matters for union types on the LHS, but not for union types
+    // on the RHS.
+    if (this instanceof UnionType) {
+      if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+        // *Every* element on the LHS must be assignable to the RHS. We recursively fall into
+        // the next case when the RHS is also a union: the order here is important!
+        for (Type left : ((UnionType) this).getElements()) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (!left.isAssignableTo(type)) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        // *Some* element on the LHS must be assignable to the RHS.
+        for (Type left : ((UnionType) this).getElements()) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (left.isAssignableTo(type)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    } else if (type instanceof UnionType) {
+      // The LHS, which is not a union, must be assignable to *some* element on the RHS.
+      for (Type right : ((UnionType) type).getElements()) {
+        if (this.isAssignableTo(right, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      // For non union types we use the language spec definition of [<=>].
+      return isSubtypeOf(type, visitedTypePairs)
+          || ((TypeImpl) type).isSubtypeOf(this, visitedTypePairs);
+    }
   }
 
   @Override

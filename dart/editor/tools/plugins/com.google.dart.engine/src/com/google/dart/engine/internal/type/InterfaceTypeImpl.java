@@ -696,7 +696,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (type == DynamicTypeImpl.getInstance()) {
       return true;
     } else if ((type instanceof UnionType)) {
-      return ((UnionTypeImpl) type).internalUnionTypeIsMoreSpecificThan(
+      return ((UnionTypeImpl) type).internalUnionTypeIsLessSpecificThan(
           this,
           withDynamic,
           visitedTypePairs);

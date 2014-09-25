@@ -323,7 +323,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (this == type || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
       return true;
     } else if ((type instanceof UnionType)) {
-      return ((UnionTypeImpl) type).internalUnionTypeIsMoreSpecificThan(
+      return ((UnionTypeImpl) type).internalUnionTypeIsLessSpecificThan(
           this,
           withDynamic,
           visitedTypePairs);
