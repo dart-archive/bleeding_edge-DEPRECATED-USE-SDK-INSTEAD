@@ -26,6 +26,8 @@ public class TestAll {
     suite.addTestSuite(IncrementalResolverTest.class);
     suite.addTestSuite(InheritanceManagerTest.class);
     suite.addTestSuite(LibraryElementBuilderTest.class);
+    suite.addTestSuite(LibraryResolver2Test.class);
+    suite.addTestSuite(LibraryResolverTest.class);
     suite.addTestSuite(LibraryTest.class);
     suite.addTestSuite(StaticTypeAnalyzerTest.class);
     suite.addTestSuite(SubtypeManagerTest.class);

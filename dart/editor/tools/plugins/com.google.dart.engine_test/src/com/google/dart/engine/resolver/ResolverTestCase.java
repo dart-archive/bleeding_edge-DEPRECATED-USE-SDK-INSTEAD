@@ -26,6 +26,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
@@ -100,6 +101,38 @@ public class ResolverTestCase extends EngineTestCase {
       errorListener.onError(error);
     }
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  }
+
+  /**
+   * Assert that the given collection has the same number of elements as the number of specified
+   * names, and that for each specified name, a corresponding element can be found in the given
+   * collection with that name.
+   * 
+   * @param elements the elements
+   * @param names the names
+   */
+  protected void assertNamedElements(Element[] elements, String... names) {
+    for (String elemName : names) {
+      boolean found = false;
+      for (Element libElem : elements) {
+        if (libElem.getName().equals(elemName)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("Expected element named: ");
+        msg.append(elemName);
+        msg.append("\n  but found: ");
+        for (Element libElem : elements) {
+          msg.append(libElem.getName());
+          msg.append(", ");
+        }
+        fail(msg.toString());
+      }
+    }
+    assertLength(names.length, elements);
   }
 
   /**

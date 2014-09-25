@@ -86,7 +86,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     });
   }
 
-  public void xtest_perform_library() throws AnalysisException {
+  public void test_perform_library() throws AnalysisException {
     final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElementImpl libraryElement = library(context, "lib");
     CompilationUnitElementImpl unitElement = (CompilationUnitElementImpl) libraryElement.getDefiningCompilationUnit();
