@@ -446,9 +446,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    super.visitFunctionTypeAlias(node);
     FunctionTypeAliasElementImpl element = (FunctionTypeAliasElementImpl) node.getElement();
-    element.setReturnType(computeReturnType(node.getReturnType()));
+    if (element.getReturnType() == null) {
+      // Only visit function type aliases once.
+      super.visitFunctionTypeAlias(node);
+      element.setReturnType(computeReturnType(node.getReturnType()));
+    }
     return null;
   }
 

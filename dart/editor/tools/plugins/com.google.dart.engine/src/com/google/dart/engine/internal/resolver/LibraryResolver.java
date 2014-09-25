@@ -16,8 +16,10 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.NamespaceDirective;
@@ -26,6 +28,7 @@ import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
@@ -66,6 +69,7 @@ import com.google.dart.engine.utilities.io.UriUtilities;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -75,6 +79,28 @@ import java.util.Set;
  * @coverage dart.engine.resolver
  */
 public class LibraryResolver {
+  /**
+   * Instances of the class {@code TypeAliasInfo} hold information about a {@link TypeAlias}.
+   */
+  private static class TypeAliasInfo {
+    private Library library;
+    private Source source;
+    private FunctionTypeAlias typeAlias;
+
+    /**
+     * Initialize a newly created information holder with the given information.
+     * 
+     * @param library the library containing the type alias
+     * @param source the source of the file containing the type alias
+     * @param typeAlias the type alias being remembered
+     */
+    public TypeAliasInfo(Library library, Source source, FunctionTypeAlias typeAlias) {
+      this.library = library;
+      this.source = source;
+      this.typeAlias = typeAlias;
+    }
+  }
+
   /**
    * The analysis context in which the libraries are being analyzed.
    */
@@ -211,6 +237,7 @@ public class LibraryResolver {
       buildDirectiveModels();
       instrumentation.metric("buildDirectiveModels", "complete");
       typeProvider = new TypeProviderImpl(coreElement);
+      buildTypeAliases();
       buildTypeHierarchies();
       instrumentation.metric("buildTypeHierarchies", "complete");
       //
@@ -298,6 +325,7 @@ public class LibraryResolver {
       instrumentation.metric("buildDirectiveModels", "complete");
       typeProvider = new TypeProviderImpl(coreElement);
       buildEnumMembers();
+      buildTypeAliases();
       buildTypeHierarchies();
       instrumentation.metric("buildTypeHierarchies", "complete");
       //
@@ -576,6 +604,40 @@ public class LibraryResolver {
           EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
           library.getAST(source).accept(builder);
         }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Resolve the types referenced by function type aliases across all of the function type aliases
+   * defined in the current cycle.
+   * 
+   * @throws AnalysisException if any of the function type aliases could not be resolved
+   */
+  private void buildTypeAliases() throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      List<TypeAliasInfo> typeAliases = new ArrayList<TypeAliasInfo>();
+      for (Library library : librariesInCycles) {
+        for (Source source : library.getCompilationUnitSources()) {
+          CompilationUnit ast = library.getAST(source);
+          for (CompilationUnitMember member : ast.getDeclarations()) {
+            if (member instanceof FunctionTypeAlias) {
+              typeAliases.add(new TypeAliasInfo(library, source, (FunctionTypeAlias) member));
+            }
+          }
+        }
+      }
+      // TODO(brianwilkerson) We need to sort the type aliases such that all aliases referenced by
+      // an alias T are resolved before we resolve T.
+      for (TypeAliasInfo info : typeAliases) {
+        TypeResolverVisitor visitor = new TypeResolverVisitor(
+            info.library,
+            info.source,
+            typeProvider);
+        info.typeAlias.accept(visitor);
       }
     } finally {
       timeCounter.stop();
