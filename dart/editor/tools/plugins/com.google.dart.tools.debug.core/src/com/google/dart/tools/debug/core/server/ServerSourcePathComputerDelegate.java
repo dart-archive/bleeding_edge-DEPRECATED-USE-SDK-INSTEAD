@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.source.DartSdkSourceContainer;
 import com.google.dart.tools.debug.core.source.WorkspaceSourceContainer;
 
 import org.eclipse.core.runtime.CoreException;
@@ -36,7 +37,8 @@ public class ServerSourcePathComputerDelegate implements ISourcePathComputerDele
       IProgressMonitor monitor) throws CoreException {
 
     return new ISourceContainer[] {
-        new WorkspaceSourceContainer(), new ServerRemoteScriptSourceContainer()};
+        new WorkspaceSourceContainer(), new DartSdkSourceContainer(),
+        new ServerRemoteScriptSourceContainer()};
   }
 
 }

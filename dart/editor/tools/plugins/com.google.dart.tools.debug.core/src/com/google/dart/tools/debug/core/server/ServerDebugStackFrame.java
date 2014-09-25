@@ -265,6 +265,14 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       uri = resolvePackageUri(wrapper.getApplicationResource(), uri);
     }
 
+    // handle dart:lib/lib.dart in DartSdkSourceContainer,
+    // exclude "_patch.dart" files, they don't exist as files in sdk/lib folder
+    if (uri != null && "dart".equals(uri.getScheme())) {
+      if (!uri.getSchemeSpecificPart().endsWith("_patch.dart")) {
+        return uri.toString();
+      }
+    }
+
     if (uri != null && "file".equals(uri.getScheme())) {
       return uri.getPath();
     } else {

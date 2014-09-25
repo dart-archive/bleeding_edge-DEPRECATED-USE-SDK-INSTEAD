@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.source.DartSdkSourceContainer;
 import com.google.dart.tools.debug.core.source.WorkspaceSourceContainer;
 
 import org.eclipse.core.runtime.CoreException;
@@ -36,9 +37,9 @@ public class DartiumSourcePathComputerDelegate implements ISourcePathComputerDel
       IProgressMonitor monitor) throws CoreException {
 
     return new ISourceContainer[] {
-        new WorkspaceSourceContainer(), new DartiumPackageSourceContainer(launchConfig),
-        new ChromeAppSourceContainer(), new DartiumRemoteScriptSourceContainer(),
-        new DartiumUrlScriptSourceContainer()};
+        new WorkspaceSourceContainer(), new DartSdkSourceContainer(),
+        new DartiumPackageSourceContainer(launchConfig), new ChromeAppSourceContainer(),
+        new DartiumRemoteScriptSourceContainer(), new DartiumUrlScriptSourceContainer()};
   }
 
 }
