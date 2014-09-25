@@ -147,6 +147,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -274,6 +275,7 @@ public class CompletionEngine {
 
   class NameCollector {
     private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+
     private Set<Element> potentialMatches;
 
     public NameCollector() {
@@ -299,10 +301,6 @@ public class CompletionEngine {
       }
     }
 
-    void addNamesDefinedByClassElement(ClassElement classElement) {
-      addNamesDefinedByType(classElement.getType());
-    }
-
     void addNamesDefinedByExecutable(ExecutableElement execElement) {
       mergeNames(execElement.getParameters());
       mergeNames(execElement.getLocalVariables());
@@ -313,37 +311,21 @@ public class CompletionEngine {
       addNamesDefinedByTypeHierarchy(classElement.getType(), forSuper);
     }
 
-    void addNamesDefinedByInterfaceTypes(InterfaceType[] types) {
-      for (InterfaceType type : types) {
-        addNamesDefinedByType(type);
-      }
-    }
-
     void addNamesDefinedByType(Type type) {
-      if (type instanceof InterfaceType) {
-        addNamesDefinedByInterfaceType((InterfaceType) type);
-      } else if (type instanceof UnionType) {
-        for (Type t : ((UnionType) type).getElements()) {
-          addNamesDefinedByType(t);
-        }
-      } else {
-        // Or should we just raise an exception?
-        AnalysisEngine.getInstance().getLogger().logError(
-            "Unexpected type in [NameCollector.addNamesDefinedByType]: " + type);
-      }
+      mergeNames(namesDefinedByType(type));
     }
 
     void addNamesDefinedByTypeHierarchy(Type type, boolean forSuper) {
-      if (type instanceof InterfaceType) {
-        addNamesDefinedByInterfaceTypeHierarchy((InterfaceType) type, forSuper);
-      } else if (type instanceof UnionType) {
-        for (Type t : ((UnionType) type).getElements()) {
-          addNamesDefinedByTypeHierarchy(t, forSuper);
+      mergeNames(namesDefinedByTypeHierarchy(type, forSuper));
+      // Collect names defined by subtypes separately so they can be identified later.
+      NameCollector potentialMatchCollector = createNameCollector();
+      potentialMatchCollector.mergeNames(potentialNamesDefinedByTypeHierarchy(type));
+      potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
+      for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
+        for (Element match : matches) {
+          mergeName(match);
+          potentialMatches.add(match);
         }
-      } else {
-        // Or should we just raise an exception?
-        AnalysisEngine.getInstance().getLogger().logError(
-            "Unexpected type in [NameCollector.addNamesDefinedByTypeHierarchy]: " + type);
       }
     }
 
@@ -395,39 +377,6 @@ public class CompletionEngine {
       }
     }
 
-    private void addNamesDefinedByInterfaceType(InterfaceType type) {
-      if (inPrivateLibrary(type)) {
-        return;
-      }
-      PropertyAccessorElement[] accessors = type.getAccessors();
-      mergeNames(accessors);
-      MethodElement[] methods = type.getMethods();
-      mergeNames(methods);
-      mergeNames(type.getElement().getTypeParameters());
-      filterStaticRefs(accessors);
-      filterStaticRefs(methods);
-    }
-
-    private void addNamesDefinedByInterfaceTypeHierarchy(InterfaceType type, boolean forSuper) {
-      InterfaceType[] superTypes = type.getElement().getAllSupertypes();
-      if (!forSuper) {
-        superTypes = ArrayUtils.add(superTypes, 0, type);
-      }
-      addNamesDefinedByInterfaceTypes(superTypes);
-      // Collect names defined by subtypes separately so they can be identified later.
-      NameCollector potentialMatchCollector = createNameCollector();
-      if (!type.isObject()) {
-        potentialMatchCollector.addNamesDefinedByInterfaceTypes(allSubtypes(type.getElement()));
-      }
-      potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
-      for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
-        for (Element match : matches) {
-          mergeName(match);
-          potentialMatches.add(match);
-        }
-      }
-    }
-
     private void addTopLevelNames(List<Element> elements) {
       mergeNames(findAllTypes(elements));
       if (!state.areClassesRequired) {
@@ -436,18 +385,17 @@ public class CompletionEngine {
       }
     }
 
-    private void filterStaticRefs(ExecutableElement[] elements) {
+    private Set<Element> filterStaticRefs(ExecutableElement[] elements) {
+      Set<Element> filteredElements = new HashSet<Element>();
       for (ExecutableElement execElem : elements) {
-        if (state.areInstanceReferencesProhibited && !execElem.isStatic()) {
-          remove(execElem);
-        } else if (state.areStaticReferencesProhibited && execElem.isStatic()) {
-          remove(execElem);
-        } else if (!state.areOperatorsAllowed && execElem.isOperator()) {
-          remove(execElem);
-        } else if (state.areMethodsProhibited && !execElem.isOperator()) {
-          remove(execElem);
+        if (!(state.areInstanceReferencesProhibited && !execElem.isStatic()
+            || state.areStaticReferencesProhibited && execElem.isStatic()
+            || !state.areOperatorsAllowed && execElem.isOperator() || state.areMethodsProhibited
+            && !execElem.isOperator())) {
+          filteredElements.add(execElem);
         }
       }
+      return filteredElements;
     }
 
     private boolean inPrivateLibrary(InterfaceType type) {
@@ -461,6 +409,36 @@ public class CompletionEngine {
       }
       // eliminate types defined in private libraries
       return true;
+    }
+
+    /**
+     * Return the set of elements whose names occur in sets in {@code elementSets}.
+     * 
+     * @param elementSets
+     * @return
+     */
+    private Set<Element> intersection(Collection<Set<Element>> elementSets) {
+      if (elementSets.isEmpty()) {
+        return Collections.emptySet();
+      }
+
+      Iterator<Set<Element>> i = elementSets.iterator();
+      Set<String> commonNames = namesOfElements(i.next());
+      // Compute names common to all element collections.
+      while (i.hasNext()) {
+        // Intersection.
+        commonNames.retainAll(namesOfElements(i.next()));
+      }
+      // Compute elements with common names.
+      Set<Element> elements = new HashSet<Element>();
+      for (Collection<Element> es : elementSets) {
+        for (Element e : es) {
+          if (commonNames.contains(e.getName())) {
+            elements.add(e);
+          }
+        }
+      }
+      return elements;
     }
 
     private void mergeName(Element element) {
@@ -483,10 +461,147 @@ public class CompletionEngine {
       dups.add(element);
     }
 
-    private void mergeNames(Element[] elements) {
+    private void mergeNames(Collection<Element> elements) {
       for (Element element : elements) {
         mergeName(element);
       }
+    }
+
+    private void mergeNames(Element[] elements) {
+      mergeNames(Arrays.asList(elements));
+    }
+
+    private Set<Element> namesDefinedByInterfaceType(InterfaceType type) {
+      if (inPrivateLibrary(type)) {
+        return Collections.emptySet();
+      }
+      Set<Element> elements = new HashSet<Element>();
+      PropertyAccessorElement[] accessors = type.getAccessors();
+      elements.addAll(filterStaticRefs(accessors));
+      MethodElement[] methods = type.getMethods();
+      elements.addAll(filterStaticRefs(methods));
+      elements.addAll(Arrays.asList(type.getElement().getTypeParameters()));
+      return elements;
+    }
+
+    private Set<Element> namesDefinedByInterfaceTypeHierarchy(InterfaceType type, boolean forSuper) {
+      InterfaceType[] superTypes = type.getElement().getAllSupertypes();
+      if (!forSuper) {
+        superTypes = ArrayUtils.add(superTypes, 0, type);
+      }
+      return namesDefinedByInterfaceTypes(superTypes);
+    }
+
+    private Set<Element> namesDefinedByInterfaceTypes(InterfaceType[] types) {
+      Set<Element> elements = new HashSet<Element>();
+      for (InterfaceType type : types) {
+        elements.addAll(namesDefinedByType(type));
+      }
+      return elements;
+    }
+
+    // The functions [namesDefinedByType], [namesDefinedByTypeHierarchy],
+    // and [potentialNamesDefinedByTypeHierarchy] all have the same
+    // structure, but they are not easy to combine in Java w/o higher
+    // order functions ([union], [intersection], [*namesDefinedByInterfaceType*]).
+    private Set<Element> namesDefinedByType(Type type) {
+      if (type instanceof InterfaceType) {
+        return namesDefinedByInterfaceType((InterfaceType) type);
+      } else if (type instanceof UnionType) {
+        List<Set<Element>> nameSets = new ArrayList<Set<Element>>();
+        for (Type t : ((UnionType) type).getElements()) {
+          nameSets.add(namesDefinedByType(t));
+        }
+        // For strict union types a field/method is only defined on the
+        // union if it's defined on *all* member types. For non-strict union types
+        // a field/method is defined if it's defined on *any* member type.
+        if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+          // TODO(collinsn): fix the case where multiple members define the same
+          // name with different types.
+          return intersection(nameSets);
+        } else {
+          // TODO(collinsn): this doesn't quite do the right thing, since
+          // other code in this class uniquifies this list by name. See usage
+          // of the [uniqueNames] field.
+          return union(nameSets);
+        }
+      } else {
+        // Or should we just raise an exception?
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Unexpected type in [NameCollector.namesDefinedByType]: " + type);
+        return Collections.emptySet();
+      }
+    }
+
+    // See [namesDefinedByType].
+    private Set<Element> namesDefinedByTypeHierarchy(Type type, boolean forSuper) {
+      if (type instanceof InterfaceType) {
+        return namesDefinedByInterfaceTypeHierarchy((InterfaceType) type, forSuper);
+      } else if (type instanceof UnionType) {
+        List<Set<Element>> nameSets = new ArrayList<Set<Element>>();
+        for (Type t : ((UnionType) type).getElements()) {
+          nameSets.add(namesDefinedByTypeHierarchy(t, forSuper));
+        }
+        if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+          return intersection(nameSets);
+        } else {
+          return union(nameSets);
+        }
+      } else {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Unexpected type in [NameCollector.namesDefinedByTypeHierarchy]: " + type);
+        return Collections.emptySet();
+      }
+    }
+
+    private Set<String> namesOfElements(Collection<Element> elements) {
+      Set<String> names = new HashSet<String>();
+      for (Element e : elements) {
+        names.add(e.getName());
+      }
+      return names;
+    }
+
+    private Set<Element> potentialNamesDefinedByInterfaceTypeHierarchy(InterfaceType type) {
+      if (!type.isObject()) {
+        return namesDefinedByInterfaceTypes(allSubtypes(type.getElement()));
+      } else {
+        return Collections.emptySet();
+      }
+    }
+
+    // See [namesDefinedByType].
+    //
+    // The use of [union] and [intersection] here is dual to the usage in
+    // the related methods. The point is that marking a method as potential
+    // is more conservative, so e.g. we mark a method as potential on a
+    // union type if it's potential on *any* member type.
+    private Set<Element> potentialNamesDefinedByTypeHierarchy(Type type) {
+      if (type instanceof InterfaceType) {
+        return potentialNamesDefinedByInterfaceTypeHierarchy((InterfaceType) type);
+      } else if (type instanceof UnionType) {
+        List<Set<Element>> nameSets = new ArrayList<Set<Element>>();
+        for (Type t : ((UnionType) type).getElements()) {
+          nameSets.add(potentialNamesDefinedByTypeHierarchy(t));
+        }
+        if (AnalysisEngine.getInstance().getStrictUnionTypes()) {
+          return union(nameSets);
+        } else {
+          return intersection(nameSets);
+        }
+      } else {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Unexpected type in [NameCollector.potentialNamesDefinedByTypeHierarchy]: " + type);
+        return Collections.emptySet();
+      }
+    }
+
+    private Set<Element> union(Collection<Set<Element>> elementSets) {
+      Set<Element> elements = new HashSet<Element>();
+      for (Set<Element> es : elementSets) {
+        elements.addAll(es);
+      }
+      return elements;
     }
   }
 

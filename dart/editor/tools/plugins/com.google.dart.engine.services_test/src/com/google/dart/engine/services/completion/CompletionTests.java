@@ -1817,11 +1817,11 @@ public class CompletionTests extends CompletionTestCase {
     test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
   }
 
-  public void testCompletion_ifStmt_unionType() throws Exception {
+  public void testCompletion_ifStmt_unionType_nonStrict() throws Exception {
     enableUnionTypes(false);
     test(src(//
-        "class A { a() => null; }",
-        "class B { b() => null; }",
+        "class A { a() => null; x() => null}",
+        "class B { a() => null; y() => null}",
         "void main() {",
         "  var x;",
         "  var c;",
@@ -1831,7 +1831,24 @@ public class CompletionTests extends CompletionTestCase {
         "    x = new B();",
         "  }",
         "  x.!1;",
-        "}"), "1+a", "1+b");
+        "}"), "1+a", "1+x", "1+y");
+  }
+
+  public void testCompletion_ifStmt_unionType_strict() throws Exception {
+    enableUnionTypes(true);
+    test(src(//
+        "class A { a() => null; x() => null}",
+        "class B { a() => null; y() => null}",
+        "void main() {",
+        "  var x;",
+        "  var c;",
+        "  if(c) {",
+        "    x = new A();",
+        "  } else {",
+        "    x = new B();",
+        "  }",
+        "  x.!1;",
+        "}"), "1+a", "1-x", "1-y");
   }
 
   public void testCompletion_import() throws Exception {
