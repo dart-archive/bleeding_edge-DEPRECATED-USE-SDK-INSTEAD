@@ -17,11 +17,15 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.type.UnionTypeImpl;
 import com.google.dart.engine.type.Type;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Instances of the class {@code TypeOverrideManager} manage the ability to override the type of an
@@ -41,7 +45,7 @@ public class TypeOverrideManager {
     /**
      * A table mapping elements to the overridden type of that element.
      */
-    private Map<Element, Type> overridenTypes = new HashMap<Element, Type>();
+    private Map<VariableElement, Type> overridenTypes = new HashMap<VariableElement, Type>();
 
     /**
      * Initialize a newly created scope to be an empty child of the given scope.
@@ -57,8 +61,8 @@ public class TypeOverrideManager {
      * 
      * @param overrides the overrides to be applied
      */
-    public void applyOverrides(Map<Element, Type> overrides) {
-      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
+    public void applyOverrides(Map<VariableElement, Type> overrides) {
+      for (Map.Entry<VariableElement, Type> entry : overrides.entrySet()) {
         overridenTypes.put(entry.getKey(), entry.getValue());
       }
     }
@@ -69,7 +73,7 @@ public class TypeOverrideManager {
      * 
      * @return the overrides in the current scope
      */
-    public Map<Element, Type> captureLocalOverrides() {
+    public Map<VariableElement, Type> captureLocalOverrides() {
       return overridenTypes;
     }
 
@@ -80,11 +84,11 @@ public class TypeOverrideManager {
      * @param variableList the list of variables whose overriding types are to be captured
      * @return a table mapping elements to their overriding types
      */
-    public Map<Element, Type> captureOverrides(VariableDeclarationList variableList) {
-      Map<Element, Type> overrides = new HashMap<Element, Type>();
+    public Map<VariableElement, Type> captureOverrides(VariableDeclarationList variableList) {
+      Map<VariableElement, Type> overrides = new HashMap<VariableElement, Type>();
       if (variableList.isConst() || variableList.isFinal()) {
         for (VariableDeclaration variable : variableList.getVariables()) {
-          Element element = variable.getElement();
+          VariableElement element = variable.getElement();
           if (element != null) {
             Type type = overridenTypes.get(element);
             if (type != null) {
@@ -117,24 +121,12 @@ public class TypeOverrideManager {
     }
 
     /**
-     * Merge new overrides with existing overrides using union types.
-     * 
-     * @param overrides the new overrides to merge in.
-     */
-    public void mergeOverrides(Map<Element, Type> overrides) {
-      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
-        Element key = entry.getKey();
-        overridenTypes.put(key, UnionTypeImpl.union(overridenTypes.get(key), entry.getValue()));
-      }
-    }
-
-    /**
      * Set the overridden type of the given element to the given type
      * 
      * @param element the element whose type might have been overridden
      * @param type the overridden type of the given element
      */
-    public void setType(Element element, Type type) {
+    public void setType(VariableElement element, Type type) {
       overridenTypes.put(element, type);
     }
   }
@@ -156,7 +148,7 @@ public class TypeOverrideManager {
    * 
    * @param overrides the overrides to be applied
    */
-  public void applyOverrides(Map<Element, Type> overrides) {
+  public void applyOverrides(Map<VariableElement, Type> overrides) {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot apply overrides without a scope");
     }
@@ -169,7 +161,7 @@ public class TypeOverrideManager {
    * 
    * @return the overrides in the current scope
    */
-  public Map<Element, Type> captureLocalOverrides() {
+  public Map<VariableElement, Type> captureLocalOverrides() {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot capture local overrides without a scope");
     }
@@ -183,7 +175,7 @@ public class TypeOverrideManager {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  public Map<Element, Type> captureOverrides(VariableDeclarationList variableList) {
+  public Map<VariableElement, Type> captureOverrides(VariableDeclarationList variableList) {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot capture overrides without a scope");
     }
@@ -208,6 +200,18 @@ public class TypeOverrideManager {
   }
 
   /**
+   * Return the best type information available for the given element. If the type of the element
+   * has been overridden, then return the overriding type. Otherwise, return the static type.
+   * 
+   * @param element the element for which type information is to be returned
+   * @return the best type information available for the given element
+   */
+  public Type getBestType(VariableElement element) {
+    Type bestType = getType(element);
+    return bestType == null ? element.getType() : bestType;
+  }
+
+  /**
    * Return the overridden type of the given element, or {@code null} if the type of the element has
    * not been overridden.
    * 
@@ -222,12 +226,75 @@ public class TypeOverrideManager {
   }
 
   /**
-   * Merge new overrides with existing overrides using union types.
+   * Update overrides assuming {@code perBranchOverrides} is the collection of per-branch overrides
+   * for *all* branches flowing into a join point. If a variable is updated in each per-branch
+   * override, then its type before the branching is ignored. Otherwise, its type before the
+   * branching is merged with all updates in the branches.
+   * <p>
+   * Although this method would do the right thing for a single set of overrides, we require there
+   * to be at least two override sets. Instead use {@code applyOverrides} for to apply a single set.
+   * <p>
+   * For example, for the code
    * 
-   * @param overrides the new overrides to merge in.
+   * <pre>
+   *   if (c) {
+   *     ...
+   *   } else {
+   *     ...
+   *   }
+   * </pre>
+   * the {@code perBranchOverrides} would include overrides for the then and else branches, and for
+   * the code
+   * 
+   * <pre>
+   *   ...
+   *   while(c) {
+   *     ...
+   *   }
+   * </pre>
+   * the {@code perBranchOverrides} would include overrides for before the loop and for the loop
+   * body.
+   * 
+   * @param perBranchOverrides one set of overrides for each (at least two) branch flowing into the
+   *          join point
    */
-  public void mergeOverrides(Map<Element, Type> overrides) {
-    currentScope.mergeOverrides(overrides);
+  public void joinOverrides(List<Map<VariableElement, Type>> perBranchOverrides) {
+    if (perBranchOverrides.size() < 2) {
+      throw new IllegalArgumentException("There is no point in joining zero or one override sets.");
+    }
+    Set<VariableElement> allElements = new HashSet<VariableElement>();
+    Set<VariableElement> commonElements = new HashSet<VariableElement>(
+        perBranchOverrides.get(0).keySet());
+    for (Map<VariableElement, Type> os : perBranchOverrides) {
+      // Union: elements updated in some branch.
+      allElements.addAll(os.keySet());
+      // Intersection: elements updated in all branches.
+      commonElements.retainAll(os.keySet());
+    }
+    Set<VariableElement> uncommonElements = allElements;
+    // Difference: elements updated in some but not all branches.
+    uncommonElements.removeAll(commonElements);
+
+    Map<VariableElement, Type> joinOverrides = new HashMap<VariableElement, Type>();
+    // The common elements were updated in all branches, so their type
+    // before branching can be ignored.
+    for (VariableElement e : commonElements) {
+      joinOverrides.put(e, perBranchOverrides.get(0).get(e));
+      for (Map<VariableElement, Type> os : perBranchOverrides) {
+        joinOverrides.put(e, UnionTypeImpl.union(joinOverrides.get(e), os.get(e)));
+      }
+    }
+    // The uncommon elements were updated in some but not all branches,
+    // so they may still have the type they had before branching.
+    for (VariableElement e : uncommonElements) {
+      joinOverrides.put(e, getBestType(e));
+      for (Map<VariableElement, Type> os : perBranchOverrides) {
+        if (os.containsKey(e)) {
+          joinOverrides.put(e, UnionTypeImpl.union(joinOverrides.get(e), os.get(e)));
+        }
+      }
+    }
+    applyOverrides(joinOverrides);
   }
 
   /**
@@ -236,7 +303,7 @@ public class TypeOverrideManager {
    * @param element the element whose type might have been overridden
    * @param type the overridden type of the given element
    */
-  public void setType(Element element, Type type) {
+  public void setType(VariableElement element, Type type) {
     if (currentScope == null) {
       throw new IllegalStateException("Cannot override without a scope");
     }

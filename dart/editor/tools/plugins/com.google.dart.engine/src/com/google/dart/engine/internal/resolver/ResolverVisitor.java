@@ -94,6 +94,9 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -582,7 +585,7 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      Map<Element, Type> overrides = overrideManager.captureOverrides(node.getFields());
+      Map<VariableElement, Type> overrides = overrideManager.captureOverrides(node.getFields());
       overrideManager.exitScope();
       overrideManager.applyOverrides(overrides);
     }
@@ -680,7 +683,7 @@ public class ResolverVisitor extends ScopedVisitor {
   public Void visitIfStatement(IfStatement node) {
     Expression condition = node.getCondition();
     safelyVisit(condition);
-    Map<Element, Type> thenOverrides = null;
+    Map<VariableElement, Type> thenOverrides = Collections.emptyMap();
     Statement thenStatement = node.getThenStatement();
     if (thenStatement != null) {
       overrideManager.enterScope();
@@ -702,7 +705,7 @@ public class ResolverVisitor extends ScopedVisitor {
         overrideManager.exitScope();
       }
     }
-    Map<Element, Type> elseOverrides = null;
+    Map<VariableElement, Type> elseOverrides = Collections.emptyMap();
     Statement elseStatement = node.getElseStatement();
     if (elseStatement != null) {
       overrideManager.enterScope();
@@ -717,28 +720,22 @@ public class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
 
+    // Join overrides.
     boolean thenIsAbrupt = isAbruptTerminationStatement(thenStatement);
     boolean elseIsAbrupt = isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
-      if (thenOverrides != null) {
-        overrideManager.applyOverrides(thenOverrides);
-      }
+      overrideManager.applyOverrides(thenOverrides);
     } else if (thenIsAbrupt && !elseIsAbrupt) {
       propagateFalseState(condition);
-      if (elseOverrides != null) {
-        overrideManager.applyOverrides(elseOverrides);
-      }
+      overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
       if (AnalysisEngine.getInstance().getEnableUnionTypes()) {
-        // It would be more precise to ignore the existing override for any variable that
-        // is overridden in both branches.
-        if (thenOverrides != null) {
-          overrideManager.mergeOverrides(thenOverrides);
-        }
-        if (elseOverrides != null) {
-          overrideManager.mergeOverrides(elseOverrides);
-        }
+        List<Map<VariableElement, Type>> perBranchOverrides = new ArrayList<Map<VariableElement, Type>>(
+            2);
+        perBranchOverrides.add(thenOverrides);
+        perBranchOverrides.add(elseOverrides);
+        overrideManager.joinOverrides(perBranchOverrides);
       }
     }
     return null;
@@ -881,7 +878,7 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      Map<Element, Type> overrides = overrideManager.captureOverrides(node.getVariables());
+      Map<VariableElement, Type> overrides = overrideManager.captureOverrides(node.getVariables());
       overrideManager.exitScope();
       overrideManager.applyOverrides(overrides);
     }
@@ -1047,7 +1044,7 @@ public class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    Type currentType = getBestType(element);
+    Type currentType = overrideManager.getBestType(element);
     // If we aren't allowing precision loss then the third and fourth conditions check that we
     // aren't losing precision.
     //
@@ -1167,25 +1164,6 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the best type information available for the given element. If the type of the element
-   * has been overridden, then return the overriding type. Otherwise, return the static type.
-   * 
-   * @param element the element for which type information is to be returned
-   * @return the best type information available for the given element
-   */
-  private Type getBestType(Element element) {
-    Type bestType = overrideManager.getType(element);
-    if (bestType == null) {
-      if (element instanceof LocalVariableElement) {
-        bestType = ((LocalVariableElement) element).getType();
-      } else if (element instanceof ParameterElement) {
-        bestType = ((ParameterElement) element).getType();
-      }
-    }
-    return bestType;
-  }
-
-  /**
    * The given expression is the expression used to compute the iterator for a for-each statement.
    * Attempt to compute the type of objects that will be assigned to the loop variable and return
    * that type. Return {@code null} if the type could not be determined.
@@ -1249,7 +1227,7 @@ public class ResolverVisitor extends ScopedVisitor {
     for (int i = 0; i < parameters.size() && i < expectedParameters.length; i++) {
       FormalParameter parameter = parameters.get(i);
       ParameterElement element = parameter.getElement();
-      Type currentType = getBestType(element);
+      Type currentType = overrideManager.getBestType(element);
       // may be override the type
       Type expectedType = expectedParameters[i].getType();
       if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
