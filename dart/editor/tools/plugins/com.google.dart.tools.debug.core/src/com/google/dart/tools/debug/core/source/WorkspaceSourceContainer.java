@@ -50,24 +50,21 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
     if (path == null) {
       return null;
     }
+    File file = new File(path);
 
     // Look for a resource reference (/project/directory/file.dart).
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-
+    IResource resource = ResourceUtil.getResource(file);
     if (resource != null) {
       return resource;
     }
 
     // Look for something which could potentially resolve to a resource in the workspace.
     resource = findPotentialWorkspaceMatch(path);
-
     if (resource != null) {
       return resource;
     }
 
     // Look for a file system reference.
-    File file = new File(path);
-
     if (file.exists() && !file.isDirectory()) {
       IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
 
