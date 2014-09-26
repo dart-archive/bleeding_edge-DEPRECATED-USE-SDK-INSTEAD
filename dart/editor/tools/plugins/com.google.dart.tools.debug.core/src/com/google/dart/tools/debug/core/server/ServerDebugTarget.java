@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
@@ -530,7 +531,24 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       text = text.substring(0, index).trim();
     }
 
-    fireStreamAppended("Breaking on exception: " + text + "\n");
+    fireStreamAppended("Breaking on exception: " + text);
+    try {
+      VmIsolate isolate = exception.getIsolate();
+      connection.evaluateObject(isolate, exception, "toString()", new VmCallback<VmValue>() {
+        @Override
+        public void handleResult(VmResult<VmValue> result) {
+          if (result.isError()) {
+            fireStreamAppended("\n");
+          } else {
+            String desc = result.getResult().getText();
+            desc = StringUtils.removeStart(desc, "\"");
+            desc = StringUtils.removeEnd(desc, "\"");
+            fireStreamAppended(": " + desc + "\n");
+          }
+        }
+      });
+    } catch (IOException e) {
+    }
   }
 
   private void removeThread(ServerDebugThread thread) {
