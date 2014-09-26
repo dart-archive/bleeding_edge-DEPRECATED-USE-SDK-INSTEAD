@@ -31,6 +31,7 @@ import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
+import com.google.dart.server.SortMembersConsumer;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
@@ -76,6 +77,7 @@ import com.google.dart.server.generated.types.SearchResultKind;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
+import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.gson.JsonElement;
@@ -1941,6 +1943,68 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals(2, feedback.getLength());
     assertEquals("class", feedback.getElementKindName());
     assertEquals("oldName", feedback.getOldName());
+  }
+
+  public void test_edit_sortMembers() throws Exception {
+    // TODO
+    final SourceFileEdit[] fileEditArray = {null};
+    server.edit_sortMembers("/file.dart", new SortMembersConsumer() {
+      @Override
+      public void computedEdit(SourceFileEdit fileEdit) {
+        fileEditArray[0] = fileEdit;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.sortMembers',",
+        "  'params': {",
+        "    'file': '/file.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'edit': {",
+        "      'file':'file1.dart',",
+        "      'fileStamp': 101,",
+        "      'edits': [",
+        "        {",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'replacement': 'replacement1'",
+        "        },",
+        "        {",
+        "          'offset': 3,",
+        "          'length': 4,",
+        "          'replacement': 'replacement2'",
+        "        }",
+        "      ]",
+        "    }",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'edit'
+    SourceFileEdit fileEdit = fileEditArray[0];
+    List<SourceEdit> edits = fileEdit.getEdits();
+    assertThat(edits).hasSize(2);
+    {
+      SourceEdit edit = edits.get(0);
+      assertEquals(1, edit.getOffset());
+      assertEquals(2, edit.getLength());
+      assertEquals("replacement1", edit.getReplacement());
+    }
+    {
+      SourceEdit edit = edits.get(1);
+      assertEquals(3, edit.getOffset());
+      assertEquals(4, edit.getLength());
+      assertEquals("replacement2", edit.getReplacement());
+    }
   }
 
   public void test_error() throws Exception {

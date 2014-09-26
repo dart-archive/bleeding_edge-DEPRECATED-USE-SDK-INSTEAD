@@ -66,6 +66,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerConnec
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringGetAvailableProcessor;
+import com.google.dart.server.internal.remote.processor.SortMembersProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
@@ -336,7 +337,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void edit_sortMembers(String file, SortMembersConsumer consumer) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateEditSortMembers(id, file), consumer);
   }
 
   @Override
@@ -598,6 +600,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetErrorsConsumer) {
       new AnalysisErrorsProcessor((GetErrorsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof SortMembersConsumer) {
+      new SortMembersProcessor((SortMembersConsumer) consumer).process(resultObject);
     }
     //
     // Execution Domain

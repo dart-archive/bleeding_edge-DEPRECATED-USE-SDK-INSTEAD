@@ -13,28 +13,25 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.GetAssistsConsumer;
-import com.google.dart.server.generated.types.SourceChange;
+import com.google.dart.server.SortMembersConsumer;
+import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 /**
- * Instances of {@code AssistsProcessor} translate JSON result objects for a given
- * {@link GetAssistsConsumer}.
+ * Instances of {@code SortMembersProcessor} translate JSON result objects for a given
+ * {@link SortMembersConsumer}.
  * 
  * @coverage dart.server.remote
  */
-public class AssistsProcessor extends ResultProcessor {
+public class SortMembersProcessor extends ResultProcessor {
+  private final SortMembersConsumer consumer;
 
-  private final GetAssistsConsumer consumer;
-
-  public AssistsProcessor(GetAssistsConsumer consumer) {
+  public SortMembersProcessor(SortMembersConsumer consumer) {
     this.consumer = consumer;
   }
 
   public void process(JsonObject resultObject) {
-    List<SourceChange> sourceChanges = SourceChange.fromJsonArray(resultObject.get("assists").getAsJsonArray());
-    consumer.computedSourceChanges(sourceChanges);
+    SourceFileEdit fileEdit = SourceFileEdit.fromJson(resultObject.get("edit").getAsJsonObject());
+    consumer.computedEdit(fileEdit);
   }
 }
