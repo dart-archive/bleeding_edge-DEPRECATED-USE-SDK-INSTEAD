@@ -27,7 +27,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
-import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
+import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction_OLD;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction_OLD;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
@@ -160,7 +160,7 @@ public class QuickAssistProcessor {
   }
 
   private void addProposal_convertGetterToMethodRefactoring() throws CoreException {
-    ConvertGetterToMethodAction action = new ConvertGetterToMethodAction(editor);
+    ConvertGetterToMethodAction_OLD action = new ConvertGetterToMethodAction_OLD(editor);
     action.update(selection);
     if (action.isEnabled()) {
       proposals.add(new ConvertGetterToMethodRefactoringProposal(action, selection));

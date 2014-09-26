@@ -32,8 +32,7 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
   private InlineAction_NEW inlineAction;
   private ExtractMethodAction_NEW extractMethodAction;
   private ConvertMethodToGetterAction_NEW convertMethodToGetterAction;
-
-//  private ConvertGetterToMethodAction convertGetterToMethodAction;
+  private ConvertGetterToMethodAction_NEW convertGetterToMethodAction;
 
   public RefactorActionGroup_NEW(DartEditor editor) {
     super(editor);
@@ -42,7 +41,7 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     inlineAction = new InlineAction_NEW(editor);
     extractMethodAction = new ExtractMethodAction_NEW(editor);
     convertMethodToGetterAction = new ConvertMethodToGetterAction_NEW(editor);
-//    convertGetterToMethodAction = new ConvertGetterToMethodAction(editor);
+    convertGetterToMethodAction = new ConvertGetterToMethodAction_NEW(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
     addActions(
@@ -50,9 +49,8 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
         extractLocalAction,
         extractMethodAction,
         inlineAction,
-        convertMethodToGetterAction
-//        convertGetterToMethodAction
-    );
+        convertMethodToGetterAction,
+        convertGetterToMethodAction);
     addActionDartSelectionListeners();
   }
 
@@ -64,7 +62,7 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     extractMethodAction = null;
     inlineAction = null;
     convertMethodToGetterAction = null;
-//    convertGetterToMethodAction = null;
+    convertGetterToMethodAction = null;
   }
 
   @Override
@@ -77,9 +75,9 @@ public class RefactorActionGroup_NEW extends AbstractDartSelectionActionGroup {
     actionBars.setGlobalActionHandler(
         DartActionConstants.CONVERT_METHOD_TO_GETTER,
         convertMethodToGetterAction);
-//    actionBars.setGlobalActionHandler(
-//        DartActionConstants.CONVERT_GETTER_TO_METHOD,
-//        convertGetterToMethodAction);
+    actionBars.setGlobalActionHandler(
+        DartActionConstants.CONVERT_GETTER_TO_METHOD,
+        convertGetterToMethodAction);
   }
 
   @Override

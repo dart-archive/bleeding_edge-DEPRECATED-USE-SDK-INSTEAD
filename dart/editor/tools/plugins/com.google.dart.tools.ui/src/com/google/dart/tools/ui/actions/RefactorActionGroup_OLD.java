@@ -33,7 +33,7 @@ public class RefactorActionGroup_OLD extends AbstractDartSelectionActionGroup {
   private ExtractMethodAction_OLD extractMethodAction;
   private InlineAction_OLD inlineAction;
   private ConvertMethodToGetterAction_OLD convertMethodToGetterAction;
-  private ConvertGetterToMethodAction convertGetterToMethodAction;
+  private ConvertGetterToMethodAction_OLD convertGetterToMethodAction;
 
   public RefactorActionGroup_OLD(DartEditor editor) {
     super(editor);
@@ -42,7 +42,7 @@ public class RefactorActionGroup_OLD extends AbstractDartSelectionActionGroup {
     extractMethodAction = new ExtractMethodAction_OLD(editor);
     inlineAction = new InlineAction_OLD(editor);
     convertMethodToGetterAction = new ConvertMethodToGetterAction_OLD(editor);
-    convertGetterToMethodAction = new ConvertGetterToMethodAction(editor);
+    convertGetterToMethodAction = new ConvertGetterToMethodAction_OLD(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
     addActions(
@@ -59,7 +59,7 @@ public class RefactorActionGroup_OLD extends AbstractDartSelectionActionGroup {
     super(site);
     renameAction = new RenameAction_OLD(site);
     convertMethodToGetterAction = new ConvertMethodToGetterAction_OLD(site);
-    convertGetterToMethodAction = new ConvertGetterToMethodAction(site);
+    convertGetterToMethodAction = new ConvertGetterToMethodAction_OLD(site);
     initActions();
     addActions(renameAction, convertMethodToGetterAction, convertGetterToMethodAction);
     addActionSelectionListeners();

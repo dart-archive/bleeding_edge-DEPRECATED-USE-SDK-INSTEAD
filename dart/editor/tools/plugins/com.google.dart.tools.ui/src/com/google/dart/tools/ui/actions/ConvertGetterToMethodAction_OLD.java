@@ -40,7 +40,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} for "Convert Getter To Method" refactoring.
  */
-public class ConvertGetterToMethodAction extends AbstractRefactoringAction_OLD {
+public class ConvertGetterToMethodAction_OLD extends AbstractRefactoringAction_OLD {
   /**
    * @return the {@link ConvertGetterToMethodRefactoring} to process given {@link Element}, may be
    *         {@code null} if {@link Element} cannot be processed.
@@ -64,11 +64,11 @@ public class ConvertGetterToMethodAction extends AbstractRefactoringAction_OLD {
     return RefactoringFactory.createConvertGetterToMethodRefactoring(searchEngine, accessorElement);
   }
 
-  public ConvertGetterToMethodAction(DartEditor editor) {
+  public ConvertGetterToMethodAction_OLD(DartEditor editor) {
     super(editor);
   }
 
-  public ConvertGetterToMethodAction(IWorkbenchSite site) {
+  public ConvertGetterToMethodAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 
