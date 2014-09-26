@@ -415,7 +415,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(info);
   }
 
-  public void test_computeResolvableCompilationUnit_exception() throws Exception {
+  public void test_computeResolvableCompilationUnit_dart_exception() throws Exception {
     TestSource source = addSourceWithException("/test.dart");
     try {
       context.computeResolvableCompilationUnit(source);
@@ -425,7 +425,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
   }
 
-  public void test_computeResolvableCompilationUnit_html() throws Exception {
+  public void test_computeResolvableCompilationUnit_html_exception() throws Exception {
     Source source = addSource("/lib.html", "<html></html>");
     try {
       context.computeResolvableCompilationUnit(source);
@@ -437,9 +437,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_computeResolvableCompilationUnit_valid() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
-    CompilationUnit compilationUnit = context.parseCompilationUnit(source);
-    assertNotNull(compilationUnit);
-    assertNotSame(compilationUnit, context.computeResolvableCompilationUnit(source));
+    CompilationUnit parsedUnit = context.parseCompilationUnit(source);
+    assertNotNull(parsedUnit);
+    CompilationUnit resolvedUnit = context.computeResolvableCompilationUnit(source).getCompilationUnit();
+    assertNotNull(resolvedUnit);
+    assertNotSame(parsedUnit, resolvedUnit);
   }
 
   public void test_dispose() throws Exception {
@@ -1241,6 +1243,30 @@ public class AnalysisContextImplTest extends EngineTestCase {
         context.getLibraryElement(source));
   }
 
+  public void test_resolveCompilationUnit_import_relative() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    Source sourceA = addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
+    addSource("/libB.dart", "library libB; class B{}");
+    CompilationUnit compilationUnit = context.resolveCompilationUnit(sourceA, sourceA);
+    LibraryElement library = compilationUnit.getElement().getLibrary();
+    LibraryElement[] importedLibraries = library.getImportedLibraries();
+    assertNamedElements(importedLibraries, "dart.core", "libB");
+    LibraryElement[] visibleLibraries = library.getVisibleLibraries();
+    assertNamedElements(visibleLibraries, "dart.core", "libA", "libB");
+  }
+
+  public void test_resolveCompilationUnit_import_relative_cyclic() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    Source sourceA = addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
+    addSource("/libB.dart", "library libB; import 'libA.dart'; class B{}");
+    CompilationUnit compilationUnit = context.resolveCompilationUnit(sourceA, sourceA);
+    LibraryElement library = compilationUnit.getElement().getLibrary();
+    LibraryElement[] importedLibraries = library.getImportedLibraries();
+    assertNamedElements(importedLibraries, "dart.core", "libB");
+    LibraryElement[] visibleLibraries = library.getVisibleLibraries();
+    assertNamedElements(visibleLibraries, "dart.core", "libA", "libB");
+  }
+
   public void test_resolveCompilationUnit_library() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -1248,6 +1274,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     LibraryElement library = context.computeLibraryElement(source);
     CompilationUnit compilationUnit = context.resolveCompilationUnit(source, library);
     assertNotNull(compilationUnit);
+    assertNotNull(compilationUnit.getElement());
   }
 
   public void test_resolveCompilationUnit_source() throws Exception {

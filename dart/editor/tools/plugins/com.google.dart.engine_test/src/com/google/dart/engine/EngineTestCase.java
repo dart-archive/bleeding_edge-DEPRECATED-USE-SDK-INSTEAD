@@ -16,6 +16,7 @@ package com.google.dart.engine;
 import com.google.common.base.Objects;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -422,6 +423,38 @@ public class EngineTestCase extends TestCase {
       }
       fail("Does not contain " + element);
     }
+  }
+
+  /**
+   * Assert that the given collection has the same number of elements as the number of specified
+   * names, and that for each specified name, a corresponding element can be found in the given
+   * collection with that name.
+   * 
+   * @param elements the elements
+   * @param names the names
+   */
+  protected void assertNamedElements(Element[] elements, String... names) {
+    for (String elemName : names) {
+      boolean found = false;
+      for (Element elem : elements) {
+        if (elem.getName().equals(elemName)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("Expected element named: ");
+        msg.append(elemName);
+        msg.append("\n  but found: ");
+        for (Element elem : elements) {
+          msg.append(elem.getName());
+          msg.append(", ");
+        }
+        fail(msg.toString());
+      }
+    }
+    assertLength(names.length, elements);
   }
 
   protected AnalysisContextImpl createAnalysisContext() {
