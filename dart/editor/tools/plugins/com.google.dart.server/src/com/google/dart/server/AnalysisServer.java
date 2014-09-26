@@ -252,6 +252,11 @@ public interface AnalysisServer {
    *
    * Sort all of the directives, unit and class members of the given Dart file.
    *
+   * If a request is made for a file that does not exist, does not belong to an analysis root or is
+   * not a Dart file, SORT_MEMBERS_INVALID_FILE will be generated.
+   *
+   * If the Dart file has scan or parse errors, SORT_MEMBERS_PARSE_ERRORS will be generated.
+   *
    * @param file The Dart file to sort.
    */
   public void edit_sortMembers(String file, SortMembersConsumer consumer);

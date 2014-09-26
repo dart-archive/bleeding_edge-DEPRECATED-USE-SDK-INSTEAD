@@ -59,6 +59,17 @@ public class RequestErrorCode {
   public static final String SERVER_ERROR = "SERVER_ERROR";
 
   /**
+   * An "edit.sortMembers" request specified a FilePath which does not match a Dart file in an
+   * analysis root.
+   */
+  public static final String SORT_MEMBERS_INVALID_FILE = "SORT_MEMBERS_INVALID_FILE";
+
+  /**
+   * An "edit.sortMembers" request specified a Dart file that has scan or parse errors.
+   */
+  public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
+
+  /**
    * An "analysis.setPriorityFiles" request includes one or more files that are not being analyzed.
    *
    * This is a legacy error; it will be removed before the API reaches version 1.0.
