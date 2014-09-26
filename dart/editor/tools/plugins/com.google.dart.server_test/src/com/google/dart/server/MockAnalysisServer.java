@@ -97,6 +97,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void edit_sortMembers(String file, SortMembersConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void execution_createContext(String contextRoot, CreateContextConsumer consumer) {
     throw new UnsupportedOperationException();
   }

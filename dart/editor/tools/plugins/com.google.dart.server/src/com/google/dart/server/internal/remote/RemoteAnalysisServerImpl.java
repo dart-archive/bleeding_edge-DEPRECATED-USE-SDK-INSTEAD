@@ -36,6 +36,7 @@ import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
+import com.google.dart.server.SortMembersConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
@@ -331,6 +332,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         length,
         validateOnly,
         options), consumer);
+  }
+
+  @Override
+  public void edit_sortMembers(String file, SortMembersConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override

@@ -248,6 +248,15 @@ public interface AnalysisServer {
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
   /**
+   * {@code edit.sortMembers}
+   *
+   * Sort all of the directives, unit and class members of the given Dart file.
+   *
+   * @param file The Dart file to sort.
+   */
+  public void edit_sortMembers(String file, SortMembersConsumer consumer);
+
+  /**
    * {@code execution.createContext}
    *
    * Create an execution context for the executable file with the given path. The context that is
