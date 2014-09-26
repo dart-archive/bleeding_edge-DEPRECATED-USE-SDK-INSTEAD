@@ -396,8 +396,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   public void writeToStdout(String message) {
-    //TODO(keertip): implement printing messages to console
-    // process.getStreamMonitor().messageAdded(message);
+    fireStreamAppended(message + "\n");
   }
 
   protected ServerDebugThread findThread(VmIsolate isolate) {

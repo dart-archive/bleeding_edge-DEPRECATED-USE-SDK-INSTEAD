@@ -144,6 +144,14 @@ public class DartBreakpoint extends LineBreakpoint {
     }
   }
 
+  public String getActualFilePath() {
+    IFile file = getFile();
+    if (file != null) {
+      return file.getLocation().toOSString();
+    }
+    return getFilePath();
+  }
+
   public int getLine() {
     IMarker marker = getMarker();
 

@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 
@@ -34,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // TODO: handle removing deleted breakpoints
 
@@ -41,6 +43,45 @@ import java.util.Map.Entry;
  * This breakpoint manager serves to off-load some of the breakpoint logic from ServerDebugTarget.
  */
 class ServerBreakpointManager implements IBreakpointListener {
+  private class SetBreakpointHelper {
+    final int NUM_URLS = 2;
+
+    final VmIsolate isolate;
+    final DartBreakpoint breakpoint;
+    final int line;
+    final AtomicInteger numErrors = new AtomicInteger();
+
+    public SetBreakpointHelper(VmIsolate isolate, DartBreakpoint breakpoint, int line) {
+      this.isolate = isolate;
+      this.breakpoint = breakpoint;
+      this.line = line;
+    }
+
+    void setBreakpoint(String url) throws IOException {
+      // fail if no URL
+      if (url == null) {
+        if (numErrors.incrementAndGet() == NUM_URLS) {
+          target.writeToStdout("No valid URL for: " + breakpoint);
+        }
+        return;
+      }
+      // try to set
+      getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
+        @Override
+        public void handleResult(VmResult<VmBreakpoint> result) {
+          if (result.isError()) {
+            if (numErrors.incrementAndGet() == NUM_URLS) {
+              String error = result.getError();
+              target.writeToStdout(error);
+            }
+          } else {
+            addCreatedBreakpoint(breakpoint, result.getResult());
+          }
+        }
+      });
+    }
+  }
+
   private ServerDebugTarget target;
 
   private VmIsolate mainIsolate;
@@ -230,41 +271,24 @@ class ServerBreakpointManager implements IBreakpointListener {
       VmInterruptResult interruptResult = pause ? getConnection().interruptConditionally(isolate)
           : VmInterruptResult.createNoopResult(getConnection());
 
-      for (final DartBreakpoint breakpoint : breakpoints) {
+      for (DartBreakpoint breakpoint : breakpoints) {
         if (breakpoint.isBreakpointEnabled()) {
-          IFile file = breakpoint.getFile();
-          String url = null;
-
-          if (file != null) {
-            url = getAbsoluteUrlForResource(file);
-          }
-
           int line = breakpoint.getLine();
-
-          if (url != null) {
-            getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
-              @Override
-              public void handleResult(VmResult<VmBreakpoint> result) {
-                if (!result.isError()) {
-                  addCreatedBreakpoint(breakpoint, result.getResult());
-                }
-              }
-            });
+          SetBreakpointHelper helper = new SetBreakpointHelper(isolate, breakpoint, line);
+          // file path
+          String filePath = breakpoint.getActualFilePath();
+          if (filePath == null) {
+            continue;
           }
-
-          if (file != null) {
-            url = getPackagesUrlForResource(file);
+          // try package: URL
+          {
+            String url = getPackagesUrlForFilePath(filePath);
+            helper.setBreakpoint(url);
           }
-
-          if (url != null) {
-            getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
-              @Override
-              public void handleResult(VmResult<VmBreakpoint> result) {
-                if (!result.isError()) {
-                  addCreatedBreakpoint(breakpoint, result.getResult());
-                }
-              }
-            });
+          // try file:// URL
+          {
+            String url = getAbsoluteUrlForFilePath(filePath);
+            helper.setBreakpoint(url);
           }
         }
       }
@@ -302,16 +326,21 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
   }
 
-  private String getAbsoluteUrlForResource(IFile file) {
-    return file.getLocation().toFile().toURI().toString();
+  private String getAbsoluteUrlForFilePath(String filePath) {
+    return new File(filePath).toURI().toString();
   }
 
   private VmConnection getConnection() {
     return target.getConnection();
   }
 
-  private String getPackagesUrlForResource(IFile file) {
-    String locationUrl = file.getLocation().toFile().toURI().toString();
+  private String getPackagesUrlForFilePath(String filePath) {
+    File javaFile = new File(filePath);
+    IFile resourceFile = ResourceUtil.getFile(javaFile);
+    if (resourceFile == null) {
+      return null;
+    }
+    String locationUrl = resourceFile.getLocation().toFile().toURI().toString();
 
     int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_URL);
 
@@ -325,12 +354,12 @@ class ServerBreakpointManager implements IBreakpointListener {
     index = locationUrl.lastIndexOf(DartCore.LIB_URL_PATH);
 
     if (index != -1) {
-      String path = file.getLocation().toString();
+      String path = resourceFile.getLocation().toString();
       path = path.substring(0, path.lastIndexOf(DartCore.LIB_URL_PATH));
       File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
 
       if (packagesDir.exists()) {
-        String packageName = DartCore.getSelfLinkedPackageName(file);
+        String packageName = DartCore.getSelfLinkedPackageName(resourceFile);
 
         if (packageName != null) {
           locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + "/"
@@ -347,5 +376,4 @@ class ServerBreakpointManager implements IBreakpointListener {
   private boolean supportsBreakpoint(IBreakpoint breakpoint) {
     return target.supportsBreakpoint(breakpoint);
   }
-
 }
