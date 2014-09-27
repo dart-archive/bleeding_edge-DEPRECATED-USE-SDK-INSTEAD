@@ -41,7 +41,8 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethod
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.FormatProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal_NEW;
+import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal_OLD;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
@@ -106,7 +107,7 @@ public class QuickAssistProcessor {
       // TODO(scheglov) add other proposals
 //      addProposal_renameRefactoring();
       addProposal_format();
-//      addProposal_sortMembers();
+      addProposal_sortMembers();
       // ask server
       ExecutionUtils.runLog(new RunnableEx() {
         @Override
@@ -218,8 +219,12 @@ public class QuickAssistProcessor {
   }
 
   private void addProposal_sortMembers() {
-    CompilationUnit unit = context.getCompilationUnit();
-    proposals.add(new SortMembersProposal(viewer, unit));
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      proposals.add(new SortMembersProposal_NEW(editor));
+    } else {
+      CompilationUnit unit = context.getCompilationUnit();
+      proposals.add(new SortMembersProposal_OLD(viewer, unit));
+    }
   }
 
   /**

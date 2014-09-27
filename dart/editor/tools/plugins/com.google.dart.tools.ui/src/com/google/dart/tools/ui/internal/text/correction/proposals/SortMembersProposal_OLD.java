@@ -31,11 +31,11 @@ import org.eclipse.swt.graphics.Point;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class SortMembersProposal implements IDartCompletionProposal {
+public class SortMembersProposal_OLD implements IDartCompletionProposal {
   private final ITextViewer viewer;
   private final CompilationUnit unit;
 
-  public SortMembersProposal(ITextViewer viewer, CompilationUnit unit) {
+  public SortMembersProposal_OLD(ITextViewer viewer, CompilationUnit unit) {
     this.viewer = viewer;
     this.unit = unit;
   }
