@@ -44,9 +44,7 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
   public void dispose() {
   }
 
-  @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    ISelection selection = event.getSelection();
+  public void selectionChanged(ISelection selection) {
     if (selection instanceof ITextSelection) {
       ITextSelection textSelection = (ITextSelection) selection;
       selectionOffset = textSelection.getOffset();
@@ -54,6 +52,12 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
     } else {
       file = null;
     }
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    ISelection selection = event.getSelection();
+    selectionChanged(selection);
   }
 
   protected Shell getShell() {

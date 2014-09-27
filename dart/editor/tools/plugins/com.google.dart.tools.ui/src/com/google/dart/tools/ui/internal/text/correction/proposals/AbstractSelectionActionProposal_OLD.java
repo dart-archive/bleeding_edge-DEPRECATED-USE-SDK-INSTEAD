@@ -25,11 +25,11 @@ import org.eclipse.jface.text.IDocument;
  * 
  * @coverage dart.editor.ui.correction
  */
-public abstract class AbstractSelectionActionProposal extends AbstractActionProposal {
+public abstract class AbstractSelectionActionProposal_OLD extends AbstractActionProposal {
   private final AbstractDartSelectionAction_OLD action;
   private final DartSelection selection;
 
-  public AbstractSelectionActionProposal(AbstractDartSelectionAction_OLD action, String label,
+  public AbstractSelectionActionProposal_OLD(AbstractDartSelectionAction_OLD action, String label,
       DartSelection selection) {
     super(action, label);
     this.action = action;

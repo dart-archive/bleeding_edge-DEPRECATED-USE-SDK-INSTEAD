@@ -27,21 +27,24 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction_NEW;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction_OLD;
+import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction_NEW;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction_OLD;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_OLD;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
-import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal_NEW;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal_OLD;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal_NEW;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.FormatProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
@@ -97,6 +100,14 @@ public class QuickAssistProcessor {
     proposals = Lists.newArrayList();
     // add proposals
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // add refactoring proposals
+      addProposal_convertGetterToMethodRefactoring();
+      addProposal_convertMethodToGetterRefactoring();
+      // TODO(scheglov) add other proposals
+//      addProposal_renameRefactoring();
+      addProposal_format();
+//      addProposal_sortMembers();
+      // ask server
       ExecutionUtils.runLog(new RunnableEx() {
         @Override
         public void run() throws Exception {
@@ -159,19 +170,35 @@ public class QuickAssistProcessor {
     }
   }
 
-  private void addProposal_convertGetterToMethodRefactoring() throws CoreException {
-    ConvertGetterToMethodAction_OLD action = new ConvertGetterToMethodAction_OLD(editor);
-    action.update(selection);
-    if (action.isEnabled()) {
-      proposals.add(new ConvertGetterToMethodRefactoringProposal(action, selection));
+  private void addProposal_convertGetterToMethodRefactoring() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      ConvertGetterToMethodAction_NEW action = new ConvertGetterToMethodAction_NEW(editor);
+      action.selectionChanged(selection);
+      if (action.isEnabled()) {
+        proposals.add(new ConvertGetterToMethodRefactoringProposal_NEW(action));
+      }
+    } else {
+      ConvertGetterToMethodAction_OLD action = new ConvertGetterToMethodAction_OLD(editor);
+      action.update(selection);
+      if (action.isEnabled()) {
+        proposals.add(new ConvertGetterToMethodRefactoringProposal_OLD(action, selection));
+      }
     }
   }
 
-  private void addProposal_convertMethodToGetterRefactoring() throws CoreException {
-    ConvertMethodToGetterAction_OLD action = new ConvertMethodToGetterAction_OLD(editor);
-    action.update(selection);
-    if (action.isEnabled()) {
-      proposals.add(new ConvertMethodToGetterRefactoringProposal(action, selection));
+  private void addProposal_convertMethodToGetterRefactoring() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      ConvertMethodToGetterAction_NEW action = new ConvertMethodToGetterAction_NEW(editor);
+      action.selectionChanged(selection);
+      if (action.isEnabled()) {
+        proposals.add(new ConvertMethodToGetterRefactoringProposal_NEW(action));
+      }
+    } else {
+      ConvertMethodToGetterAction_OLD action = new ConvertMethodToGetterAction_OLD(editor);
+      action.update(selection);
+      if (action.isEnabled()) {
+        proposals.add(new ConvertMethodToGetterRefactoringProposal_OLD(action, selection));
+      }
     }
   }
 
@@ -182,7 +209,7 @@ public class QuickAssistProcessor {
     }
   }
 
-  private void addProposal_renameRefactoring() throws CoreException {
+  private void addProposal_renameRefactoring() {
     RenameDartElementAction_OLD action = new RenameDartElementAction_OLD(editor);
     action.update(selection);
     if (action.isEnabled()) {

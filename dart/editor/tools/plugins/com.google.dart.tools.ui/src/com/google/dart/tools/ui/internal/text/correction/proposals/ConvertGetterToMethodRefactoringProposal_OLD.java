@@ -13,30 +13,24 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction_OLD;
-import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction_OLD;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 /**
- * A quick assist proposal that runs {@link ConvertMethodToGetterAction_OLD}.
+ * A quick assist proposal that runs {@link ConvertGetterToMethodAction_OLD}.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class ConvertMethodToGetterRefactoringProposal extends AbstractSelectionActionProposal {
-  public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction_OLD action,
+public class ConvertGetterToMethodRefactoringProposal_OLD extends AbstractSelectionActionProposal_OLD {
+  public ConvertGetterToMethodRefactoringProposal_OLD(ConvertGetterToMethodAction_OLD action,
       DartSelection selection) {
-    super(action, CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name, selection);
+    super(action, CorrectionMessages.ConvertGetterToMethodRefactoringProposal_name, selection);
   }
 
   @Override
   public String getAdditionalProposalInfo() {
-    return CorrectionMessages.ConvertMethodToGetterRefactoringProposal_additionalInfo;
-  }
-
-  @Override
-  public String getCommandId() {
-    return DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER;
+    return CorrectionMessages.ConvertGetterToMethodRefactoringProposal_additionalInfo;
   }
 
   @Override

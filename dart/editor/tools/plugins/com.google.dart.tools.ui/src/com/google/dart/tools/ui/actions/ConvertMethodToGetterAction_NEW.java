@@ -28,7 +28,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -71,8 +71,8 @@ public class ConvertMethodToGetterAction_NEW extends AbstractRefactoringAction_N
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectedElement();
   }
 

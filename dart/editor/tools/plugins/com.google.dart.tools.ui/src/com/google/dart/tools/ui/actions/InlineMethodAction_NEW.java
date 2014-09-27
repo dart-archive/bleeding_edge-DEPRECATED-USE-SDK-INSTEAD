@@ -27,7 +27,7 @@ import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 
 /**
  * {@link Action} for "Inline Method" refactoring.
@@ -70,8 +70,8 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectedElement();
   }
 

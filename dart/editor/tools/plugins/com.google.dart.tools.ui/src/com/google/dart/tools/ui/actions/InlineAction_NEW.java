@@ -21,7 +21,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
@@ -74,10 +74,10 @@ public class InlineAction_NEW extends AbstractRefactoringAction_NEW {
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
-    inlineLocal.selectionChanged(event);
-    inlineMethod.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
+    inlineLocal.selectionChanged(selection);
+    inlineMethod.selectionChanged(selection);
   }
 
   @Override

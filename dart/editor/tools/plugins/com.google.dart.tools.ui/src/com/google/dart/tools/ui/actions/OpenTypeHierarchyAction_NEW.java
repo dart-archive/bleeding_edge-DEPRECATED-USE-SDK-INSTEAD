@@ -24,7 +24,7 @@ import com.google.dart.tools.ui.internal.text.functions.PositionElement;
 import com.google.dart.tools.ui.internal.util.OpenTypeHierarchyUtil;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -57,8 +57,8 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectedElement();
   }
 

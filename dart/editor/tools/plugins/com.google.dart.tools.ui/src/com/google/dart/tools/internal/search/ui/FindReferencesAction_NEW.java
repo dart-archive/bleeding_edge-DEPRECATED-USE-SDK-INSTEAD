@@ -33,7 +33,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -209,8 +209,8 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectedElement();
   }
 

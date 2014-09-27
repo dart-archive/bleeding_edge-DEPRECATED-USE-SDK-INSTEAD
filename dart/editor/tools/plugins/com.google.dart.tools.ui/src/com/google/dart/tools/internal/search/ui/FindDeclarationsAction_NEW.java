@@ -30,7 +30,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
@@ -120,8 +120,8 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction_NEW 
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectionName();
     setEnabled(selectionName != null);
   }

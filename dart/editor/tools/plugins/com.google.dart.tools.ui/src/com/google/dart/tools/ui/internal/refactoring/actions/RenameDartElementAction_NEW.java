@@ -26,7 +26,7 @@ import com.google.dart.tools.ui.internal.refactoring.ServerRenameRefactoring;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 
 /**
  * {@link Action} for renaming {@link Element}.
@@ -72,8 +72,8 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    super.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
     updateSelectedElement();
   }
 

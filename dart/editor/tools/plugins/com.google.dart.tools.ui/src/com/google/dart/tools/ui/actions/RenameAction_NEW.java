@@ -21,7 +21,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
 
 /**
  * Renames a Dart element or workbench resource.
@@ -60,9 +60,10 @@ public class RenameAction_NEW extends AbstractDartSelectionAction_NEW {
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    renameElement.selectionChanged(event);
-    renameResource.selectionChanged(event);
+  public void selectionChanged(ISelection selection) {
+    super.selectionChanged(selection);
+    renameElement.selectionChanged(selection);
+    renameResource.selectionChanged(selection);
   }
 
   @Override
