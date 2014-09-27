@@ -16,10 +16,8 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
-import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -27,6 +25,9 @@ import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointManager;
@@ -76,6 +77,9 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private IProject currentProject;
 
+  private IEclipsePreferences preferences;
+  private IPreferenceChangeListener preferenceListener;
+
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     this(launch, process, null, connectionPort);
   }
@@ -89,14 +93,24 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     this.launch = launch;
     this.process = process;
 
-    breakpointManager = new ServerBreakpointManager(this);
-
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
 
     currentProject = wrapper.getProject();
 
     connection = new VmConnection(connectionHost, connectionPort);
     connection.addListener(this);
+
+    breakpointManager = new ServerBreakpointManager(this);
+
+    // listen for preference changes
+    preferences = DartDebugCorePlugin.getPlugin().getPrefs();
+    preferenceListener = new IPreferenceChangeListener() {
+      @Override
+      public void preferenceChange(PreferenceChangeEvent event) {
+        handlePreferenceChange(event);
+      }
+    };
+    preferences.addPreferenceChangeListener(preferenceListener);
   }
 
   @Override
@@ -330,13 +344,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       DartDebugCorePlugin.logError(e);
     }
 
-    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
-    // Turn on break-on-exceptions.
-    try {
-      connection.setPauseOnExceptionSync(isolate, getPauseType());
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
+    breakpointManager.setPauseOnExceptionSync(isolate);
   }
 
   @Override
@@ -438,6 +446,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private void dispose() {
+    preferences.removePreferenceChangeListener(preferenceListener);
+
     if (connection != null) {
       connection.handleTerminated();
     }
@@ -503,17 +513,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return null;
   }
 
-  private BreakOnExceptionsType getPauseType() {
-    final BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
-    BreakOnExceptionsType pauseType = BreakOnExceptionsType.none;
-
-    if (boe == BreakOnExceptions.uncaught) {
-      pauseType = BreakOnExceptionsType.unhandled;
-    } else if (boe == BreakOnExceptions.all) {
-      pauseType = BreakOnExceptionsType.all;
+  private void handlePreferenceChange(PreferenceChangeEvent event) {
+    String key = event.getKey();
+    if (DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS.equals(key)) {
+      breakpointManager.setPauseOnExceptionForLiveIsolates();
     }
-
-    return pauseType;
   }
 
   private boolean hasBreakpointAtTopFrame(List<VmCallFrame> frames) {
@@ -571,5 +575,4 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     } catch (Exception exception) {
     }
   }
-
 }

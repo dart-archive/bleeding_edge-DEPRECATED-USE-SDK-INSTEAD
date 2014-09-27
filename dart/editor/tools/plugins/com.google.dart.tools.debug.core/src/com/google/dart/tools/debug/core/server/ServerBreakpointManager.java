@@ -17,7 +17,9 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
@@ -66,7 +68,7 @@ class ServerBreakpointManager implements IBreakpointListener {
         return;
       }
       // try to set
-      getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
+      connection.setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
         @Override
         public void handleResult(VmResult<VmBreakpoint> result) {
           if (result.isError()) {
@@ -82,7 +84,8 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
   }
 
-  private ServerDebugTarget target;
+  private final ServerDebugTarget target;
+  private final VmConnection connection;
 
   private VmIsolate mainIsolate;
 
@@ -94,6 +97,7 @@ class ServerBreakpointManager implements IBreakpointListener {
 
   public ServerBreakpointManager(ServerDebugTarget target) {
     this.target = target;
+    this.connection = target.getConnection();
   }
 
   @Override
@@ -123,7 +127,7 @@ class ServerBreakpointManager implements IBreakpointListener {
       if (breakpoints != null) {
         try {
           for (VmBreakpoint bp : breakpoints) {
-            getConnection().removeBreakpoint(bp.getIsolate(), bp);
+            connection.removeBreakpoint(bp.getIsolate(), bp);
           }
         } catch (IOException exception) {
           DartDebugCorePlugin.logError(exception);
@@ -173,7 +177,6 @@ class ServerBreakpointManager implements IBreakpointListener {
       return false;
     }
     // prepare line (requires lines table)
-    VmConnection connection = getConnection();
     int locationLine = location.getLineNumber(connection);
     // check every breakpoint's line + file
     for (IBreakpoint _bp : createdBreakpoints.keySet()) {
@@ -192,6 +195,26 @@ class ServerBreakpointManager implements IBreakpointListener {
       }
     }
     return false;
+  }
+
+  public void setPauseOnExceptionForLiveIsolates() {
+    BreakOnExceptionsType pauseType = getPauseType();
+    for (VmIsolate isolate : liveIsolates) {
+      try {
+        connection.setPauseOnException(isolate, pauseType);
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+      }
+    }
+  }
+
+  public void setPauseOnExceptionSync(VmIsolate isolate) {
+    BreakOnExceptionsType pauseType = getPauseType();
+    try {
+      connection.setPauseOnExceptionSync(isolate, pauseType);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
   }
 
   protected void addCreatedBreakpoint(DartBreakpoint breakpoint, VmBreakpoint result) {
@@ -220,7 +243,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     DartBreakpoint dartBreakpoint = getDartBreakpointFor(bp);
 
     if (dartBreakpoint != null && isolate == mainIsolate) {
-      int lineNo = bp.getLocation().getLineNumber(getConnection());
+      int lineNo = bp.getLocation().getLineNumber(connection);
 
       if (lineNo != dartBreakpoint.getLine()) {
         ignoredBreakpoints.add(dartBreakpoint);
@@ -268,8 +291,8 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
 
     try {
-      VmInterruptResult interruptResult = pause ? getConnection().interruptConditionally(isolate)
-          : VmInterruptResult.createNoopResult(getConnection());
+      VmInterruptResult interruptResult = pause ? connection.interruptConditionally(isolate)
+          : VmInterruptResult.createNoopResult(connection);
 
       for (DartBreakpoint breakpoint : breakpoints) {
         if (breakpoint.isBreakpointEnabled()) {
@@ -301,9 +324,9 @@ class ServerBreakpointManager implements IBreakpointListener {
 
   private void connectToIsolate(VmIsolate isolate) {
     try {
-      VmInterruptResult interruptResult = getConnection().interruptConditionally(isolate);
+      VmInterruptResult interruptResult = connection.interruptConditionally(isolate);
 
-      getConnection().enableAllSteppingSync(isolate);
+      connection.enableAllSteppingSync(isolate);
 
       // Set all existing breakpoints on the new isolate.
       addBreakpoints(isolate, getSupportedBreakpoints(), false);
@@ -328,10 +351,6 @@ class ServerBreakpointManager implements IBreakpointListener {
 
   private String getAbsoluteUrlForFilePath(String filePath) {
     return new File(filePath).toURI().toString();
-  }
-
-  private VmConnection getConnection() {
-    return target.getConnection();
   }
 
   private String getPackagesUrlForFilePath(String filePath) {
@@ -371,6 +390,19 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
 
     return null;
+  }
+
+  private BreakOnExceptionsType getPauseType() {
+    BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
+    BreakOnExceptionsType pauseType = BreakOnExceptionsType.none;
+
+    if (boe == BreakOnExceptions.uncaught) {
+      pauseType = BreakOnExceptionsType.unhandled;
+    } else if (boe == BreakOnExceptions.all) {
+      pauseType = BreakOnExceptionsType.all;
+    }
+
+    return pauseType;
   }
 
   private boolean supportsBreakpoint(IBreakpoint breakpoint) {
