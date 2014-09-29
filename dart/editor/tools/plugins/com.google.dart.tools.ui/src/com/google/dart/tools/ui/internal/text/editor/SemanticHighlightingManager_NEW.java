@@ -28,9 +28,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Position;
@@ -67,7 +65,6 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private final DartSourceViewer viewer;
   private final String file;
   private final IDocument document;
-  private final IDocumentListener documentListener;
   private HighlightPosition[] positions;
   private boolean positionsAddedToDocument = false;
 
@@ -79,17 +76,6 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.subscribeHighlights(file, this);
     viewer.prependTextPresentationListener(this);
-    documentListener = new IDocumentListener() {
-      @Override
-      public void documentAboutToBeChanged(DocumentEvent event) {
-      }
-
-      @Override
-      public void documentChanged(DocumentEvent event) {
-        clearHighlightPositions();
-      }
-    };
-    document.addDocumentListener(documentListener);
   }
 
   @Override
@@ -175,7 +161,6 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.unsubscribeHighlights(file, this);
     viewer.removeTextPresentationListener(this);
-    document.removeDocumentListener(documentListener);
     clearHighlightPositions();
   }
 
