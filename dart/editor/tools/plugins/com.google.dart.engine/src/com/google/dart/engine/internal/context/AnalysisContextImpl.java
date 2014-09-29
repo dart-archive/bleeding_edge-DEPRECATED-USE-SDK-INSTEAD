@@ -2081,6 +2081,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       this.options.setEnableAsync(options.getEnableAsync());
       this.options.setEnableDeferredLoading(options.getEnableDeferredLoading());
       this.options.setEnableEnum(options.getEnableEnum());
+      this.options.setEnableTypeChecks(options.getEnableTypeChecks());
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
       this.options.setIncremental(options.getIncremental());

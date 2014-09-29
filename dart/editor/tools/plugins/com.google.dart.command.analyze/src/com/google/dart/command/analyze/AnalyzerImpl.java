@@ -99,6 +99,7 @@ public class AnalyzerImpl {
     contextOptions.setEnableAsync(options.getEnableAsync());
     contextOptions.setEnableEnum(options.getEnableEnum());
     contextOptions.setHint(!options.getDisableHints());
+    contextOptions.setEnableTypeChecks(options.getEnableTypeChecks());
 
     // prepare AnalysisContext
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();

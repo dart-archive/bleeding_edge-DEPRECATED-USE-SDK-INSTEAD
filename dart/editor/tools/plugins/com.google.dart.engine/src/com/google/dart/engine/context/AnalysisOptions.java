@@ -75,6 +75,12 @@ public interface AnalysisOptions {
   public boolean getEnableEnum();
 
   /**
+   * Return {@code true} if analysis should treat type mismatches found during constant evaluation
+   * as errors.
+   */
+  public boolean getEnableTypeChecks();
+
+  /**
    * Return {@code true} if errors, warnings and hints should be generated for sources in the SDK.
    * The default value is {@code false}.
    * 

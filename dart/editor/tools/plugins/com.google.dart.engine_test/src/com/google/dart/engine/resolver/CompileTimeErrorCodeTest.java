@@ -1620,7 +1620,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerNotAssignable() throws Exception {
+  public void test_fieldInitializerNotAssignable_checked() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableTypeChecks(true);
+    resetWithOptions(analysisOptions);
     Source source = addSource(createSource(//
         "class A {",
         "  final int x;",

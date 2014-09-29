@@ -26,6 +26,7 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       options.setCacheSize(i);
       options.setDart2jsHint(booleanValue);
       options.setEnableDeferredLoading(booleanValue);
+      options.setEnableTypeChecks(booleanValue);
       options.setGenerateSdkErrors(booleanValue);
       options.setHint(booleanValue);
       options.setIncremental(booleanValue);
@@ -39,6 +40,7 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       assertEquals(options.getEnableAsync(), copy.getEnableAsync());
       assertEquals(options.getEnableDeferredLoading(), copy.getEnableDeferredLoading());
       assertEquals(options.getEnableEnum(), copy.getEnableEnum());
+      assertEquals(options.getEnableTypeChecks(), copy.getEnableTypeChecks());
       assertEquals(options.getGenerateSdkErrors(), copy.getGenerateSdkErrors());
       assertEquals(options.getHint(), copy.getHint());
       assertEquals(options.getIncremental(), copy.getIncremental());
@@ -106,6 +108,13 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     boolean value = !options.getEnableEnum();
     options.setEnableEnum(value);
     assertEquals(value, options.getEnableEnum());
+  }
+
+  public void test_getEnableTypeChecks() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getEnableTypeChecks();
+    options.setEnableTypeChecks(value);
+    assertEquals(value, options.getEnableTypeChecks());
   }
 
   public void test_getGenerateSdkErrors() {

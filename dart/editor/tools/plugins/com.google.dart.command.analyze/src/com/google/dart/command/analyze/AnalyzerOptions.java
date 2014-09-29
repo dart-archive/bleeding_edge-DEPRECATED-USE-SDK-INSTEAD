@@ -189,6 +189,10 @@ public class AnalyzerOptions {
   usage = "Do not show hint results")
   private boolean disableHints = false;
 
+  @Option(name = "--enable_type_checks")
+  // usage = "Check types in constant evaluation") // don't show in help
+  private boolean enableTypeChecks = false;
+
   @Option(name = "--perf",//
   usage = "Print performance statistics")
   private boolean perf = false;
@@ -234,6 +238,14 @@ public class AnalyzerOptions {
    */
   public boolean getEnableEnum() {
     return enableEnum;
+  }
+
+  /**
+   * Return {@code true} if analysis should treat type mismatches found during constant evaluation
+   * as errors.
+   */
+  public boolean getEnableTypeChecks() {
+    return enableTypeChecks;
   }
 
   public boolean getMachineFormat() {
