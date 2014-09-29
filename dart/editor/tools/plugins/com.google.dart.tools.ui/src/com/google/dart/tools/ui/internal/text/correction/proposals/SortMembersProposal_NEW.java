@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
@@ -53,10 +54,16 @@ public class SortMembersProposal_NEW implements IDartCompletionProposal {
         DartCore.getAnalysisServer().edit_sortMembers(file, new SortMembersConsumer() {
           @Override
           public void computedEdit(SourceFileEdit edit) {
-            Change ltkChange = ServiceUtils_NEW.toLTK(edit);
+            Change change = ServiceUtils_NEW.toLTK(edit);
+            // I'd like to see if there are any changes after sorting
+            if (change instanceof TextFileChange) {
+              TextFileChange fileChange = (TextFileChange) change;
+              fileChange.setSaveMode(TextFileChange.LEAVE_DIRTY);
+            }
+            // apply the change
             try {
               IProgressMonitor pm = new NullProgressMonitor();
-              ltkChange.perform(pm);
+              change.perform(pm);
             } catch (CoreException e) {
               DartToolsPlugin.log(e);
             }
