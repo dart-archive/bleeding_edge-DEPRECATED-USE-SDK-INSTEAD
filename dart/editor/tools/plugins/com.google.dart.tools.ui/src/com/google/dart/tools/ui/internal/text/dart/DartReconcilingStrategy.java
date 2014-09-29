@@ -37,8 +37,11 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.DocumentRewriteSessionEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocumentRewriteSessionListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.jface.text.reconciler.IReconciler;
@@ -149,6 +152,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   };
 
   /**
+   * Reconciler usually waits for some time, like 500 ms, before actually performing reconciliation,
+   * so that it happens when user stops typing. But when we apply a Quick Fix/Assist or a
+   * refactoring, we should apply changes as soon as possible, because these changes form their own
+   * complete unit of work.
+   */
+  private final IDocumentRewriteSessionListener rewriteSessionListener = new IDocumentRewriteSessionListener() {
+    @Override
+    public void documentRewriteSessionChanged(DocumentRewriteSessionEvent event) {
+      if (event.getChangeType() == DocumentRewriteSessionEvent.SESSION_STOP) {
+        reconcile();
+      }
+    }
+  };
+
+  /**
    * Construct a new instance for the specified editor.
    * 
    * @param editor the editor (not {@code null})
@@ -188,6 +206,10 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public void dispose() {
     if (document != null) {
       document.removeDocumentListener(documentListener);
+      if (document instanceof IDocumentExtension4) {
+        IDocumentExtension4 document4 = (IDocumentExtension4) document;
+        document4.removeDocumentRewriteSessionListener(rewriteSessionListener);
+      }
     }
     AnalysisWorker.removeListener(analysisListener);
     // clear the cached source content to ensure the source will be read from disk
@@ -274,11 +296,22 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   @Override
   public void setDocument(IDocument document) {
-    if (this.document != null) {
-      document.removeDocumentListener(documentListener);
+    IDocument oldDocument = this.document;
+    if (oldDocument != null) {
+      oldDocument.removeDocumentListener(documentListener);
+      if (oldDocument instanceof IDocumentExtension4) {
+        IDocumentExtension4 oldDocument4 = (IDocumentExtension4) oldDocument;
+        oldDocument4.removeDocumentRewriteSessionListener(rewriteSessionListener);
+      }
     }
     this.document = document;
     document.addDocumentListener(documentListener);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (document instanceof IDocumentExtension4) {
+        IDocumentExtension4 document4 = (IDocumentExtension4) document;
+        document4.addDocumentRewriteSessionListener(rewriteSessionListener);
+      }
+    }
   }
 
   @Override
