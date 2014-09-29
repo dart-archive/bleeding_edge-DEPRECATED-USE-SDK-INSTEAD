@@ -121,6 +121,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorWithProperties;
+import com.google.dart.engine.error.CheckedModeCompileTimeErrorCode;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorProperty;
@@ -421,12 +422,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
   /**
-   * A flag indicating whether we should generate errors when there are type errors in the
-   * evaluation of constants.
-   */
-  private boolean enableTypeChecks;
-
-  /**
    * Static final string with value {@code "getter "} used in the construction of the
    * {@link StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE}, and similar, error
    * code messages.
@@ -456,7 +451,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     this.typeProvider = typeProvider;
     this.inheritanceManager = inheritanceManager;
     AnalysisOptions options = currentLibrary.getContext().getAnalysisOptions();
-    this.enableTypeChecks = options.getEnableTypeChecks();
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
     isInStaticVariableDeclaration = false;
@@ -3423,25 +3417,20 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // report problem
-    if (isEnclosingConstructorConst && enableTypeChecks) {
+    if (isEnclosingConstructorConst) {
       // TODO(paulberry): this error should be based on the actual type of the constant, not the
       // static type.  See dartbug.com/21119.
-      // TODO(paulberry): in the long run, we would prefer to implement this by having the analysis
-      // engine output a new type of error that means "error if run in checked mode", rather than
-      // having the analysis engine choose whether to issue the error based on whether checked mode
-      // is enabled.
       errorReporter.reportTypeErrorForNode(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          staticType,
-          fieldType);
-    } else {
-      errorReporter.reportTypeErrorForNode(
-          StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
           staticType,
           fieldType);
     }
+    errorReporter.reportTypeErrorForNode(
+        StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        expression,
+        staticType,
+        fieldType);
     return true;
     // TODO(brianwilkerson) Define a hint corresponding to these errors and report it if appropriate.
 //    // test the propagated type of the expression

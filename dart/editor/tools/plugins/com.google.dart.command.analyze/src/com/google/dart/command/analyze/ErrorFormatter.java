@@ -34,10 +34,19 @@ import java.util.Map;
 public class ErrorFormatter {
 
   static class AnalysisErrorComparator implements Comparator<AnalysisError> {
+    /**
+     * True if checked mode compile time errors should be treated as "error" severity.
+     */
+    final boolean escalateCheckedModeCompileTimeErrors;
+
+    AnalysisErrorComparator(boolean escalateCheckedModeCompileTimeErrors) {
+      this.escalateCheckedModeCompileTimeErrors = escalateCheckedModeCompileTimeErrors;
+    }
+
     @Override
     public int compare(AnalysisError error1, AnalysisError error2) {
-      int compare = error1.getErrorCode().getErrorSeverity().compareTo(
-          error2.getErrorCode().getErrorSeverity());
+      int compare = AnalyzerImpl.computeSeverity(error1, escalateCheckedModeCompileTimeErrors).compareTo(
+          AnalyzerImpl.computeSeverity(error2, escalateCheckedModeCompileTimeErrors));
 
       if (compare != 0) {
         return -1 * compare;
@@ -93,7 +102,7 @@ public class ErrorFormatter {
     if (options.getMachineFormat()) {
       out.println(String.format(
           "%s|%s|%s|%s|%d|%d|%d|%s",
-          getMachineCode(error.getErrorCode().getErrorSeverity(), options.getWarningsAreFatal()),
+          getMachineCode(computeSeverity(error), options.getWarningsAreFatal()),
           escapePipe(error.getErrorCode().getType().toString()),
           escapePipe(error.getErrorCode().toString()),
           escapePipe(source.getFullName()),
@@ -102,7 +111,7 @@ public class ErrorFormatter {
           length,
           escapePipe(error.getMessage())));
     } else {
-      String errorType = error.getErrorCode().getErrorSeverity().getDisplayName();
+      String errorType = computeSeverity(error).getDisplayName();
 
       if (error.getErrorCode().getType() == ErrorType.HINT) {
         errorType = error.getErrorCode().getType().getDisplayName();
@@ -120,14 +129,14 @@ public class ErrorFormatter {
 
   public void formatErrors(List<AnalysisError> errors) {
     // Sort by severity, file path, and file location.
-    Collections.sort(errors, new AnalysisErrorComparator());
+    Collections.sort(errors, new AnalysisErrorComparator(options.getEnableTypeChecks()));
 
     int errorCount = 0;
     int warnCount = 0;
     int hintCount = 0;
 
     for (AnalysisError error : errors) {
-      ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
+      ErrorSeverity severity = computeSeverity(error);
       if (severity.equals(ErrorSeverity.ERROR)) {
         errorCount++;
       } else if (severity.equals(ErrorSeverity.WARNING)) {
@@ -195,6 +204,10 @@ public class ErrorFormatter {
     } else {
       return lineInfo.getLocation(offset);
     }
+  }
+
+  private ErrorSeverity computeSeverity(AnalysisError error) {
+    return AnalyzerImpl.computeSeverity(error, options.getEnableTypeChecks());
   }
 
   private String getMachineCode(ErrorSeverity severity, boolean warningsAreFatal) {

@@ -94,12 +94,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
-   * A flag indicating whether analysis should treat type mismatches found during constant
-   * evaluation as errors.
-   */
-  private boolean enableTypeChecks = false;
-
-  /**
    * A flag indicating whether incremental analysis should be used.
    */
   private boolean incremental = false;
@@ -130,7 +124,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     enableAsync = options.getEnableAsync();
     enableDeferredLoading = options.getEnableDeferredLoading();
     enableEnum = options.getEnableEnum();
-    enableTypeChecks = options.getEnableTypeChecks();
     generateSdkErrors = options.getGenerateSdkErrors();
     hint = options.getHint();
     incremental = options.getIncremental();
@@ -175,11 +168,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getEnableEnum() {
     return enableEnum;
-  }
-
-  @Override
-  public boolean getEnableTypeChecks() {
-    return enableTypeChecks;
   }
 
   @Override
@@ -274,13 +262,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setEnableEnum(boolean enableEnum) {
     this.enableEnum = enableEnum;
-  }
-
-  /**
-   * Set whether analysis should treat type mismatches found during constant evaluation as errors.
-   */
-  public void setEnableTypeChecks(boolean enableTypeChecks) {
-    this.enableTypeChecks = enableTypeChecks;
   }
 
   /**

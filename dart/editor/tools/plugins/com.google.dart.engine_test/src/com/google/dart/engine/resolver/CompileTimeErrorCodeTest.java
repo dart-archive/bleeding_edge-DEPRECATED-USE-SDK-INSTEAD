@@ -1620,20 +1620,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerNotAssignable_checked() throws Exception {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.setEnableTypeChecks(true);
-    resetWithOptions(analysisOptions);
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x;",
-        "  const A() : x = '';",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void test_fieldInitializerOutsideConstructor() throws Exception {
     // TODO(brianwilkerson) Fix the duplicate error messages.
     Source source = addSource(createSource(//

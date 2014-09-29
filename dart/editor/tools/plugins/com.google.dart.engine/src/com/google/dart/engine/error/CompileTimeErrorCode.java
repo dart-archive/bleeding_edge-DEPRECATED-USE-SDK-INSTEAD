@@ -197,20 +197,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_DEFERRED_CLASS("Deferred classes cannot be created with 'const'"),
 
   /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error if o is not
-   * <b>null</b> and the interface of the class of <i>o</i> is not a subtype of the static type of
-   * the field <i>v</i>.
-   * <p>
-   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
-   * uncaught exception being thrown.
-   * 
-   * @param initializerType the name of the type of the initializer expression
-   * @param fieldType the name of the type of the field
-   */
-  CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE(
-      "The initializer type '%s' cannot be assigned to the field type '%s'"),
-
-  /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is declared as a
    * constant variable.
    */

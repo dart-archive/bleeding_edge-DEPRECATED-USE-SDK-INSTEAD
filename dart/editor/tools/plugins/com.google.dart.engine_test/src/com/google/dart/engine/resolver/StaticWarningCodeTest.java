@@ -1172,17 +1172,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerNotAssignable_const_unchecked() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x;",
-        "  const A() : x = '';",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void test_fieldInitializingFormalNotAssignable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

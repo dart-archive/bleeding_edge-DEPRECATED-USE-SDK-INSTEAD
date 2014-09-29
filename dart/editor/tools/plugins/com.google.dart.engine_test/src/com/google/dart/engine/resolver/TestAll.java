@@ -21,6 +21,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(CheckedModeCompileTimeErrorCodeTest.class);
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(HintCodeTest.class);

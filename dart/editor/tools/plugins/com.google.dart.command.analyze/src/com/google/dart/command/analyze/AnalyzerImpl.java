@@ -57,6 +57,19 @@ public class AnalyzerImpl {
   private static final HashMap<File, DirectoryBasedDartSdk> sdkMap = new HashMap<File, DirectoryBasedDartSdk>();
 
   /**
+   * Compute the severity of the error; however, if {@link escalateCheckedModeCompileTimeErors} is
+   * true, then escalate it to {@link ErrorSeverity.ERROR}.
+   */
+  public static ErrorSeverity computeSeverity(AnalysisError error,
+      boolean escalateCheckedModeCompileTimeErrors) {
+    if (escalateCheckedModeCompileTimeErrors
+        && error.getErrorCode().getType() == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
+      return ErrorSeverity.ERROR;
+    }
+    return error.getErrorCode().getErrorSeverity();
+  }
+
+  /**
    * @return the new or cached instance of the {@link DartSdk} with the given directory.
    */
   private static DirectoryBasedDartSdk getSdk(File sdkDirectory, boolean useDart2jsPaths) {
@@ -99,7 +112,6 @@ public class AnalyzerImpl {
     contextOptions.setEnableAsync(options.getEnableAsync());
     contextOptions.setEnableEnum(options.getEnableEnum());
     contextOptions.setHint(!options.getDisableHints());
-    contextOptions.setEnableTypeChecks(options.getEnableTypeChecks());
 
     // prepare AnalysisContext
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
@@ -117,7 +129,7 @@ public class AnalyzerImpl {
     ErrorSeverity status = ErrorSeverity.NONE;
 
     for (AnalysisError error : errors) {
-      ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
+      ErrorSeverity severity = computeSeverity(error, options.getEnableTypeChecks());
 
       status = status.max(severity);
     }
@@ -145,6 +157,9 @@ public class AnalyzerImpl {
     filterOutTodos(errors);
     if (options.getDisableHints()) {
       filterOutHints(errors);
+      if (!options.getEnableTypeChecks()) {
+        filterOutCheckedModeCompileTimeError(errors);
+      }
     }
     return getMaxErrorSeverity(errors);
   }
@@ -227,6 +242,18 @@ public class AnalyzerImpl {
           new PackageUriResolver(packageDirectory.getAbsoluteFile()));
     } else {
       return new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    }
+  }
+
+  /**
+   * Remove any checked mode compile time errors from the passed list.
+   */
+  private void filterOutCheckedModeCompileTimeError(List<AnalysisError> errors) {
+    for (int i = errors.size() - 1; i >= 0; i--) {
+      AnalysisError error = errors.get(i);
+      if (error.getErrorCode().getType() == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
+        errors.remove(i);
+      }
     }
   }
 
