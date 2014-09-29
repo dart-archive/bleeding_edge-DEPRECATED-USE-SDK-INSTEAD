@@ -327,6 +327,7 @@ public class LibraryResolver {
       buildEnumMembers();
       buildTypeAliases();
       buildTypeHierarchies();
+      buildImplicitConstructors();
       instrumentation.metric("buildTypeHierarchies", "complete");
       //
       // Perform resolution and type analysis.
@@ -603,6 +604,29 @@ public class LibraryResolver {
         for (Source source : library.getCompilationUnitSources()) {
           EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
           library.getAST(source).accept(builder);
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Finish steps that the {@link #buildTypeHierarchies()} could not perform, see
+   * {@link ImplicitConstructorBuilder}.
+   * 
+   * @throws AnalysisException if any of the type hierarchies could not be resolved
+   */
+  private void buildImplicitConstructors() throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (Library library : librariesInCycles) {
+        for (Source source : library.getCompilationUnitSources()) {
+          ImplicitConstructorBuilder visitor = new ImplicitConstructorBuilder(
+              library,
+              source,
+              typeProvider);
+          library.getAST(source).accept(visitor);
         }
       }
     } finally {

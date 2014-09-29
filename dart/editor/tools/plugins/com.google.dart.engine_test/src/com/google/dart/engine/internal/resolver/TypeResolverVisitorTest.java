@@ -89,6 +89,11 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    */
   private TypeResolverVisitor visitor;
 
+  /**
+   * The visitor used to resolve types needed to form the type hierarchy.
+   */
+  private ImplicitConstructorBuilder implicitConstructorBuilder;
+
   public void fail_visitConstructorDeclaration() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
@@ -137,6 +142,10 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     library.setLibraryElement(element);
     typeProvider = new TestTypeProvider();
     visitor = new TypeResolverVisitor(library, librarySource, typeProvider);
+    implicitConstructorBuilder = new ImplicitConstructorBuilder(
+        library,
+        librarySource,
+        typeProvider);
   }
 
   public void test_visitCatchClause_exception() throws Exception {
@@ -421,5 +430,6 @@ public class TypeResolverVisitorTest extends EngineTestCase {
       library.getLibraryScope().define(element);
     }
     node.accept(visitor);
+    node.accept(implicitConstructorBuilder);
   }
 }
