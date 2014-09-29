@@ -22,7 +22,8 @@ import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_NEW;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
@@ -1333,8 +1334,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       SubContributionItem item = (SubContributionItem) manager.findUsingPath(DartEditorActionDefinitionIds.OPEN_EDITOR);
       ActionContributionItem inner = (ActionContributionItem) item.getInnerItem();
       RetargetTextEditorAction reaction = (RetargetTextEditorAction) inner.getAction();
-      OpenAction action = (OpenAction) ReflectionUtils.getFieldObject(reaction, "fAction");
-      action.updateLabel();
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        OpenAction_NEW action = (OpenAction_NEW) ReflectionUtils.getFieldObject(reaction, "fAction");
+        action.updateLabel();
+      } else {
+        OpenAction_OLD action = (OpenAction_OLD) ReflectionUtils.getFieldObject(reaction, "fAction");
+        action.updateLabel();
+      }
     } catch (Exception ex) {
       // initialization order can cause exception
     }

@@ -30,7 +30,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 public abstract class AbstractDartSelectionAction_NEW extends Action implements
     ISelectionChangedListener {
   protected final DartEditor editor;
-  protected String file;
+  protected final String file;
   protected int selectionOffset;
   protected int selectionLength;
 
@@ -49,8 +49,6 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
       ITextSelection textSelection = (ITextSelection) selection;
       selectionOffset = textSelection.getOffset();
       selectionLength = textSelection.getLength();
-    } else {
-      file = null;
     }
   }
 

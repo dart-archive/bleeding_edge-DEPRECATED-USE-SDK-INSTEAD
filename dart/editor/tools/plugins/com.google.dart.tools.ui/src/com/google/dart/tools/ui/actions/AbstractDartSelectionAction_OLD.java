@@ -25,7 +25,6 @@ import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
-import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider_NEW.TypeItem;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -98,24 +97,6 @@ public abstract class AbstractDartSelectionAction_OLD extends InstrumentedSelect
       }
       if (object instanceof LightNodeElement) {
         return ((LightNodeElement) object).getElement();
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the {@link Element} in the given {@link IStructuredSelection}. May be {@code null}.
-   */
-  protected static com.google.dart.server.generated.types.Element getSelectionElement_NEW(
-      IStructuredSelection selection) {
-    if (selection.size() == 1) {
-      Object object = selection.getFirstElement();
-      if (object instanceof TypeItem) {
-        TypeItem typeItem = (TypeItem) object;
-        return typeItem.getElementToOpen();
-      }
-      if (object instanceof com.google.dart.server.generated.types.Element) {
-        return (com.google.dart.server.generated.types.Element) object;
       }
     }
     return null;

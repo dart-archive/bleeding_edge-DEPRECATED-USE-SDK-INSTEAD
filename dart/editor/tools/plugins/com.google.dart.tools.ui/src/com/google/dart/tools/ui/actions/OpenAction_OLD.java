@@ -21,7 +21,6 @@ import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -39,7 +38,7 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
 /**
  * This action opens a {@link DartEditor} with declaration of {@link Element}.
  */
-public class OpenAction extends AbstractDartSelectionAction_OLD {
+public class OpenAction_OLD extends AbstractDartSelectionAction_OLD {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
@@ -58,26 +57,22 @@ public class OpenAction extends AbstractDartSelectionAction_OLD {
    * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
    */
   private static boolean isValidSelection(DartSelection selection) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      return OpenAction.getNavigationTargets(selection).length != 0;
-    } else {
-      // if we are already on declaration, we don't need to open anything
-      AstNode node = getSelectionNode(selection);
-      if (node instanceof SimpleIdentifier) {
-        if (((SimpleIdentifier) node).inDeclarationContext()) {
-          return false;
-        }
+    // if we are already on declaration, we don't need to open anything
+    AstNode node = getSelectionNode(selection);
+    if (node instanceof SimpleIdentifier) {
+      if (((SimpleIdentifier) node).inDeclarationContext()) {
+        return false;
       }
-      // interesting elements
-      return isInterestingElementSelected(selection);
     }
+    // interesting elements
+    return isInterestingElementSelected(selection);
   }
 
-  public OpenAction(DartEditor editor) {
+  public OpenAction_OLD(DartEditor editor) {
     super(editor);
   }
 
-  public OpenAction(IWorkbenchSite site) {
+  public OpenAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 
@@ -100,45 +95,22 @@ public class OpenAction extends AbstractDartSelectionAction_OLD {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      com.google.dart.server.generated.types.Element[] targets = getNavigationTargets(selection);
-      for (com.google.dart.server.generated.types.Element target : targets) {
-        try {
-          DartUI.openInEditor(target, true);
-          return;
-        } catch (Throwable e) {
-          ExceptionHandler.handle(e, getText(), "Exception during open.");
-        }
-      }
-    } else {
-      AstNode node = getSelectionNode(selection);
-      Element element = getSelectionElement(selection);
-      // if are on get FieldFormalParameter, open field instead
-      if (node.getParent() instanceof FieldFormalParameter
-          && element instanceof FieldFormalParameterElement) {
-        element = ((FieldFormalParameterElement) element).getField();
-      }
-      // do open Element
-      openElement(element);
+    AstNode node = getSelectionNode(selection);
+    Element element = getSelectionElement(selection);
+    // if are on get FieldFormalParameter, open field instead
+    if (node.getParent() instanceof FieldFormalParameter
+        && element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
     }
+    // do open Element
+    openElement(element);
   }
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      com.google.dart.server.generated.types.Element element = getSelectionElement_NEW(selection);
-      if (element != null) {
-        try {
-          DartUI.openInEditor(element, true);
-        } catch (Throwable e) {
-          ExceptionHandler.handle(e, getText(), "Exception during open.");
-        }
-      }
-    } else {
-      Element element = getSelectionElement(selection);
-      openElement(element);
-    }
+    Element element = getSelectionElement(selection);
+    openElement(element);
   }
 
   @Override

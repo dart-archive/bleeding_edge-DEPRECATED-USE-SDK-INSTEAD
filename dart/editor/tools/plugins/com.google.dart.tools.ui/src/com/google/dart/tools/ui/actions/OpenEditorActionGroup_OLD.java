@@ -41,10 +41,10 @@ import org.eclipse.ui.actions.OpenWithMenu;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class OpenEditorActionGroup extends ActionGroup {
+public class OpenEditorActionGroup_OLD extends ActionGroup {
 
   private boolean fIsEditorOwner;
-  private OpenAction fOpen;
+  private OpenAction_OLD fOpen;
   private ISelectionProvider fSelectionProvider;
   private IWorkbenchSite fSite;
 
@@ -54,9 +54,9 @@ public class OpenEditorActionGroup extends ActionGroup {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public OpenEditorActionGroup(DartEditor editor) {
+  public OpenEditorActionGroup_OLD(DartEditor editor) {
     fIsEditorOwner = true;
-    fOpen = new OpenAction(editor);
+    fOpen = new OpenAction_OLD(editor);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     editor.setAction("OpenEditor", fOpen); //$NON-NLS-1$
@@ -72,7 +72,7 @@ public class OpenEditorActionGroup extends ActionGroup {
    * 
    * @param part the view part that owns this action group
    */
-  public OpenEditorActionGroup(IViewPart part) {
+  public OpenEditorActionGroup_OLD(IViewPart part) {
     this(part.getSite(), null);
   }
 
@@ -84,9 +84,9 @@ public class OpenEditorActionGroup extends ActionGroup {
    * @param specialSelectionProvider the selection provider used instead of the site's selection
    *          provider.
    */
-  public OpenEditorActionGroup(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
+  public OpenEditorActionGroup_OLD(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
     fSite = site;
-    fOpen = new OpenAction(fSite);
+    fOpen = new OpenAction_OLD(fSite);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fSelectionProvider = specialSelectionProvider == null ? fSite.getSelectionProvider()

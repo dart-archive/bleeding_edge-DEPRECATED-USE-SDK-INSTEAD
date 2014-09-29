@@ -16,11 +16,14 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_NEW;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
+import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider_NEW.TypeItem;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -73,7 +76,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   private TreeViewer typesViewer;
   private MethodsViewer methodsViewer;
 
-  private OpenAction fOpenAction;
+  private OpenAction_OLD fOpenAction_OLD;
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
 
@@ -119,9 +122,12 @@ public class TypeHierarchyViewPart extends ViewPart {
       if (fMemento != null) {
         restoreState(fMemento);
       }
-    }
 
-    fOpenAction = new OpenAction(getSite());
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      } else {
+        fOpenAction_OLD = new OpenAction_OLD(getSite());
+      }
+    }
   }
 
   @Override
@@ -202,7 +208,7 @@ public class TypeHierarchyViewPart extends ViewPart {
       public void doubleClick(DoubleClickEvent event) {
         ISelection selection = event.getSelection();
         if (selection instanceof IStructuredSelection) {
-          fOpenAction.run((IStructuredSelection) selection);
+          fOpenAction_OLD.run((IStructuredSelection) selection);
         }
       }
     });
@@ -267,7 +273,24 @@ public class TypeHierarchyViewPart extends ViewPart {
       public void doubleClick(DoubleClickEvent event) {
         ISelection selection = event.getSelection();
         if (selection instanceof IStructuredSelection) {
-          fOpenAction.run((IStructuredSelection) selection);
+          IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+            if (structuredSelection.size() == 1) {
+              Object object = structuredSelection.getFirstElement();
+              // prepare Element to open
+              com.google.dart.server.generated.types.Element element = null;
+              if (object instanceof TypeItem) {
+                TypeItem typeItem = (TypeItem) object;
+                element = typeItem.getElementToOpen();
+              } else if (object instanceof Element) {
+                element = (Element) object;
+              }
+              // open Element
+              OpenAction_NEW.open(element);
+            }
+          } else {
+            fOpenAction_OLD.run((IStructuredSelection) selection);
+          }
         }
       }
     });

@@ -32,7 +32,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
@@ -114,7 +114,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       Element element = ElementLocator.locateWithOffset(node, offset);
       if (element != null) {
         IRegion wordRegion = getWordRegion(node);
-        return new IHyperlink[] {new DartElementHyperlink_OLD(element, wordRegion, new OpenAction(
+        return new IHyperlink[] {new DartElementHyperlink_OLD(element, wordRegion, new OpenAction_OLD(
             editor))};
       }
     }

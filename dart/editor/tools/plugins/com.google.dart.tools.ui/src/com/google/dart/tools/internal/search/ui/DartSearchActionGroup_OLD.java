@@ -16,7 +16,7 @@ package com.google.dart.tools.internal.search.ui;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionActionGroup;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction_OLD;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
@@ -34,13 +34,13 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 public class DartSearchActionGroup_OLD extends AbstractDartSelectionActionGroup {
   private AbstractDartSelectionAction_OLD findReferencesAction;
   private AbstractDartSelectionAction_OLD findDeclarationsAction;
-  private OpenAction openAction;
+  private OpenAction_OLD openAction;
 
   public DartSearchActionGroup_OLD(DartEditor editor) {
     super(editor);
     findReferencesAction = new FindReferencesAction(editor);
     findDeclarationsAction = new FindDeclarationsAction(editor);
-    openAction = new OpenAction(editor);
+    openAction = new OpenAction_OLD(editor);
     initActions();
     editor.setAction(findReferencesAction.getActionDefinitionId(), findReferencesAction);
     editor.setAction(findDeclarationsAction.getActionDefinitionId(), findDeclarationsAction);
