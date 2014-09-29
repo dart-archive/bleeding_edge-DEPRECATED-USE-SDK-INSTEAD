@@ -99,7 +99,6 @@ import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.YieldStatement;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
-import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -450,7 +449,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     this.hasExtUri = currentLibrary.hasExtUri();
     this.typeProvider = typeProvider;
     this.inheritanceManager = inheritanceManager;
-    AnalysisOptions options = currentLibrary.getContext().getAnalysisOptions();
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
     isInStaticVariableDeclaration = false;
@@ -4083,20 +4081,21 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     Type listElementType = typeNames.get(0).getType();
-    // Prepare problem to report.
-    ErrorCode errorCode;
-    if (node.getConstKeyword() != null) {
-      errorCode = CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
-    } else {
-      errorCode = StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
-    }
     // Check every list element.
     boolean hasProblems = false;
     for (Expression element : node.getElements()) {
+      if (node.getConstKeyword() != null) {
+        // TODO(paulberry): this error should be based on the actual type of the list element, not
+        // the static type.  See dartbug.com/21119.
+        hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+            element,
+            listElementType,
+            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      }
       hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
           element,
           listElementType,
-          errorCode);
+          StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
     }
     return hasProblems;
   }
@@ -4121,27 +4120,32 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     Type keyType = typeNames.get(0).getType();
     Type valueType = typeNames.get(1).getType();
-    // Prepare problem to report.
-    ErrorCode keyErrorCode;
-    ErrorCode valueErrorCode;
-    if (node.getConstKeyword() != null) {
-      keyErrorCode = CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
-      valueErrorCode = CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
-    } else {
-      keyErrorCode = StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
-      valueErrorCode = StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
-    }
     // Check every map entry.
     boolean hasProblems = false;
     NodeList<MapLiteralEntry> entries = node.getEntries();
     for (MapLiteralEntry entry : entries) {
       Expression key = entry.getKey();
       Expression value = entry.getValue();
-      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, keyErrorCode);
+      if (node.getConstKeyword() != null) {
+        // TODO(paulberry): this error should be based on the actual type of the list element, not
+        // the static type.  See dartbug.com/21119.
+        hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+            key,
+            keyType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+        hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+            value,
+            valueType,
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      }
+      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key,
+          keyType,
+          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
       hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
           value,
           valueType,
-          valueErrorCode);
+          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
     }
     return hasProblems;
   }
@@ -5744,25 +5748,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // done
     return hasProblem;
-  }
-
-  /**
-   * Return the flattened version of the given type, as defined by the specification: <blockquote>
-   * Let <i>flatten(T) = flatten(S)</i> if <i>T = Future&lt;S&gt;</i>, and <i>T</i> otherwise.
-   * </blockquote>
-   * 
-   * @param type the type to be flattened
-   * @return the flattened version of the given type
-   */
-  private Type flatten(Type type) {
-    while (isFuture(type)) {
-      Type[] arguments = ((InterfaceType) type).getTypeArguments();
-      if (arguments.length != 1) {
-        return type;
-      }
-      type = arguments[0];
-    }
-    return type;
   }
 
   /**

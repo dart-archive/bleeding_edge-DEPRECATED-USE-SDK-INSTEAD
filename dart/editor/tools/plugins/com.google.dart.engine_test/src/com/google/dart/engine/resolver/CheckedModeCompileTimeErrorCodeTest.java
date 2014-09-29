@@ -31,4 +31,37 @@ public class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
         StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE);
     verify(source);
   }
+
+  public void test_listElementTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = const <String> [42];"));
+    resolve(source);
+    assertErrors(
+        source,
+        CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_mapKeyTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = const <String, int > {1 : 2};"));
+    resolve(source);
+    assertErrors(
+        source,
+        CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_mapValueTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = const <String, String> {'a' : 2};"));
+    resolve(source);
+    assertErrors(
+        source,
+        CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
 }
