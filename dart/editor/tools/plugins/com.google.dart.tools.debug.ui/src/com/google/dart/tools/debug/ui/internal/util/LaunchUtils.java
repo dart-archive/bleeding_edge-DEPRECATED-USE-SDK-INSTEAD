@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
@@ -441,7 +440,7 @@ public class LaunchUtils {
 
     LightweightModel model = LightweightModel.getModel();
 
-    if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isClientLibrary(file)) {
+    if (model.isClientLibrary(file)) {
       return true;
     }
     return false;

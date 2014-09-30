@@ -14,12 +14,8 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -37,97 +33,38 @@ import java.util.List;
  * have reasonably up-to-date information. As the latest data is available from the analysis engine,
  * this model is updated.
  */
-public class LightweightModel {
-  private static final QualifiedName SOURCE_KIND = new QualifiedName(
-      DartCore.PLUGIN_ID,
-      "sourceKind");
+public abstract class LightweightModel {
+  static final QualifiedName CLIENT_LIBRARY = new QualifiedName(DartCore.PLUGIN_ID, "clientLibrary");
 
-  private static final QualifiedName CLIENT_LIBRARY = new QualifiedName(
-      DartCore.PLUGIN_ID,
-      "clientLibrary");
+  static final QualifiedName SERVER_LIBRARY = new QualifiedName(DartCore.PLUGIN_ID, "serverLibrary");
 
-  private static final QualifiedName SERVER_LIBRARY = new QualifiedName(
-      DartCore.PLUGIN_ID,
-      "serverLibrary");
+  static final QualifiedName HTML_FILE = new QualifiedName(DartCore.PLUGIN_ID, "htmlFile");
 
-  private static final QualifiedName HTML_FILE = new QualifiedName(DartCore.PLUGIN_ID, "htmlFile");
-
-  private static final QualifiedName CONTAINING_LIBRARY = new QualifiedName(
+  static final QualifiedName CONTAINING_LIBRARY = new QualifiedName(
       DartCore.PLUGIN_ID,
       "containingLibrary");
 
   private static LightweightModel model;
 
   /**
-   * @return the singleton instance of the LightweightModel
+   * Returns the singleton instance of the {@link LightweightModel}
    */
   public static LightweightModel getModel() {
     if (model == null) {
-      model = new LightweightModel();
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        model = new LightweightModel_NEW();
+      } else {
+        model = new LightweightModel_OLD();
+      }
     }
-
     return model;
   }
 
   /**
-   * Initialize the LightweightModel. This will create the singleton instance and start listening
-   * for analysis changes.
+   * Initialize the {@link LightweightModel}.
    */
   public static void init() {
     getModel();
-  }
-
-  protected LightweightModel() {
-    AnalysisWorker.addListener(new AnalysisListener() {
-      @Override
-      public void complete(AnalysisEvent event) {
-      }
-
-      @Override
-      public void resolved(ResolvedEvent event) {
-        IResource resource = event.getResource();
-        if (resource != null) {
-          AnalysisContext context = event.getContext();
-          ResourceMap resourceMap = event.getResourceMap();
-          Source source = event.getSource();
-          // in tests some information may be missing
-          if (context == null || resourceMap == null || source == null) {
-            return;
-          }
-          // OK, update the Source
-          try {
-            recalculateForResource(context, resourceMap, source, resource);
-          } catch (CoreException e) {
-            DartCore.logInformation("Exception updating: " + source, e);
-          }
-        }
-      }
-
-      @Override
-      public void resolvedHtml(ResolvedHtmlEvent event) {
-        IResource htmlResource = event.getResource();
-        if (htmlResource instanceof IFile) {
-          IFile htmlFile = (IFile) htmlResource;
-          AnalysisContext context = event.getContext();
-          ResourceMap resourceMap = event.getResourceMap();
-          Source htmlSource = event.getSource();
-          // in tests some information may be missing
-          if (context == null || resourceMap == null || htmlSource == null) {
-            return;
-          }
-          // OK, process the change
-          try {
-            Source[] librarySources = context.getLibrariesReferencedFromHtml(htmlSource);
-            for (Source librarySource : librarySources) {
-              IFile libraryFile = resourceMap.getResource(librarySource);
-              setFileProperty(libraryFile, HTML_FILE, htmlFile);
-            }
-          } catch (CoreException e) {
-            DartCore.logInformation("Exception updating: " + htmlSource);
-          }
-        }
-      }
-    });
   }
 
   /**
@@ -213,21 +150,6 @@ public class LightweightModel {
   }
 
   /**
-   * Return the source kind for the given file.
-   */
-  public SourceKind getSourceKind(IFile file) {
-    String value = getPersistentProperty(file, SOURCE_KIND);
-    if (value != null) {
-      try {
-        return SourceKind.valueOf(value);
-      } catch (IllegalArgumentException ex) {
-
-      }
-    }
-    return SourceKind.UNKNOWN;
-  }
-
-  /**
    * Return whether the given file is the defining compilation unit of a library that can be run in
    * a browser.
    */
@@ -246,68 +168,11 @@ public class LightweightModel {
   }
 
   /**
-   * Update the file's property to the new value in the most efficient way possible.
-   */
-  protected void setFileProperty(IFile file, QualifiedName property, boolean newValue)
-      throws CoreException {
-    boolean currentValue = "true".equals(getPersistentProperty(file, property));
-
-    if (currentValue != newValue) {
-      file.setPersistentProperty(property, Boolean.toString(newValue));
-    }
-  }
-
-  /**
-   * Update the file's property to the new value in the most efficient way possible.
-   */
-  protected void setFileProperty(IFile file, QualifiedName property, IFile newValue)
-      throws CoreException {
-    String value = newValue != null ? newValue.getFullPath().toString() : null;
-    setFileProperty(file, property, value);
-  }
-
-  /**
-   * Update the file's property to the new value in the most efficient way possible.
-   */
-  protected void setFileProperty(IFile file, QualifiedName property, String newValue)
-      throws CoreException {
-    String currentValue = getPersistentProperty(file, property);
-
-    if (currentValue != newValue) {
-      if (currentValue == null) {
-        file.setPersistentProperty(property, newValue);
-      } else if (!currentValue.equals(newValue)) {
-        file.setPersistentProperty(property, newValue);
-      }
-    }
-  }
-
-  private String getLibraryName(Source source, AnalysisContext context) {
-    if (source == null) {
-      return null;
-    }
-
-    LibraryElement element = context.getLibraryElement(source);
-
-    if (element == null) {
-      return null;
-    }
-
-    String name = element.getDisplayName();
-
-    if (name != null && name.isEmpty()) {
-      return null;
-    } else {
-      return name;
-    }
-  }
-
-  /**
    * Returns the value of the persistent property of the given {@link IFile}, identified by the
    * given key, or {@code null} if the {@link IFile} does not exists, has no such property or any
    * exception happens.
    */
-  private String getPersistentProperty(IFile file, QualifiedName name) {
+  protected final String getPersistentProperty(IFile file, QualifiedName name) {
     if (file == null) {
       return null;
     }
@@ -321,7 +186,7 @@ public class LightweightModel {
     }
   }
 
-  private IFile getResource(IFile file, QualifiedName qualifiedName) {
+  protected final IFile getResource(IFile file, QualifiedName qualifiedName) {
     String value = getPersistentProperty(file, qualifiedName);
     if (value != null) {
       IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
@@ -332,56 +197,45 @@ public class LightweightModel {
     return null;
   }
 
-  private boolean isPackagesFolder(IResource resource) {
+  protected final boolean isPackagesFolder(IResource resource) {
     if (resource instanceof IContainer && resource.getName().equals("packages")) {
       return true;
     }
-
     return false;
   }
 
-  private void recalculateForResource(AnalysisContext context, ResourceMap resourceMap,
-      Source source, IResource resource) throws CoreException {
-
-    // Check existence before setting persistent properties
-    if (!resource.exists()) {
-      DartCore.logInformation(getClass().getSimpleName()
-          + "#recalculateForResource cannot update persistent properties on non-existant resource: "
-          + resource);
-      return;
+  /**
+   * Update the file's property to the new value in the most efficient way possible.
+   */
+  protected final void setFileProperty(IFile file, QualifiedName property, boolean newValue)
+      throws CoreException {
+    boolean currentValue = "true".equals(getPersistentProperty(file, property));
+    if (currentValue != newValue) {
+      file.setPersistentProperty(property, Boolean.toString(newValue));
     }
-    IFile file = (IFile) resource;
+  }
 
-    // Set the library name.
-    String libraryName = getLibraryName(source, context);
-    setFileProperty(file, DartCore.LIBRARY_NAME, libraryName);
+  /**
+   * Update the file's property to the new value in the most efficient way possible.
+   */
+  protected final void setFileProperty(IFile file, QualifiedName property, IFile newValue)
+      throws CoreException {
+    String value = newValue != null ? newValue.getFullPath().toString() : null;
+    setFileProperty(file, property, value);
+  }
 
-    // Set the source kind.
-    SourceKind kind = (source == null ? SourceKind.UNKNOWN : context.getKindOf(source));
-    setFileProperty(file, SOURCE_KIND, kind.name());
-
-    // Set the client library property.
-    boolean clientLaunchable = source == null ? false : context.isClientLibrary(source);
-    setFileProperty(file, CLIENT_LIBRARY, clientLaunchable);
-
-    // Set the server library property.
-    boolean serverLaunchable = source == null ? false : context.isServerLibrary(source);
-    setFileProperty(file, SERVER_LIBRARY, serverLaunchable);
-
-    // Set the HTML file property.
-    Source[] htmlSources = source == null ? null : context.getHtmlFilesReferencing(source);
-    if (htmlSources == null || htmlSources.length == 0) {
-      setFileProperty(file, HTML_FILE, (String) null);
-    } else {
-      setFileProperty(file, HTML_FILE, resourceMap.getResource(htmlSources[0]));
-    }
-
-    // Set the containing library property.
-    Source[] containingSources = source == null ? null : context.getLibrariesContaining(source);
-    if (containingSources == null || containingSources.length == 0) {
-      setFileProperty(file, CONTAINING_LIBRARY, (String) null);
-    } else {
-      setFileProperty(file, CONTAINING_LIBRARY, resourceMap.getResource(containingSources[0]));
+  /**
+   * Update the file's property to the new value in the most efficient way possible.
+   */
+  protected final void setFileProperty(IFile file, QualifiedName property, String newValue)
+      throws CoreException {
+    String currentValue = getPersistentProperty(file, property);
+    if (currentValue != newValue) {
+      if (currentValue == null) {
+        file.setPersistentProperty(property, newValue);
+      } else if (!currentValue.equals(newValue)) {
+        file.setPersistentProperty(property, newValue);
+      }
     }
   }
 }

@@ -76,7 +76,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedLaunchData(String file, String kind, String[] referencedFiles) {
-    // TODO(brianwilkerson) not yet implemented
+    dataImpl.internalComputedLaunchData(file, kind, referencedFiles);
   }
 
   @Override

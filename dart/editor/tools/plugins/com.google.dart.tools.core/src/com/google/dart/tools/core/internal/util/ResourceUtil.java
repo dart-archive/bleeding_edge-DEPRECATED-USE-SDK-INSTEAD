@@ -52,6 +52,21 @@ public class ResourceUtil {
     return (IFile) resource;
   }
 
+  /**
+   * Return the file resource associated with the given file path, or {@code null} if the file does
+   * not correspond to an existing file resource.
+   * 
+   * @param path the path of the file representing the file resource to be returned
+   * @return the {@link IFile} resource associated with the given file path
+   */
+  public static IFile getFile(String path) {
+    if (path == null) {
+      return null;
+    }
+    File file = new File(path);
+    return getFile(file);
+  }
+
   public static IPath getProjectLocation(IProject project) {
     if (project.getRawLocation() == null) {
       return project.getLocation();

@@ -14,15 +14,16 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisService;
 import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.ExecutionService;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -31,6 +32,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
+import com.google.dart.tools.core.analysis.model.AnalysisServerLaunchDataListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOccurrencesListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
@@ -60,8 +62,8 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, List<String>> analysisSubscriptions = Maps.newHashMap();
   private final Map<String, SearchResultsListener> searchResultsListeners = Maps.newHashMap();
   private final Map<String, List<SearchResultsSet>> searchResultsData = Maps.newHashMap();
-  // TODO(scheglov) restore or remove for the new API
-//  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
+  private final List<String> executionSubscriptions = Lists.newArrayList();
+  private final List<AnalysisServerLaunchDataListener> launchDataListeners = Lists.newArrayList();
 
   private AnalysisServer server;
 
@@ -113,19 +115,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public boolean isFixableErrorCode(String file, ErrorCode errorCode) {
-    // TODO(scheglov) restore or remove for the new API
-    return false;
-//    Set<ErrorCode> fixableErrorCodes = fixableErrorCodesData.get(contextId);
-//    if (fixableErrorCodes == null) {
-//      return false;
-//    }
-//    return fixableErrorCodes.contains(errorCode);
-  }
-
-  @Override
-  public synchronized void removeSearchResultsListener(String searchId,
-      SearchResultsListener listener) {
+  public void removeSearchResultsListener(String searchId, SearchResultsListener listener) {
     searchResultsData.remove(searchId);
     searchResultsListeners.remove(searchId);
   }
@@ -146,6 +136,16 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     }
     if (subscriptions.add(listener)) {
       addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+    }
+  }
+
+  @Override
+  public synchronized void subscribeLaunchData(AnalysisServerLaunchDataListener listener) {
+    if (launchDataListeners.add(listener)) {
+      if (executionSubscriptions.add(ExecutionService.LAUNCH_DATA)) {
+        executionSubscriptions.add(ExecutionService.LAUNCH_DATA);
+        server.execution_setSubscriptions(executionSubscriptions);
+      }
     }
   }
 
@@ -206,6 +206,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     if (subscriptions.remove(listener)) {
       if (subscriptions.isEmpty()) {
         removeAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+      }
+    }
+  }
+
+  @Override
+  public void unsubscribeLaunchData(AnalysisServerLaunchDataListener listener) {
+    if (launchDataListeners.remove(listener)) {
+      if (executionSubscriptions.remove(ExecutionService.LAUNCH_DATA)) {
+        server.execution_setSubscriptions(executionSubscriptions);
       }
     }
   }
@@ -274,6 +283,14 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     subscriptions = ImmutableSet.copyOf(subscriptions);
     for (AnalysisServerHighlightsListener listener : subscriptions) {
       listener.computedHighlights(file, highlights);
+    }
+  }
+
+  void internalComputedLaunchData(String file, String kind, String[] referencedFiles) {
+    List<AnalysisServerLaunchDataListener> listeners = launchDataListeners;
+    listeners = ImmutableList.copyOf(listeners);
+    for (AnalysisServerLaunchDataListener listener : listeners) {
+      listener.computedLaunchData(file, kind, referencedFiles);
     }
   }
 
@@ -352,14 +369,6 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   /**
-   * Remembers the {@link ErrorCode} that may be fixed in the given context.
-   */
-  void internalSetFixableErrorCodes(String file, ErrorCode[] errorCodes) {
-    // TODO(scheglov) restore or remove for the new API
-//    fixableErrorCodesData.put(contextId, Sets.newHashSet(errorCodes));
-  }
-
-  /**
    * Adds the given file to the subscription list for the given {@link AnalysisService}.
    */
   private void addAnalysisSubscription(String analysisService, String file) {
@@ -386,8 +395,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       if (files.isEmpty()) {
         analysisSubscriptions.remove(analysisService);
       }
-      // TODO (jwren) re-implement after this is working
-//      server.analysis_setSubscriptions(analysisSubscriptions);
+      server.analysis_setSubscriptions(analysisSubscriptions);
     }
   }
 }

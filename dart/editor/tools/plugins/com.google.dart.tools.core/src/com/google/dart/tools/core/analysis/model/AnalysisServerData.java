@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
@@ -56,17 +55,17 @@ public interface AnalysisServerData {
    */
   Occurrences[] getOccurrences(String file);
 
-  /**
-   * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given file.
-   */
-  boolean isFixableErrorCode(String file, ErrorCode errorCode);
-
   void removeSearchResultsListener(String id, SearchResultsListener listener);
 
   /**
    * Specifies that the client wants to be notified about new {@link HighlightRegion}s.
    */
   void subscribeHighlights(String file, AnalysisServerHighlightsListener listener);
+
+  /**
+   * Specifies that the client was to be notified about "execution.launchData".
+   */
+  void subscribeLaunchData(AnalysisServerLaunchDataListener listener);
 
   /**
    * Specifies that the client wants to request navigation regions.
@@ -92,6 +91,11 @@ public interface AnalysisServerData {
    * Specifies that the client doesn't want to be notified about {@link HighlightRegion}s anymore.
    */
   void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener);
+
+  /**
+   * Specifies that the client doesn't wan to be notified about "execution.launchData".
+   */
+  void unsubscribeLaunchData(AnalysisServerLaunchDataListener listener);
 
   /**
    * Specifies that the client doesn't need navigation information for the given file anymore.

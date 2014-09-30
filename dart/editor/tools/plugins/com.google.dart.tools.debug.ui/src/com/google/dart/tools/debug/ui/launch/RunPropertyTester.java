@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.LightweightModel;
 
@@ -40,8 +39,7 @@ public class RunPropertyTester extends PropertyTester {
         if (o instanceof IFile && DartCore.isDartLikeFileName(((IFile) o).getName())) {
           IFile file = (IFile) o;
           LightweightModel model = LightweightModel.getModel();
-
-          if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isServerLibrary(file)) {
+          if (model.isServerLibrary(file)) {
             return true;
           }
         }
