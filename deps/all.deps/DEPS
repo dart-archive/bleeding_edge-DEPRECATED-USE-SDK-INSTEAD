@@ -45,7 +45,7 @@ vars = {
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
   "net_nss_rev": "@bf6305a7aa19bdcf8f590ceb5e16384f9af63745",
-  "nss_rev": "@7b5b6ec41cf9105bd6e1c9a5157982f821282a4c",
+  "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "snakeyaml_rev" : "@19997",
