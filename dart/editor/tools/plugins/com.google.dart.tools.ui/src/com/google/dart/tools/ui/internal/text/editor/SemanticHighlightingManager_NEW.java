@@ -26,9 +26,10 @@ import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Position;
@@ -45,6 +46,130 @@ import org.eclipse.swt.widgets.Display;
 public class SemanticHighlightingManager_NEW implements AnalysisServerHighlightsListener,
     ITextPresentationListener {
   /**
+   * Semantic highlighting position updater.
+   */
+  private class HighlightingPositionUpdater implements IPositionUpdater {
+    @Override
+    public void update(DocumentEvent event) {
+      int eventOffset = event.getOffset();
+      int eventOldLength = event.getLength();
+      int eventEnd = eventOffset + eventOldLength;
+
+      for (HighlightPosition position : positions) {
+        int offset = position.getOffset();
+        int length = position.getLength();
+        int end = offset + length;
+        if (offset > eventEnd) {
+          updateWithPrecedingEvent(position, event);
+        } else if (end < eventOffset) {
+          updateWithSucceedingEvent(position, event);
+        } else if (offset <= eventOffset && end >= eventEnd) {
+          updateWithIncludedEvent(position, event);
+        } else if (offset <= eventOffset) {
+          updateWithOverEndEvent(position, event);
+        } else if (end >= eventEnd) {
+          updateWithOverStartEvent(position, event);
+        } else {
+          updateWithIncludingEvent(position, event);
+        }
+      }
+    }
+
+    private boolean isDartIdentifierPart(String text, int index) {
+      char c = text.charAt(index);
+      return Character.isJavaIdentifierPart(c);
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event is included by the position.
+     */
+    private void updateWithIncludedEvent(HighlightPosition position, DocumentEvent event) {
+      String eventText = event.getText();
+      if (eventText != null) {
+        int length = position.getLength();
+        int newLength = length + eventText.length();
+        position.setLength(newLength);
+      }
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event includes the position.
+     */
+    private void updateWithIncludingEvent(HighlightPosition position, DocumentEvent event) {
+      position.delete();
+      position.update(event.getOffset(), 0);
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event overlaps with the end of the position.
+     */
+    private void updateWithOverEndEvent(HighlightPosition position, DocumentEvent event) {
+      String newText = event.getText();
+      if (newText == null) {
+        newText = "";
+      }
+      int eventNewLength = newText.length();
+
+      int includedLength = 0;
+      while (includedLength < eventNewLength && isDartIdentifierPart(newText, includedLength)) {
+        includedLength++;
+      }
+      position.setLength(event.getOffset() - position.getOffset() + includedLength);
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event overlaps with the start of the position.
+     */
+    private void updateWithOverStartEvent(HighlightPosition position, DocumentEvent event) {
+      int eventOffset = event.getOffset();
+      int eventEnd = eventOffset + event.getLength();
+
+      String newText = event.getText();
+      if (newText == null) {
+        newText = "";
+      }
+      int eventNewLength = newText.length();
+
+      int excludedLength = eventNewLength;
+      while (excludedLength > 0 && isDartIdentifierPart(newText, excludedLength - 1)) {
+        excludedLength--;
+      }
+      int deleted = eventEnd - position.getOffset();
+      int inserted = eventNewLength - excludedLength;
+      position.update(eventOffset + excludedLength, position.getLength() - deleted + inserted);
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event precedes the position.
+     */
+    private void updateWithPrecedingEvent(HighlightPosition position, DocumentEvent event) {
+      String newText = event.getText();
+      int eventNewLength = newText != null ? newText.length() : 0;
+      int deltaLength = eventNewLength - event.getLength();
+
+      position.setOffset(position.getOffset() + deltaLength);
+    }
+
+    /**
+     * Update the given position with the given event.
+     * <p>
+     * The event succeeds the position.
+     */
+    private void updateWithSucceedingEvent(HighlightPosition position, DocumentEvent event) {
+    }
+  }
+
+  /**
    * A {@link Position} that can be tracked by a {@link Document} and contains the
    * {@link HighlightRegion}.
    */
@@ -60,18 +185,24 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     public String toString() {
       return "[" + super.toString() + " " + highlight + "]";
     }
+
+    public void update(int offset, int len) {
+      setOffset(offset);
+      setLength(len);
+    }
   }
 
   private final DartSourceViewer viewer;
   private final String file;
   private final IDocument document;
+  private final IPositionUpdater positionUpdater = new HighlightingPositionUpdater();
   private HighlightPosition[] positions;
-  private boolean positionsAddedToDocument = false;
 
   public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file) {
     this.viewer = viewer;
     this.file = file;
     this.document = viewer.getDocument();
+    document.addPositionUpdater(positionUpdater);
     // subscribe
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.subscribeHighlights(file, this);
@@ -133,21 +264,14 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   }
 
   @Override
-  public void computedHighlights(String file, HighlightRegion[] highlights) {
-    clearHighlightPositions();
-    // create and track HighlightPosition(s)
+  public void computedHighlights(String file, final HighlightRegion[] highlights) {
+    // create HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
     for (int i = 0; i < highlights.length; i++) {
       HighlightRegion highlight = highlights[i];
-      HighlightPosition position = new HighlightPosition(highlight);
-      try {
-        document.addPosition(position);
-      } catch (BadLocationException e) {
-      }
-      newPositions[i] = position;
+      newPositions[i] = new HighlightPosition(highlight);
     }
     positions = newPositions;
-    positionsAddedToDocument = true;
     // invalidate presentation
     Display.getDefault().asyncExec(new Runnable() {
       @Override
@@ -161,23 +285,11 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.unsubscribeHighlights(file, this);
     viewer.removeTextPresentationListener(this);
-    clearHighlightPositions();
-  }
-
-  private void clearHighlightPositions() {
-    if (positionsAddedToDocument) {
-      for (HighlightPosition position : positions) {
-        document.removePosition(position);
-      }
-      positionsAddedToDocument = false;
-    }
+    document.removePositionUpdater(positionUpdater);
   }
 
   /**
    * The type will be a {@link String} from {@link HighlightRegionType}.
-   * 
-   * @param type
-   * @return
    */
   private String getThemeKey(String type) {
     if (type.equals(HighlightRegionType.ANNOTATION)) {
