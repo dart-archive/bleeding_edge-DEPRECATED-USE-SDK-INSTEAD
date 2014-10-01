@@ -19,9 +19,10 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import org.eclipse.core.resources.IResource;
 
 /**
- * A delta listener that filters out sources specified by {@link DartIgnoreManager} and broadcasts
- * any remaining changes to its own listeners. For performance, this filter caches information about
- * what is ignored and as such should be used once and discarded.
+ * A delta listener that filters out sources specified by {@link DartIgnoreManager}, clears markers
+ * from those filtered sources, and broadcasts any remaining changes to its own listeners. For
+ * performance, this filter caches information about what is ignored and as such should be used once
+ * and discarded.
  */
 public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListener {
 
@@ -30,14 +31,16 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
   // Optimize case where nothing in container is ignored
 
   private final DartIgnoreManager ignoreManager;
+  private AnalysisMarkerManager markerManager;
   private boolean hasIgnores;
 
   public IgnoreResourceFilter() {
-    this(DartCore.getProjectManager().getIgnoreManager());
+    this(DartCore.getProjectManager().getIgnoreManager(), AnalysisMarkerManager.getInstance());
   }
 
-  public IgnoreResourceFilter(DartIgnoreManager ignoreManager) {
+  public IgnoreResourceFilter(DartIgnoreManager ignoreManager, AnalysisMarkerManager markerManager) {
     this.ignoreManager = ignoreManager;
+    this.markerManager = markerManager;
     this.hasIgnores = ignoreManager.getExclusionPatterns().size() > 0;
   }
 
@@ -45,6 +48,11 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
   public void packageSourceAdded(SourceDeltaEvent event) {
     if (shouldForward(event)) {
       listener.packageSourceAdded(event);
+    } else {
+      IResource resource = event.getResource();
+      if (resource != null) {
+        markerManager.clearMarkers(resource);
+      }
     }
   }
 
@@ -94,6 +102,11 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
   public void sourceAdded(SourceDeltaEvent event) {
     if (shouldForward(event)) {
       listener.sourceAdded(event);
+    } else {
+      IResource resource = event.getResource();
+      if (resource != null) {
+        markerManager.clearMarkers(resource);
+      }
     }
   }
 

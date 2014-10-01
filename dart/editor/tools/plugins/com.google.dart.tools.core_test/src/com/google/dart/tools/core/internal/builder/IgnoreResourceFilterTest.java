@@ -28,6 +28,7 @@ public class IgnoreResourceFilterTest extends TestCase {
   private MockProject project;
   private DartIgnoreManager ignoreManager;
   private DeltaListener listener;
+  private AnalysisMarkerManager markerManager;
 
   public void testPackageSourceAdded() throws Exception {
     SourceDeltaEvent event = newSourceDeltaEvent();
@@ -35,15 +36,20 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().packageSourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verify(markerManager).clearMarkers(event.getResource());
+    Mockito.verifyNoMoreInteractions(markerManager);
 
     ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().packageSourceAdded(event);
     Mockito.verify(listener).packageSourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
 
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().packageSourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verify(markerManager, Mockito.times(2)).clearMarkers(event.getResource());
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceChanged() throws Exception {
@@ -61,6 +67,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().packageSourceChanged(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceContainerRemoved() throws Exception {
@@ -68,6 +75,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().packageSourceContainerRemoved(event);
     Mockito.verify(listener).packageSourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceContainerRemoved_ignored() throws Exception {
@@ -75,6 +83,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().packageSourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceContainerRemoved_unignored() throws Exception {
@@ -84,6 +93,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().packageSourceContainerRemoved(event);
     Mockito.verify(listener).packageSourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceRemoved() throws Exception {
@@ -91,6 +101,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().packageSourceRemoved(event);
     Mockito.verify(listener).packageSourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceRemoved_ignored() throws Exception {
@@ -98,6 +109,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().packageSourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPackageSourceRemoved_unignored() throws Exception {
@@ -107,6 +119,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().packageSourceRemoved(event);
     Mockito.verify(listener).packageSourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPubspecAdded() throws Exception {
@@ -124,6 +137,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().pubspecAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPubspecChanged() throws Exception {
@@ -141,6 +155,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().pubspecChanged(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testPubspecRemoved() throws Exception {
@@ -158,6 +173,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().pubspecRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceAdded() throws Exception {
@@ -166,15 +182,20 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verify(markerManager).clearMarkers(event.getResource());
+    Mockito.verifyNoMoreInteractions(markerManager);
 
     ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().sourceAdded(event);
     Mockito.verify(listener).sourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
 
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().sourceAdded(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verify(markerManager, Mockito.times(2)).clearMarkers(event.getResource());
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceChanged() throws Exception {
@@ -192,6 +213,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
     newTarget().sourceChanged(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceContainerRemoved() throws Exception {
@@ -199,6 +221,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().sourceContainerRemoved(event);
     Mockito.verify(listener).sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceContainerRemoved_ignored() throws Exception {
@@ -206,6 +229,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceContainerRemoved_null() throws Exception {
@@ -213,6 +237,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(project.getFolder("web"));
     newTarget().sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceContainerRemoved_unignored() throws Exception {
@@ -222,6 +247,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().sourceContainerRemoved(event);
     Mockito.verify(listener).sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceRemoved() throws Exception {
@@ -229,6 +255,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().sourceRemoved(event);
     Mockito.verify(listener).sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceRemoved_ignored() throws Exception {
@@ -236,6 +263,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceRemoved_null() throws Exception {
@@ -243,6 +271,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     ignoreManager.addToIgnores(project.getFolder("web").getFile("other.dart"));
     newTarget().sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testSourceRemoved_unignored() throws Exception {
@@ -252,6 +281,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().sourceRemoved(event);
     Mockito.verify(listener).sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testVisitContext() throws Exception {
@@ -259,6 +289,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().visitContext(event);
     Mockito.verify(listener).visitContext(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testVisitContext_ignored() throws Exception {
@@ -268,6 +299,7 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().visitContext(event);
     Mockito.verify(listener).visitContext(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   public void testVisitContext_unignored() throws Exception {
@@ -277,11 +309,13 @@ public class IgnoreResourceFilterTest extends TestCase {
     newTarget().visitContext(event);
     Mockito.verify(listener).visitContext(event);
     Mockito.verifyNoMoreInteractions(listener);
+    Mockito.verifyNoMoreInteractions(markerManager);
   }
 
   @Override
   protected void setUp() throws Exception {
     project = TestProjects.newPubProject3();
+    markerManager = Mockito.mock(AnalysisMarkerManager.class);
     ignoreManager = new DartIgnoreManager(new MockIgnoreFile());
     listener = Mockito.mock(DeltaListener.class);
   }
@@ -313,7 +347,7 @@ public class IgnoreResourceFilterTest extends TestCase {
   }
 
   private IgnoreResourceFilter newTarget() {
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(ignoreManager);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(ignoreManager, markerManager);
     filter.addDeltaListener(listener);
     return filter;
   }

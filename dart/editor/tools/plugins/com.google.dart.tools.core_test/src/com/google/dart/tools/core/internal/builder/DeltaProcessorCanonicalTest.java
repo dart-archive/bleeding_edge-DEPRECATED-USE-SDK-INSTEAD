@@ -26,6 +26,7 @@ import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
 import org.eclipse.core.runtime.Path;
+import org.mockito.Mockito;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
@@ -77,7 +78,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", REMOVED);
 
     processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
@@ -103,7 +105,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(folder, REMOVED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     ProjectUpdater updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
@@ -131,7 +134,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     ProjectUpdater updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
@@ -165,7 +169,6 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(myApp).add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
     processor.addDeltaListener(updater);
     processor.traverse(delta);
@@ -194,7 +197,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add("pkg1").add("bar.dart");
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     ProjectUpdater updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
@@ -221,7 +225,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add("pkg1").add("bar.dart");
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     ProjectUpdater updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
@@ -246,7 +251,8 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(file, REMOVED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
-    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    AnalysisMarkerManager markerManager = Mockito.mock(AnalysisMarkerManager.class);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager(), markerManager);
     ProjectUpdater updater = new ProjectUpdater();
     filter.addDeltaListener(updater);
     processor.addDeltaListener(filter);
