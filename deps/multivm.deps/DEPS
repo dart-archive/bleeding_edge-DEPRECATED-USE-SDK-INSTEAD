@@ -9,13 +9,13 @@ execfile(os.path.join(path, 'multivm.deps', 'DEPS.chromium')) # Include proper C
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
-  "multivm_chromium_commit": "67d48589922934fe3ea0bd34a4d8a9cd433b4ea9",
-  "multivm_chromium_position": "295932",
-  "chromium_base_position": "295932",
+  "multivm_chromium_commit": "267aeeb8d85c8503a7fd12bd14654b8ea78d3974",
+  "multivm_chromium_position": "297060",
+  "chromium_base_position": "297060",
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "39950",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "182857",
+  "multivm_blink_revision": "183008",
 })
 
 def massage_deps(deps):
