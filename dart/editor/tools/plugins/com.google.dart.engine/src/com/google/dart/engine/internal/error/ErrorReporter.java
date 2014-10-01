@@ -64,6 +64,10 @@ public class ErrorReporter {
     this.source = defaultSource;
   }
 
+  public Source getSource() {
+    return source;
+  }
+
   /**
    * Creates an error with properties with the given error code and arguments.
    * 

@@ -33,6 +33,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -49,8 +50,9 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     private AstNode nodeBeingEvaluated;
 
     public ValidatingConstantVisitor(TypeProvider typeProvider,
-        DirectedGraph<AstNode> referenceGraph, AstNode nodeBeingEvaluated) {
-      super(typeProvider);
+        DirectedGraph<AstNode> referenceGraph, AstNode nodeBeingEvaluated,
+        ErrorReporter errorReporter) {
+      super(typeProvider, errorReporter);
       this.referenceGraph = referenceGraph;
       this.nodeBeingEvaluated = nodeBeingEvaluated;
     }
@@ -121,8 +123,12 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     }
 
     @Override
-    protected ConstantVisitor createConstantVisitor() {
-      return new ValidatingConstantVisitor(typeProvider, referenceGraph, nodeBeingEvaluated);
+    protected ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) {
+      return new ValidatingConstantVisitor(
+          typeProvider,
+          referenceGraph,
+          nodeBeingEvaluated,
+          errorReporter);
     }
   }
 
@@ -249,16 +255,11 @@ public class ConstantValueComputerTest extends ResolverTestCase {
 
   public void test_dependencyOnConstructorArgument_unresolvedConstructor() throws Exception {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is redundant and
-    // probably shouldn't be issued.
-    assertProperDependencies(
-        createSource(//
-            "class A {",
-            "}",
-            "const int x = 1;",
-            "const A y = const A.a(x);"),
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
+    assertProperDependencies(createSource(//
+        "class A {",
+        "}",
+        "const int x = 1;",
+        "const A y = const A.a(x);"), CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
   }
 
   public void test_dependencyOnConstructorInitializer() throws Exception {
@@ -694,8 +695,8 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     EvaluationResultImpl evaluationResult = evaluateInstanceCreationExpression(
         compilationUnit,
         "foo");
-    assertInstanceOf(ValidResult.class, evaluationResult);
-    DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
+    assertNotNull(evaluationResult.getValue());
+    DartObjectImpl value = evaluationResult.getValue();
     assertEquals(getTypeProvider().getSymbolType(), value.getType());
     assertEquals("a", value.getValue());
   }
@@ -717,10 +718,10 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "const c_num = const C<num>();"));
     EvaluationResultImpl c_int = evaluateInstanceCreationExpression(compilationUnit, "c_int");
     assertType(c_int, "C<int>");
-    DartObjectImpl c_int_value = ((ValidResult) c_int).getValue();
+    DartObjectImpl c_int_value = c_int.getValue();
     EvaluationResultImpl c_num = evaluateInstanceCreationExpression(compilationUnit, "c_num");
     assertType(c_num, "C<num>");
-    DartObjectImpl c_num_value = ((ValidResult) c_num).getValue();
+    DartObjectImpl c_num_value = c_num.getValue();
     assertFalse(c_int_value.equals(c_num_value));
   }
 
@@ -756,7 +757,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     "const voidSymbol = #void;"));
     VariableDeclaration voidSymbol = findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult = ((VariableElementImpl) voidSymbol.getElement()).getEvaluationResult();
-    DartObjectImpl value = ((ValidResult) voidSymbolResult).getValue();
+    DartObjectImpl value = voidSymbolResult.getValue();
     assertEquals(getTypeProvider().getSymbolType(), value.getType());
     assertEquals("void", value.getValue());
   }
@@ -793,15 +794,15 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   private HashMap<String, DartObjectImpl> assertType(EvaluationResultImpl result, String typeName) {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertEquals(typeName, value.getType().getDisplayName());
     return value.getFields();
   }
 
   private boolean assertValidBool(EvaluationResultImpl result) throws AnalysisException {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertEquals(getTypeProvider().getBoolType(), value.getType());
     Boolean boolValue = value.getBoolValue();
     assertNotNull(boolValue);
@@ -809,28 +810,28 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   private int assertValidInt(EvaluationResultImpl result) throws AnalysisException {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertEquals(getTypeProvider().getIntType(), value.getType());
     return value.getIntValue().intValue();
   }
 
   private void assertValidNull(EvaluationResultImpl result) throws AnalysisException {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertEquals(getTypeProvider().getNullType(), value.getType());
   }
 
   private String assertValidString(EvaluationResultImpl result) throws AnalysisException {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertEquals(getTypeProvider().getStringType(), value.getType());
     return value.getStringValue();
   }
 
   private void assertValidUnknown(EvaluationResultImpl result) {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertNotNull(result.getValue());
+    DartObjectImpl value = result.getValue();
     assertTrue(value.isUnknown());
   }
 
@@ -946,11 +947,9 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       assertNotNull(element);
       EvaluationResultImpl result = element.getEvaluationResult();
       if (shouldBeValid) {
-        assertInstanceOf(ValidResult.class, result);
-        Object value = ((ValidResult) result).getValue();
-        assertNotNull(value);
+        assertNotNull(result.getValue());
       } else {
-        assertInstanceOf(ErrorResult.class, result);
+        assertNull(result.getValue());
       }
     }
   }

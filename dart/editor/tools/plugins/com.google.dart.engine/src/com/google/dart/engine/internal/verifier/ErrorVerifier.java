@@ -127,7 +127,6 @@ import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
-import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
@@ -6211,8 +6210,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //  }
 
   private boolean isUserDefinedObject(EvaluationResultImpl result) {
-    return result == null
-        || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
+    return result == null || (result.getValue() != null && result.getValue().isUserDefinedObject());
   }
 
   /**

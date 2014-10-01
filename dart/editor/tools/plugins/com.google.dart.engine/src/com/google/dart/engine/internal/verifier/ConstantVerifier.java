@@ -48,13 +48,14 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.constant.ConstantVisitor;
-import com.google.dart.engine.internal.constant.ErrorResult;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
-import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.object.BoolState;
@@ -62,7 +63,6 @@ import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.DoubleState;
 import com.google.dart.engine.internal.object.DynamicState;
 import com.google.dart.engine.internal.object.GenericState;
-import com.google.dart.engine.internal.object.InstanceState;
 import com.google.dart.engine.internal.object.IntState;
 import com.google.dart.engine.internal.object.NumState;
 import com.google.dart.engine.internal.object.StringState;
@@ -181,7 +181,11 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst()) {
-      validate(node, null);
+      EvaluationResultImpl evaluationResult = node.getEvaluationResult();
+      // Note: evaluationResult might be null if there are circular references among constants.
+      if (evaluationResult != null) {
+        reportErrors(evaluationResult.getErrors(), null);
+      }
     }
     validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
@@ -191,10 +195,10 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   public Void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.getConstKeyword() != null) {
-      EvaluationResultImpl result;
+      DartObjectImpl result;
       for (Expression element : node.getElements()) {
         result = validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-        if (result instanceof ValidResult) {
+        if (result != null) {
           reportErrorIfFromDeferredLibrary(
               element,
               CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
@@ -214,27 +218,26 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
     for (MapLiteralEntry entry : node.getEntries()) {
       Expression key = entry.getKey();
       if (isConst) {
-        EvaluationResultImpl keyResult = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        DartObjectImpl keyResult = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
         Expression valueExpression = entry.getValue();
-        EvaluationResultImpl valueResult = validate(
+        DartObjectImpl valueResult = validate(
             valueExpression,
             CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (valueResult instanceof ValidResult) {
+        if (valueResult != null) {
           reportErrorIfFromDeferredLibrary(
               valueExpression,
               CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
         }
-        if (keyResult instanceof ValidResult) {
+        if (keyResult != null) {
           reportErrorIfFromDeferredLibrary(
               key,
               CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          DartObject value = ((ValidResult) keyResult).getValue();
-          if (keys.contains(value)) {
+          if (keys.contains(keyResult)) {
             invalidKeys.add(key);
           } else {
-            keys.add(value);
+            keys.add(keyResult);
           }
-          Type type = value.getType();
+          Type type = keyResult.getType();
           if (implementsEqualsWhenNotAllowed(type)) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
@@ -243,13 +246,15 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
           }
         }
       } else {
-        EvaluationResultImpl result = key.accept(new ConstantVisitor(typeProvider));
-        if (result instanceof ValidResult) {
-          DartObject value = ((ValidResult) result).getValue();
-          if (keys.contains(value)) {
+        // Note: we throw the errors away because this isn't actually a const.
+        BooleanErrorListener errorListener = new BooleanErrorListener();
+        ErrorReporter subErrorReporter = new ErrorReporter(errorListener, errorReporter.getSource());
+        DartObjectImpl result = key.accept(new ConstantVisitor(typeProvider, subErrorReporter));
+        if (result != null) {
+          if (keys.contains(result)) {
             invalidKeys.add(key);
           } else {
-            keys.add(value);
+            keys.add(result);
           }
         } else {
           reportEqualKeys = false;
@@ -283,14 +288,14 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
       if (switchMember instanceof SwitchCase) {
         SwitchCase switchCase = (SwitchCase) switchMember;
         Expression expression = switchCase.getExpression();
-        EvaluationResultImpl caseResult = validate(
+        DartObjectImpl caseResult = validate(
             expression,
             CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-        if (caseResult instanceof ValidResult) {
+        if (caseResult != null) {
           reportErrorIfFromDeferredLibrary(
               expression,
               CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
-          DartObject value = ((ValidResult) caseResult).getValue();
+          DartObject value = caseResult;
           if (firstType == null) {
             firstType = value.getType();
           } else {
@@ -326,13 +331,16 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
         // computed their values. But if we missed it for some reason, this gives us a second
         // chance.
         //
-        result = validate(
+        result = new EvaluationResultImpl(validate(
             initializer,
-            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE));
         element.setEvaluationResult(result);
         return null;
-      } else if (result instanceof ErrorResult) {
-        reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      } else if (result.getValue() == null) {
+        // TODO(paulberry): report errors even if valid result.
+        reportErrors(
+            result.getErrors(),
+            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         return null;
       }
       reportErrorIfFromDeferredLibrary(
@@ -406,32 +414,30 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * If the given result represents one or more errors, report those errors. Except for special
-   * cases, use the given error code rather than the one reported in the error.
+   * Report any errors in the given list. Except for special cases, use the given error code rather
+   * than the one reported in the error.
    * 
-   * @param result the result containing any errors that need to be reported
-   * @param errorCode the error code to be used if the result represents an error
+   * @param errors the errors that need to be reported
+   * @param errorCode the error code to be used
    */
-  private void reportErrors(EvaluationResultImpl result, ErrorCode errorCode) {
-    if (result instanceof ErrorResult) {
-      for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        ErrorCode dataErrorCode = data.getErrorCode();
-        if (dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
-            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE
-            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING
-            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
-            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
-            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
-          errorReporter.reportErrorForNode(dataErrorCode, data.getNode());
-        } else if (errorCode != null) {
-          errorReporter.reportErrorForNode(errorCode, data.getNode());
-        }
+  private void reportErrors(AnalysisError[] errors, ErrorCode errorCode) {
+    for (AnalysisError data : errors) {
+      ErrorCode dataErrorCode = data.getErrorCode();
+      if (dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+          || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE
+          || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING
+          || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
+          || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
+          || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
+        errorReporter.reportError(data);
+      } else if (errorCode != null) {
+        errorReporter.reportError(new AnalysisError(
+            data.getSource(),
+            data.getOffset(),
+            data.getLength(),
+            errorCode));
       }
     }
-  }
-
-  private ValidResult valid(InterfaceType type, InstanceState state) {
-    return new ValidResult(new DartObjectImpl(type, state));
   }
 
   /**
@@ -442,9 +448,11 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
    * @param errorCode the error code to be used if the expression is not a compile time constant
    * @return the value of the compile time constant
    */
-  private EvaluationResultImpl validate(Expression expression, ErrorCode errorCode) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider));
-    reportErrors(result, errorCode);
+  private DartObjectImpl validate(Expression expression, ErrorCode errorCode) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter subErrorReporter = new ErrorReporter(errorListener, errorReporter.getSource());
+    DartObjectImpl result = expression.accept(new ConstantVisitor(typeProvider, subErrorReporter));
+    reportErrors(errorListener.getErrors(), errorCode);
     return result;
   }
 
@@ -502,12 +510,12 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
         DefaultFormalParameter defaultParameter = (DefaultFormalParameter) parameter;
         Expression defaultValue = defaultParameter.getDefaultValue();
         if (defaultValue != null) {
-          EvaluationResultImpl result = validate(
+          DartObjectImpl result = validate(
               defaultValue,
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = (VariableElementImpl) parameter.getElement();
-          element.setEvaluationResult(result);
-          if (result instanceof ValidResult) {
+          element.setEvaluationResult(new EvaluationResultImpl(result));
+          if (result != null) {
             reportErrorIfFromDeferredLibrary(
                 defaultValue,
                 CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
@@ -535,8 +543,16 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
           for (VariableDeclaration variableDeclaration : fieldDeclaration.getFields().getVariables()) {
             Expression initializer = variableDeclaration.getInitializer();
             if (initializer != null) {
-              EvaluationResultImpl result = initializer.accept(new ConstantVisitor(typeProvider));
-              if (!(result instanceof ValidResult)) {
+              // Ignore any errors produced during validation--if the constant can't be eavluated
+              // we'll just report a single error.
+              BooleanErrorListener errorListener = new BooleanErrorListener();
+              ErrorReporter subErrorReporter = new ErrorReporter(
+                  errorListener,
+                  errorReporter.getSource());
+              DartObjectImpl result = initializer.accept(new ConstantVisitor(
+                  typeProvider,
+                  subErrorReporter));
+              if (result == null) {
                 errorReporter.reportErrorForNode(
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                     errorSite,
@@ -558,26 +574,28 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
    */
   private void validateInitializerExpression(final ParameterElement[] parameterElements,
       Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter subErrorReporter = new ErrorReporter(errorListener, errorReporter.getSource());
+    DartObjectImpl result = expression.accept(new ConstantVisitor(typeProvider, subErrorReporter) {
       @Override
-      public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
+      public DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
         Element element = node.getStaticElement();
         for (ParameterElement parameterElement : parameterElements) {
           if (parameterElement == element && parameterElement != null) {
             Type type = parameterElement.getType();
             if (type != null) {
               if (type.isDynamic()) {
-                return valid(typeProvider.getObjectType(), DynamicState.DYNAMIC_STATE);
+                return new DartObjectImpl(typeProvider.getObjectType(), DynamicState.DYNAMIC_STATE);
               } else if (type.isSubtypeOf(boolType)) {
-                return valid(typeProvider.getBoolType(), BoolState.UNKNOWN_VALUE);
+                return new DartObjectImpl(typeProvider.getBoolType(), BoolState.UNKNOWN_VALUE);
               } else if (type.isSubtypeOf(typeProvider.getDoubleType())) {
-                return valid(typeProvider.getDoubleType(), DoubleState.UNKNOWN_VALUE);
+                return new DartObjectImpl(typeProvider.getDoubleType(), DoubleState.UNKNOWN_VALUE);
               } else if (type.isSubtypeOf(intType)) {
-                return valid(typeProvider.getIntType(), IntState.UNKNOWN_VALUE);
+                return new DartObjectImpl(typeProvider.getIntType(), IntState.UNKNOWN_VALUE);
               } else if (type.isSubtypeOf(numType)) {
-                return valid(typeProvider.getNumType(), NumState.UNKNOWN_VALUE);
+                return new DartObjectImpl(typeProvider.getNumType(), NumState.UNKNOWN_VALUE);
               } else if (type.isSubtypeOf(stringType)) {
-                return valid(typeProvider.getStringType(), StringState.UNKNOWN_VALUE);
+                return new DartObjectImpl(typeProvider.getStringType(), StringState.UNKNOWN_VALUE);
               }
               //
               // We don't test for other types of objects (such as List, Map, Function or Type)
@@ -586,16 +604,15 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
               // about the state of such objects.
               //
             }
-            return valid(
-                type instanceof InterfaceType ? (InterfaceType) type : typeProvider.getObjectType(),
-                GenericState.UNKNOWN_VALUE);
+            return new DartObjectImpl(type instanceof InterfaceType ? (InterfaceType) type
+                : typeProvider.getObjectType(), GenericState.UNKNOWN_VALUE);
           }
         }
         return super.visitSimpleIdentifier(node);
       }
     });
-    reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    if (result instanceof ValidResult) {
+    reportErrors(errorListener.getErrors(), CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    if (result != null) {
       reportErrorIfFromDeferredLibrary(
           expression,
           CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);

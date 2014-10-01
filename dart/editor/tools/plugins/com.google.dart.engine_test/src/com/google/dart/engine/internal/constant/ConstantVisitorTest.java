@@ -17,18 +17,25 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.IntState;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.source.NonExistingSource;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 
 import static com.google.dart.engine.ast.AstFactory.booleanLiteral;
 import static com.google.dart.engine.ast.AstFactory.conditionalExpression;
@@ -52,7 +59,10 @@ public class ConstantVisitorTest extends ResolverTestCase {
         booleanLiteral(false),
         thenExpression,
         elseExpression);
-    assertValue(0L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    assertValue(0L, expression.accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
+    errorListener.assertNoErrors();
   }
 
   public void test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
@@ -72,18 +82,27 @@ public class ConstantVisitorTest extends ResolverTestCase {
         typeName(className),
         integer(0L));
     expression.setStaticElement(constructorElement);
-    expression.accept(new ConstantVisitor(typeProvider));
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    expression.accept(new ConstantVisitor(typeProvider, errorReporter));
+    errorListener.assertErrorsWithCodes(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   public void test_visitConditionalExpression_nonBooleanCondition() {
     Expression thenExpression = integer(1L);
     Expression elseExpression = integer(0L);
+    NullLiteral conditionExpression = nullLiteral();
     ConditionalExpression expression = conditionalExpression(
-        nullLiteral(),
+        conditionExpression,
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
-    assertInstanceOf(ErrorResult.class, result);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new TestTypeProvider(),
+        errorReporter));
+    assertNull(result);
+    errorListener.assertErrorsWithCodes(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
   }
 
   public void test_visitConditionalExpression_nonConstantElse() {
@@ -93,8 +112,13 @@ public class ConstantVisitorTest extends ResolverTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
-    assertInstanceOf(ErrorResult.class, result);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new TestTypeProvider(),
+        errorReporter));
+    assertNull(result);
+    errorListener.assertErrorsWithCodes(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   public void test_visitConditionalExpression_nonConstantThen() {
@@ -104,8 +128,13 @@ public class ConstantVisitorTest extends ResolverTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
-    assertInstanceOf(ErrorResult.class, result);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new TestTypeProvider(),
+        errorReporter));
+    assertNull(result);
+    errorListener.assertErrorsWithCodes(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   public void test_visitConditionalExpression_true() {
@@ -115,7 +144,16 @@ public class ConstantVisitorTest extends ResolverTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    assertValue(1L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, dummySource());
+    assertValue(1L, expression.accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
+    errorListener.assertNoErrors();
+  }
+
+  private NonExistingSource dummySource() {
+    return new NonExistingSource(
+        "foo.dart",
+        UriKind.FILE_URI);
   }
 
   public void test_visitSimpleIdentifier_inEnvironment() throws Exception {
@@ -147,16 +185,23 @@ public class ConstantVisitorTest extends ResolverTestCase {
     assertValue(3, evaluateConstant(compilationUnit, "a", null));
   }
 
-  private void assertValue(long expectedValue, EvaluationResultImpl result) {
-    assertInstanceOf(ValidResult.class, result);
-    DartObjectImpl value = ((ValidResult) result).getValue();
-    assertEquals("int", value.getType().getName());
-    assertEquals(expectedValue, value.getIntValue().longValue());
+  private void assertValue(long expectedValue, DartObjectImpl result) {
+    assertNotNull(result);
+    assertEquals("int", result.getType().getName());
+    assertEquals(expectedValue, result.getIntValue().longValue());
   }
 
-  private EvaluationResultImpl evaluateConstant(CompilationUnit compilationUnit, String name,
+  private DartObjectImpl evaluateConstant(CompilationUnit compilationUnit, String name,
       HashMap<String, DartObjectImpl> lexicalEnvironment) throws AnalysisException {
+    Source source = compilationUnit.getElement().getSource();
     Expression expression = findTopLevelConstantExpression(compilationUnit, name);
-    return expression.accept(new ConstantVisitor(getTypeProvider(), lexicalEnvironment));
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        getTypeProvider(),
+        lexicalEnvironment,
+        errorReporter));
+    errorListener.assertNoErrors();
+    return result;
   }
 }

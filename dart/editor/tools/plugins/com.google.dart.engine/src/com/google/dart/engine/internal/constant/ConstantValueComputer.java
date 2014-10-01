@@ -37,11 +37,13 @@ import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.ParameterMember;
+import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.object.BoolState;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
@@ -79,11 +81,7 @@ public class ConstantValueComputer {
     @Override
     public InstanceCreationExpression visitInstanceCreationExpression(
         InstanceCreationExpression node) {
-      // All we need is the evaluation result, and the keyword so that we know whether it's const.
-      InstanceCreationExpression expression = new InstanceCreationExpression(
-          node.getKeyword(),
-          null,
-          null);
+      InstanceCreationExpression expression = super.visitInstanceCreationExpression(node);
       expression.setEvaluationResult(node.getEvaluationResult());
       return expression;
     }
@@ -265,7 +263,7 @@ public class ConstantValueComputer {
       referenceGraph.addNode(expression);
       ConstructorElement constructor = expression.getStaticElement();
       if (constructor == null) {
-        break;
+        continue;
       }
       constructor = followConstantRedirectionChain(constructor);
       ConstructorDeclaration declaration = findConstructorDeclaration(constructor);
@@ -319,8 +317,8 @@ public class ConstantValueComputer {
    * Create the ConstantVisitor used to evaluate constants. Unit tests will override this method to
    * introduce additional error checking.
    */
-  protected ConstantVisitor createConstantVisitor() {
-    return new ConstantVisitor(typeProvider);
+  protected ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) {
+    return new ConstantVisitor(typeProvider, errorReporter);
   }
 
   protected ConstructorDeclaration findConstructorDeclaration(ConstructorElement constructor) {
@@ -398,23 +396,35 @@ public class ConstantValueComputer {
     if (constNode instanceof VariableDeclaration) {
       VariableDeclaration declaration = (VariableDeclaration) constNode;
       Element element = declaration.getElement();
-      EvaluationResultImpl result = declaration.getInitializer().accept(createConstantVisitor());
-      ((VariableElementImpl) element).setEvaluationResult(result);
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, element.getSource());
+      DartObjectImpl dartObject = declaration.getInitializer().accept(
+          createConstantVisitor(errorReporter));
+      ((VariableElementImpl) element).setEvaluationResult(new EvaluationResultImpl(
+          dartObject,
+          errorListener.getErrors()));
     } else if (constNode instanceof InstanceCreationExpression) {
       InstanceCreationExpression expression = (InstanceCreationExpression) constNode;
       ConstructorElement constructor = expression.getStaticElement();
       if (constructor == null) {
         // Couldn't resolve the constructor so we can't compute a value.  No problem--the error
-        // has already been reported.
+        // has already been reported.  But we still need to store an evaluation result.
+        expression.setEvaluationResult(new EvaluationResultImpl(null));
         return;
       }
-      ConstantVisitor constantVisitor = createConstantVisitor();
-      EvaluationResultImpl result = evaluateConstructorCall(
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      CompilationUnit sourceCompilationUnit = expression.getAncestor(CompilationUnit.class);
+      ErrorReporter errorReporter = new ErrorReporter(
+          errorListener,
+          sourceCompilationUnit.getElement().getSource());
+      ConstantVisitor constantVisitor = createConstantVisitor(errorReporter);
+      DartObjectImpl result = evaluateConstructorCall(
           constNode,
           expression.getArgumentList().getArguments(),
           constructor,
-          constantVisitor);
-      expression.setEvaluationResult(result);
+          constantVisitor,
+          errorReporter);
+      expression.setEvaluationResult(new EvaluationResultImpl(result, errorListener.getErrors()));
     } else if (constNode instanceof ConstructorDeclaration) {
       ConstructorDeclaration declaration = (ConstructorDeclaration) constNode;
       NodeList<ConstructorInitializer> initializers = declaration.getInitializers();
@@ -426,8 +436,12 @@ public class ConstantValueComputer {
         ParameterElement element = parameter.getElement();
         Expression defaultValue = parameter.getDefaultValue();
         if (defaultValue != null) {
-          EvaluationResultImpl result = defaultValue.accept(createConstantVisitor());
-          ((ParameterElementImpl) element).setEvaluationResult(result);
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter = new ErrorReporter(errorListener, element.getSource());
+          DartObjectImpl dartObject = defaultValue.accept(createConstantVisitor(errorReporter));
+          ((ParameterElementImpl) element).setEvaluationResult(new EvaluationResultImpl(
+              dartObject,
+              errorListener.getErrors()));
         }
       }
     } else {
@@ -447,9 +461,9 @@ public class ConstantValueComputer {
    * @param builtInDefaultValue Value that should be used as the default if no "defaultValue"
    *          argument appears in {@link namedArgumentValues}.
    * @param namedArgumentValues Named parameters passed to fromEnvironment()
-   * @return A {@link ValidResult} object corresponding to the evaluated result
+   * @return A {@link DartObjectImpl} object corresponding to the evaluated result
    */
-  private ValidResult computeValueFromEnvironment(DartObject environmentValue,
+  private DartObjectImpl computeValueFromEnvironment(DartObject environmentValue,
       DartObjectImpl builtInDefaultValue, HashMap<String, DartObjectImpl> namedArgumentValues) {
     DartObjectImpl value = (DartObjectImpl) environmentValue;
     if (value.isUnknown() || value.isNull()) {
@@ -469,12 +483,11 @@ public class ConstantValueComputer {
         // state.
       }
     }
-    return new ValidResult(value);
+    return value;
   }
 
-  private EvaluationResultImpl evaluateConstructorCall(AstNode node,
-      NodeList<Expression> arguments, ConstructorElement constructor,
-      ConstantVisitor constantVisitor) {
+  private DartObjectImpl evaluateConstructorCall(AstNode node, NodeList<Expression> arguments,
+      ConstructorElement constructor, ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
     int argumentCount = arguments.size();
     DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
     HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
@@ -500,7 +513,8 @@ public class ConstantValueComputer {
             argumentValues,
             namedArgumentValues,
             definingClass)) {
-          return new ErrorResult(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+          return null;
         }
         String variableName = argumentCount < 1 ? null : argumentValues[0].getStringValue();
         if (definingClass == typeProvider.getBoolType()) {
@@ -528,10 +542,11 @@ public class ConstantValueComputer {
       } else if (constructor.getName().equals("") && definingClass == typeProvider.getSymbolType()
           && argumentCount == 1) {
         if (!checkSymbolArguments(arguments, argumentValues, namedArgumentValues)) {
-          return new ErrorResult(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+          return null;
         }
         String argumentValue = argumentValues[0].getStringValue();
-        return constantVisitor.valid(definingClass, new SymbolState(argumentValue));
+        return new DartObjectImpl(definingClass, new SymbolState(argumentValue));
       }
 
       // Either it's an external const factory constructor that we can't emulate, or an error
@@ -571,11 +586,11 @@ public class ConstantValueComputer {
         // use the default value.
         beforeGetParameterDefault(parameter);
         EvaluationResultImpl evaluationResult = ((ParameterElementImpl) parameter).getEvaluationResult();
-        if (evaluationResult instanceof ValidResult) {
-          argumentValue = ((ValidResult) evaluationResult).getValue();
-        } else if (evaluationResult == null) {
+        if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = constantVisitor.getNull();
+        } else if (evaluationResult.getValue() != null) {
+          argumentValue = evaluationResult.getValue();
         }
       }
       if (argumentValue != null) {
@@ -591,18 +606,20 @@ public class ConstantValueComputer {
         }
       }
     }
-    ConstantVisitor initializerVisitor = new ConstantVisitor(typeProvider, parameterMap);
+    ConstantVisitor initializerVisitor = new ConstantVisitor(
+        typeProvider,
+        parameterMap,
+        errorReporter);
     String superName = null;
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer : initializers) {
       if (initializer instanceof ConstructorFieldInitializer) {
         ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) initializer;
         Expression initializerExpression = constructorFieldInitializer.getExpression();
-        EvaluationResultImpl evaluationResult = initializerExpression.accept(initializerVisitor);
-        if (evaluationResult instanceof ValidResult) {
-          DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
+        DartObjectImpl evaluationResult = initializerExpression.accept(initializerVisitor);
+        if (evaluationResult != null) {
           String fieldName = constructorFieldInitializer.getFieldName().getName();
-          fieldMap.put(fieldName, value);
+          fieldMap.put(fieldName, evaluationResult);
         }
       } else if (initializer instanceof SuperConstructorInvocation) {
         SuperConstructorInvocation superConstructorInvocation = (SuperConstructorInvocation) initializer;
@@ -628,24 +645,25 @@ public class ConstantValueComputer {
             fieldMap,
             superConstructor,
             superArguments,
-            initializerVisitor);
+            initializerVisitor,
+            errorReporter);
       }
     }
-    return constantVisitor.valid(definingClass, new GenericState(fieldMap));
+    return new DartObjectImpl(definingClass, new GenericState(fieldMap));
   }
 
   private void evaluateSuperConstructorCall(AstNode node, HashMap<String, DartObjectImpl> fieldMap,
       ConstructorElement superConstructor, NodeList<Expression> superArguments,
-      ConstantVisitor initializerVisitor) {
+      ConstantVisitor initializerVisitor, ErrorReporter errorReporter) {
     if (superConstructor != null && superConstructor.isConst()) {
-      EvaluationResultImpl evaluationResult = evaluateConstructorCall(
+      DartObjectImpl evaluationResult = evaluateConstructorCall(
           node,
           superArguments,
           superConstructor,
-          initializerVisitor);
-      if (evaluationResult instanceof ValidResult) {
-        ValidResult validResult = (ValidResult) evaluationResult;
-        fieldMap.put(GenericState.SUPERCLASS_FIELD, validResult.getValue());
+          initializerVisitor,
+          errorReporter);
+      if (evaluationResult != null) {
+        fieldMap.put(GenericState.SUPERCLASS_FIELD, evaluationResult);
       }
     }
   }

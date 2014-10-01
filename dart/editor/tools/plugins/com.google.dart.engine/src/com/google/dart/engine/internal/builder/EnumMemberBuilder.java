@@ -20,7 +20,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstFieldElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
@@ -103,7 +103,7 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
       HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
       fieldMap.put(indexFieldName, new DartObjectImpl(intType, new IntState(BigInteger.valueOf(i))));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantField.setEvaluationResult(new ValidResult(value));
+      constantField.setEvaluationResult(new EvaluationResultImpl(value));
       fields.add(constantField);
       getters.add(createGetter(constantField));
       constantName.setStaticElement(constantField);

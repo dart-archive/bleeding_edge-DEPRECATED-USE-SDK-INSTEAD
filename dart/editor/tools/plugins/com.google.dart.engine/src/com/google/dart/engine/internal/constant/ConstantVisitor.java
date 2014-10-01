@@ -54,12 +54,13 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.object.BoolState;
+import com.google.dart.engine.internal.object.DartObjectComputer;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.DoubleState;
 import com.google.dart.engine.internal.object.FunctionState;
 import com.google.dart.engine.internal.object.GenericState;
-import com.google.dart.engine.internal.object.InstanceState;
 import com.google.dart.engine.internal.object.IntState;
 import com.google.dart.engine.internal.object.ListState;
 import com.google.dart.engine.internal.object.MapState;
@@ -120,7 +121,7 @@ import java.util.HashMap;
  * </ul>
  * </blockquote>
  */
-public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
+public class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
    * The type provider used to access the known types.
    */
@@ -134,15 +135,27 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   private final HashMap<String, DartObjectImpl> lexicalEnvironment;
 
   /**
+   * Error reporter that we use to report errors accumulated while computing the constant.
+   */
+  private final ErrorReporter errorReporter;
+
+  /**
+   * Helper class used to compute constant values.
+   */
+  private final DartObjectComputer dartObjectComputer;
+
+  /**
    * Initialize a newly created constant visitor.
    * 
    * @param typeProvider the type provider used to access known types
    * @param lexicalEnvironment values which should override simpleIdentifiers, or null if no
    *          overriding is necessary.
    */
-  public ConstantVisitor(TypeProvider typeProvider) {
+  public ConstantVisitor(TypeProvider typeProvider, ErrorReporter errorReporter) {
     this.typeProvider = typeProvider;
     this.lexicalEnvironment = null;
+    this.errorReporter = errorReporter;
+    this.dartObjectComputer = new DartObjectComputer(errorReporter, typeProvider);
   }
 
   /**
@@ -153,202 +166,210 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    *          overriding is necessary.
    */
   public ConstantVisitor(TypeProvider typeProvider,
-      HashMap<String, DartObjectImpl> lexicalEnvironment) {
+      HashMap<String, DartObjectImpl> lexicalEnvironment, ErrorReporter errorReporter) {
     this.typeProvider = typeProvider;
     this.lexicalEnvironment = lexicalEnvironment;
+    this.errorReporter = errorReporter;
+    this.dartObjectComputer = new DartObjectComputer(errorReporter, typeProvider);
   }
 
   @Override
-  public EvaluationResultImpl visitAdjacentStrings(AdjacentStrings node) {
-    EvaluationResultImpl result = null;
+  public DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
+    DartObjectImpl result = null;
     for (StringLiteral string : node.getStrings()) {
       if (result == null) {
         result = string.accept(this);
       } else {
-        result = result.concatenate(typeProvider, node, string.accept(this));
+        result = dartObjectComputer.concatenate(node, result, string.accept(this));
       }
     }
     return result;
   }
 
   @Override
-  public EvaluationResultImpl visitBinaryExpression(BinaryExpression node) {
-    EvaluationResultImpl leftResult = node.getLeftOperand().accept(this);
-    EvaluationResultImpl rightResult = node.getRightOperand().accept(this);
+  public DartObjectImpl visitBinaryExpression(BinaryExpression node) {
+    DartObjectImpl leftResult = node.getLeftOperand().accept(this);
+    DartObjectImpl rightResult = node.getRightOperand().accept(this);
     TokenType operatorType = node.getOperator().getType();
     // 'null' is almost never good operand
     if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
-      if (leftResult instanceof ValidResult && ((ValidResult) leftResult).isNull()
-          || rightResult instanceof ValidResult && ((ValidResult) rightResult).isNull()) {
-        return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      if (leftResult != null && leftResult.isNull() || rightResult != null && rightResult.isNull()) {
+        error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+        return null;
       }
     }
     // evaluate operator
     switch (operatorType) {
       case AMPERSAND:
-        return leftResult.bitAnd(typeProvider, node, rightResult);
+        return dartObjectComputer.bitAnd(node, leftResult, rightResult);
       case AMPERSAND_AMPERSAND:
-        return leftResult.logicalAnd(typeProvider, node, rightResult);
+        return dartObjectComputer.logicalAnd(node, leftResult, rightResult);
       case BANG_EQ:
-        return leftResult.notEqual(typeProvider, node, rightResult);
+        return dartObjectComputer.notEqual(node, leftResult, rightResult);
       case BAR:
-        return leftResult.bitOr(typeProvider, node, rightResult);
+        return dartObjectComputer.bitOr(node, leftResult, rightResult);
       case BAR_BAR:
-        return leftResult.logicalOr(typeProvider, node, rightResult);
+        return dartObjectComputer.logicalOr(node, leftResult, rightResult);
       case CARET:
-        return leftResult.bitXor(typeProvider, node, rightResult);
+        return dartObjectComputer.bitXor(node, leftResult, rightResult);
       case EQ_EQ:
-        return leftResult.equalEqual(typeProvider, node, rightResult);
+        return dartObjectComputer.equalEqual(node, leftResult, rightResult);
       case GT:
-        return leftResult.greaterThan(typeProvider, node, rightResult);
+        return dartObjectComputer.greaterThan(node, leftResult, rightResult);
       case GT_EQ:
-        return leftResult.greaterThanOrEqual(typeProvider, node, rightResult);
+        return dartObjectComputer.greaterThanOrEqual(node, leftResult, rightResult);
       case GT_GT:
-        return leftResult.shiftRight(typeProvider, node, rightResult);
+        return dartObjectComputer.shiftRight(node, leftResult, rightResult);
       case LT:
-        return leftResult.lessThan(typeProvider, node, rightResult);
+        return dartObjectComputer.lessThan(node, leftResult, rightResult);
       case LT_EQ:
-        return leftResult.lessThanOrEqual(typeProvider, node, rightResult);
+        return dartObjectComputer.lessThanOrEqual(node, leftResult, rightResult);
       case LT_LT:
-        return leftResult.shiftLeft(typeProvider, node, rightResult);
+        return dartObjectComputer.shiftLeft(node, leftResult, rightResult);
       case MINUS:
-        return leftResult.minus(typeProvider, node, rightResult);
+        return dartObjectComputer.minus(node, leftResult, rightResult);
       case PERCENT:
-        return leftResult.remainder(typeProvider, node, rightResult);
+        return dartObjectComputer.remainder(node, leftResult, rightResult);
       case PLUS:
-        return leftResult.add(typeProvider, node, rightResult);
+        return dartObjectComputer.add(node, leftResult, rightResult);
       case STAR:
-        return leftResult.times(typeProvider, node, rightResult);
+        return dartObjectComputer.times(node, leftResult, rightResult);
       case SLASH:
-        return leftResult.divide(typeProvider, node, rightResult);
+        return dartObjectComputer.divide(node, leftResult, rightResult);
       case TILDE_SLASH:
-        return leftResult.integerDivide(typeProvider, node, rightResult);
+        return dartObjectComputer.integerDivide(node, leftResult, rightResult);
       default:
         // TODO(brianwilkerson) Figure out which error to report.
-        return error(node, null);
+        error(node, null);
+        return null;
     }
   }
 
   @Override
-  public EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) {
-    return valid(typeProvider.getBoolType(), BoolState.from(node.getValue()));
+  public DartObjectImpl visitBooleanLiteral(BooleanLiteral node) {
+    return new DartObjectImpl(typeProvider.getBoolType(), BoolState.from(node.getValue()));
   }
 
   @Override
-  public EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
+  public DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.getCondition();
-    EvaluationResultImpl conditionResult = condition.accept(this);
-    EvaluationResultImpl thenResult = node.getThenExpression().accept(this);
-    EvaluationResultImpl elseResult = node.getElseExpression().accept(this);
-    if (conditionResult instanceof ErrorResult) {
-      return union(union((ErrorResult) conditionResult, thenResult), elseResult);
-    } else if (!((ValidResult) conditionResult).isBool()) {
-      return new ErrorResult(condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
-    } else if (thenResult instanceof ErrorResult) {
-      return union((ErrorResult) thenResult, elseResult);
-    } else if (elseResult instanceof ErrorResult) {
+    DartObjectImpl conditionResult = condition.accept(this);
+    DartObjectImpl thenResult = node.getThenExpression().accept(this);
+    DartObjectImpl elseResult = node.getElseExpression().accept(this);
+    if (conditionResult == null) {
+      return conditionResult;
+    } else if (!conditionResult.isBool()) {
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
+      return null;
+    } else if (thenResult == null) {
+      return thenResult;
+    } else if (elseResult == null) {
       return elseResult;
     }
-    conditionResult = conditionResult.applyBooleanConversion(typeProvider, condition);
-    if (conditionResult instanceof ErrorResult) {
+    conditionResult = dartObjectComputer.applyBooleanConversion(condition, conditionResult);
+    if (conditionResult == null) {
       return conditionResult;
     }
-    ValidResult validResult = (ValidResult) conditionResult;
-    if (validResult.isTrue()) {
+    if (conditionResult.isTrue()) {
       return thenResult;
-    } else if (validResult.isFalse()) {
+    } else if (conditionResult.isFalse()) {
       return elseResult;
     }
-    InterfaceType thenType = ((ValidResult) thenResult).getValue().getType();
-    InterfaceType elseType = ((ValidResult) elseResult).getValue().getType();
+    InterfaceType thenType = thenResult.getType();
+    InterfaceType elseType = elseResult.getType();
     return validWithUnknownValue((InterfaceType) thenType.getLeastUpperBound(elseType));
   }
 
   @Override
-  public EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) {
-    return valid(typeProvider.getDoubleType(), new DoubleState(node.getValue()));
+  public DartObjectImpl visitDoubleLiteral(DoubleLiteral node) {
+    return new DartObjectImpl(typeProvider.getDoubleType(), new DoubleState(node.getValue()));
   }
 
   @Override
-  public EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
+  public DartObjectImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst()) {
       // TODO(brianwilkerson) Figure out which error to report.
-      return error(node, null);
+      error(node, null);
+      return null;
     }
     beforeGetEvaluationResult(node);
     EvaluationResultImpl result = node.getEvaluationResult();
     if (result != null) {
-      return result;
+      return result.getValue();
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    error(node, null);
+    return null;
   }
 
   @Override
-  public EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) {
-    return valid(typeProvider.getIntType(), new IntState(node.getValue()));
+  public DartObjectImpl visitIntegerLiteral(IntegerLiteral node) {
+    return new DartObjectImpl(typeProvider.getIntType(), new IntState(node.getValue()));
   }
 
   @Override
-  public EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
-    EvaluationResultImpl result = node.getExpression().accept(this);
-    if (result instanceof ValidResult && !((ValidResult) result).isBoolNumStringOrNull()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+  public DartObjectImpl visitInterpolationExpression(InterpolationExpression node) {
+    DartObjectImpl result = node.getExpression().accept(this);
+    if (result != null && !result.isBoolNumStringOrNull()) {
+      error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+      return null;
     }
-    return result.performToString(typeProvider, node);
+    return dartObjectComputer.performToString(node, result);
   }
 
   @Override
-  public EvaluationResultImpl visitInterpolationString(InterpolationString node) {
-    return valid(typeProvider.getStringType(), new StringState(node.getValue()));
+  public DartObjectImpl visitInterpolationString(InterpolationString node) {
+    return new DartObjectImpl(typeProvider.getStringType(), new StringState(node.getValue()));
   }
 
   @Override
-  public EvaluationResultImpl visitListLiteral(ListLiteral node) {
+  public DartObjectImpl visitListLiteral(ListLiteral node) {
     if (node.getConstKeyword() == null) {
-      return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
+      return null;
     }
-    ErrorResult result = null;
+    boolean errorOccurred = false;
     ArrayList<DartObjectImpl> elements = new ArrayList<DartObjectImpl>();
     for (Expression element : node.getElements()) {
-      EvaluationResultImpl elementResult = element.accept(this);
-      result = union(result, elementResult);
-      if (elementResult instanceof ValidResult) {
-        elements.add(((ValidResult) elementResult).getValue());
+      DartObjectImpl elementResult = element.accept(this);
+      if (elementResult == null) {
+        errorOccurred = true;
+      } else {
+        elements.add(elementResult);
       }
     }
-    if (result != null) {
-      return result;
+    if (errorOccurred) {
+      return null;
     }
-    return valid(
-        typeProvider.getListType(),
-        new ListState(elements.toArray(new DartObjectImpl[elements.size()])));
+    return new DartObjectImpl(typeProvider.getListType(), new ListState(
+        elements.toArray(new DartObjectImpl[elements.size()])));
   }
 
   @Override
-  public EvaluationResultImpl visitMapLiteral(MapLiteral node) {
+  public DartObjectImpl visitMapLiteral(MapLiteral node) {
     if (node.getConstKeyword() == null) {
-      return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
+      return null;
     }
-    ErrorResult result = null;
+    boolean errorOccurred = false;
     HashMap<DartObjectImpl, DartObjectImpl> map = new HashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry : node.getEntries()) {
-      EvaluationResultImpl keyResult = entry.getKey().accept(this);
-      EvaluationResultImpl valueResult = entry.getValue().accept(this);
-      result = union(result, keyResult);
-      result = union(result, valueResult);
-      if (keyResult instanceof ValidResult && valueResult instanceof ValidResult) {
-        map.put(((ValidResult) keyResult).getValue(), ((ValidResult) valueResult).getValue());
+      DartObjectImpl keyResult = entry.getKey().accept(this);
+      DartObjectImpl valueResult = entry.getValue().accept(this);
+      if (keyResult == null || valueResult == null) {
+        errorOccurred = true;
+      } else {
+        map.put(keyResult, valueResult);
       }
     }
-    if (result != null) {
-      return result;
+    if (errorOccurred) {
+      return null;
     }
-    return valid(typeProvider.getMapType(), new MapState(map));
+    return new DartObjectImpl(typeProvider.getMapType(), new MapState(map));
   }
 
   @Override
-  public EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
+  public DartObjectImpl visitMethodInvocation(MethodInvocation node) {
     Element element = node.getMethodName().getStaticElement();
     if (element instanceof FunctionElement) {
       FunctionElement function = (FunctionElement) element;
@@ -359,41 +380,43 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
           if (enclosingElement instanceof CompilationUnitElement) {
             LibraryElement library = ((CompilationUnitElement) enclosingElement).getLibrary();
             if (library.isDartCore()) {
-              EvaluationResultImpl leftArgument = arguments.get(0).accept(this);
-              EvaluationResultImpl rightArgument = arguments.get(1).accept(this);
-              return leftArgument.equalEqual(typeProvider, node, rightArgument);
+              DartObjectImpl leftArgument = arguments.get(0).accept(this);
+              DartObjectImpl rightArgument = arguments.get(1).accept(this);
+              return dartObjectComputer.equalEqual(node, leftArgument, rightArgument);
             }
           }
         }
       }
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    error(node, null);
+    return null;
   }
 
   @Override
-  public EvaluationResultImpl visitNamedExpression(NamedExpression node) {
+  public DartObjectImpl visitNamedExpression(NamedExpression node) {
     return node.getExpression().accept(this);
   }
 
   @Override
-  public EvaluationResultImpl visitNode(AstNode node) {
+  public DartObjectImpl visitNode(AstNode node) {
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    error(node, null);
+    return null;
   }
 
   @Override
-  public EvaluationResultImpl visitNullLiteral(NullLiteral node) {
-    return new ValidResult(getNull());
+  public DartObjectImpl visitNullLiteral(NullLiteral node) {
+    return getNull();
   }
 
   @Override
-  public EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) {
+  public DartObjectImpl visitParenthesizedExpression(ParenthesizedExpression node) {
     return node.getExpression().accept(this);
   }
 
   @Override
-  public EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
+  public DartObjectImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
     // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
 //    Element element = node.getStaticElement();
 //    if (isStringLength(element)) {
@@ -403,9 +426,10 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     SimpleIdentifier prefixNode = node.getPrefix();
     Element prefixElement = prefixNode.getStaticElement();
     if (!(prefixElement instanceof PrefixElement)) {
-      EvaluationResultImpl prefixResult = prefixNode.accept(this);
-      if (!(prefixResult instanceof ValidResult)) {
-        return error(node, null);
+      DartObjectImpl prefixResult = prefixNode.accept(this);
+      if (prefixResult == null) {
+        // The error has already been reported.
+        return null;
       }
     }
     // validate prefixed identifier
@@ -413,26 +437,28 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   }
 
   @Override
-  public EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
-    EvaluationResultImpl operand = node.getOperand().accept(this);
-    if (operand instanceof ValidResult && ((ValidResult) operand).isNull()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  public DartObjectImpl visitPrefixExpression(PrefixExpression node) {
+    DartObjectImpl operand = node.getOperand().accept(this);
+    if (operand != null && operand.isNull()) {
+      error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      return null;
     }
     switch (node.getOperator().getType()) {
       case BANG:
-        return operand.logicalNot(typeProvider, node);
+        return dartObjectComputer.logicalNot(node, operand);
       case TILDE:
-        return operand.bitNot(typeProvider, node);
+        return dartObjectComputer.bitNot(node, operand);
       case MINUS:
-        return operand.negated(typeProvider, node);
+        return dartObjectComputer.negated(node, operand);
       default:
         // TODO(brianwilkerson) Figure out which error to report.
-        return error(node, null);
+        error(node, null);
+        return null;
     }
   }
 
   @Override
-  public EvaluationResultImpl visitPropertyAccess(PropertyAccess node) {
+  public DartObjectImpl visitPropertyAccess(PropertyAccess node) {
     Element element = node.getPropertyName().getStaticElement();
     // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
 //    if (isStringLength(element)) {
@@ -443,33 +469,35 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   }
 
   @Override
-  public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
+  public DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
     if (lexicalEnvironment != null && lexicalEnvironment.containsKey(node.getName())) {
-      return new ValidResult(lexicalEnvironment.get(node.getName()));
+      return lexicalEnvironment.get(node.getName());
     }
     return getConstantValue(node, node.getStaticElement());
   }
 
   @Override
-  public EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) {
-    return valid(typeProvider.getStringType(), new StringState(node.getValue()));
+  public DartObjectImpl visitSimpleStringLiteral(SimpleStringLiteral node) {
+    return new DartObjectImpl(typeProvider.getStringType(), new StringState(node.getValue()));
   }
 
   @Override
-  public EvaluationResultImpl visitStringInterpolation(StringInterpolation node) {
-    EvaluationResultImpl result = null;
+  public DartObjectImpl visitStringInterpolation(StringInterpolation node) {
+    DartObjectImpl result = null;
+    boolean first = true;
     for (InterpolationElement element : node.getElements()) {
-      if (result == null) {
+      if (first) {
         result = element.accept(this);
+        first = false;
       } else {
-        result = result.concatenate(typeProvider, node, element.accept(this));
+        result = dartObjectComputer.concatenate(node, result, element.accept(this));
       }
     }
     return result;
   }
 
   @Override
-  public EvaluationResultImpl visitSymbolLiteral(SymbolLiteral node) {
+  public DartObjectImpl visitSymbolLiteral(SymbolLiteral node) {
     StringBuilder builder = new StringBuilder();
     Token[] components = node.getComponents();
     for (int i = 0; i < components.length; i++) {
@@ -478,7 +506,7 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
       builder.append(components[i].getLexeme());
     }
-    return valid(typeProvider.getSymbolType(), new SymbolState(builder.toString()));
+    return new DartObjectImpl(typeProvider.getSymbolType(), new SymbolState(builder.toString()));
   }
 
   /**
@@ -500,24 +528,20 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     return nullObject;
   }
 
-  ValidResult valid(InterfaceType type, InstanceState state) {
-    return new ValidResult(new DartObjectImpl(type, state));
-  }
-
-  ValidResult validWithUnknownValue(InterfaceType type) {
+  DartObjectImpl validWithUnknownValue(InterfaceType type) {
     if (type.getElement().getLibrary().isDartCore()) {
       String typeName = type.getName();
       if (typeName.equals("bool")) {
-        return valid(type, BoolState.UNKNOWN_VALUE);
+        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
       } else if (typeName.equals("double")) {
-        return valid(type, DoubleState.UNKNOWN_VALUE);
+        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
       } else if (typeName.equals("int")) {
-        return valid(type, IntState.UNKNOWN_VALUE);
+        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
       } else if (typeName.equals("String")) {
-        return valid(type, StringState.UNKNOWN_VALUE);
+        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
       }
     }
-    return valid(type, GenericState.UNKNOWN_VALUE);
+    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
   /**
@@ -528,22 +552,23 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @return the value of the given expression
    */
   DartObjectImpl valueOf(Expression expression) {
-    EvaluationResultImpl expressionValue = expression.accept(this);
-    if (expressionValue instanceof ValidResult) {
-      return ((ValidResult) expressionValue).getValue();
+    DartObjectImpl expressionValue = expression.accept(this);
+    if (expressionValue != null) {
+      return expressionValue;
     }
     return getNull();
   }
 
   /**
-   * Return a result object representing an error associated with the given node.
+   * Create an error associated with the given node.
    * 
    * @param node the AST node associated with the error
    * @param code the error code indicating the nature of the error
-   * @return a result object representing an error associated with the given node
    */
-  private ErrorResult error(AstNode node, ErrorCode code) {
-    return new ErrorResult(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
+  private void error(AstNode node, ErrorCode code) {
+    errorReporter.reportErrorForNode(
+        code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code,
+        node);
   }
 
   /**
@@ -553,7 +578,7 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @param element the element whose value is to be returned
    * @return the constant value of the static constant
    */
-  private EvaluationResultImpl getConstantValue(AstNode node, Element element) {
+  private DartObjectImpl getConstantValue(AstNode node, Element element) {
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
     }
@@ -562,18 +587,19 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       beforeGetEvaluationResult(node);
       EvaluationResultImpl value = variableElementImpl.getEvaluationResult();
       if (variableElementImpl.isConst() && value != null) {
-        return value;
+        return value.getValue();
       }
     } else if (element instanceof ExecutableElement) {
       ExecutableElement function = (ExecutableElement) element;
       if (function.isStatic()) {
-        return valid(typeProvider.getFunctionType(), new FunctionState(function));
+        return new DartObjectImpl(typeProvider.getFunctionType(), new FunctionState(function));
       }
     } else if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement) {
-      return valid(typeProvider.getTypeType(), new TypeState(element));
+      return new DartObjectImpl(typeProvider.getTypeType(), new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
+    error(node, null);
+    return null;
   }
 
   /**
@@ -592,25 +618,5 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     Element parent = accessor.getEnclosingElement();
     return parent.equals(typeProvider.getStringType().getElement());
-  }
-
-  /**
-   * Return the union of the errors encoded in the given results.
-   * 
-   * @param leftResult the first set of errors, or {@code null} if there was no previous collection
-   *          of errors
-   * @param rightResult the errors to be added to the collection, or a valid result if there are no
-   *          errors to be added
-   * @return the union of the errors encoded in the given results
-   */
-  private ErrorResult union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
-    if (rightResult instanceof ErrorResult) {
-      if (leftResult != null) {
-        return new ErrorResult(leftResult, (ErrorResult) rightResult);
-      } else {
-        return (ErrorResult) rightResult;
-      }
-    }
-    return leftResult;
   }
 }

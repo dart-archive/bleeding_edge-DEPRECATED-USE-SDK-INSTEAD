@@ -15,7 +15,7 @@ package com.google.dart.engine.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstFieldElementImpl;
@@ -175,7 +175,7 @@ public final class ElementFactory {
       fieldMap.put(indexFieldName, new DartObjectImpl(intType, new IntState(BigInteger.valueOf(i))));
       fieldMap.put(nameFieldName, new DartObjectImpl(stringType, new StringState(constantName)));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantElement.setEvaluationResult(new ValidResult(value));
+      constantElement.setEvaluationResult(new EvaluationResultImpl(value));
       fields.add(constantElement);
     }
     //

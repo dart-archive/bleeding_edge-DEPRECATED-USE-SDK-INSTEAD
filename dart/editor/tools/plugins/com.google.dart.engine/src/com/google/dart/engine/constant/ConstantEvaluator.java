@@ -13,17 +13,13 @@
  */
 package com.google.dart.engine.constant;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.constant.ConstantVisitor;
-import com.google.dart.engine.internal.constant.ErrorResult;
-import com.google.dart.engine.internal.constant.EvaluationResultImpl;
-import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
+import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
-
-import java.util.ArrayList;
 
 /**
  * Instances of the class {@code ConstantEvaluator} evaluate constant expressions to produce their
@@ -93,15 +89,12 @@ public class ConstantEvaluator {
   }
 
   public EvaluationResult evaluate(Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider));
-    if (result instanceof ValidResult) {
-      return EvaluationResult.forValue(((ValidResult) result).getValue());
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    DartObjectImpl result = expression.accept(new ConstantVisitor(typeProvider, errorReporter));
+    if (result != null) {
+      return EvaluationResult.forValue(result);
     }
-    ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
-    for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-      AstNode node = data.getNode();
-      errors.add(new AnalysisError(source, node.getOffset(), node.getLength(), data.getErrorCode()));
-    }
-    return EvaluationResult.forErrors(errors.toArray(new AnalysisError[errors.size()]));
+    return EvaluationResult.forErrors(errorListener.getErrors());
   }
 }

@@ -3648,6 +3648,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstValueInInitializer_instanceCreation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A();",
+        "}",
+        "class B {",
+        "  const B() : a = new A();",
+        "  final a;",
+        "}",
+        "var b = const B();"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
   public void test_nonConstValueInInitializer_redirecting() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
