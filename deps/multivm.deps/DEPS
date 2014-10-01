@@ -15,7 +15,7 @@ vars.update({
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "39950",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "183008",
+  "multivm_blink_revision": "183076",
 })
 
 def massage_deps(deps):
