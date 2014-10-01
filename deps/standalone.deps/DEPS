@@ -9,7 +9,7 @@ vars = {
   "dart_branch": "/branches/bleeding_edge",
 
   "gyp_rev": "@1752",
-  "co19_rev": "@761",
+  "co19_rev": "@786",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
