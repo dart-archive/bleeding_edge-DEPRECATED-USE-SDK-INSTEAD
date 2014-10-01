@@ -1923,18 +1923,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
     String taskDescription = task.toString();
-    if (!reportedLoop && !recentTasks.add(taskDescription)) {
-      reportedLoop = true;
-      @SuppressWarnings("resource")
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Performing repeated task: ");
-      writer.println(taskDescription);
-      for (String description : recentTasks) {
-        writer.print("  ");
-        writer.println(description);
-      }
-      logInformation(writer.toString());
-    }
+//    if (!reportedLoop && !recentTasks.add(taskDescription)) {
+//      reportedLoop = true;
+//      @SuppressWarnings("resource")
+//      PrintStringWriter writer = new PrintStringWriter();
+//      writer.print("Performing repeated task: ");
+//      writer.println(taskDescription);
+//      for (String description : recentTasks) {
+//        writer.print("  ");
+//        writer.println(description);
+//      }
+//      logInformation(writer.toString());
+//    }
     notifyAboutToPerformTask(taskDescription);
     if (TRACE_PERFORM_TASK) {
       System.out.println(taskDescription);
