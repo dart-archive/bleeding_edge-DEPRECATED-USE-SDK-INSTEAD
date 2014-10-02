@@ -44,7 +44,7 @@ vars = {
   "json_rev" : "@19997",
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
-  "net_nss_rev": "@bf6305a7aa19bdcf8f590ceb5e16384f9af63745",
+  "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
