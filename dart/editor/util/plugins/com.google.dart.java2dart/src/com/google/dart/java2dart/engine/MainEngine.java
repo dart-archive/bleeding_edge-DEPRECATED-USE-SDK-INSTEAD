@@ -717,11 +717,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("java_engine.dart", null, importShowCombinator("ObjectUtilities")));
     unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("Source")));
-    unit.getDirectives().add(
-        importDirective(
-            "error.dart",
-            null,
-            importShowCombinator("AnalysisError", "ErrorCode", "CompileTimeErrorCode")));
+    unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(
         importDirective("scanner.dart", null, importShowCombinator("Token", "TokenType")));
     unit.getDirectives().add(importDirective("ast.dart", null));
@@ -729,7 +725,10 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("resolver.dart", null, importShowCombinator("TypeProvider")));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisEngine", "RecordingErrorListener")));
     unit.getDirectives().add(
         importDirective("utilities_dart.dart", null, importShowCombinator("ParameterKind")));
     unit.getDirectives().add(importDirective("utilities_collection.dart", null));
@@ -1127,8 +1126,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
+    unit.getDirectives().add(importDirective(src_package + "sdk.dart", null));
     unit.getDirectives().add(
         importDirective(
             src_package + "sdk_io.dart",
@@ -1430,11 +1428,7 @@ public class MainEngine {
             src_package + "ast.dart",
             null,
             importShowCombinator("AstNode", "NodeLocator")));
-    unit.getDirectives().add(
-        importDirective(
-            src_package + "element.dart",
-            null,
-            importShowCombinator("InterfaceType", "MethodElement", "PropertyAccessorElement")));
+    unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
