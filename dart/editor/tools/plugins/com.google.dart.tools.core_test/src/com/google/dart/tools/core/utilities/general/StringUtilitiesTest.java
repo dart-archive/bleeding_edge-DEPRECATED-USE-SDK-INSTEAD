@@ -19,6 +19,25 @@ import org.junit.Assert;
 
 public class StringUtilitiesTest extends TestCase {
 
+  public void test_findCommonOverlap() {
+    assertEquals(0, StringUtilities.findCommonOverlap("", "abcd"));
+    assertEquals(3, StringUtilities.findCommonOverlap("abc", "abcd"));
+    assertEquals(0, StringUtilities.findCommonOverlap("123456", "abcd"));
+    assertEquals(3, StringUtilities.findCommonOverlap("123456xxx", "xxxabcd"));
+  }
+
+  public void test_findCommonPrefix() {
+    assertEquals(0, StringUtilities.findCommonPrefix("abc", "xyz"));
+    assertEquals(4, StringUtilities.findCommonPrefix("1234abcdef", "1234xyz"));
+    assertEquals(4, StringUtilities.findCommonPrefix("1234", "1234xyz"));
+  }
+
+  public void test_findCommonSuffix() {
+    assertEquals(0, StringUtilities.findCommonSuffix("abc", "xyz"));
+    assertEquals(4, StringUtilities.findCommonSuffix("abcdef1234", "xyz1234"));
+    assertEquals(4, StringUtilities.findCommonSuffix("1234", "xyz1234"));
+  }
+
   public void test_StringUtilities_endsWithIgnoreCase() {
     // null cases
     Assert.assertFalse(StringUtilities.endsWithIgnoreCase(null, null));
@@ -78,5 +97,4 @@ public class StringUtilitiesTest extends TestCase {
         new String[] {"one", "arg='two two'"},
         StringUtilities.parseArgumentString("one arg='two two'"));
   }
-
 }

@@ -770,13 +770,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             @Override
             public void run() {
               if (!formatResult.source.equals(unformattedSource)) {
-                document.set(formatResult.source);
-                getSourceViewer().revealRange(
-                    formatResult.selectionOffset,
-                    formatResult.selectionLength);
-                getSourceViewer().setSelectedRange(
-                    formatResult.selectionOffset,
-                    formatResult.selectionLength);
+                try {
+                  document.replace(
+                      formatResult.changeOffset,
+                      formatResult.changeLength,
+                      formatResult.changeReplacement);
+                  getSourceViewer().revealRange(
+                      formatResult.selectionOffset,
+                      formatResult.selectionLength);
+                  getSourceViewer().setSelectedRange(
+                      formatResult.selectionOffset,
+                      formatResult.selectionLength);
+                } catch (BadLocationException e) {
+                  DartToolsPlugin.log(e);
+                }
               }
             }
           });

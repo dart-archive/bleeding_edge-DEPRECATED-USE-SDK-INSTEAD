@@ -125,6 +125,91 @@ public final class StringUtilities {
     return strSuffix.equalsIgnoreCase(suffix);
   }
 
+  /**
+   * Determine if the suffix of one string is the prefix of another.
+   * 
+   * @param text1 First string.
+   * @param text2 Second string.
+   * @return The number of characters common to the end of the first string and the start of the
+   *         second string.
+   */
+  public static int findCommonOverlap(String text1, String text2) {
+    // Cache the text lengths to prevent multiple calls.
+    int text1_length = text1.length();
+    int text2_length = text2.length();
+    // Eliminate the null case.
+    if (text1_length == 0 || text2_length == 0) {
+      return 0;
+    }
+    // Truncate the longer string.
+    if (text1_length > text2_length) {
+      text1 = text1.substring(text1_length - text2_length);
+    } else if (text1_length < text2_length) {
+      text2 = text2.substring(0, text1_length);
+    }
+    int text_length = Math.min(text1_length, text2_length);
+    // Quick check for the worst case.
+    if (text1.equals(text2)) {
+      return text_length;
+    }
+
+    // Start by looking for a single character match
+    // and increase length until no match is found.
+    // Performance analysis: http://neil.fraser.name/news/2010/11/04/
+    int best = 0;
+    int length = 1;
+    while (true) {
+      String pattern = text1.substring(text_length - length);
+      int found = text2.indexOf(pattern);
+      if (found == -1) {
+        return best;
+      }
+      length += found;
+      if (found == 0 || text1.substring(text_length - length).equals(text2.substring(0, length))) {
+        best = length;
+        length++;
+      }
+    }
+  }
+
+  /**
+   * Determine the common prefix of two strings
+   * 
+   * @param text1 First string.
+   * @param text2 Second string.
+   * @return The number of characters common to the start of each string.
+   */
+  public static int findCommonPrefix(String text1, String text2) {
+    // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+    int n = Math.min(text1.length(), text2.length());
+    for (int i = 0; i < n; i++) {
+      if (text1.charAt(i) != text2.charAt(i)) {
+        return i;
+      }
+    }
+    return n;
+  }
+
+  /**
+   * Determine the common suffix of two strings
+   * 
+   * @param text1 First string.
+   * @param text2 Second string.
+   * @return The number of characters common to the end of each string.
+   */
+  public static int findCommonSuffix(String text1, String text2) {
+    // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+    int text1_length = text1.length();
+    int text2_length = text2.length();
+    int n = Math.min(text1_length, text2_length);
+    for (int i = 1; i <= n; i++) {
+      if (text1.charAt(text1_length - i) != text2.charAt(text2_length - i)) {
+        return i - 1;
+      }
+    }
+    return n;
+  }
+
   public static boolean isAlphanumeric(CharSequence cs) {
     if (cs == null || cs.length() == 0) {
       return false;

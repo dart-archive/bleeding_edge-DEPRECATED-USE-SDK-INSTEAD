@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.formatter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -115,6 +116,9 @@ public class DartFormatter {
     public int selectionOffset;
     public int selectionLength;
     public String source;
+    public int changeOffset;
+    public int changeLength;
+    public String changeReplacement;
   }
 
   private static final String ARGS_INDENT_FLAG = "-i";
@@ -233,10 +237,25 @@ public class DartFormatter {
       if (sourceString.endsWith("\n\n")) {
         sourceString = sourceString.substring(0, sourceString.length() - 1);
       }
+      // prepare FormattedSource
       FormattedSource result = new FormattedSource();
       result.source = sourceString;
       result.selectionOffset = selectionJson.getInt(JSON_OFFSET_KEY);
       result.selectionLength = selectionJson.getInt(JSON_LENGTH_KEY);
+      // compute change
+      if (!sourceString.equals(source)) {
+        int prefixLength = StringUtilities.findCommonPrefix(source, sourceString);
+        int suffixLength = StringUtilities.findCommonSuffix(source, sourceString);
+        String prefix = source.substring(0, prefixLength);
+        String suffix = source.substring(source.length() - suffixLength, source.length());
+        int commonLength = StringUtilities.findCommonOverlap(prefix, suffix);
+        suffixLength -= commonLength;
+        result.changeOffset = prefixLength;
+        result.changeLength = source.length() - prefixLength - suffixLength;
+        int replacementEnd = sourceString.length() - suffixLength;
+        result.changeReplacement = sourceString.substring(prefixLength, replacementEnd);
+      }
+      // done
       return result;
     } catch (JSONException e) {
       DartToolsPlugin.log(e);
