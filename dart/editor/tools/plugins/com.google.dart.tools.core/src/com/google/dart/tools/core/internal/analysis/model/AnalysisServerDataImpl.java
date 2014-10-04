@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.AnalysisService;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.ExecutionService;
@@ -30,6 +31,8 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerLaunchDataListener;
@@ -269,6 +272,16 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
         removeAnalysisSubscription(AnalysisService.OVERRIDES, file);
       }
     }
+  }
+
+  @Override
+  public void updateOptions() {
+    server.analysis_updateOptions(new AnalysisOptions(
+        DartCoreDebug.ENABLE_ASYNC,
+        DartCoreDebug.ENABLE_DEFERRED_LOADING,
+        DartCoreDebug.ENABLE_ENUMS,
+        DartCore.getPlugin().isHintsDart2JSEnabled(),
+        DartCore.getPlugin().isHintsEnabled()));
   }
 
   void internalComputedErrors(String file, AnalysisError[] errors) {

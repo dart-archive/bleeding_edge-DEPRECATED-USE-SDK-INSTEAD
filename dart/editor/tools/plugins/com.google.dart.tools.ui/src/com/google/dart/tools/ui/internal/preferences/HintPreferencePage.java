@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
@@ -83,10 +84,15 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
           || angularAnalysisEnabled != enableAngularAnalysisButton.getSelection()
           || hintsDart2JSEnabled != enableDart2jsHintsButton.getSelection()) {
         // trigger processing for hints
-        DartCore.getProjectManager().setHintOption(enableHintsButton.getSelection());
-        DartCore.getProjectManager().setDart2JSHintOption(enableDart2jsHintsButton.getSelection());
-        DartCore.getProjectManager().setAngularAnalysisOption(
-            enableAngularAnalysisButton.getSelection());
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          DartCore.getAnalysisServerData().updateOptions();
+          // TODO (danrubel) Set Angular enabled option
+        } else {
+          DartCore.getProjectManager().setHintOption(enableHintsButton.getSelection());
+          DartCore.getProjectManager().setDart2JSHintOption(enableDart2jsHintsButton.getSelection());
+          DartCore.getProjectManager().setAngularAnalysisOption(
+              enableAngularAnalysisButton.getSelection());
+        }
         hasChanges = true;
       }
       try {

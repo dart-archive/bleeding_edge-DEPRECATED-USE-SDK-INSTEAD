@@ -505,6 +505,7 @@ public class DartCore extends Plugin implements DartSdkListener {
                   DartIgnoreManager.getInstance()));
           analysisServer.addAnalysisServerListener(analysisServerListener);
           analysisServer.server_setSubscriptions(ImmutableList.of(ServerService.STATUS));
+          analysisServerDataImpl.updateOptions();
         } catch (Throwable e) {
           DartCore.logError("Enable to start stdio server", e);
           System.exit(1);

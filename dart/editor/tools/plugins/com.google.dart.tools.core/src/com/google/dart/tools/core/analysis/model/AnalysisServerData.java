@@ -116,4 +116,9 @@ public interface AnalysisServerData {
    * Specifies that the client doesn't want to be notified about {@link OverrideMember}s anymore.
    */
   void unsubscribeOverrides(String file, AnalysisServerOverridesListener listener);
+
+  /**
+   * Update the analysis options.
+   */
+  void updateOptions();
 }
