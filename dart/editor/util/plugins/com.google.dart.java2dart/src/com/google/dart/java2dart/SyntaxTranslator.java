@@ -2026,7 +2026,44 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           commentLine = fixJdtCommentLine(commentLine);
           commentLines.add(commentLine);
         }
-        result.setProperty(ToFormattedSourceVisitor.COMMENTS_KEY, commentLines);
+        result.setProperty(ToFormattedSourceVisitor.COMMENTS_BEFORE_STATEMENT, commentLines);
+      }
+    }
+    // attach comments at the end of Block
+    if (node instanceof org.eclipse.jdt.core.dom.Block) {
+      org.eclipse.jdt.core.dom.Block block = (org.eclipse.jdt.core.dom.Block) node;
+      int blockEnd = block.getStartPosition() + block.getLength();
+      // prepare the offset after last statement of after Block start
+      int afterOffset;
+      {
+        List<?> statements = block.statements();
+        if (statements.isEmpty()) {
+          afterOffset = block.getStartPosition();
+        } else {
+          int lastIndex = statements.size() - 1;
+          org.eclipse.jdt.core.dom.Statement lastStatement = (org.eclipse.jdt.core.dom.Statement) statements.get(lastIndex);
+          afterOffset = lastStatement.getStartPosition() + lastStatement.getLength();
+        }
+      }
+      // find comments at the end of Block
+      List<String> commentLines = Lists.newArrayList();
+      List<org.eclipse.jdt.core.dom.Comment> allComments = javaUnit.getCommentList();
+      int index = 0;
+      while (index < allComments.size()) {
+        org.eclipse.jdt.core.dom.Comment comment = allComments.get(index++);
+        if (comment.getStartPosition() < afterOffset) {
+          continue;
+        }
+        if (comment.getStartPosition() > blockEnd) {
+          break;
+        }
+        String commentLine = getJavaSource(comment);
+        commentLine = fixJdtCommentLine(commentLine);
+        commentLines.add(commentLine);
+      }
+      // remember comments
+      if (!commentLines.isEmpty()) {
+        result.setProperty(ToFormattedSourceVisitor.COMMENTS_AT_BLOCK_END, commentLines);
       }
     }
     // done

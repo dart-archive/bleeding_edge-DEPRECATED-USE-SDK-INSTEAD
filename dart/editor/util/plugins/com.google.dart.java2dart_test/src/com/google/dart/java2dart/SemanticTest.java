@@ -1736,7 +1736,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  final int test = 0;",
             "  void main() {",
             "    try {",
-            "    } on Exception catch (test) {",
+            "    } catch (test) {",
             "      int v = this.test;",
             "    }",
             "  }",

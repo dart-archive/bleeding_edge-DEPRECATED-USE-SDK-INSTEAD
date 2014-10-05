@@ -27,7 +27,8 @@ import java.util.List;
  * AST node (and all of it's children) to a writer.
  */
 public class ToFormattedSourceVisitor implements AstVisitor<Void> {
-  public static final String COMMENTS_KEY = "List of comments before statement";
+  public static final String COMMENTS_BEFORE_STATEMENT = "List of comments before statement";
+  public static final String COMMENTS_AT_BLOCK_END = "List of comments at the end of block";
   public static final String BLOCK_BODY_KEY = "Block body source";
   public static final String EXPRESSION_BODY_KEY = "Expression body source";
   public static final String DEFAULT_VALUE_KEY = "Default parameter value";
@@ -122,6 +123,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     {
       indentInc();
       visitNodeListWithSeparatorAndPrefix("\n", node.getStatements(), "\n");
+      printTrailingComments(node);
       indentDec();
     }
     nl2();
@@ -1127,14 +1129,25 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @SuppressWarnings("unchecked")
   private void printLeadingComments(Statement statement) {
-    List<String> comments = (List<String>) statement.getProperty(COMMENTS_KEY);
+    List<String> comments = (List<String>) statement.getProperty(COMMENTS_BEFORE_STATEMENT);
     if (comments == null) {
       return;
     }
     for (String comment : comments) {
       writer.print(comment);
-      writer.print("\n");
-      indent();
+      nl2();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void printTrailingComments(Block block) {
+    List<String> comments = (List<String>) block.getProperty(COMMENTS_AT_BLOCK_END);
+    if (comments == null) {
+      return;
+    }
+    for (String comment : comments) {
+      nl2();
+      writer.print(comment);
     }
   }
 
