@@ -51,10 +51,14 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private class HighlightingPositionUpdater implements IPositionUpdater {
     @Override
     public void update(DocumentEvent event) {
+      if (positions == null) {
+        return;
+      }
+      // prepare event values
       int eventOffset = event.getOffset();
       int eventOldLength = event.getLength();
       int eventEnd = eventOffset + eventOldLength;
-
+      // update positions
       for (HighlightPosition position : positions) {
         int offset = position.getOffset();
         int length = position.getLength();
