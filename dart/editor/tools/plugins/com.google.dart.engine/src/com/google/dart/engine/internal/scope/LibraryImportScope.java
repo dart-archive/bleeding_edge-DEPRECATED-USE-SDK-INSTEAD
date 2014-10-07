@@ -164,9 +164,11 @@ public class LibraryImportScope extends Scope {
     ArrayList<String> indirectSources = new ArrayList<String>();
     for (int i = 0; i < count; i++) {
       LibraryElement importedLibrary = imports[i].getImportedLibrary();
-      for (LibraryElement exportedLibrary : importedLibrary.getExportedLibraries()) {
-        if (exportedLibrary == library) {
-          indirectSources.add(importedLibrary.getDefiningCompilationUnit().getDisplayName());
+      if (importedLibrary != null) {
+        for (LibraryElement exportedLibrary : importedLibrary.getExportedLibraries()) {
+          if (exportedLibrary == library) {
+            indirectSources.add(importedLibrary.getDefiningCompilationUnit().getDisplayName());
+          }
         }
       }
     }
