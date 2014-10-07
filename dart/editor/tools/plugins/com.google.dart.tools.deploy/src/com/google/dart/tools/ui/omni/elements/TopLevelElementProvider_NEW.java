@@ -21,12 +21,14 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
+import com.google.dart.tools.ui.omni.util.CamelUtil;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Provider for class elements.
@@ -96,7 +98,8 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
   }
 
   private OmniElement[] doSearch(String _pattern) {
-    String pattern = _pattern + ".*";
+    final String pattern = "^" + CamelUtil.getCamelCaseRegExp(_pattern) + ".*";
+    final Pattern patternObj = Pattern.compile(pattern);
     //
     searchComplete = false;
     results.clear();
@@ -114,6 +117,7 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
                     for (SearchResult searchResult : searchResults) {
                       results.add(new TopLevelElement_NEW(
                           TopLevelElementProvider_NEW.this,
+                          patternObj,
                           searchResult));
                     }
                     if (last) {

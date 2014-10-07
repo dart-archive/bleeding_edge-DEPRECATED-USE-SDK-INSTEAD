@@ -22,23 +22,29 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
 import com.google.dart.tools.ui.omni.OmniElement;
+import com.google.dart.tools.ui.omni.OmniEntry;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link OmniElement} for a top-level {@link Element}.
  */
 public class TopLevelElement_NEW extends OmniElement {
   private static final String DEFAULT_PROJECT = "Dart SDK";
+  private final Pattern pattern;
   private final Element element;
   private final Element library;
 
-  public TopLevelElement_NEW(OmniProposalProvider provider, SearchResult searchResult) {
+  public TopLevelElement_NEW(OmniProposalProvider provider, Pattern pattern,
+      SearchResult searchResult) {
     super(provider);
+    this.pattern = pattern;
     List<Element> path = searchResult.getPath();
     this.element = path.get(0);
     this.library = getLibraryElement(path);
@@ -88,6 +94,22 @@ public class TopLevelElement_NEW extends OmniElement {
     }
 
     return result.toString();
+  }
+
+  @Override
+  public OmniEntry match(String filter, OmniProposalProvider providerForMatching) {
+    String text = element.getName();
+    Matcher matcher = pattern.matcher(text);
+    if (matcher.matches()) {
+      int groupCount = matcher.groupCount();
+      int[][] inds = new int[groupCount][];
+      for (int i = 0; i < groupCount; i++) {
+        // OmniEntry expects inclusive start/end, so correct the end
+        inds[i] = new int[] {matcher.start(1 + i), matcher.end(1 + i) - 1};
+      }
+      return new OmniEntry(this, providerForMatching, inds, EMPTY_INDICES);
+    }
+    return null;
   }
 
   @Override

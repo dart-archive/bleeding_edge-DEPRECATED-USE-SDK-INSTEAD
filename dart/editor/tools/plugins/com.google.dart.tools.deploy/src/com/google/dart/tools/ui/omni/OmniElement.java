@@ -23,7 +23,7 @@ public abstract class OmniElement {
 
   protected static final String separator = " - "; //$NON-NLS-1$
 
-  private static final int[][] EMPTY_INDICES = new int[0][0];
+  protected static final int[][] EMPTY_INDICES = new int[0][0];
   private final OmniProposalProvider provider;
 
   private boolean duplicate;

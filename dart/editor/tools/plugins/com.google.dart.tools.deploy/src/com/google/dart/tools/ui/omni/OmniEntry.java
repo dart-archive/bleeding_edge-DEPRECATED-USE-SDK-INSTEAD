@@ -45,7 +45,7 @@ public class OmniEntry {
   int[][] elementMatchRegions;
   int[][] providerMatchRegions;
 
-  OmniEntry(OmniElement element, OmniProposalProvider provider, int[][] elementMatchRegions,
+  public OmniEntry(OmniElement element, OmniProposalProvider provider, int[][] elementMatchRegions,
       int[][] providerMatchRegions) {
     this.element = element;
     this.provider = provider;

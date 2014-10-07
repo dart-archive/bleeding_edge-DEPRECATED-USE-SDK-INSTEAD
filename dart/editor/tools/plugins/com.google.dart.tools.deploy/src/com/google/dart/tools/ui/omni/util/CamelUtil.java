@@ -27,7 +27,7 @@ public class CamelUtil {
    * like CamelCase.
    * 
    * @param s the string
-   * @return a lowercase string containing the first character of every wordin the given string.
+   * @return a lowercase string containing the first character of every word in the given string.
    */
   public static String getCamelCase(String s) {
     StringBuffer result = new StringBuffer();
@@ -64,6 +64,37 @@ public class CamelUtil {
       length--;
     }
     return result.toArray(new int[result.size()][]);
+  }
+
+  /**
+   * Return a regular expression for the given camel-case string.
+   * 
+   * <pre>
+   *   AnaSer   => Ana[a-z]*?Ser[a-z]*?
+   *   AngCEI   => Ang[a-z]*?C[a-z]*?E[a-z]*?I[a-z]*?
+   *   arP      => ar[a-z]*?P[a-z]*?
+   * </pre>
+   */
+  public static String getCamelCaseRegExp(String s) {
+    StringBuilder buf = new StringBuilder();
+    int index = 0;
+    while (index < s.length()) {
+      char c = s.charAt(index++);
+      buf.append("(");
+      buf.append(c);
+      while (index < s.length()) {
+        char next = s.charAt(index);
+        if (Character.isDigit(next) || Character.isLowerCase(next)) {
+          buf.append(next);
+          index++;
+        } else {
+          break;
+        }
+      }
+      buf.append(")");
+      buf.append("[a-z]*?");
+    }
+    return buf.toString();
   }
 
   /**
