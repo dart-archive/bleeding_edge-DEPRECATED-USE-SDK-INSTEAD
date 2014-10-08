@@ -25,6 +25,8 @@ public class AnalysisErrorType {
 
   public static final String ANGULAR = "ANGULAR";
 
+  public static final String CHECKED_MODE_COMPILE_TIME_ERROR = "CHECKED_MODE_COMPILE_TIME_ERROR";
+
   public static final String COMPILE_TIME_ERROR = "COMPILE_TIME_ERROR";
 
   public static final String HINT = "HINT";
