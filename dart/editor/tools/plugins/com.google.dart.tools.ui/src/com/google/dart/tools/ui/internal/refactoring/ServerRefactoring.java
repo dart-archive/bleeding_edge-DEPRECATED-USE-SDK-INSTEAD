@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.generated.types.RefactoringFeedback;
@@ -21,10 +22,12 @@ import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.internal.corext.refactoring.base.StringStatusContext;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW.toLTK;
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW.toRefactoringStatus;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -57,6 +60,7 @@ public abstract class ServerRefactoring extends Refactoring {
   protected RefactoringStatus optionsStatus;
   protected RefactoringStatus finalStatus;
   private Change change;
+  private final List<String> externalFiles = Lists.newArrayList();
 
   public ServerRefactoring(String kind, String name, String file, int offset, int length) {
     this.kind = kind;
@@ -71,6 +75,17 @@ public abstract class ServerRefactoring extends Refactoring {
     if (!setOptions(false)) {
       return TIMEOUT_STATUS;
     }
+    // done if already fatal
+    if (finalStatus.hasFatalError()) {
+      return finalStatus;
+    }
+    // check for external files
+    if (!externalFiles.isEmpty()) {
+      finalStatus.addError(
+          "The following files are external and cannot be updated",
+          new StringStatusContext(null, StringUtils.join(externalFiles, "\n")));
+    }
+    // done
     return finalStatus;
   }
 
@@ -132,13 +147,14 @@ public abstract class ServerRefactoring extends Refactoring {
             if (feedback != null) {
               setFeedback(feedback);
             }
+            externalFiles.clear();
             initialStatus = toRefactoringStatus(initialProblems);
             optionsStatus = toRefactoringStatus(optionsProblems);
             finalStatus = toRefactoringStatus(finalProblems);
-            change = toLTK(_change);
+            change = toLTK(_change, externalFiles);
             latch.countDown();
           }
         });
-    return Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS);
+    return Uninterruptibles.awaitUninterruptibly(latch, 1000, TimeUnit.MILLISECONDS);
   }
 }

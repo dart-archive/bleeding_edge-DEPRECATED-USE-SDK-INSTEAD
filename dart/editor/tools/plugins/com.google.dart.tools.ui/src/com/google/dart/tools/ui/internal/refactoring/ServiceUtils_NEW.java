@@ -94,14 +94,19 @@ public class ServiceUtils_NEW {
   /**
    * @return the LTK change for the given Services {@link CompositeChange}.
    */
-  public static CompositeChange toLTK(SourceChange sourceChange) {
+  public static CompositeChange toLTK(SourceChange sourceChange, List<String> externalFiles) {
     if (sourceChange == null) {
       return null;
     }
     CompositeChange ltkChange = new CompositeChange(sourceChange.getMessage());
     for (SourceFileEdit fileEdit : sourceChange.getEdits()) {
       Change textChange = toLTK(fileEdit);
-      ltkChange.add(textChange);
+      if (textChange != null) {
+        ltkChange.add(textChange);
+      } else {
+        String file = fileEdit.getFile();
+        externalFiles.add(file);
+      }
     }
     return ltkChange;
   }
