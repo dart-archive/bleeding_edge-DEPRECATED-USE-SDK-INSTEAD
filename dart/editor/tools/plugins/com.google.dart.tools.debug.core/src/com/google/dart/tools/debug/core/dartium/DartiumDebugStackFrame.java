@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -284,7 +285,14 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
-  public String getSourceLocationPath() {
+  public String getSourceLocationPath_NEW(String executionContectId,
+      Map<String, String> executionUrlToFileCache) {
+    // TODO(scheglov) implement for the Analysis Server
+    return getSourceLocationPath_OLD();
+  }
+
+  @Override
+  public String getSourceLocationPath_OLD() {
     try {
       if (getTarget().shouldUseSourceMapping() && isUsingSourceMaps()) {
         return getMappedLocationPath();
@@ -528,7 +536,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   private String getFileOrLibraryName() {
-    String path = getSourceLocationPath();
+    String path = getSourceLocationPath_OLD();
 
     if (path != null) {
       int index = path.lastIndexOf('/');
@@ -563,5 +571,4 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
       return null;
     }
   }
-
 }
