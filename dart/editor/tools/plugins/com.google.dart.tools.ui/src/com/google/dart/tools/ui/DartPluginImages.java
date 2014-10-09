@@ -209,6 +209,9 @@ public class DartPluginImages {
   /*
    * Set of predefined Image Descriptors.
    */
+  public static final ImageDescriptor DESC_DART_IMPORT_PREFIX = createUnManaged(
+      T_DART,
+      "import_prefix.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_DART_LIB_FILE = createUnManaged(
       T_DART,
       "package_obj.gif"); //$NON-NLS-1$
