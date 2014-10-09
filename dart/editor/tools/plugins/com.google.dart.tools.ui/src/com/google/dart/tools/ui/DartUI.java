@@ -517,6 +517,9 @@ public final class DartUI {
       BufferedReader br = new BufferedReader(reader);
       try {
         String line = br.readLine();
+        if (line == null) {
+          return false;
+        }
         if (line.length() > MAX_LINE_LENGTH) {
           return true;
         }
