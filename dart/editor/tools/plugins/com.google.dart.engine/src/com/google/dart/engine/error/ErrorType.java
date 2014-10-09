@@ -39,7 +39,7 @@ public enum ErrorType {
   /**
    * Checked mode compile-time errors are errors that preclude execution in checked mode.
    */
-  CHECKED_MODE_COMPILE_TIME_ERROR(ErrorSeverity.INFO),
+  CHECKED_MODE_COMPILE_TIME_ERROR(ErrorSeverity.ERROR),
 
   /**
    * Suggestions made in situations where the user has deviated from recommended pub programming

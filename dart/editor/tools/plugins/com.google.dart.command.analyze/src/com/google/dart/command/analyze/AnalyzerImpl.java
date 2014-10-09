@@ -57,14 +57,13 @@ public class AnalyzerImpl {
   private static final HashMap<File, DirectoryBasedDartSdk> sdkMap = new HashMap<File, DirectoryBasedDartSdk>();
 
   /**
-   * Compute the severity of the error; however, if {@link escalateCheckedModeCompileTimeErors} is
-   * true, then escalate it to {@link ErrorSeverity.ERROR}.
+   * Compute the severity of the error; however, if {@link enableTypeChecks} is true, then
+   * de-escalate checked mode compile time errors to a severity of {@link ErrorSeverity.INFO}.
    */
-  public static ErrorSeverity computeSeverity(AnalysisError error,
-      boolean escalateCheckedModeCompileTimeErrors) {
-    if (escalateCheckedModeCompileTimeErrors
+  public static ErrorSeverity computeSeverity(AnalysisError error, boolean enableTypeChecks) {
+    if (!enableTypeChecks
         && error.getErrorCode().getType() == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
-      return ErrorSeverity.ERROR;
+      return ErrorSeverity.INFO;
     }
     return error.getErrorCode().getErrorSeverity();
   }
