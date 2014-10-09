@@ -40,7 +40,7 @@ public class DartOutlineElementProvider_NEW implements IInformationProvider,
 
   @Override
   public Object getInformation2(ITextViewer textViewer, IRegion subject) {
-    return fEditor;
+    return fEditor.getOutline();
   }
 
   @Override

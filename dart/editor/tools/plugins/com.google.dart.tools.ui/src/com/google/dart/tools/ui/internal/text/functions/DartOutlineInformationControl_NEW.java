@@ -425,7 +425,8 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
     // prepare "outline" to select
     final Outline outline;
     {
-      List<Outline> outlineList = ((Outline) viewer.getInput()).getChildren();
+      Outline input = (Outline) viewer.getInput();
+      List<Outline> outlineList = input.getChildren();
       ITextSelection editorSelection = (ITextSelection) editor.getSelectionProvider().getSelection();
       int editorOffset = editorSelection.getOffset();
       outline = findOutlineEnclosingOffset(outlineList, editorOffset);
