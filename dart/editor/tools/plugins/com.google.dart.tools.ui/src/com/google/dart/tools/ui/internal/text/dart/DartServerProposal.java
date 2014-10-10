@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.general.CharOperation;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -56,6 +57,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposalExtension5;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
@@ -201,17 +203,25 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public boolean validate(IDocument document, int offset, DocumentEvent event) {
-    //TODO (danrubel): hook up camel case filtering
     int replacementOffset = collector.getReplacementOffset();
     if (offset < replacementOffset) {
       return false;
     }
+    String prefix;
     try {
-      return getDisplayString().startsWith(
-          document.get(replacementOffset, offset - replacementOffset));
+      prefix = document.get(replacementOffset, offset - replacementOffset);
     } catch (BadLocationException x) {
       return false;
     }
+    String string = TextProcessor.deprocess(getDisplayString());
+    if (string.length() < prefix.length()) {
+      return false;
+    }
+    String start = string.substring(0, prefix.length());
+    char[] pattern = prefix.toCharArray();
+    char[] name = string.toCharArray();
+    return start.equalsIgnoreCase(prefix)
+        || CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
   }
 
   private Image computeImage() {

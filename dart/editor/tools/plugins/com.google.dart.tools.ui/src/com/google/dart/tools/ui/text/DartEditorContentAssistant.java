@@ -54,13 +54,22 @@ public class DartEditorContentAssistant extends ContentAssistant {
       @Override
       public void run() {
         if (waitUntilProcessorReady(false)) {
-          StyledText control = sourceViewer.getTextWidget();
+          final StyledText control = sourceViewer.getTextWidget();
           if (control.isDisposed()) {
             return;
           }
           control.getDisplay().asyncExec(new Runnable() {
             @Override
             public void run() {
+
+              // Filter proposals based upon the current document text
+              int offset = getOffset(control);
+              IContentAssistProcessor p = getProcessor(sourceViewer, offset);
+              if (p instanceof DartCompletionProcessor) {
+                IDocument document = sourceViewer.getDocument();
+                ((DartCompletionProcessor) p).filterProposals(document, offset);
+              }
+
               DartEditorContentAssistant.super.showPossibleCompletions();
             }
           });

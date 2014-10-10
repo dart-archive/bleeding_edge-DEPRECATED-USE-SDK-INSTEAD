@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
@@ -51,6 +52,13 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
   public DartCompletionProcessor(IEditorPart editor, ContentAssistant assistant, String partition) {
     super(assistant, partition);
     fEditor = editor;
+  }
+
+  /**
+   * Called on the UI thread to filter the proposals based upon the current document text.
+   */
+  public void filterProposals(IDocument document, int offset) {
+    collector.filterProposals(document, offset);
   }
 
   /*

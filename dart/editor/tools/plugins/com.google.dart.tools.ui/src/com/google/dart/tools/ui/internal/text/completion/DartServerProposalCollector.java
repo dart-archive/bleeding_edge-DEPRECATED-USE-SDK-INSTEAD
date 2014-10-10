@@ -18,6 +18,7 @@ import com.google.dart.tools.core.completion.DartSuggestionReceiver;
 import com.google.dart.tools.ui.internal.text.dart.DartServerProposal;
 import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
 
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import java.util.ArrayList;
@@ -65,6 +66,19 @@ public class DartServerProposalCollector {
     }
     Collections.sort(proposals, new CompletionProposalComparator());
     return true;
+  }
+
+  /**
+   * Called on the UI thread to filter the proposals based upon the current document text.
+   */
+  public void filterProposals(IDocument document, int offset) {
+    ArrayList<ICompletionProposal> filtered = new ArrayList<ICompletionProposal>();
+    for (ICompletionProposal p : proposals) {
+      if (((DartServerProposal) p).validate(document, offset, null)) {
+        filtered.add(p);
+      }
+    }
+    proposals = filtered;
   }
 
   /**
