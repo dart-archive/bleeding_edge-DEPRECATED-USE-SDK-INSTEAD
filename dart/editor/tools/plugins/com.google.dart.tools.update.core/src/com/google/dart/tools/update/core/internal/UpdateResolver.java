@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.core.utilities.download.UpdateDecoratorForUsageCount;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
@@ -67,8 +68,10 @@ public abstract class UpdateResolver {
    * @return an update resolver for the integration update channel
    */
   public static UpdateResolver forIntegration() {
-    //return new DirectoryListingResolver(UpdateCore.getUpdateUrl());
-    return new VersionFileResolver(UpdateCore.getUpdateUrl() + "latest/VERSION");
+    String updateUrl = UpdateCore.getUpdateUrl() + "latest/VERSION";
+    String decoratedUpdateUrl = UpdateDecoratorForUsageCount.decorateURL(updateUrl);
+
+    return new VersionFileResolver(decoratedUpdateUrl);
   }
 
   /**
