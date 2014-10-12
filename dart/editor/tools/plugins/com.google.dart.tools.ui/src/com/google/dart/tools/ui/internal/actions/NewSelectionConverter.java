@@ -176,13 +176,25 @@ public class NewSelectionConverter {
    */
   public static com.google.dart.server.generated.types.Element[] getNavigationTargets(String file,
       int offset) {
+    // find the smallest navigation region
+    NavigationRegion result = null;
     NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(file);
-    for (NavigationRegion navigationRegion : regions) {
-      if (navigationRegion.containsInclusive(offset)) {
-        List<com.google.dart.server.generated.types.Element> elements = navigationRegion.getTargets();
-        return elements.toArray(new com.google.dart.server.generated.types.Element[elements.size()]);
+    for (NavigationRegion region : regions) {
+      if (region.containsInclusive(offset)) {
+        if (result == null || result.getLength() > region.getLength()) {
+          result = region;
+        }
+      }
+      if (region.getOffset() > offset) {
+        break;
       }
     }
+    // found a region
+    if (result != null) {
+      List<com.google.dart.server.generated.types.Element> elements = result.getTargets();
+      return elements.toArray(new com.google.dart.server.generated.types.Element[elements.size()]);
+    }
+    // not found
     return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;
   }
 
