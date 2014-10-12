@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An IValue implementation for VM debugging.
@@ -362,13 +364,8 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
       latch.countDown();
     }
 
-    try {
-      latch.await();
-
-      fields = tempFields;
-    } catch (InterruptedException e) {
-
-    }
+    Uninterruptibles.awaitUninterruptibly(latch, 250, TimeUnit.MILLISECONDS);
+    fields = tempFields;
   }
 
   protected void fillInListFields() {
