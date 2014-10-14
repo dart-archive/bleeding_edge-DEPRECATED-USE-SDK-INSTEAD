@@ -36,7 +36,7 @@ public class PolymerSample extends AbstractSample {
         "name: {name}\n"
             + "description: A sample Polymer application\n"
             + "dependencies:\n"
-            + "    polymer: \">=0.12.0 <0.13.0\"\n"
+            + "    polymer: \">=0.15.1 <0.16.0\"\n"
             + "transformers:\n"
             + "- polymer:\n"
             + "    entry_points: web/{name.lower}.html\n"});
