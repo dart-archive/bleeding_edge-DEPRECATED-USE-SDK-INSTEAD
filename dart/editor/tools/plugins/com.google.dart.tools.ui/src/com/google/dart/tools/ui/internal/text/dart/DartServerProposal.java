@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.CharOperation;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
@@ -25,21 +26,20 @@ import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.CLASS;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.CLASS_ALIAS;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.CONSTRUCTOR;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.FIELD;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.FUNCTION;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.GETTER;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.LIBRARY_PREFIX;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.LOCAL_VARIABLE;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.METHOD;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.METHOD_NAME;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.SETTER;
-import static com.google.dart.server.generated.types.CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
+import static com.google.dart.server.generated.types.ElementKind.CLASS;
+import static com.google.dart.server.generated.types.ElementKind.CLASS_TYPE_ALIAS;
+import static com.google.dart.server.generated.types.ElementKind.CONSTRUCTOR;
+import static com.google.dart.server.generated.types.ElementKind.FIELD;
+import static com.google.dart.server.generated.types.ElementKind.FUNCTION;
+import static com.google.dart.server.generated.types.ElementKind.FUNCTION_TYPE_ALIAS;
+import static com.google.dart.server.generated.types.ElementKind.GETTER;
+import static com.google.dart.server.generated.types.ElementKind.LOCAL_VARIABLE;
+import static com.google.dart.server.generated.types.ElementKind.METHOD;
+import static com.google.dart.server.generated.types.ElementKind.PREFIX;
+import static com.google.dart.server.generated.types.ElementKind.SETTER;
+import static com.google.dart.server.generated.types.ElementKind.TOP_LEVEL_VARIABLE;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -229,13 +229,28 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     ImageDescriptor descriptor = null;
     int overlay = 0;
 
-    String kind = suggestion.getKind();
-    String completion = suggestion.getCompletion();
-    boolean isPrivate = completion != null && completion.startsWith("_");
+    String kind;
+    boolean isPrivate;
+    boolean isTopLevelOrStatic;
+    boolean isAbstract;
+    Element element = suggestion.getElement();
+    if (element != null) {
+      kind = element.getKind();
+      isPrivate = element.isPrivate();
+      isTopLevelOrStatic = element.isTopLevelOrStatic();
+      isAbstract = element.isAbstract();
+    } else {
+      kind = suggestion.getKind();
+      isPrivate = false;
+      isTopLevelOrStatic = false;
+      isAbstract = false;
+      if (!IMPORT.equals(kind) && !KEYWORD.equals(kind)) {
+        DartCore.logError("Expected element for suggestion kind: " + kind);
+      }
+    }
+
     // TODO (danrubel) additional info needed from suggestion
     boolean isInInterfaceOrAnnotation = false;
-    boolean isStatic = false;
-    boolean isAbstract = false;
 
     if (CLASS.equals(kind)) {
       if (isPrivate && !isInInterfaceOrAnnotation) {
@@ -248,7 +263,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       }
     }
 
-    else if (CLASS_ALIAS.equals(kind)) {
+    else if (CLASS_TYPE_ALIAS.equals(kind)) {
       descriptor = DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
     }
 
@@ -275,7 +290,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       } else {
         descriptor = DartPluginImages.DESC_DART_FIELD_PUBLIC;
       }
-      if (isStatic) {
+      if (isTopLevelOrStatic) {
         overlay = DartElementImageDescriptor.STATIC;
       }
     }
@@ -286,7 +301,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       } else {
         descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
       }
-      if (isStatic) {
+      if (isTopLevelOrStatic) {
         overlay = DartElementImageDescriptor.STATIC;
       }
     }
@@ -308,7 +323,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       descriptor = DartPluginImages.DESC_DART_KEYWORD;
     }
 
-    else if (LIBRARY_PREFIX.equals(kind)) {
+    else if (PREFIX.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
     }
 
@@ -316,13 +331,14 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       descriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
     }
 
-    else if (METHOD.equals(kind) || METHOD_NAME.equals(kind)) {
+    else if (METHOD.equals(kind)) {
+      System.out.println("method: " + element.getName() + "(" + element.getParameters() + ")");
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
         descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
       }
-      if (isStatic) {
+      if (isTopLevelOrStatic) {
         overlay = DartElementImageDescriptor.STATIC;
       }
     }
