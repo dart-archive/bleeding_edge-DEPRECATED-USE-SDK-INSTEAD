@@ -56,10 +56,21 @@ import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension5;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.text.link.ILinkedModeListener;
+import org.eclipse.jface.text.link.LinkedModeModel;
+import org.eclipse.jface.text.link.LinkedModeUI;
+import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
+import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
+import org.eclipse.jface.text.link.LinkedPosition;
+import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.osgi.util.TextProcessor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 /**
  * {@link DartServerProposal} represents a code completion suggestion returned by
@@ -96,12 +107,36 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
-    int length = offset - collector.getReplacementOffset();
+    String completion = getCompletion();
+    int replacementOffset = collector.getReplacementOffset();
+    int replacementLength = offset - replacementOffset;
+    IDocument doc = viewer.getDocument();
     try {
-      viewer.getDocument().replace(collector.getReplacementOffset(), length, getCompletion());
+      doc.replace(replacementOffset, replacementLength, completion);
+
+      // Setup for entering method parameters
+      if (completion.endsWith("(")) {
+        int newOffset = replacementOffset + completion.length();
+        doc.replace(newOffset, 0, ")");
+
+        LinkedPositionGroup group = new LinkedPositionGroup();
+        group.addPosition(new LinkedPosition(doc, newOffset, 0, LinkedPositionGroup.NO_STOP));
+
+        LinkedModeModel model = new LinkedModeModel();
+        model.addGroup(group);
+        model.forceInstall();
+
+        LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
+        ui.setSimpleMode(true);
+        ui.setExitPolicy(new ExitPolicy(')', doc, viewer));
+        ui.setExitPosition(viewer, newOffset + 1, 0, Integer.MAX_VALUE);
+        ui.setCyclingMode(LinkedModeUI.CYCLE_NEVER);
+        ui.enter();
+      }
+
     } catch (BadLocationException e) {
-      DartCore.logInformation("Failed to replace offset:" + collector.getReplacementOffset()
-          + " length:" + length + " with:" + getCompletion(), e);
+      DartCore.logInformation("Failed to replace offset:" + replacementOffset + " length:"
+          + replacementLength + " with:" + completion, e);
     }
   }
 
@@ -132,7 +167,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   public String getDisplayString() {
     // this method is used for alphabetic sorting,
     // while getStyledDisplayString() is displayed to the user.
-    return getCompletion();
+    return suggestion.getCompletion();
   }
 
   @Override
@@ -332,7 +367,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     }
 
     else if (METHOD.equals(kind)) {
-      System.out.println("method: " + element.getName() + "(" + element.getParameters() + ")");
       if (isPrivate && !isInInterfaceOrAnnotation) {
         descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
       } else {
@@ -385,7 +419,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   private StyledString computeStyledDisplayString() {
     StyledString buf = new StyledString();
-    buf.append(getCompletion());
+    buf.append(suggestion.getCompletion());
 
     String returnType = suggestion.getReturnType();
     if (returnType != null && returnType.length() > 0) {
@@ -397,6 +431,170 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private String getCompletion() {
-    return suggestion.getCompletion();
+    String completion = suggestion.getCompletion();
+    Element element = suggestion.getElement();
+    if (element != null) {
+      String kind = element.getKind();
+      if (METHOD.equals(kind)) {
+        completion += "(";
+      }
+    }
+    return completion;
+  }
+}
+
+/**
+ * Allow the linked mode editor to continue running even when the exit character is typed as part of
+ * a function argument. Using shift operators in a context that expects balanced angle brackets is
+ * not legal syntax and will confuse the linked mode editor.
+ */
+class ExitPolicy implements IExitPolicy {
+
+  private int parenCount = 0;
+  private int braceCount = 0;
+  private int bracketCount = 0;
+  private int angleBracketCount = 0;
+  private char lastChar = (char) 0;
+
+  final char exitChar;
+  private final IDocument document;
+  private final ITextViewer viewer;
+
+  public ExitPolicy(char exitChar, IDocument document, ITextViewer viewer) {
+    this.exitChar = exitChar;
+    this.document = document;
+    this.viewer = viewer;
+  }
+
+  @Override
+  public ExitFlags doExit(LinkedModeModel environment, VerifyEvent event, int offset, int length) {
+    countGroupChars(event);
+    if (event.character == exitChar && isBalanced(exitChar)) {
+      if (environment.anyPositionContains(offset)) {
+        return new ExitFlags(ILinkedModeListener.UPDATE_CARET, false);
+      } else {
+        return new ExitFlags(ILinkedModeListener.UPDATE_CARET, true);
+      }
+    }
+
+    switch (event.character) {
+      case ';':
+        return new ExitFlags(ILinkedModeListener.EXTERNAL_MODIFICATION
+            | ILinkedModeListener.UPDATE_CARET | ILinkedModeListener.EXIT_ALL, true);
+      case '\b':
+        if (viewer.getSelectedRange().y > 0) {
+          return new ExitFlags(ILinkedModeListener.EXTERNAL_MODIFICATION, true);
+        }
+        return null;
+      case SWT.CR:
+        // when entering a function as a parameter, we don't want
+        // to jump after the parenthesis when return is pressed
+        if (offset > 0) {
+          try {
+            if (document.getChar(offset - 1) == '{') {
+              return new ExitFlags(ILinkedModeListener.EXIT_ALL, true);
+            }
+          } catch (BadLocationException e) {
+          }
+        }
+        return null;
+//      case ',':
+//        // Making comma act like tab seems like a good idea
+        // but it requires auto-insert of matching group chars to work.
+//        if (offset > 0) {
+//          try {
+//            if (fDocument.getChar(offset) == ',') {
+//              event.character = 0x09;
+//              return null;
+//            }
+//          } catch (BadLocationException e) {
+//          }
+//        }
+      default:
+        return null;
+    }
+  }
+
+  private void countGroupChar(char ch, int inc) {
+    switch (ch) {
+      case '(':
+        parenCount += inc;
+        break;
+      case ')':
+        parenCount -= inc;
+        break;
+      case '{':
+        braceCount += inc;
+        break;
+      case '}':
+        braceCount -= inc;
+        break;
+      case '[':
+        bracketCount += inc;
+        break;
+      case ']':
+        bracketCount -= inc;
+        break;
+      case '<':
+        angleBracketCount += inc;
+        break;
+      case '>':
+        if (lastChar != '=') {
+          // only decrement when not part of =>
+          angleBracketCount -= inc;
+        }
+        break;
+      case '=':
+        if (lastChar == '>') {
+          // deleting => should not change angleBracketCount
+          angleBracketCount += inc;
+        }
+        break;
+      default:
+        break;
+    }
+    lastChar = ch;
+  }
+
+  private void countGroupChars(VerifyEvent event) {
+    char ch = event.character;
+    int inc = 1;
+    if (ch == '\b') { // TODO Find correct delete chars for Linux & Windows
+      inc = -1;
+      if (!(event.widget instanceof StyledText)) {
+        return;
+      }
+      Point sel = ((StyledText) event.widget).getSelection();
+      try {
+        if (sel.x == sel.y) {
+          ch = document.getChar(sel.x);
+          countGroupChar(ch, inc);
+        } else {
+          for (int x = sel.y - 1; x >= sel.x; x--) {
+            ch = document.getChar(x);
+            countGroupChar(ch, inc);
+          }
+        }
+      } catch (BadLocationException ex) {
+        return;
+      }
+    } else {
+      countGroupChar(ch, inc);
+    }
+  }
+
+  private boolean isBalanced(char ch) {
+    switch (ch) {
+      case ')':
+        return parenCount == -1;
+      case '}':
+        return braceCount == -1;
+      case ']':
+        return bracketCount == -1;
+      case '>':
+        return angleBracketCount == -1;
+      default:
+        return true; // never unbalanced
+    }
   }
 }
