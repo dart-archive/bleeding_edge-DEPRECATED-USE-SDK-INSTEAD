@@ -26,6 +26,8 @@ import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
+import static com.google.dart.server.generated.types.CompletionRelevance.HIGH;
+import static com.google.dart.server.generated.types.CompletionRelevance.LOW;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
 import static com.google.dart.server.generated.types.ElementKind.CLASS;
@@ -37,6 +39,7 @@ import static com.google.dart.server.generated.types.ElementKind.FUNCTION_TYPE_A
 import static com.google.dart.server.generated.types.ElementKind.GETTER;
 import static com.google.dart.server.generated.types.ElementKind.LOCAL_VARIABLE;
 import static com.google.dart.server.generated.types.ElementKind.METHOD;
+import static com.google.dart.server.generated.types.ElementKind.PARAMETER;
 import static com.google.dart.server.generated.types.ElementKind.PREFIX;
 import static com.google.dart.server.generated.types.ElementKind.SETTER;
 import static com.google.dart.server.generated.types.ElementKind.TOP_LEVEL_VARIABLE;
@@ -115,9 +118,11 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       doc.replace(replacementOffset, replacementLength, completion);
 
       // Setup for entering method parameters
-      if (completion.endsWith("(")) {
+      String param = getParamString();
+      if (param != null) {
         int newOffset = replacementOffset + completion.length();
-        doc.replace(newOffset, 0, ")");
+        doc.replace(newOffset, 0, "()");
+        ++newOffset;
 
         LinkedPositionGroup group = new LinkedPositionGroup();
         group.addPosition(new LinkedPosition(doc, newOffset, 0, LinkedPositionGroup.NO_STOP));
@@ -202,7 +207,11 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Point getSelection(IDocument document) {
-    return new Point(collector.getReplacementOffset() + getCompletion().length(), 0);
+    int offset = collector.getReplacementOffset() + getCompletion().length();
+    if (getParamString() != null) {
+      ++offset;
+    }
+    return new Point(offset, 0);
   }
 
   @Override
@@ -408,12 +417,28 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   private int computeRelevance() {
     String relevance = suggestion.getRelevance();
-    if (relevance == "HIGH") {
+    if (HIGH.equals(relevance)) {
+      return 100;
+    } else if (LOW.equals(relevance)) {
       return 0;
-    } else if (relevance == "LOW") {
-      return 2;
     } else { // DEFAULT
-      return 1;
+      Element element = suggestion.getElement();
+      if (element != null) {
+        String kind = element.getKind();
+        if (LOCAL_VARIABLE.equals(kind) || PARAMETER.equals(kind)) {
+          return 79;
+        } else if (FIELD.equals(kind)) {
+          return 78;
+        } else if (METHOD.equals(kind) || GETTER.equals(kind) || SETTER.equals(kind)
+            || FUNCTION.equals(kind)) {
+          return 77;
+        } else if (TOP_LEVEL_VARIABLE.equals(kind)) {
+          return 76;
+        } else if (KEYWORD.equals(kind)) {
+          return 75;
+        }
+      }
+      return 50;
     }
   }
 
@@ -431,15 +456,23 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private String getCompletion() {
-    String completion = suggestion.getCompletion();
+    return suggestion.getCompletion();
+  }
+
+  /**
+   * @return A string representing the parameters or {@code null} if no parameters for completion
+   */
+  private String getParamString() {
     Element element = suggestion.getElement();
     if (element != null) {
       String kind = element.getKind();
-      if (METHOD.equals(kind)) {
-        completion += "(";
+      if (!GETTER.equals(kind) && !SETTER.equals(kind)) {
+        if (element != null) {
+          return element.getParameters();
+        }
       }
     }
-    return completion;
+    return null;
   }
 }
 
