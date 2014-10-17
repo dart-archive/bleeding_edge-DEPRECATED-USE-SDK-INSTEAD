@@ -14,21 +14,15 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.CreateContextConsumer;
-import com.google.dart.server.MapUriConsumer;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.debug.ui.console.FileLink;
@@ -37,10 +31,6 @@ import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,14 +68,13 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
 
     public IFile getFile() {
-      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(filePath);
-
-      if (resource instanceof IFile) {
-        return (IFile) resource;
+      IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+      IFile file = workspaceRoot.getFileForLocation(new Path(filePath));
+      if (file != null) {
+        return file;
       }
 
       IPath path = new Path(filePath);
-
       return ResourceUtil.getFile(path.toFile());
     }
 
@@ -109,10 +98,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
   private TextConsole console;
 
-  private IResource resource;
-  private String resourcePath;
-
-  private String executionContextId;
+  private UriToFileResolver uriToFileResolver;
 
   public DebuggerPatternMatchListener() {
   }
@@ -126,32 +112,15 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       IProcess process = processConsole.getProcess();
       ILaunch launch = process.getLaunch();
       if (launch != null) {
-        ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
-        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launchConfiguration);
-        resource = wrapper.getApplicationResource();
-        resourcePath = resource.getLocation().toOSString();
+        uriToFileResolver = new UriToFileResolver(launch);
       }
-    }
-    // create an execution context
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER && resourcePath != null) {
-      DartCore.getAnalysisServer().execution_createContext(
-          resourcePath,
-          new CreateContextConsumer() {
-            @Override
-            public void computedExecutionContext(String contextId) {
-              executionContextId = contextId;
-            }
-          });
     }
   }
 
   @Override
   public void disconnect() {
     this.console = null;
-    // delete the execution context
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER && executionContextId != null) {
-      DartCore.getAnalysisServer().execution_deleteContext(executionContextId);
-    }
+    uriToFileResolver.dispose();
   }
 
   @Override
@@ -216,119 +185,19 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
-  private IFile getIFileForAbsolutePath(String pathStr) {
-    return ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pathStr));
-  }
-
   private Location parseForLocation(String url, String lineStr) {
-    final String chromeExt = "chrome-extension://";
+    String filePath = uriToFileResolver.getFileForUri(url);
+    if (filePath == null) {
+      return null;
+    }
 
     int line;
-
     try {
       line = Integer.parseInt(lineStr);
     } catch (NumberFormatException nfe) {
       return null;
     }
 
-    try {
-      String filePath;
-
-      // /Users/foo/dart/serverapp/serverapp.dart
-      // file:///Users/foo/dart/webapp2/webapp2.dart
-      // http://0.0.0.0:3030/webapp/webapp.dart
-      // package:abc/abc.dart
-      // chrome-extension://kcjgcakhgelcejampmijgkjkadfcncjl/spark.dart
-
-      // resolve package: urls to file: urls
-      if (DartCore.isPackageSpec(url)) {
-        url = resolvePackageUri(url);
-      }
-
-      if (url == null) {
-        return null;
-      }
-
-      // Special case Chrome extension paths.
-      if (url.startsWith(chromeExt)) {
-        url = url.substring(chromeExt.length());
-        if (url.indexOf('/') != -1) {
-          url = url.substring(url.indexOf('/') + 1);
-        }
-      }
-
-      // Handle both fully absolute path names and http: urls.
-      if (url.startsWith("/")) {
-        IFile file = getIFileForAbsolutePath(url);
-
-        if (file != null) {
-          filePath = file.getFullPath().toPortableString();
-        } else {
-          return null;
-        }
-      } else if (url.startsWith("file:")) {
-        IFile file = getIFileForAbsolutePath(new URI(url).getPath());
-
-        if (file != null) {
-          filePath = file.getFullPath().toPortableString();
-        } else {
-          return null;
-        }
-      } else if (url.indexOf(':') == -1) {
-        // handle relative file path
-        filePath = resolveRelativePath(url);
-      } else {
-        filePath = new URI(url).getPath();
-      }
-
-      // dart:
-      if (filePath == null) {
-        return null;
-      } else {
-        return new Location(filePath, line);
-      }
-    } catch (URISyntaxException e) {
-      return null;
-    }
-  }
-
-  private String resolvePackageUri(String url) {
-    if (resource != null) {
-      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        if (executionContextId != null) {
-          final String[] filePathPtr = {null};
-          final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().execution_mapUri(
-              executionContextId,
-              null,
-              url,
-              new MapUriConsumer() {
-                @Override
-                public void computedFileOrUri(String file, String uri) {
-                  filePathPtr[0] = file;
-                  latch.countDown();
-                }
-              });
-          Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.SECONDS);
-          return filePathPtr[0];
-        }
-      } else {
-        IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
-        if (file != null) {
-          return file.getLocation().toFile().toURI().toString();
-        }
-      }
-    }
-    return null;
-  }
-
-  private String resolveRelativePath(String url) {
-    if (resource != null) {
-      IResource file = resource.getParent().findMember(url);
-      if (file != null) {
-        return file.getLocation().toPortableString();
-      }
-    }
-    return null;
+    return new Location(filePath, line);
   }
 }

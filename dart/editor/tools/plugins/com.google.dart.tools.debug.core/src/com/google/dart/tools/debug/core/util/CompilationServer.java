@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
@@ -45,6 +46,10 @@ public class CompilationServer {
   }
 
   public void recompileJavaScriptArtifact(File jsFile) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // TODO(scheglov) this class is not used at all. Remove it?
+      return;
+    }
     String dartName = jsFile.getName();
     dartName = dartName.substring(0, dartName.length() - ".js".length());
 

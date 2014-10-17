@@ -47,7 +47,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -285,14 +284,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
-  public String getSourceLocationPath_NEW(String executionContectId,
-      Map<String, String> executionUrlToFileCache) {
-    // TODO(scheglov) implement for the Analysis Server
-    return getSourceLocationPath_OLD();
-  }
-
-  @Override
-  public String getSourceLocationPath_OLD() {
+  public String getSourceLocationPath() {
     try {
       if (getTarget().shouldUseSourceMapping() && isUsingSourceMaps()) {
         return getMappedLocationPath();
@@ -422,14 +414,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         url = "package:" + url.substring(url.indexOf(packageFragment) + packageFragment.length());
       }
 
-      if (url.startsWith("package:")) {
-        return url;
+      IResource resource = getTarget().getResourceResolver().resolveUrl(url);
+      if (resource != null) {
+        return resource.getLocation().toOSString();
       }
 
-      IResource resource = getTarget().getResourceResolver().resolveUrl(url);
+      String file = getTarget().getUriToFileResolver().getFileForUri(url);
+      if (file != null) {
+        return file;
+      }
 
-      if (resource != null) {
-        return resource.getFullPath().toString();
+      if (url.startsWith("package:")) {
+        return url;
       }
 
       try {
@@ -536,7 +532,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   private String getFileOrLibraryName() {
-    String path = getSourceLocationPath_OLD();
+    String path = getSourceLocationPath();
 
     if (path != null) {
       int index = path.lastIndexOf('/');

@@ -18,6 +18,7 @@ import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -77,6 +78,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private IProject currentProject;
 
+  private UriToFileResolver uriToFileResolver;
+
   private IEclipsePreferences preferences;
   private IPreferenceChangeListener preferenceListener;
 
@@ -96,6 +99,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
 
     currentProject = wrapper.getProject();
+    uriToFileResolver = new UriToFileResolver(launch);
 
     connection = new VmConnection(connectionHost, connectionPort);
     connection.addListener(this);
@@ -320,6 +324,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 //    }
   }
 
+  public UriToFileResolver getUriToFileResolver() {
+    return uriToFileResolver;
+  }
+
   public VmConnection getVmConnection() {
     return connection;
   }
@@ -402,6 +410,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void terminate() throws DebugException {
     process.terminate();
+    uriToFileResolver.dispose();
   }
 
   public void writeToStdout(String message) {

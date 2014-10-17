@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
@@ -43,6 +44,11 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // This class is not used with the Analysis Server.
+      return EMPTY;
+    }
+
     if (!name.startsWith("package:")) {
       return EMPTY;
     }

@@ -19,6 +19,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
@@ -81,6 +82,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private DartCodeManager dartCodeManager;
   private boolean canSetScriptSource;
   private SourceMapManager sourceMapManager;
+  private UriToFileResolver uriToFileResolver;
 
   /**
    * A copy constructor for DartiumDebugTarget.
@@ -144,6 +146,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     if (wrapper.getProject() != null) {
       sourceMapManager = new SourceMapManager(wrapper.getProject());
     }
+
+    uriToFileResolver = new UriToFileResolver(launch);
   }
 
   @Override
@@ -271,6 +275,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     } else {
       return new IThread[0];
     }
+  }
+
+  public UriToFileResolver getUriToFileResolver() {
+    return uriToFileResolver;
   }
 
   @Override

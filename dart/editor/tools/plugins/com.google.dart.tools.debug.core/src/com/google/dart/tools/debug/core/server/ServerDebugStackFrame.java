@@ -14,12 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.MapUriConsumer;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.IFileInfo;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
@@ -27,7 +21,6 @@ import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
@@ -38,14 +31,9 @@ import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The IStackFrame implementation for the VM debug elements. This stack frame element represents a
@@ -254,73 +242,20 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   @Override
-  public String getSourceLocationPath_NEW(String executionContectId,
-      Map<String, String> executionUrlToFileCache) {
+  public String getSourceLocationPath() {
     VmLocation location = vmFrame.getLocation();
+
     if (location == null) {
       return null;
     }
+
     String url = location.getUrl();
-    // handle file: URI
-    URI uri = URI.create(url);
-    if ("file".equals(uri.getScheme())) {
-      return uri.getPath();
-    }
-    // prepare file location
-    String file = executionUrlToFileCache.get(url);
-    if (file == null) {
-      final String[] filePathPtr = {null};
-      final CountDownLatch latch = new CountDownLatch(1);
-      DartCore.getAnalysisServer().execution_mapUri(
-          executionContectId,
-          null,
-          url,
-          new MapUriConsumer() {
-            @Override
-            public void computedFileOrUri(String file, String uri) {
-              filePathPtr[0] = file;
-              latch.countDown();
-            }
-          });
-      Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.SECONDS);
-      file = filePathPtr[0];
-      executionUrlToFileCache.put(url, file);
-    }
-    // done
-    return file;
-  }
-
-  @Override
-  public String getSourceLocationPath_OLD() {
-    VmLocation location = vmFrame.getLocation();
-
-    if (location == null) {
-      return null;
+    String filePath = getTarget().getUriToFileResolver().getFileForUri(url);
+    if (filePath != null) {
+      return filePath;
     }
 
-    URI uri = URI.create(location.getUrl());
-
-    // Resolve a package: reference.
-    if (DartCore.isPackageSpec(location.getUrl())) {
-      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
-          getDebugTarget().getLaunch().getLaunchConfiguration());
-
-      uri = resolvePackageUri(wrapper.getApplicationResource(), uri);
-    }
-
-    // handle dart:lib/lib.dart in DartSdkSourceContainer,
-    // exclude "_patch.dart" files, they don't exist as files in sdk/lib folder
-    if (uri != null && "dart".equals(uri.getScheme())) {
-      if (!uri.getSchemeSpecificPart().endsWith("_patch.dart")) {
-        return uri.toString();
-      }
-    }
-
-    if (uri != null && "file".equals(uri.getScheme())) {
-      return uri.getPath();
-    } else {
-      return "builtin:" + vmFrame.getLibraryId() + ":" + location.getUrl();
-    }
+    return "builtin:" + vmFrame.getLibraryId() + ":" + url;
   }
 
   @Override
@@ -499,29 +434,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       }
     }
 
-    return null;
-  }
-
-  private URI resolvePackageUri(IResource resource, URI uri) {
-    if (resource != null) {
-      ProjectManager projectManager = DartCore.getProjectManager();
-      IFileInfo fileInfo = projectManager.resolveUriToFileInfo(resource, uri.toString());
-      if (fileInfo != null) {
-        // use IResource
-        if (fileInfo.getResource() != null) {
-          try {
-            return new URI(
-                "file",
-                null,
-                fileInfo.getResource().getFullPath().toPortableString(),
-                null);
-          } catch (URISyntaxException e) {
-          }
-        }
-        // use Java File
-        return fileInfo.getFile().toURI();
-      }
-    }
     return null;
   }
 }

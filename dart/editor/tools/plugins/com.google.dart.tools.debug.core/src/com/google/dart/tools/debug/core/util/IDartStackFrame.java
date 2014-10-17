@@ -16,31 +16,17 @@ package com.google.dart.tools.debug.core.util;
 
 import org.eclipse.debug.core.model.IStackFrame;
 
-import java.util.Map;
-
 /**
  * An interface to allow you to query for a source location path.
  */
 public interface IDartStackFrame extends IStackFrame {
-
-  /**
-   * Return either the actual path or the mapped path, depending on whether source maps are
-   * currently being used. This method is used when Editor is run with the Analysis server.
-   * 
-   * @param executionContectId the Analysis Server execution context for this launch
-   * @param executionUrlToFileCache the cache mapping URIs to file locations
-   * @return either the actual path or the mapped path
-   */
-  public String getSourceLocationPath_NEW(String executionContectId,
-      Map<String, String> executionUrlToFileCache);
-
   /**
    * Return either the actual path or the mapped path, depending on whether source maps are
    * currently being used.
    * 
    * @return either the actual path or the mapped path
    */
-  public String getSourceLocationPath_OLD();
+  public String getSourceLocationPath();
 
   /**
    * @return whether the frame represents a private method or function

@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.util;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
@@ -802,16 +803,19 @@ class ResourceServerHandler implements Runnable {
 
     File file = new File(projectLocation.toFile(), childPath.toOSString());
 
-    if (!file.exists() && childPath.toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
-
-      int packagesIndex = childPath.toString().indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
-      String pathString = childPath.toString().substring(
-          packagesIndex + DartCore.PACKAGES_DIRECTORY_PATH.length());
-      IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(
-          project,
-          DartCore.PACKAGE_SCHEME_SPEC + pathString);
-      if (fileInfo != null) {
-        file = fileInfo.getFile();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // We don't use "packages" directories with the Analysis Server.
+    } else {
+      if (!file.exists() && childPath.toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
+        int packagesIndex = childPath.toString().indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+        String pathString = childPath.toString().substring(
+            packagesIndex + DartCore.PACKAGES_DIRECTORY_PATH.length());
+        IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(
+            project,
+            DartCore.PACKAGE_SCHEME_SPEC + pathString);
+        if (fileInfo != null) {
+          file = fileInfo.getFile();
+        }
       }
     }
 
