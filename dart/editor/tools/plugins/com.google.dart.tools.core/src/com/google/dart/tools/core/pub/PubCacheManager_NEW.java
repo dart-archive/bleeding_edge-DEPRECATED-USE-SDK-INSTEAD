@@ -133,11 +133,8 @@ public class PubCacheManager_NEW {
       Map<PackageVersion, InstalledPackage> installedPackages = readInstalledPackages();
       // prepare old map
       Map<PackageInfo, PackageInfo> oldPackageMap = Maps.newHashMap();
-      {
-        Set<PackageInfo> oldPackages = Sets.newHashSet(packages);
-        for (PackageInfo pkg : oldPackages) {
-          oldPackageMap.put(pkg, pkg);
-        }
+      for (PackageInfo pkg : packages) {
+        oldPackageMap.put(pkg, pkg);
       }
       //
       Set<PackageInfo> newPackages = prepareUsedPackages();
@@ -157,7 +154,6 @@ public class PubCacheManager_NEW {
               newPackage.version));
           if (installedPackage != null) {
             String projectLocation = installedPackage.location;
-            System.out.println("create project for: " + newPackage + " @ " + projectLocation);
             newPackage.project = createExternalProject(projectName, projectLocation);
           }
         }
@@ -170,7 +166,6 @@ public class PubCacheManager_NEW {
       for (PackageInfo oldPackage : oldPackageMap.keySet()) {
         IProject project = oldPackage.project;
         try {
-          System.out.println("delete project : " + project);
           project.delete(true, null);
         } catch (CoreException e) {
         }
