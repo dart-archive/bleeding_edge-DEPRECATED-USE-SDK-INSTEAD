@@ -53,7 +53,7 @@
       
       
       <factory 
-            class="com.google.dart.tools.ui.internal.filesview.FileStoreAdapterFactory" 
+            class="com.google.dart.tools.ui.internal.filesview.nodes.old.FileStoreAdapterFactory" 
             adaptableType="org.eclipse.core.filesystem.IFileStore">
             
             <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>

@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.pub;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.pub.PubCacheManager;
+import com.google.dart.tools.core.pub.PubCacheManager_OLD;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
@@ -104,7 +104,7 @@ public class AddPackageAction extends InstrumentedSelectionDispatchAction {
         }
       }
     } else {
-      String location = PubCacheManager.getInstance().getCacheLocation(packageName, version);
+      String location = PubCacheManager_OLD.getInstance().getCacheLocation(packageName, version);
       if (location != null) {
         PubPackageUtils.copyPackageContents(newProjectDir, location, monitor);
         openProject(newProjectDir);
@@ -114,7 +114,7 @@ public class AddPackageAction extends InstrumentedSelectionDispatchAction {
 
   @SuppressWarnings("unchecked")
   private boolean isPackageInstalled() {
-    HashMap<String, Object> allPackages = PubCacheManager.getInstance().getAllCachePackages();
+    HashMap<String, Object> allPackages = PubCacheManager_OLD.getInstance().getAllCachePackages();
     HashMap<String, Object> map = (HashMap<String, Object>) allPackages.get(packageName);
     if (map != null && map.keySet().contains(version)) {
       return true;

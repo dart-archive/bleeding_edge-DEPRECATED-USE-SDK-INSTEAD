@@ -38,6 +38,9 @@ import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartLibraryNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartSdkNode_OLD;
 import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormatFileAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
@@ -159,8 +162,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
           if (treeViewer != null) {
             ResourceContentProvider provider = (ResourceContentProvider) treeViewer.getContentProvider();
             if (provider != null) {
-              InstalledPackagesNode node = provider.getPackagesNode();
-              node.updatePackages(added);
+              provider.updatePackages(added);
+              Object node = provider.getPackagesNode();
               treeViewer.refresh(node);
             }
           }
@@ -585,8 +588,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(browseDartDocAction);
     }
 
-    if (selection.size() == 1 && selection.getFirstElement() instanceof DartPackageNode) {
-      String name = ((DartPackageNode) selection.getFirstElement()).getLabel();
+    if (selection.size() == 1 && selection.getFirstElement() instanceof DartPackageNode_OLD) {
+      String name = ((DartPackageNode_OLD) selection.getFirstElement()).getLabel();
       copyPackageAction.setText(NLS.bind(FilesViewMessages.NewApplicationFromPackage_label, name));
       manager.add(copyPackageAction);
     }
@@ -773,7 +776,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private boolean isInDartSdkNode(Object selection) {
     while (selection != null) {
-      if (selection instanceof DartLibraryNode || selection instanceof DartSdkNode) {
+      if (selection instanceof DartLibraryNode_OLD || selection instanceof DartSdkNode_OLD) {
         return true;
       } else {
         selection = resourceContentProvider.getParent(selection);

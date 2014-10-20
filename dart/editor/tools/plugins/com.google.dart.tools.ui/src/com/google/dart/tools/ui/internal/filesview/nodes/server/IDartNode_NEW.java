@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,22 +12,20 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.internal.filesview;
+package com.google.dart.tools.ui.internal.filesview.nodes.server;
 
-import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
- * An interface used to represent Dart SDK nodes in the Files view.
+ * An artificial node for the "Files" view.
  */
-public interface IDartNode {
+public interface IDartNode_NEW {
+  ImageDescriptor getImageDescriptor();
 
-  public IFileStore getFileStore();
+  String getLabel();
 
-  public ImageDescriptor getImageDescriptor();
+  Object getParent();
 
-  public String getLabel();
-
-  public Object getParent();
-
+  IResource getResource();
 }

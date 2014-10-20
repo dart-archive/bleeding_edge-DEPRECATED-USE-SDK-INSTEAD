@@ -15,11 +15,17 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartLibraryNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.IDartNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.DartPackageNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.InstalledPackagesNode_NEW;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -105,6 +111,13 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
     if (element instanceof IFileStore && ((IFileStore) element).getName().equals("lib")) {
       return DartToolsPlugin.getImage(PACKAGE_ICON);
     }
+
+    if (element instanceof IDartNode_NEW) {
+      IDartNode_NEW node = (IDartNode_NEW) element;
+      ImageDescriptor imageDescriptor = node.getImageDescriptor();
+      return DartToolsPlugin.getImage(imageDescriptor);
+    }
+
     return workbenchLabelProvider.getImage(element);
   }
 
@@ -168,17 +181,30 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       return string;
     }
 
-    if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
-      StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
-      string.append(" [" + ((DartLibraryNode) element).getCategory() + "]", //$NON-NLS-1$ //$NON-NLS-2$
+    if (element instanceof InstalledPackagesNode_NEW) {
+      String label = ((InstalledPackagesNode_NEW) element).getLabel();
+      return new StyledString(label);
+    }
+
+    if (element instanceof DartPackageNode_NEW) {
+      DartPackageNode_NEW node = (DartPackageNode_NEW) element;
+      StyledString string = new StyledString(node.getLabel());
+      string.append(" [" + node.getVersion() + "]", StyledString.QUALIFIER_STYLER);
+      return string;
+    }
+
+    if (element instanceof DartLibraryNode_OLD
+        && ((DartLibraryNode_OLD) element).getCategory() != null) {
+      StyledString string = new StyledString(((DartLibraryNode_OLD) element).getLabel());
+      string.append(" [" + ((DartLibraryNode_OLD) element).getCategory() + "]", //$NON-NLS-1$ //$NON-NLS-2$
           StyledString.QUALIFIER_STYLER);
 
       return string;
     }
 
-    if (element instanceof DartPackageNode) {
-      StyledString string = new StyledString(((DartPackageNode) element).getLabel());
-      string.append(" [" + ((DartPackageNode) element).getVersion() + "]", //$NON-NLS-1$ //$NON-NLS-2$
+    if (element instanceof DartPackageNode_OLD) {
+      StyledString string = new StyledString(((DartPackageNode_OLD) element).getLabel());
+      string.append(" [" + ((DartPackageNode_OLD) element).getVersion() + "]", //$NON-NLS-1$ //$NON-NLS-2$
           StyledString.QUALIFIER_STYLER);
       return string;
     }

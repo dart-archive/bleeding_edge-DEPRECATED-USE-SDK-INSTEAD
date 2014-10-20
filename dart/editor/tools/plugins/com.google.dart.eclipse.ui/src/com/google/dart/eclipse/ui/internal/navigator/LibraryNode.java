@@ -14,7 +14,7 @@
 package com.google.dart.eclipse.ui.internal.navigator;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.filesview.IDartNode;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.IDartNode_OLD;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Represents a library node in the project explorer
  */
-public class LibraryNode implements IDartNode {
+public class LibraryNode implements IDartNode_OLD {
 
   static class SdkDirectoryWorkbenchAdapter extends WorkbenchAdapter implements IAdapterFactory {
     @SuppressWarnings("rawtypes")
@@ -53,18 +53,18 @@ public class LibraryNode implements IDartNode {
 
     @Override
     public ImageDescriptor getImageDescriptor(Object object) {
-      return ((IDartNode) object).getImageDescriptor();
+      return ((IDartNode_OLD) object).getImageDescriptor();
     }
 
     @Override
     public String getLabel(Object object) {
-      return ((IDartNode) object).getLabel();
+      return ((IDartNode_OLD) object).getLabel();
     }
   }
 
   static {
     Platform.getAdapterManager().registerAdapters(new SdkDirectoryWorkbenchAdapter(),
-        IDartNode.class);
+        IDartNode_OLD.class);
   }
 
   private Object parent;

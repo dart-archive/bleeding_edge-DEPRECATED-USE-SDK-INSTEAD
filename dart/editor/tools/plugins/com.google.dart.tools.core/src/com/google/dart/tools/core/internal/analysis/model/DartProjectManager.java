@@ -70,7 +70,7 @@ public class DartProjectManager {
     List<String> excludedPaths = Lists.newArrayList();
     for (IProject proj : root.getProjects()) {
       try {
-        boolean hasNature = proj.hasNature(DartCore.DART_PROJECT_NATURE);
+        boolean hasNature = proj.isOpen() && proj.hasNature(DartCore.DART_PROJECT_NATURE);
         if (hasNature) {
           includedPaths.add(proj.getLocation().toOSString());
         }

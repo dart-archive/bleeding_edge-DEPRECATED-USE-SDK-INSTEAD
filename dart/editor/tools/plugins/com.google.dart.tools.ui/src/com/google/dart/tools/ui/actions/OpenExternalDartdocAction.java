@@ -21,7 +21,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.filesview.IDartNode;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.IDartNode_OLD;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
@@ -103,8 +103,8 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction_OLD {
     String libraryName = null;
     boolean browseSdkLibDocs = false;
     Object object = selection.getFirstElement();
-    if (object instanceof IDartNode) {
-      object = ((IDartNode) object).getFileStore();
+    if (object instanceof IDartNode_OLD) {
+      object = ((IDartNode_OLD) object).getFileStore();
     }
     if (object instanceof IFileStore) {
       IFileStore fileStore = (IFileStore) object;

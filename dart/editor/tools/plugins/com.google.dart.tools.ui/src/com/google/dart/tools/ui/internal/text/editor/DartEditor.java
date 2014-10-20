@@ -47,6 +47,7 @@ import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -4086,6 +4087,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Tells whether the content is editable.
    */
   private boolean isContentEditable() {
+    if (PubCacheManager_NEW.isPubCacheResource(inputResourceFile)) {
+      return false;
+    }
     return inputResourceFile != null && !DartCore.isContainedInPackages(inputResourceFile)
         && !inputResourceFile.isReadOnly();
   }

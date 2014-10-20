@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.pub;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.pub.PubCacheManager;
+import com.google.dart.tools.core.pub.PubCacheManager_OLD;
 import com.google.dart.tools.core.pub.PubspecConstants;
 import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
@@ -113,7 +113,7 @@ public class PubPackageUtils {
   public static String getPackageCacheDir(IProgressMonitor monitor, String packageName,
       String version) {
 
-    HashMap<String, Object> pubCachePackages = PubCacheManager.getInstance().updateAndGetAllCachePackages();
+    HashMap<String, Object> pubCachePackages = PubCacheManager_OLD.getInstance().updateAndGetAllCachePackages();
 
     if (pubCachePackages != null) {
       Map<String, Object> packageMap = (Map<String, Object>) pubCachePackages.get(packageName);

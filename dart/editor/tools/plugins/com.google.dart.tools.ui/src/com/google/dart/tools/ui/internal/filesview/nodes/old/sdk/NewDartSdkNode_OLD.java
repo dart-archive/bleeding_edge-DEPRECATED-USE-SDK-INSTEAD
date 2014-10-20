@@ -12,11 +12,12 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.internal.filesview;
+package com.google.dart.tools.ui.internal.filesview.nodes.old.sdk;
 
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.IDartNode_OLD;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * A class used to represent the Dart SDK in the Files view.
  */
-class NewDartSdkNode extends DartSdkNode {
+class NewDartSdkNode_OLD extends DartSdkNode_OLD {
 
   static class SdkDirectoryWorkbenchAdapter extends WorkbenchAdapter implements IAdapterFactory {
     @SuppressWarnings("rawtypes")
@@ -56,24 +57,24 @@ class NewDartSdkNode extends DartSdkNode {
 
     @Override
     public ImageDescriptor getImageDescriptor(Object object) {
-      return ((IDartNode) object).getImageDescriptor();
+      return ((IDartNode_OLD) object).getImageDescriptor();
     }
 
     @Override
     public String getLabel(Object object) {
-      return ((IDartNode) object).getLabel();
+      return ((IDartNode_OLD) object).getLabel();
     }
   }
 
   static {
     Platform.getAdapterManager().registerAdapters(
         new SdkDirectoryWorkbenchAdapter(),
-        IDartNode.class);
+        IDartNode_OLD.class);
   }
 
-  private DartLibraryNode[] libraries;
+  private DartLibraryNode_OLD[] libraries;
 
-  public NewDartSdkNode() {
+  public NewDartSdkNode_OLD() {
     libraries = getLibraries();
   }
 
@@ -97,9 +98,9 @@ class NewDartSdkNode extends DartSdkNode {
   }
 
   @Override
-  public DartLibraryNode[] getLibraries() {
+  public DartLibraryNode_OLD[] getLibraries() {
     if (libraries == null) {
-      List<DartLibraryNode> libs = new ArrayList<DartLibraryNode>();
+      List<DartLibraryNode_OLD> libs = new ArrayList<DartLibraryNode_OLD>();
 
       File libFile;
 
@@ -118,13 +119,13 @@ class NewDartSdkNode extends DartSdkNode {
               libFile = new File(libFile, new Path(pathToLib).removeLastSegments(1).toOSString());
             }
             if (!systemLibrary.isShared()) {
-              libs.add(new DartLibraryNode(
+              libs.add(new DartLibraryNode_OLD(
                   this,
                   fileSystem.fromLocalFile(libFile),
                   systemLibrary.getShortName(),
                   systemLibrary.getCategory().toLowerCase()));
             } else {
-              libs.add(new DartLibraryNode(
+              libs.add(new DartLibraryNode_OLD(
                   this,
                   fileSystem.fromLocalFile(libFile),
                   systemLibrary.getShortName()));
@@ -135,13 +136,13 @@ class NewDartSdkNode extends DartSdkNode {
 
       }
 
-      libraries = libs.toArray(new DartLibraryNode[libs.size()]);
+      libraries = libs.toArray(new DartLibraryNode_OLD[libs.size()]);
     }
     return libraries;
   }
 
   @Override
-  public IDartNode getParent() {
+  public IDartNode_OLD getParent() {
     return null;
   }
 

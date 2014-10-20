@@ -36,7 +36,7 @@ import java.util.Set;
  * 
  * @coverage dart.tools.core.pub
  */
-public class PubCacheManager {
+public class PubCacheManager_OLD {
 
   protected class FillPubCacheList extends Job {
 
@@ -90,9 +90,9 @@ public class PubCacheManager {
    */
   protected final HashMap<String, Object> pubUsedPackages = new HashMap<String, Object>();
 
-  private static final PubCacheManager INSTANCE = new PubCacheManager();
+  private static final PubCacheManager_OLD INSTANCE = new PubCacheManager_OLD();
 
-  public static final PubCacheManager getInstance() {
+  public static final PubCacheManager_OLD getInstance() {
     return INSTANCE;
   }
 

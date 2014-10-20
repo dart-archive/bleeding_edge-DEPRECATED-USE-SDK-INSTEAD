@@ -172,7 +172,11 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
           }
         }
       }
-      PubCacheManager.getInstance().updatePackagesList(0, versionMap);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        PubCacheManager_NEW.getInstance().updatePackagesList(0);
+      } else {
+        PubCacheManager_OLD.getInstance().updatePackagesList(0, versionMap);
+      }
       PubManager.getInstance().notifyListeners(lockFile.getParent());
     }
   }

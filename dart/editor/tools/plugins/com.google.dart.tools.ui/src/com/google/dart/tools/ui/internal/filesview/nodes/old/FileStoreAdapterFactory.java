@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.internal.filesview;
+package com.google.dart.tools.ui.internal.filesview.nodes.old;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;

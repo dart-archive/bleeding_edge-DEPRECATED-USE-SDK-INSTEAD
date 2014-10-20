@@ -55,7 +55,7 @@ public class PubCacheManagerTest extends TestCase {
       + "    description: csslib\n" + "    source: hosted\n" + "    version: \"0.3.4+4\"\n"
       + "  hop:\n" + "    description: hop\n" + "    source: hosted\n" + "    version: \"0.21.0\"";
 
-  PubCacheManager manager = new PubCacheManager() {
+  PubCacheManager_OLD manager = new PubCacheManager_OLD() {
 
     @Override
     public void updatePackagesList(int delay, Map<String, String> packages) {

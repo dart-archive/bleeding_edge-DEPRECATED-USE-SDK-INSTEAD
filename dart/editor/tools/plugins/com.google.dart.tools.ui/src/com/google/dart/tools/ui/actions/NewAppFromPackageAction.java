@@ -18,7 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.filesview.DartPackageNode;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -76,8 +76,8 @@ public class NewAppFromPackageAction extends InstrumentedSelectionDispatchAction
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    if (!selection.isEmpty() && selection.getFirstElement() instanceof DartPackageNode) {
-      DartPackageNode node = (DartPackageNode) selection.getFirstElement();
+    if (!selection.isEmpty() && selection.getFirstElement() instanceof DartPackageNode_OLD) {
+      DartPackageNode_OLD node = (DartPackageNode_OLD) selection.getFirstElement();
       openPackage(node.getFileStore());
     }
   }

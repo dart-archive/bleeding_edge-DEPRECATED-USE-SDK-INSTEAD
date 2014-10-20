@@ -12,18 +12,22 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.internal.filesview;
+package com.google.dart.tools.ui.internal.filesview.nodes.old;
 
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
- * A class used to represent the Dart SDK in the Files view.
+ * An interface used to represent Dart SDK nodes in the Files view.
  */
-abstract class DartSdkNode implements IDartNode {
+public interface IDartNode_OLD {
 
-  public static DartSdkNode createInstance() {
-    return new NewDartSdkNode();
-  }
+  public IFileStore getFileStore();
 
-  public abstract DartLibraryNode[] getLibraries();
+  public ImageDescriptor getImageDescriptor();
+
+  public String getLabel();
+
+  public Object getParent();
 
 }
