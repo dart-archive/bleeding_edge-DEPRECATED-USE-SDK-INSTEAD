@@ -156,12 +156,14 @@ public class FileBasedSource implements Source {
   @Override
   public UriKind getUriKind() {
     String scheme = uri.getScheme();
-    if (scheme.equals(PackageUriResolver.PACKAGE_SCHEME)) {
-      return UriKind.PACKAGE_URI;
-    } else if (scheme.equals(DartUriResolver.DART_SCHEME)) {
+    if (scheme.equals(DartUriResolver.DART_SCHEME)) {
       return UriKind.DART_URI;
     } else if (scheme.equals(FileUriResolver.FILE_SCHEME)) {
       return UriKind.FILE_URI;
+    } else if (scheme.equals(JavaUriResolver.JAVA_SCHEME)) {
+      return UriKind.JAVA_URI;
+    } else if (scheme.equals(PackageUriResolver.PACKAGE_SCHEME)) {
+      return UriKind.PACKAGE_URI;
     }
     return UriKind.FILE_URI;
   }

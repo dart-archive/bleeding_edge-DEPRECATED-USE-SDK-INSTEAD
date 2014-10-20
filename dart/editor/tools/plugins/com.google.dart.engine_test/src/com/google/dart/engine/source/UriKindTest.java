@@ -19,6 +19,7 @@ public class UriKindTest extends TestCase {
   public void test_fromEncoding() {
     assertSame(UriKind.DART_URI, UriKind.fromEncoding('d'));
     assertSame(UriKind.FILE_URI, UriKind.fromEncoding('f'));
+    assertSame(UriKind.JAVA_URI, UriKind.fromEncoding('j'));
     assertSame(UriKind.PACKAGE_URI, UriKind.fromEncoding('p'));
     assertSame(null, UriKind.fromEncoding('X'));
   }
@@ -26,6 +27,7 @@ public class UriKindTest extends TestCase {
   public void test_getEncoding() {
     assertEquals('d', UriKind.DART_URI.getEncoding());
     assertEquals('f', UriKind.FILE_URI.getEncoding());
+    assertEquals('j', UriKind.JAVA_URI.getEncoding());
     assertEquals('p', UriKind.PACKAGE_URI.getEncoding());
   }
 }
