@@ -718,6 +718,10 @@ public final class DartUI {
    */
   private static IFile getSourceFile(ResourceMap map, Source source) {
     ProjectManager projectManager = DartCore.getProjectManager();
+    // validate Source
+    if (source == null) {
+      return null;
+    }
     // fallback
     if (map == null) {
       return (IFile) projectManager.getResource(source);
