@@ -214,7 +214,7 @@ public class MockProject extends MockContainer implements IProject {
 
   @Override
   public boolean isOpen() {
-    return false;
+    return true;
   }
 
   @Override
