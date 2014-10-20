@@ -18,7 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.pkgs.DartPackageNode_OLD;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;

@@ -15,11 +15,11 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.pkgs.DartPackageNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartLibraryNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.server.IDartNode_NEW;
-import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.DartPackageNode_NEW;
-import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.InstalledPackagesNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.pkgs.DartPackageNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.pkgs.InstalledPackagesNode_NEW;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;

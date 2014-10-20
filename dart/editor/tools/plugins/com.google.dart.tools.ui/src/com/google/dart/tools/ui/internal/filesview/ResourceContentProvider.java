@@ -19,13 +19,13 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.IDartNode_OLD;
-import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
-import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.InstalledPackagesNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.pkgs.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.pkgs.InstalledPackagesNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartLibraryNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartSdkNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.server.IDartNode_NEW;
-import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.DartPackageNode_NEW;
-import com.google.dart.tools.ui.internal.filesview.nodes.server.packages.InstalledPackagesNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.pkgs.DartPackageNode_NEW;
+import com.google.dart.tools.ui.internal.filesview.nodes.server.pkgs.InstalledPackagesNode_NEW;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;

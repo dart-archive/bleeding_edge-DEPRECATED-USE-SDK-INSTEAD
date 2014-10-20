@@ -38,7 +38,7 @@ import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
-import com.google.dart.tools.ui.internal.filesview.nodes.old.packages.DartPackageNode_OLD;
+import com.google.dart.tools.ui.internal.filesview.nodes.old.pkgs.DartPackageNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartLibraryNode_OLD;
 import com.google.dart.tools.ui.internal.filesview.nodes.old.sdk.DartSdkNode_OLD;
 import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormatFileAction;
