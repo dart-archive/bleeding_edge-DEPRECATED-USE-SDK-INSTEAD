@@ -30,7 +30,10 @@ class ReplacementConsoleManager extends ConsoleManager {
 
   @Override
   public void warnOfContentChange(IConsole console) {
-    DartConsoleManager.getManager().warnOfContentChange(console);
+    DartConsoleManager dartConsoleManager = DartConsoleManager.getManager();
+    if (dartConsoleManager != null) {
+      dartConsoleManager.warnOfContentChange(console);
+    }
 
     super.warnOfContentChange(console);
   }
