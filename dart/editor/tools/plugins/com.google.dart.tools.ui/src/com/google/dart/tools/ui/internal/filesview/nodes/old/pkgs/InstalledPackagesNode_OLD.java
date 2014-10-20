@@ -59,7 +59,7 @@ public class InstalledPackagesNode_OLD implements IDartNode_OLD {
 
   @Override
   public String getLabel() {
-    return "Installed Packages";
+    return "Referenced Packages";
   }
 
   @SuppressWarnings("unchecked")

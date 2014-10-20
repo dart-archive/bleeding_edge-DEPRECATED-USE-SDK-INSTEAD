@@ -199,18 +199,39 @@ public class PubCacheManager_OLD {
     synchronized (pubUsedPackages) {
       Set<String> usedKeySet = pubUsedPackages.keySet();
       for (String packageName : packages.keySet()) {
+        String version = packages.get(packageName);
         if (!usedKeySet.contains(packageName)) {
-          String version = packages.get(packageName);
-          Map<String, String> versionInfo = getVersionInfo(packageName, version);
-          if (versionInfo != null) {
-            versionInfo.put(PubspecConstants.VERSION, version);
-            pubUsedPackages.put(packageName, versionInfo);
-            added.put(packageName, versionInfo);
+          changeUsedPackage(added, packageName, version);
+        }
+        if (usedKeySet.contains(packageName)) {
+          if (!getUsedVersion(packageName).equals(version)) {
+            changeUsedPackage(added, packageName, version);
           }
         }
       }
     }
     return added;
+  }
+
+  private void changeUsedPackage(Map<String, Object> added, String packageName, String version) {
+    Map<String, String> versionInfo = getVersionInfo(packageName, version);
+    if (versionInfo != null) {
+      versionInfo.put(PubspecConstants.VERSION, version);
+      pubUsedPackages.put(packageName, versionInfo);
+      added.put(packageName, versionInfo);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private String getUsedVersion(String packageName) {
+    Map<String, String> object;
+    synchronized (pubUsedPackages) {
+      object = (Map<String, String>) pubUsedPackages.get(packageName);
+    }
+    if (object != null) {
+      return object.get(PubspecConstants.VERSION);
+    }
+    return "";
   }
 
   /**
