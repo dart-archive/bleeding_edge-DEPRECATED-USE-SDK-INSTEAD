@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.core.NotYetImplementedException;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -389,12 +390,24 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     if (!(breakpoint instanceof DartBreakpoint)) {
       return false;
     }
-
-    if (currentProject == null || ((DartBreakpoint) breakpoint).getFile() == null) {
+    DartBreakpoint dartBreakpoint = (DartBreakpoint) breakpoint;
+    IFile file = dartBreakpoint.getFile();
+    // external file?
+    if (currentProject == null || file == null) {
       return true;
-    } else {
-      return currentProject.equals(((DartBreakpoint) breakpoint).getFile().getProject());
     }
+    // check the project
+    IProject project = file.getProject();
+    // file from the same project, or a Pub package project
+    if (currentProject.equals(project)) {
+      return true;
+    }
+    // OK, a Pub package project
+    if (PubCacheManager_NEW.isPubCacheProject(project)) {
+      return true;
+    }
+    // a breakpoint from another project
+    return false;
   }
 
   @Override

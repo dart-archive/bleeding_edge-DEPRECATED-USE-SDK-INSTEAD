@@ -14,8 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -354,42 +352,7 @@ class ServerBreakpointManager implements IBreakpointListener {
   }
 
   private String getPackagesUrlForFilePath(String filePath) {
-    File javaFile = new File(filePath);
-    IFile resourceFile = ResourceUtil.getFile(javaFile);
-    if (resourceFile == null) {
-      return null;
-    }
-    String locationUrl = resourceFile.getLocation().toFile().toURI().toString();
-
-    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_URL);
-
-    if (index != -1) {
-      locationUrl = DartCore.PACKAGE_SCHEME_SPEC
-          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_URL.length());
-
-      return locationUrl;
-    }
-
-    index = locationUrl.lastIndexOf(DartCore.LIB_URL_PATH);
-
-    if (index != -1) {
-      String path = resourceFile.getLocation().toString();
-      path = path.substring(0, path.lastIndexOf(DartCore.LIB_URL_PATH));
-      File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
-
-      if (packagesDir.exists()) {
-        String packageName = DartCore.getSelfLinkedPackageName(resourceFile);
-
-        if (packageName != null) {
-          locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + "/"
-              + locationUrl.substring(index + DartCore.LIB_URL_PATH.length());
-
-          return locationUrl;
-        }
-      }
-    }
-
-    return null;
+    return target.getUriToFileResolver().getUriForPath(filePath);
   }
 
   private BreakOnExceptionsType getPauseType() {

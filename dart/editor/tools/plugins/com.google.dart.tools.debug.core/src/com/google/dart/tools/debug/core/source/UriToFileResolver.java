@@ -20,6 +20,8 @@ import com.google.dart.server.CreateContextConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IFile;
@@ -27,6 +29,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -154,6 +157,49 @@ public class UriToFileResolver {
     }
   }
 
+  /**
+   * It seems that {@link ProjectManager#resolvePathToPackage} works only in limited cases. So, here
+   * is a copy of another implementation.
+   */
+  private String getUriForPath_fromServerBreakpointManager(String filePath) {
+    File javaFile = new File(filePath);
+    IFile resourceFile = ResourceUtil.getFile(javaFile);
+    if (resourceFile == null) {
+      return null;
+    }
+    String locationUrl = resourceFile.getLocation().toFile().toURI().toString();
+
+    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_URL);
+
+    if (index != -1) {
+      locationUrl = DartCore.PACKAGE_SCHEME_SPEC
+          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_URL.length());
+
+      return locationUrl;
+    }
+
+    index = locationUrl.lastIndexOf(DartCore.LIB_URL_PATH);
+
+    if (index != -1) {
+      String path = resourceFile.getLocation().toString();
+      path = path.substring(0, path.lastIndexOf(DartCore.LIB_URL_PATH));
+      File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
+
+      if (packagesDir.exists()) {
+        String packageName = DartCore.getSelfLinkedPackageName(resourceFile);
+
+        if (packageName != null) {
+          locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + "/"
+              + locationUrl.substring(index + DartCore.LIB_URL_PATH.length());
+
+          return locationUrl;
+        }
+      }
+    }
+
+    return null;
+  }
+
   private String getUriForPath0(String file) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       if (executionContextId != null) {
@@ -174,6 +220,12 @@ public class UriToFileResolver {
         return uriPtr[0];
       }
     } else {
+      {
+        String uri = getUriForPath_fromServerBreakpointManager(file);
+        if (uri != null) {
+          return uri;
+        }
+      }
       return DartCore.getProjectManager().resolvePathToPackage(resource, file);
     }
     return null;
