@@ -483,9 +483,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     try {
       // monitor.fireStreamAppended(message);
       Method method = getMethod(monitor, "fireStreamAppended");
-      method.invoke(monitor, message);
+      if (method != null) {
+        method.invoke(monitor, message);
+      }
     } catch (Throwable t) {
-
+      DartDebugCorePlugin.logInfo(message);
     }
   }
 

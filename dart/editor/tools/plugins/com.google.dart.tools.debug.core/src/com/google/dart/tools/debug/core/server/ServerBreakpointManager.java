@@ -296,19 +296,23 @@ class ServerBreakpointManager implements IBreakpointListener {
         if (breakpoint.isBreakpointEnabled()) {
           int line = breakpoint.getLine();
           SetBreakpointHelper helper = new SetBreakpointHelper(isolate, breakpoint, line);
+
           // file path
           String filePath = breakpoint.getActualFilePath();
           if (filePath == null) {
             continue;
           }
+
           // try package: URL
           {
             String url = getPackagesUrlForFilePath(filePath);
             helper.setBreakpoint(url);
           }
+
           // try file:// URL
           {
-            String url = getAbsoluteUrlForFilePath(filePath);
+            //String url = getAbsoluteUrlForFilePath(filePath);
+            String url = getProjectRelativePath(breakpoint.getFile());
             helper.setBreakpoint(url);
           }
         }
@@ -347,6 +351,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
   }
 
+  @SuppressWarnings("unused")
   private String getAbsoluteUrlForFilePath(String filePath) {
     return new File(filePath).toURI().toString();
   }
@@ -366,6 +371,10 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
 
     return pauseType;
+  }
+
+  private String getProjectRelativePath(IFile file) {
+    return file.getProjectRelativePath().toPortableString();
   }
 
   private boolean supportsBreakpoint(IBreakpoint breakpoint) {

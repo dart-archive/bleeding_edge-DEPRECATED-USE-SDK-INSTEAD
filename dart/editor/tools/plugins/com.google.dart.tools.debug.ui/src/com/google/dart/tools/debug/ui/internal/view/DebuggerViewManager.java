@@ -98,6 +98,19 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     }
   }
 
+  /**
+   * Check if the debugger view has been contributed
+   */
+  public boolean hasDebuggerView() {
+    IViewDescriptor[] views = DartDebugUIPlugin.getDefault().getWorkbench().getViewRegistry().getViews();
+    for (IViewDescriptor view : views) {
+      if (view.getId().equals(DebuggerView.ID)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void launchAdded(ILaunch launch) {
     try {
@@ -135,6 +148,28 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
         }
       }
     } catch (CoreException e) {
+      DartUtil.logError(e);
+    }
+  }
+
+  public void openDebuggerView() {
+    try {
+      IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+
+      if (window == null) {
+        IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+
+        if (windows.length > 0) {
+          IWorkbenchPage[] pages = windows[0].getPages();
+
+          if (pages.length > 0) {
+            pages[0].showView(DebuggerView.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
+          }
+        }
+      } else {
+        DartToolsPlugin.showView(DebuggerView.ID);
+      }
+    } catch (PartInitException e) {
       DartUtil.logError(e);
     }
   }
@@ -223,40 +258,4 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
 
     return null;
   }
-
-  /**
-   * Check if the debugger view has been contributed
-   */
-  private boolean hasDebuggerView() {
-    IViewDescriptor[] views = DartDebugUIPlugin.getDefault().getWorkbench().getViewRegistry().getViews();
-    for (IViewDescriptor view : views) {
-      if (view.getId().equals(DebuggerView.ID)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void openDebuggerView() {
-    try {
-      IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
-
-      if (window == null) {
-        IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-
-        if (windows.length > 0) {
-          IWorkbenchPage[] pages = windows[0].getPages();
-
-          if (pages.length > 0) {
-            pages[0].showView(DebuggerView.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
-          }
-        }
-      } else {
-        DartToolsPlugin.showView(DebuggerView.ID);
-      }
-    } catch (PartInitException e) {
-      DartUtil.logError(e);
-    }
-  }
-
 }

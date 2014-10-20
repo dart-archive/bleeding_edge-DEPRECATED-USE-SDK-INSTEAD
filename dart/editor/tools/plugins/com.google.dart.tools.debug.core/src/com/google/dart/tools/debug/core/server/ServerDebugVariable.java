@@ -242,9 +242,4 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   protected void setIsStatic(boolean value) {
     this.isStatic = value;
   }
-
-  private boolean isListElement() {
-    return name.startsWith("[");
-  }
-
 }

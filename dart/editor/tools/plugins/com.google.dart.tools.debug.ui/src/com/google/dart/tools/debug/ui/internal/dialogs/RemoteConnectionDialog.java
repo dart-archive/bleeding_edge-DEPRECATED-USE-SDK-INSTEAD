@@ -21,8 +21,7 @@ import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.core.runtime.CoreException;
@@ -137,14 +136,17 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       try {
-
         connectionDelegate.performRemoteConnection(host, port, monitor, usePubServe);
 
         // Show the debugger view.
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            DartToolsPlugin.showView(DebuggerView.ID);
+            DebuggerViewManager viewManager = DebuggerViewManager.getDefault();
+
+            if (viewManager.hasDebuggerView()) {
+              viewManager.openDebuggerView();
+            }
           }
         });
       } catch (CoreException ce) {
