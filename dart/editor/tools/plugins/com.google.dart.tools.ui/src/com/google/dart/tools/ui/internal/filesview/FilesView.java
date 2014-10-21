@@ -20,6 +20,7 @@ import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPubUpdateListener;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.core.pub.PubManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -208,16 +209,38 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return true;
   }
 
+  private static boolean hasArtificialProjectResource(IStructuredSelection selection) {
+    for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+      Object element = iterator.next();
+      if (element instanceof IResource) {
+        IResource resource = (IResource) element;
+        if (isArtificialProjectResource(resource)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean isArtificialProjectResource(IResource resource) {
+    if (PubCacheManager_NEW.isPubCacheResource(resource)) {
+      return true;
+    }
+    return false;
+  }
+
   private TreeViewer treeViewer;
   private IMemento memento;
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
   private PropertyDialogAction propertyDialogAction;
   private RenameResourceAction renameAction;
-//  private CleanUpAction cleanUpAction;
+  //  private CleanUpAction cleanUpAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
+
   private OpenNewFolderWizardAction createFolderAction;
+
   private OpenNewApplicationWizardAction createApplicationAction;
 
   private IgnoreResourceAction ignoreResourceAction;
@@ -225,20 +248,22 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private EnableDartBuilderAction enableBuilderAction;
 
   private CopyFilePathAction copyFilePathAction;
-
   private FormatFileAction formatFileAction;
-
   private HideProjectAction hideContainerAction;
   private UndoRedoActionGroup undoRedoActionGroup;
   private RunPubAction pubUpdateAction;
+
   private RunPubAction pubInstallAction;
+
   private RunPubAction pubInstallOfflineAction;
-
   private RunPubAction pubDeployAction;
-
   private NewAppFromPackageAction copyPackageAction;
+
   private CleanFoldersAction cleanFoldersAction;
+
   private IPreferenceStore preferences;
+
+//  private RefreshAction refreshAction;
 
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
@@ -248,8 +273,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   };
 
   private IPubUpdateListener pubUpdateListener = new PubUpdateListener();
-
-//  private RefreshAction refreshAction;
 
   private CopyAction copyAction;
 
@@ -442,23 +465,22 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   protected void fillContextMenu(IMenuManager manager) {
     IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+    boolean hasArtificialProjectResource = hasArtificialProjectResource(selection);
 
-    // New File/ New Folder 
-
-    if (allElementsAreResources(selection)) {
-      manager.add(createFileAction);
-
-    }
-    if (selection.size() == 0 || selection.getFirstElement() instanceof IContainer) {
-      manager.add(createFolderAction);
-    }
-
-    if (selection.size() == 0) {
-      manager.add(createApplicationAction);
+    // New File/ New Folder
+    if (!hasArtificialProjectResource) {
+      if (allElementsAreResources(selection)) {
+        manager.add(createFileAction);
+      }
+      if (selection.size() == 0 || selection.getFirstElement() instanceof IContainer) {
+        manager.add(createFolderAction);
+      }
+      if (selection.size() == 0) {
+        manager.add(createApplicationAction);
+      }
     }
 
     // OPEN GROUP
-
     if (manager.getItems().length > 0) {
       manager.add(new Separator());
     }
@@ -468,7 +490,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     // Close folder action (aka Remove from Editor)
-    if (!selection.isEmpty() && allElementsAreResources(selection)) {
+    if (!selection.isEmpty() && allElementsAreResources(selection) && !hasArtificialProjectResource) {
       // Remove, iff non-empty selection, all elements are IResources
       if (allElementsAreProjects(selection)) {
         manager.add(hideContainerAction);
@@ -494,7 +516,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(copyFilePathAction);
       }
 
-      if (!isFolder) {
+      if (!isFolder && !hasArtificialProjectResource) {
         manager.add(pasteAction);
       }
 
@@ -513,66 +535,69 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
 
       // REFACTOR GROUP
-
-      manager.add(new Separator());
-
-      if (selection.size() == 1) {
-
-        if (!isPackagesDir && !isPubFile(selection.getFirstElement())) {
-          manager.add(renameAction);
-          manager.add(moveAction);
-        }
-
-      }
-
-      if (!isPackagesDir) {
-
-        // Only show this if it's enabled (if it's not the WST one will be there instead)
-        if (formatFileAction.isEnabled()) {
-          manager.add(new Separator());
-          manager.add(formatFileAction);
-        }
-
-//        manager.add(cleanUpAction);
+      if (!hasArtificialProjectResource) {
         manager.add(new Separator());
 
-        boolean analysisTargets = true;
-        for (Object elem : selection.toList()) {
-          if (!isAnalyzable(elem)) {
-            analysisTargets = false;
-            break;
+        if (selection.size() == 1) {
+
+          if (!isPackagesDir && !isPubFile(selection.getFirstElement())) {
+            manager.add(renameAction);
+            manager.add(moveAction);
+          }
+
+        }
+
+        if (!isPackagesDir) {
+
+          // Only show this if it's enabled (if it's not the WST one will be there instead)
+          if (formatFileAction.isEnabled()) {
+            manager.add(new Separator());
+            manager.add(formatFileAction);
+          }
+
+//        manager.add(cleanUpAction);
+          manager.add(new Separator());
+
+          boolean analysisTargets = true;
+          for (Object elem : selection.toList()) {
+            if (!isAnalyzable(elem)) {
+              analysisTargets = false;
+              break;
+            }
+          }
+
+          if (analysisTargets) {
+            ignoreResourceAction.updateLabel();
+            manager.add(ignoreResourceAction);
+          }
+
+          if (enableBuilderAction.shouldBeEnabled()) {
+            enableBuilderAction.updateLabel();
+            manager.add(enableBuilderAction);
           }
         }
 
-        if (analysisTargets) {
-          ignoreResourceAction.updateLabel();
-          manager.add(ignoreResourceAction);
-        }
-
-        if (enableBuilderAction.shouldBeEnabled()) {
-          enableBuilderAction.updateLabel();
-          manager.add(enableBuilderAction);
-        }
+        manager.add(new Separator());
+        manager.add(deleteAction);
+        manager.add(new Separator());
       }
-
-      manager.add(new Separator());
-      manager.add(deleteAction);
-      manager.add(new Separator());
     }
 
     manager.add(new Separator("additions"));
 
-    if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
-        && isPubSpecFile(selection.getFirstElement())) {
-      manager.add(pubInstallAction);
-      manager.add(pubInstallOfflineAction);
-      manager.add(pubUpdateAction);
-      manager.add(pubDeployAction);
-    }
+    if (!hasArtificialProjectResource) {
+      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
+          && isPubSpecFile(selection.getFirstElement())) {
+        manager.add(pubInstallAction);
+        manager.add(pubInstallOfflineAction);
+        manager.add(pubUpdateAction);
+        manager.add(pubDeployAction);
+      }
 
-    if (isPackagesDir) {
-      manager.add(new Separator());
-      manager.add(new OpenPubDocs());
+      if (isPackagesDir) {
+        manager.add(new Separator());
+        manager.add(new OpenPubDocs());
+      }
     }
 
     if (allElementsAreResources(selection)) {
