@@ -451,7 +451,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
 
       FunctionBody body = expression.getBody();
       Token property = node.getPropertyKeyword();
-      if (property == null) {
+      if (property == null || inFunction) {
         SimpleIdentifier functionName = node.getName();
         FunctionElementImpl element = new FunctionElementImpl(functionName);
         element.setFunctions(holder.getFunctions());

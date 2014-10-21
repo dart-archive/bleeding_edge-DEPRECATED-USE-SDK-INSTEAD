@@ -2082,6 +2082,13 @@ public class Parser {
       }
       return tokenMatches(afterName, TokenType.FUNCTION)
           || tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
+    } else if (tokenMatchesKeyword(afterReturnType, Keyword.GET)) {
+      Token afterName = skipSimpleIdentifier(afterReturnType.getNext());
+      if (afterName == null) {
+        return false;
+      }
+      return tokenMatches(afterName, TokenType.FUNCTION)
+          || tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
     }
     return false;
   }
