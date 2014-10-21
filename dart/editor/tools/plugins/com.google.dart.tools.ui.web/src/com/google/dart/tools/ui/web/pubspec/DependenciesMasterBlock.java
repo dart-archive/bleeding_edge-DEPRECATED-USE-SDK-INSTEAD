@@ -107,10 +107,10 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     protected Control createDialogArea(Composite parent) {
       Composite composite = (Composite) super.createDialogArea(parent);
       Label label = new Label(composite, SWT.NONE);
-      label.setText("For example, unittest, web_ui, ...");
+      label.setText("For example, unittest, polymer, ...");
       label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
       Label imageLabel = new Label(composite, SWT.NONE);
-      imageLabel.setImage(DartWebPlugin.getImage("pub_package.png"));
+      imageLabel.setImage(DartWebPlugin.getImage("pub_package_ex.png"));
       imageLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
       return composite;
     }
