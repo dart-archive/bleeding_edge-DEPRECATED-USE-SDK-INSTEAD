@@ -987,14 +987,40 @@ def PostProcessEditorBuilds(out_dir, buildos, gsu):
           bot_utils.run(['zip', '-q', zipFile, inifile], env=os.environ)
         os.remove(inifile)
 
-      # post-process the info.plist file
       if (basename.startswith('darteditor-macos-')):
+
+        # Move *.ini file on mac so that signing will work
+        inifile_old = join('dart', 'DartEditor.app', 'Contents', 'MacOS',
+                           'DartEditor.ini')
+        inifile_new = join('dart', 'DartEditor.ini')
+        bot_utils.run(['unzip', zipFile, inifile_old], env=os.environ)
+        bot_utils.run(['zip', '-d', zipFile, inifile_old], env=os.environ)
+        os.rename(inifile_old, inifile_new)
+        bot_utils.run(['zip', '-q', zipFile, inifile_new], env=os.environ)
+        os.remove(inifile_new)
+
+        # post-process the info.plist file
         infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
         bot_utils.run(['unzip', zipFile, infofile], env=os.environ)
         ReplaceInFiles(
             [infofile],
             [('<dict>',
               '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
+        # Update info file to point to the new *.ini file location on Mac
+        # as mentioned in
+        # http://help.eclipse.org/indigo/index.jsp?topic=%2F
+        #   org.eclipse.platform.doc.isv%2F
+        #   reference%2Fmisc%2Fruntime-options.html
+        # Source for ini location can be found at
+        # https://eclipse.googlesource.com/equinox/rt.equinox.framework/+/
+        #   BETA_JAVA7/bundles/org.eclipse.equinox.executable/library/
+        #   carbon/eclipseCarbonMain.c
+        inipath = '$APP_PACKAGE/../DartEditor.ini'
+        ReplaceInFiles(
+            [infofile],
+            [('<string>-showlocation</string>',
+              '<string>--launcher.ini</string><string>%s</string>'
+                % inipath)])
         bot_utils.run(['zip', '-q', zipFile, infofile], env=os.environ)
         os.remove(infofile)
 
