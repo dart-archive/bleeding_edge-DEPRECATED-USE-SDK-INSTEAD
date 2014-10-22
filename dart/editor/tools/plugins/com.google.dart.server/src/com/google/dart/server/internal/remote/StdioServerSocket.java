@@ -52,15 +52,27 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private Process process;
   private final String[] additionalProgramArguments;
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath,
+  /**
+   * If non-null, the package root that should be provided to Dart when running the analysis server.
+   */
+  private final String packageRoot;
+
+  public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, boolean debugRemoteProcess) {
-    this(runtimePath, analysisServerPath, debugStream, new String[] {}, debugRemoteProcess);
+    this(
+        runtimePath,
+        analysisServerPath,
+        packageRoot,
+        debugStream,
+        new String[] {},
+        debugRemoteProcess);
   }
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath,
+  public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, String[] additionalProgramArguments, boolean debugRemoteProcess) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
+    this.packageRoot = packageRoot;
     this.debugStream = debugStream;
     this.additionalProgramArguments = additionalProgramArguments;
     this.debugRemoteProcess = debugRemoteProcess;
@@ -89,6 +101,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
     int debugPort = findUnusedPort();
     List<String> args = new ArrayList<String>();
     args.add(runtimePath);
+    if (packageRoot != null) {
+      args.add("--package-root=" + packageRoot);
+    }
     if (debugRemoteProcess) {
       args.add("--debug:" + debugPort);
     }

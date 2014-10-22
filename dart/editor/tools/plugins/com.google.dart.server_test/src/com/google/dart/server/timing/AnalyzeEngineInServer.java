@@ -105,9 +105,13 @@ public class AnalyzeEngineInServer extends TimingTest {
     String runtimePath = buildPath(svnDirectory, new String[] {"sdk", "bin", "dart"});
     String analysisServerPath = buildPath(svnDirectory, new String[] {
         "pkg", "analysis_server", "bin", "server.dart"});
+    // TODO(paulberry): this won't run the server correctly because we aren't supplying a package
+    // root.  The proper fix would be for the timing tests to run from a snapshot (since this will
+    // give more accurate timing results) rather than from source.
     StdioServerSocket serverSocket = new StdioServerSocket(
         runtimePath,
         analysisServerPath,
+        null,
         null,
         false);
     server = new RemoteAnalysisServerImpl(serverSocket);
