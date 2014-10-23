@@ -113,6 +113,7 @@ public class AnalyzeEngineInServer extends TimingTest {
         analysisServerPath,
         null,
         null,
+        false,
         false);
     server = new RemoteAnalysisServerImpl(serverSocket);
     server.start();

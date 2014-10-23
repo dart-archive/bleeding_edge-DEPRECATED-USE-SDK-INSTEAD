@@ -46,6 +46,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final String analysisServerPath;
   private final DebugPrintStream debugStream;
   private final boolean debugRemoteProcess;
+  private final boolean profileRemoteProcess;
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
@@ -58,24 +59,27 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final String packageRoot;
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
-      DebugPrintStream debugStream, boolean debugRemoteProcess) {
+      DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess) {
     this(
         runtimePath,
         analysisServerPath,
         packageRoot,
         debugStream,
         new String[] {},
-        debugRemoteProcess);
+        debugRemoteProcess,
+        profileRemoteProcess);
   }
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
-      DebugPrintStream debugStream, String[] additionalProgramArguments, boolean debugRemoteProcess) {
+      DebugPrintStream debugStream, String[] additionalProgramArguments,
+      boolean debugRemoteProcess, boolean profileRemoteProcess) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.packageRoot = packageRoot;
     this.debugStream = debugStream;
     this.additionalProgramArguments = additionalProgramArguments;
     this.debugRemoteProcess = debugRemoteProcess;
+    this.profileRemoteProcess = profileRemoteProcess;
   }
 
   @Override
@@ -106,6 +110,10 @@ public class StdioServerSocket implements AnalysisServerSocket {
     }
     if (debugRemoteProcess) {
       args.add("--debug:" + debugPort);
+    }
+    if (profileRemoteProcess) {
+      args.add("--observe");
+      args.add("--pause-isolates-on-exit");
     }
     args.add(analysisServerPath);
     for (String arg : additionalProgramArguments) {

@@ -73,6 +73,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
+  public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
   public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");
   // The defaults are duplicated for tests in
   // editor/tools/plugins/com.google.dart.engine_test/src/com/google/dart/engine/resolver/ResolverTestCase.java

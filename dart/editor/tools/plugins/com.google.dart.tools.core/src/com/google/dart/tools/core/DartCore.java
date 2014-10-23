@@ -500,7 +500,8 @@ public class DartCore extends Plugin implements DartSdkListener {
               analysisServerPath,
               packageRoot,
               debugStream,
-              DartCoreDebug.ANALYSIS_SERVER_DEBUG);
+              DartCoreDebug.ANALYSIS_SERVER_DEBUG,
+              DartCoreDebug.ANALYSIS_SERVER_PROFILE);
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
           analysisServer.start();
