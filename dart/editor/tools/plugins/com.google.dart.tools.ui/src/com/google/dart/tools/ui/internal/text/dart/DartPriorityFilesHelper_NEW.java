@@ -17,6 +17,10 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServer;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener2;
@@ -40,6 +44,15 @@ public class DartPriorityFilesHelper_NEW {
   private final IWorkbench workbench;
   private final AnalysisServer analysisServer;
   private final List<String> files = Lists.newArrayList();
+  private final Job sendToServerJob = new Job("Send analysis_setPriorityFiles") {
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      synchronized (files) {
+        analysisServer.analysis_setPriorityFiles(files);
+      }
+      return Status.OK_STATUS;
+    }
+  };
 
   public DartPriorityFilesHelper_NEW(IWorkbench workbench, AnalysisServer analysisServer) {
     this.workbench = workbench;
@@ -126,8 +139,7 @@ public class DartPriorityFilesHelper_NEW {
           files.add(file);
         }
       }
-      // set priority files
-      analysisServer.analysis_setPriorityFiles(files);
+      sendToServerJob.schedule();
     }
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
@@ -175,27 +187,26 @@ public class DartPriorityFilesHelper_NEW {
 
   /**
    * Update the order in which files are analyzed in the context associated with the editor. This is
-   * called once per instantiated editor on startup and then once for each editor as it becomes
-   * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
-   * for the 2 visible editors.
-   * <p>
-   * MUST be called on the UI thread.
+   * called for each editor as it becomes (in)visible.
    * 
-   * @param isOpen {@code true} if the editor is open and the file should be the first file analyzed
-   *          or {@code false} if the editor is closed and the file should be removed from the
-   *          priority list.
+   * @param isVisible {@code true} if the editor is visible and the file should be the first file
+   *          analyzed or {@code false} if the editor is closed and the file should be removed from
+   *          the priority list.
    */
-  private void updateAnalysisPriorityOrderOnUiThread(DartPriorityFileEditor editor, boolean isOpen) {
+  private void updateAnalysisPriorityOrderOnUiThread(DartPriorityFileEditor editor,
+      boolean isVisible) {
     String file = editor.getInputFilePath();
     if (file != null) {
-      if (isOpen) {
-        if (!files.contains(file)) {
-          files.add(file);
+      synchronized (files) {
+        if (isVisible) {
+          if (!files.contains(file)) {
+            files.add(file);
+          }
+        } else {
+          files.remove(file);
         }
-      } else {
-        files.remove(file);
       }
+      sendToServerJob.schedule(5);
     }
-    analysisServer.analysis_setPriorityFiles(files);
   }
 }
