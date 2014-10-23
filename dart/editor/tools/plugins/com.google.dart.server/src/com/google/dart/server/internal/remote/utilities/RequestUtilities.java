@@ -201,15 +201,19 @@ public class RequestUtilities {
    *   "params": {
    *     "included": List&lt;FilePath&gt;
    *     "excluded": List&lt;FilePath&gt;
+   *     "packageRoots": optional Map&lt;FilePath, FilePath&gt;
    *   }
    * }
    * </pre>
    */
   public static JsonObject generateAnalysisSetAnalysisRoots(String id, List<String> included,
-      List<String> excluded) {
+      List<String> excluded, Map<String, String> packageRoots) {
     JsonObject params = new JsonObject();
     params.add("included", buildJsonElement(included));
     params.add("excluded", buildJsonElement(excluded));
+    if (packageRoots != null) {
+      params.add("packageRoots", buildJsonElement(packageRoots));
+    }
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
   }
 

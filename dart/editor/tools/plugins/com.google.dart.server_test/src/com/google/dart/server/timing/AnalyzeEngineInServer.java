@@ -154,7 +154,8 @@ public class AnalyzeEngineInServer extends TimingTest {
     ArrayList<String> includedPaths = new ArrayList<String>();
     includedPaths.add(enginePath);
     ArrayList<String> excludedPaths = new ArrayList<String>();
-    server.analysis_setAnalysisRoots(includedPaths, excludedPaths);
+    // TODO(paulberry): pass in the correct package roots.
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths, null);
     //
     // Wait for all work to be completed.
     //
@@ -175,7 +176,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     //
     ArrayList<String> includedPaths = new ArrayList<String>();
     ArrayList<String> excludedPaths = new ArrayList<String>();
-    server.analysis_setAnalysisRoots(includedPaths, excludedPaths);
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths, null);
   }
 
   /**

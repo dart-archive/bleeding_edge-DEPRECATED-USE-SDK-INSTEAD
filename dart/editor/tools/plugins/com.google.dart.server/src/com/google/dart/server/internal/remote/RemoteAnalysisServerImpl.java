@@ -240,7 +240,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+  public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
+      Map<String, String> packageRoots) {
     String id = generateUniqueId();
     if (includedPaths == null) {
       includedPaths = EMPTY_STR_LIST;
@@ -248,9 +249,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     if (excludedPaths == null) {
       excludedPaths = EMPTY_STR_LIST;
     }
-    sendRequestToServer(
+    sendRequestToServer(id, RequestUtilities.generateAnalysisSetAnalysisRoots(
         id,
-        RequestUtilities.generateAnalysisSetAnalysisRoots(id, includedPaths, excludedPaths));
+        includedPaths,
+        excludedPaths,
+        packageRoots));
   }
 
   @Override

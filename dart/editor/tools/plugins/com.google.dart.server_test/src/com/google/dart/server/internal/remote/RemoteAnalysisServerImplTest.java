@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.dart.server.CreateContextConsumer;
 import com.google.dart.server.FindElementReferencesConsumer;
@@ -644,7 +645,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   public void test_analysis_setAnalysisRoots() throws Exception {
     server.analysis_setAnalysisRoots(
         ImmutableList.of("/fileA.dart", "/fileB.dart"),
-        ImmutableList.of("/fileC.dart", "/fileD.dart"));
+        ImmutableList.of("/fileC.dart", "/fileD.dart"),
+        null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -659,7 +661,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setAnalysisRoots_emptyLists() throws Exception {
-    server.analysis_setAnalysisRoots(new ArrayList<String>(0), new ArrayList<String>(0));
+    server.analysis_setAnalysisRoots(new ArrayList<String>(0), new ArrayList<String>(0), null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -674,7 +676,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setAnalysisRoots_nullLists() throws Exception {
-    server.analysis_setAnalysisRoots(null, null);
+    server.analysis_setAnalysisRoots(null, null, null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -683,6 +685,28 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'params': {",
         "    'included': [],",
         "    'excluded': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setAnalysisRoots_packageRoots() throws Exception {
+    server.analysis_setAnalysisRoots(
+        null,
+        null,
+        ImmutableMap.of("/path1", "/path2", "/path3", "/path4"));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': [],",
+        "    'excluded': [],",
+        "    'packageRoots': {",
+        "      '/path1': '/path2',",
+        "      '/path3': '/path4'",
+        "    }",
         "  }",
         "}");
     assertTrue(requests.contains(expected));

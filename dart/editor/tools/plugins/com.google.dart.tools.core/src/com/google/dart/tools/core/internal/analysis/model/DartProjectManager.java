@@ -81,7 +81,8 @@ public class DartProjectManager {
     for (String path : ignoreManager.getExclusionPatterns()) {
       excludedPaths.add(path.replace('/', File.separatorChar));
     }
-    server.analysis_setAnalysisRoots(includedPaths, excludedPaths);
+    // TODO(paulberry): pass down proper package roots.
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths, null);
   }
 
   /**

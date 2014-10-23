@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 
 import java.util.List;
+import java.util.Map;
 
 public class DartProjectManagerTest extends TestCase {
 
@@ -38,11 +39,15 @@ public class DartProjectManagerTest extends TestCase {
     private int callCount = 0;
     private List<String> includedPaths;
     private List<String> excludedPaths;
+    private Map<String, String> packageRoots;
 
     @Override
-    public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+    public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
+        Map<String, String> packageRoots) {
+      // TODO(paulberry): test package roots.
       this.includedPaths = includedPaths;
       this.excludedPaths = excludedPaths;
+      this.packageRoots = packageRoots;
       callCount++;
     }
 

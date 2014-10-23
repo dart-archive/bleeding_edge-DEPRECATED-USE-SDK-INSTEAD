@@ -45,7 +45,8 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void analysis_setAnalysisRoots(List<String> included, List<String> excluded) {
+  public void analysis_setAnalysisRoots(List<String> included, List<String> excluded,
+      Map<String, String> packageRoots) {
     throw new UnsupportedOperationException();
   }
 
