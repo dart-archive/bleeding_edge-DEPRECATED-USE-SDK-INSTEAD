@@ -58,7 +58,9 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    * Called on the UI thread to filter the proposals based upon the current document text.
    */
   public void filterProposals(IDocument document, int offset) {
-    collector.filterProposals(document, offset);
+    if (collector != null) {
+      collector.filterProposals(document, offset);
+    }
   }
 
   /*
