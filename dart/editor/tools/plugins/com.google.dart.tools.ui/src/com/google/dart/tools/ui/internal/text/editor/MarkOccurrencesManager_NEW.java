@@ -59,7 +59,7 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
     this.viewer = viewer;
     this.editorInput = editor.getEditorInput();
     this.file = editor.getInputFilePath();
-    DartCore.getAnalysisServerData().subscribeOccurrences(file, this);
+    DartCore.getAnalysisServerData().addOccurrencesListener(file, this);
     // track selection
     occurrencesResponder = new ISelectionChangedListener() {
       @Override
@@ -86,7 +86,7 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
   }
 
   public void dispose() {
-    DartCore.getAnalysisServerData().unsubscribeOccurrences(file, this);
+    DartCore.getAnalysisServerData().removeOccurrencesListener(file, this);
     if (occurrencesResponder != null) {
       editor.removeDartSelectionListener(occurrencesResponder);
       occurrencesResponder = null;

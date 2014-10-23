@@ -38,7 +38,7 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
     AnalysisServerNavigationListener {
   public InlineMethodAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(file, this);
   }
 
   @Override
@@ -48,7 +48,7 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
     super.dispose();
   }
 

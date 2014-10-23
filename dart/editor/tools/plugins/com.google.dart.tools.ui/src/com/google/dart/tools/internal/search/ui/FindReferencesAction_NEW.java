@@ -128,7 +128,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
 
   public FindReferencesAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(file, this);
   }
 
   @Override
@@ -138,7 +138,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
     super.dispose();
   }
 

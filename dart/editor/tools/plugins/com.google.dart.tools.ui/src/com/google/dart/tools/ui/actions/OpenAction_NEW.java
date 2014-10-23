@@ -45,7 +45,7 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
 
   public OpenAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(file, this);
   }
 
   @Override
@@ -55,7 +55,7 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
     super.dispose();
   }
 

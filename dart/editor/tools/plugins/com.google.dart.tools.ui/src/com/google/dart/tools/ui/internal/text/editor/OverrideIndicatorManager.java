@@ -253,7 +253,7 @@ public class OverrideIndicatorManager {
       dartEditor = (CompilationUnitEditor) editor;
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         file = dartEditor.getInputFilePath();
-        DartCore.getAnalysisServerData().subscribeOverrides(file, overridesListener);
+        DartCore.getAnalysisServerData().addOverridesListener(file, overridesListener);
       } else {
         dartEditor.addReconcileListener(reconcileListener);
       }
@@ -263,7 +263,7 @@ public class OverrideIndicatorManager {
   public void uninstall() {
     if (dartEditor != null) {
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        DartCore.getAnalysisServerData().unsubscribeOverrides(file, overridesListener);
+        DartCore.getAnalysisServerData().removeOverridesListener(file, overridesListener);
       } else {
         dartEditor.removeReconcileListener(reconcileListener);
       }

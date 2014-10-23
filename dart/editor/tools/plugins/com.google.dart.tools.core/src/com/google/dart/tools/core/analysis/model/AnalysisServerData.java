@@ -22,6 +22,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.SearchResult;
 
 /**
  * Instances of {@code AnalysisServerData} provide access to analysis results reported by
@@ -35,6 +36,34 @@ public interface AnalysisServerData {
    */
   public boolean isAnalyzing();
 
+  /**
+   * Add {@link HighlightRegion}s listener for the file.
+   */
+  void addHighlightsListener(String file, AnalysisServerHighlightsListener listener);
+
+  /**
+   * Add {@link NavigationRegion}s listener.
+   */
+  void addNavigationListener(String file, AnalysisServerNavigationListener listener);
+
+  /**
+   * Add {@link Occurrences} listener for the file.
+   */
+  void addOccurrencesListener(String file, AnalysisServerOccurrencesListener listener);
+
+  /**
+   * Add {@link Outline} listener for the file.
+   */
+  void addOutlineListener(String file, AnalysisServerOutlineListener listener);
+
+  /**
+   * Add {@link OverrideMember}s listener for the file.
+   */
+  void addOverridesListener(String file, AnalysisServerOverridesListener listener);
+
+  /**
+   * Add {@link SearchResult}s listener.
+   */
   void addSearchResultsListener(String id, SearchResultsListener listener);
 
   /**
@@ -55,12 +84,35 @@ public interface AnalysisServerData {
    */
   Occurrences[] getOccurrences(String file);
 
-  void removeSearchResultsListener(String id, SearchResultsListener listener);
+  /**
+   * Remove {@link HighlightRegion}s listener for the file.
+   */
+  void removeHighlightsListener(String file, AnalysisServerHighlightsListener listener);
 
   /**
-   * Specifies that the client wants to be notified about new {@link HighlightRegion}s.
+   * Remove {@link NavigationRegion}s listener for the file.
    */
-  void subscribeHighlights(String file, AnalysisServerHighlightsListener listener);
+  void removeNavigationListener(String file, AnalysisServerNavigationListener listener);
+
+  /**
+   * Remove {@link Occurrences} listener for the file.
+   */
+  void removeOccurrencesListener(String file, AnalysisServerOccurrencesListener listener);
+
+  /**
+   * Remove {@link Outline} listener for the file.
+   */
+  void removeOutlineListener(String file, AnalysisServerOutlineListener listener);
+
+  /**
+   * Remove {@link OverrideMember}s listener for the file.
+   */
+  void removeOverridesListener(String file, AnalysisServerOverridesListener listener);
+
+  /**
+   * Remove {@link SearchResult} listener.
+   */
+  void removeSearchResultsListener(String id, SearchResultsListener listener);
 
   /**
    * Specifies that the client was to be notified about "execution.launchData".
@@ -68,54 +120,9 @@ public interface AnalysisServerData {
   void subscribeLaunchData(AnalysisServerLaunchDataListener listener);
 
   /**
-   * Specifies that the client wants to request navigation regions.
-   */
-  void subscribeNavigation(String file, AnalysisServerNavigationListener listener);
-
-  /**
-   * Specifies that the client wants to request occurrences.
-   */
-  void subscribeOccurrences(String file, AnalysisServerOccurrencesListener listener);
-
-  /**
-   * Specifies that the client wants to be notified about new {@link Outline}.
-   */
-  void subscribeOutline(String file, AnalysisServerOutlineListener listener);
-
-  /**
-   * Specifies that the client wants to be notified about new {@link OverrideMember}s.
-   */
-  void subscribeOverrides(String file, AnalysisServerOverridesListener listener);
-
-  /**
-   * Specifies that the client doesn't want to be notified about {@link HighlightRegion}s anymore.
-   */
-  void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener);
-
-  /**
    * Specifies that the client doesn't wan to be notified about "execution.launchData".
    */
   void unsubscribeLaunchData(AnalysisServerLaunchDataListener listener);
-
-  /**
-   * Specifies that the client doesn't need navigation information for the given file anymore.
-   */
-  void unsubscribeNavigation(String file, AnalysisServerNavigationListener listener);
-
-  /**
-   * Specifies that the client doesn't need occurrences information for the given file anymore.
-   */
-  void unsubscribeOccurrences(String file, AnalysisServerOccurrencesListener listener);
-
-  /**
-   * Specifies that the client doesn't want to be notified about {@link Outline} anymore.
-   */
-  void unsubscribeOutline(String file, AnalysisServerOutlineListener listener);
-
-  /**
-   * Specifies that the client doesn't want to be notified about {@link OverrideMember}s anymore.
-   */
-  void unsubscribeOverrides(String file, AnalysisServerOverridesListener listener);
 
   /**
    * Update the analysis options.

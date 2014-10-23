@@ -1726,8 +1726,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerData.unsubscribeNavigation(file, navigationListener);
-        analysisServerData.unsubscribeOutline(file, analysisServerOutlineListener);
+        analysisServerData.removeNavigationListener(file, navigationListener);
+        analysisServerData.removeOutlineListener(file, analysisServerOutlineListener);
       }
     }
 
@@ -3558,7 +3558,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     String file = getInputFilePath();
     if (file != null) {
-      analysisServerData.subscribeOutline(file, analysisServerOutlineListener);
+      analysisServerData.addOutlineListener(file, analysisServerOutlineListener);
     }
   }
 
@@ -4068,7 +4068,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerData.subscribeNavigation(file, navigationListener);
+        analysisServerData.addNavigationListener(file, navigationListener);
       }
     }
 

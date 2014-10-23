@@ -209,7 +209,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     document.addPositionUpdater(positionUpdater);
     // subscribe
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    analysisServerData.subscribeHighlights(file, this);
+    analysisServerData.addHighlightsListener(file, this);
     viewer.prependTextPresentationListener(this);
   }
 
@@ -287,7 +287,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   public void dispose() {
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    analysisServerData.unsubscribeHighlights(file, this);
+    analysisServerData.removeHighlightsListener(file, this);
     viewer.removeTextPresentationListener(this);
     document.removePositionUpdater(positionUpdater);
   }

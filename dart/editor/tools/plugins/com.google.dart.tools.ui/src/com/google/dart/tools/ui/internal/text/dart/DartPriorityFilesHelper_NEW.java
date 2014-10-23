@@ -15,8 +15,10 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.types.AnalysisService;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -32,6 +34,7 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,17 +48,43 @@ import java.util.concurrent.TimeUnit;
 public class DartPriorityFilesHelper_NEW {
   private final IWorkbench workbench;
   private final AnalysisServer analysisServer;
-  private final List<String> files = Lists.newArrayList();
-  private final Job sendToServerJob = new Job("Send analysis_setPriorityFiles") {
+  private final Object lock = new Object();
+  private final Map<String, List<String>> subscriptions = Maps.newHashMap();
+  private final List<String> visibleFiles = Lists.newArrayList();
+  private List<String> visibleFilesSent = Lists.newArrayList();
+  private String activeFile = null;
+
+  private final Job sendToServerJob = new Job("Send visible files subscriptions") {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-      synchronized (files) {
-        analysisServer.analysis_setPriorityFiles(files);
+      synchronized (lock) {
+        // send priority files, if changed
+        if (!visibleFiles.equals(visibleFilesSent)) {
+          analysisServer.analysis_setPriorityFiles(visibleFiles);
+          visibleFilesSent = Lists.newArrayList(visibleFiles);
+        }
+        // update active file subscriptions
+        {
+          List<String> activeFileList = Lists.newArrayList();
+          if (activeFile != null) {
+            activeFileList.add(activeFile);
+          }
+          // update subscriptions
+          subscriptions.put(AnalysisService.NAVIGATION, activeFileList);
+          subscriptions.put(AnalysisService.OCCURRENCES, activeFileList);
+          subscriptions.put(AnalysisService.OUTLINE, activeFileList);
+        }
+        // update visible file subscriptions
+        subscriptions.put(AnalysisService.HIGHLIGHTS, visibleFiles);
+        subscriptions.put(AnalysisService.OVERRIDES, visibleFiles);
+        analysisServer.analysis_setSubscriptions(subscriptions);
+        // done
         test_hasPendingJob = false;
       }
       return Status.OK_STATUS;
     }
   };
+
   private boolean test_hasPendingJob = false;
 
   public DartPriorityFilesHelper_NEW(IWorkbench workbench, AnalysisServer analysisServer) {
@@ -87,7 +116,7 @@ public class DartPriorityFilesHelper_NEW {
    */
   public void test_waitWhileHasPendingJob() {
     while (true) {
-      synchronized (files) {
+      synchronized (visibleFiles) {
         if (!test_hasPendingJob) {
           return;
         }
@@ -133,15 +162,25 @@ public class DartPriorityFilesHelper_NEW {
 
   private void handlePartActivated(IWorkbenchPart part) {
     DartPriorityFileEditor editor = getPriorityFileEditor(part);
-    if (editor != null) {
-      updateAnalysisPriorityOrderOnUiThread(editor, true);
+    String file = editor != null ? editor.getInputFilePath() : null;
+    synchronized (lock) {
+      activeFile = file;
+      test_hasPendingJob = true;
+      sendToServerJob.schedule();
     }
   }
 
-  private void handlePartDeactivated(IWorkbenchPart part) {
+  private void handlePartHidden(IWorkbenchPart part) {
     DartPriorityFileEditor editor = getPriorityFileEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, false);
+    }
+  }
+
+  private void handlePartVisible(IWorkbenchPart part) {
+    DartPriorityFileEditor editor = getPriorityFileEditor(part);
+    if (editor != null) {
+      updateAnalysisPriorityOrderOnUiThread(editor, true);
     }
   }
 
@@ -149,13 +188,18 @@ public class DartPriorityFilesHelper_NEW {
    * Starts listening for {@link IWorkbenchPage} and adding/removing files of the visible editors.
    */
   private void internalStart(IWorkbenchPage activePage) {
+    // subscribe for currently active part
+    {
+      IWorkbenchPart activePart = activePage.getActivePart();
+      handlePartActivated(activePart);
+    }
     // make files of the currently visible editors a priority ones
     {
       List<DartPriorityFileEditor> editors = getVisibleEditors();
       for (DartPriorityFileEditor editor : editors) {
         String file = editor.getInputFilePath();
         if (file != null) {
-          files.add(file);
+          visibleFiles.add(file);
         }
       }
       test_hasPendingJob = true;
@@ -165,6 +209,8 @@ public class DartPriorityFilesHelper_NEW {
     activePage.addPartListener(new IPartListener2() {
       @Override
       public void partActivated(IWorkbenchPartReference partRef) {
+        IWorkbenchPart part = partRef.getPart(false);
+        handlePartActivated(part);
       }
 
       @Override
@@ -183,7 +229,7 @@ public class DartPriorityFilesHelper_NEW {
       public void partHidden(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
         if (part != null) {
-          handlePartDeactivated(part);
+          handlePartHidden(part);
         }
       }
 
@@ -199,7 +245,7 @@ public class DartPriorityFilesHelper_NEW {
       public void partVisible(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
         if (part != null) {
-          handlePartActivated(part);
+          handlePartVisible(part);
         }
       }
     });
@@ -217,17 +263,17 @@ public class DartPriorityFilesHelper_NEW {
       boolean isVisible) {
     String file = editor.getInputFilePath();
     if (file != null) {
-      synchronized (files) {
+      synchronized (lock) {
         if (isVisible) {
-          if (!files.contains(file)) {
-            files.add(file);
+          if (!visibleFiles.contains(file)) {
+            visibleFiles.add(file);
           }
         } else {
-          files.remove(file);
+          visibleFiles.remove(file);
         }
+        test_hasPendingJob = true;
+        sendToServerJob.schedule(25);
       }
-      test_hasPendingJob = true;
-      sendToServerJob.schedule(5);
     }
   }
 }

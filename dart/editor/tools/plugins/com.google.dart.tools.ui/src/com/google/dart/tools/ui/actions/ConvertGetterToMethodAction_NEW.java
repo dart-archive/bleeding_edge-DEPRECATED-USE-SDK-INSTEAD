@@ -40,7 +40,7 @@ public class ConvertGetterToMethodAction_NEW extends AbstractRefactoringAction_N
     AnalysisServerNavigationListener {
   public ConvertGetterToMethodAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().subscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(file, this);
   }
 
   @Override
@@ -50,7 +50,7 @@ public class ConvertGetterToMethodAction_NEW extends AbstractRefactoringAction_N
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().unsubscribeNavigation(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
     super.dispose();
   }
 

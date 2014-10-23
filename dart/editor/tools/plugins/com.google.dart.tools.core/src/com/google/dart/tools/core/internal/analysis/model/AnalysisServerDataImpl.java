@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisOptions;
-import com.google.dart.server.generated.types.AnalysisService;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.ExecutionService;
 import com.google.dart.server.generated.types.HighlightRegion;
@@ -62,13 +61,62 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
   private final Map<String, Occurrences[]> occurrencesData = Maps.newHashMap();
-  private final Map<String, List<String>> analysisSubscriptions = Maps.newHashMap();
   private final Map<String, SearchResultsListener> searchResultsListeners = Maps.newHashMap();
   private final Map<String, List<SearchResultsSet>> searchResultsData = Maps.newHashMap();
   private final List<String> executionSubscriptions = Lists.newArrayList();
   private final List<AnalysisServerLaunchDataListener> launchDataListeners = Lists.newArrayList();
 
   private AnalysisServer server;
+
+  @Override
+  public void addHighlightsListener(String file, AnalysisServerHighlightsListener listener) {
+    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      highlightsSubscriptions.put(file, subscriptions);
+    }
+    subscriptions.add(listener);
+  }
+
+  @Override
+  public void addNavigationListener(String file, AnalysisServerNavigationListener listener) {
+    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      navigationSubscriptions.put(file, subscriptions);
+    }
+    subscriptions.add(listener);
+  }
+
+  @Override
+  public void addOccurrencesListener(String file, AnalysisServerOccurrencesListener listener) {
+    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      occurrencesSubscriptions.put(file, subscriptions);
+    }
+    subscriptions.add(listener);
+  }
+
+  @Override
+  public void addOutlineListener(String file, AnalysisServerOutlineListener listener) {
+    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      outlineSubscriptions.put(file, subscriptions);
+    }
+    subscriptions.add(listener);
+  }
+
+  @Override
+  public void addOverridesListener(String file, AnalysisServerOverridesListener listener) {
+    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      overridesSubscriptions.put(file, subscriptions);
+    }
+    subscriptions.add(listener);
+  }
 
   @Override
   public synchronized void addSearchResultsListener(String searchId, SearchResultsListener listener) {
@@ -118,6 +166,71 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
+  public void removeHighlightsListener(String file, AnalysisServerHighlightsListener listener) {
+    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        highlightsSubscriptions.remove(file);
+      }
+    }
+  }
+
+  @Override
+  public void removeNavigationListener(String file, AnalysisServerNavigationListener listener) {
+    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        navigationSubscriptions.remove(file);
+      }
+    }
+  }
+
+  @Override
+  public void removeOccurrencesListener(String file, AnalysisServerOccurrencesListener listener) {
+    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        occurrencesSubscriptions.remove(file);
+      }
+    }
+  }
+
+  @Override
+  public void removeOutlineListener(String file, AnalysisServerOutlineListener listener) {
+    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        outlineSubscriptions.remove(file);
+      }
+    }
+  }
+
+  @Override
+  public void removeOverridesListener(String file, AnalysisServerOverridesListener listener) {
+    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        overridesSubscriptions.remove(file);
+      }
+    }
+  }
+
+  @Override
   public void removeSearchResultsListener(String searchId, SearchResultsListener listener) {
     searchResultsData.remove(searchId);
     searchResultsListeners.remove(searchId);
@@ -131,18 +244,6 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
-    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      highlightsSubscriptions.put(file, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-    }
-  }
-
-  @Override
   public synchronized void subscribeLaunchData(AnalysisServerLaunchDataListener listener) {
     if (launchDataListeners.add(listener)) {
       if (executionSubscriptions.add(ExecutionService.LAUNCH_DATA)) {
@@ -153,123 +254,10 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeNavigation(String file, AnalysisServerNavigationListener listener) {
-    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      navigationSubscriptions.put(file, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      addAnalysisSubscription(AnalysisService.NAVIGATION, file);
-    }
-  }
-
-  @Override
-  public void subscribeOccurrences(String file, AnalysisServerOccurrencesListener listener) {
-    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      occurrencesSubscriptions.put(file, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      addAnalysisSubscription(AnalysisService.OCCURRENCES, file);
-    }
-  }
-
-  @Override
-  public void subscribeOutline(String file, AnalysisServerOutlineListener listener) {
-    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      outlineSubscriptions.put(file, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      addAnalysisSubscription(AnalysisService.OUTLINE, file);
-    }
-  }
-
-  @Override
-  public void subscribeOverrides(String file, AnalysisServerOverridesListener listener) {
-    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      overridesSubscriptions.put(file, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      addAnalysisSubscription(AnalysisService.OVERRIDES, file);
-    }
-  }
-
-  @Override
-  public void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
-    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        removeAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-      }
-    }
-  }
-
-  @Override
   public void unsubscribeLaunchData(AnalysisServerLaunchDataListener listener) {
     if (launchDataListeners.remove(listener)) {
       if (executionSubscriptions.remove(ExecutionService.LAUNCH_DATA)) {
         server.execution_setSubscriptions(executionSubscriptions);
-      }
-    }
-  }
-
-  @Override
-  public void unsubscribeNavigation(String file, AnalysisServerNavigationListener listener) {
-    Set<AnalysisServerNavigationListener> subscriptions = navigationSubscriptions.get(file);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        removeAnalysisSubscription(AnalysisService.NAVIGATION, file);
-      }
-    }
-  }
-
-  @Override
-  public void unsubscribeOccurrences(String file, AnalysisServerOccurrencesListener listener) {
-    Set<AnalysisServerOccurrencesListener> subscriptions = occurrencesSubscriptions.get(file);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        removeAnalysisSubscription(AnalysisService.OCCURRENCES, file);
-      }
-    }
-  }
-
-  @Override
-  public void unsubscribeOutline(String file, AnalysisServerOutlineListener listener) {
-    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        removeAnalysisSubscription(AnalysisService.OUTLINE, file);
-      }
-    }
-  }
-
-  @Override
-  public void unsubscribeOverrides(String file, AnalysisServerOverridesListener listener) {
-    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        removeAnalysisSubscription(AnalysisService.OVERRIDES, file);
       }
     }
   }
@@ -373,42 +361,10 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       errorData.remove(file);
       navigationData.remove(file);
       occurrencesData.remove(file);
-      analysisSubscriptions.remove(file);
     }
   }
 
   void internalServerStatus(AnalysisStatus status) {
     isAnalyzing = status.isAnalyzing();
-  }
-
-  /**
-   * Adds the given file to the subscription list for the given {@link AnalysisService}.
-   */
-  private void addAnalysisSubscription(String analysisService, String file) {
-    List<String> files = analysisSubscriptions.get(analysisService);
-    if (files == null) {
-      files = Lists.newArrayList();
-      analysisSubscriptions.put(analysisService, files);
-    }
-    if (!files.contains(file)) {
-      files.add(file);
-      server.analysis_setSubscriptions(analysisSubscriptions);
-    }
-  }
-
-  /**
-   * Removes the given file from the subscription list for the given {@link AnalysisService}.
-   */
-  private void removeAnalysisSubscription(String analysisService, String file) {
-    List<String> files = analysisSubscriptions.get(analysisService);
-    if (files == null) {
-      return;
-    }
-    if (files.remove(file)) {
-      if (files.isEmpty()) {
-        analysisSubscriptions.remove(analysisService);
-      }
-      server.analysis_setSubscriptions(analysisSubscriptions);
-    }
   }
 }
