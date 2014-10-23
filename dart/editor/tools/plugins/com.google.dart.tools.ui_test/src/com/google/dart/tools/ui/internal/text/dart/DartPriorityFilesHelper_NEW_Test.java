@@ -182,6 +182,7 @@ public class DartPriorityFilesHelper_NEW_Test extends TestCase {
   }
 
   private void assertPriorityFiles(String... expected) throws Exception {
+    helper.test_waitWhileHasPendingJob();
     assertThat(files).containsOnly((Object[]) expected);
   }
 

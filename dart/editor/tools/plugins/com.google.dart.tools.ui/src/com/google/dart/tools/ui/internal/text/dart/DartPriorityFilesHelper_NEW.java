@@ -15,6 +15,7 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.AnalysisServer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,6 +32,7 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Helper for updating the order in which files are analyzed in contexts associated with editors.
@@ -49,10 +51,12 @@ public class DartPriorityFilesHelper_NEW {
     protected IStatus run(IProgressMonitor monitor) {
       synchronized (files) {
         analysisServer.analysis_setPriorityFiles(files);
+        test_hasPendingJob = false;
       }
       return Status.OK_STATUS;
     }
   };
+  private boolean test_hasPendingJob = false;
 
   public DartPriorityFilesHelper_NEW(IWorkbench workbench, AnalysisServer analysisServer) {
     this.workbench = workbench;
@@ -75,6 +79,21 @@ public class DartPriorityFilesHelper_NEW {
         }
       }
     });
+  }
+
+  /**
+   * Waits until a scheduled background job for sending information to the server finishes, so that
+   * test can check correctness of the information.
+   */
+  public void test_waitWhileHasPendingJob() {
+    while (true) {
+      synchronized (files) {
+        if (!test_hasPendingJob) {
+          return;
+        }
+      }
+      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
+    }
   }
 
   /**
@@ -139,6 +158,7 @@ public class DartPriorityFilesHelper_NEW {
           files.add(file);
         }
       }
+      test_hasPendingJob = true;
       sendToServerJob.schedule();
     }
     // track visible editors
@@ -206,6 +226,7 @@ public class DartPriorityFilesHelper_NEW {
           files.remove(file);
         }
       }
+      test_hasPendingJob = true;
       sendToServerJob.schedule(5);
     }
   }
