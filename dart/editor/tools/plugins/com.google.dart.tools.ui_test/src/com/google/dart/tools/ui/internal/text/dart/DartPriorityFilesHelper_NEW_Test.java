@@ -123,7 +123,6 @@ public class DartPriorityFilesHelper_NEW_Test extends TestCase {
   public void test_unusedPartListenerMethods() throws Exception {
     helper.start();
     for (IPartListener2 listener : listeners) {
-      listener.partActivated(null);
       listener.partBroughtToTop(null);
       listener.partClosed(null);
       listener.partDeactivated(null);
