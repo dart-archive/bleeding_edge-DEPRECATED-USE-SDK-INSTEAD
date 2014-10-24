@@ -116,7 +116,7 @@ public class DartPriorityFilesHelper_NEW {
    */
   public void test_waitWhileHasPendingJob() {
     while (true) {
-      synchronized (visibleFiles) {
+      synchronized (lock) {
         if (!test_hasPendingJob) {
           return;
         }
@@ -160,13 +160,15 @@ public class DartPriorityFilesHelper_NEW {
     return editors;
   }
 
-  private void handlePartActivated(IWorkbenchPart part) {
+  private void handlePartActivated(IWorkbenchPart part, boolean scheduleJob) {
     DartPriorityFileEditor editor = getPriorityFileEditor(part);
     String file = editor != null ? editor.getInputFilePath() : null;
     synchronized (lock) {
       activeFile = file;
-      test_hasPendingJob = true;
-      sendToServerJob.schedule();
+      if (scheduleJob) {
+        test_hasPendingJob = true;
+        sendToServerJob.schedule();
+      }
     }
   }
 
@@ -191,7 +193,7 @@ public class DartPriorityFilesHelper_NEW {
     // subscribe for currently active part
     {
       IWorkbenchPart activePart = activePage.getActivePart();
-      handlePartActivated(activePart);
+      handlePartActivated(activePart, false);
     }
     // make files of the currently visible editors a priority ones
     {
@@ -202,15 +204,16 @@ public class DartPriorityFilesHelper_NEW {
           visibleFiles.add(file);
         }
       }
-      test_hasPendingJob = true;
-      sendToServerJob.schedule();
     }
+    // schedule job to send an initial state
+    test_hasPendingJob = true;
+    sendToServerJob.schedule();
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
       @Override
       public void partActivated(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        handlePartActivated(part);
+        handlePartActivated(part, true);
       }
 
       @Override
