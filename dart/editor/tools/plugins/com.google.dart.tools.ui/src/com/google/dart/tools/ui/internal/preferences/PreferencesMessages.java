@@ -789,6 +789,8 @@ public final class PreferencesMessages extends NLS {
   public static String ExperimentalPreferencePage_enable_analysis_server_tooltip;
   public static String ExperimentalPreferencePage_enable_async_support;
   public static String ExperimentalPreferencePage_enable_async_support_tooltip;
+  public static String ExperimentalPreferencePage_enable_enums_support;
+  public static String ExperimentalPreferencePage_enable_enums_support_tooltip;
   public static String ExperimentalPreferencePage_notes;
 
   public static String HintPreferencePage_enable_hints;

@@ -47,6 +47,7 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
 
 //  private Button enableAnalysisServerButton;
   private Button enableAsyncSupportButton;
+  private Button enableEnumsSupportButton;
 
   public ExperimentalPreferencePage() {
     setPreferenceStore(null);
@@ -60,22 +61,16 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
 
   @Override
   public boolean performOk() {
-    boolean hasChanges = false;
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
 
-//      boolean analysisServerEnabled = DartCoreDebug.ENABLE_ANALYSIS_SERVER;
-//      prefs.putBoolean(
+//      boolean serverChanged = setPref(
 //          DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
-//          enableAnalysisServerButton.getSelection());
+//          enableAnalysisServerButton);
+      boolean asyncChanged = setPref(DartCoreDebug.ENABLE_ASYNC_PREF, enableAsyncSupportButton);
+      boolean enumsChanged = setPref(DartCoreDebug.ENABLE_ENUMS_PREF, enableEnumsSupportButton);
 
-      boolean asyncEnabled = DartCoreDebug.ENABLE_ASYNC;
-      prefs.putBoolean(DartCoreDebug.ENABLE_ASYNC_PREF, enableAsyncSupportButton.getSelection());
-
-      if (/* analysisServerEnabled != enableAnalysisServerButton.getSelection()
-          || */asyncEnabled != enableAsyncSupportButton.getSelection()) {
-        hasChanges = true;
-      }
+      boolean hasChanges = /* serverChanged || */asyncChanged || enumsChanged;
       try {
         DartCore.getPlugin().savePrefs();
       } catch (CoreException e) {
@@ -113,6 +108,13 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
         PreferencesMessages.ExperimentalPreferencePage_enable_async_support_tooltip);
     GridDataFactory.fillDefaults().applyTo(enableAsyncSupportButton);
 
+    // Enable Enums support checkbox
+    enableEnumsSupportButton = createCheckBox(
+        composite,
+        PreferencesMessages.ExperimentalPreferencePage_enable_enums_support,
+        PreferencesMessages.ExperimentalPreferencePage_enable_enums_support_tooltip);
+    GridDataFactory.fillDefaults().applyTo(enableEnumsSupportButton);
+
     // Separator
     {
       Label separatorLabel = new Label(composite, SWT.NONE);
@@ -129,8 +131,20 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     return composite;
   }
 
+  private boolean getPref(String prefKey) {
+    return DartCore.getPlugin().getPrefs().getBoolean(prefKey, false);
+  }
+
   private void initFromPrefs() {
-//    enableAnalysisServerButton.setSelection(DartCoreDebug.ENABLE_ANALYSIS_SERVER);
-    enableAsyncSupportButton.setSelection(DartCoreDebug.ENABLE_ASYNC);
+//    enableAnalysisServerButton.setSelection(getPref(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
+    enableAsyncSupportButton.setSelection(getPref(DartCoreDebug.ENABLE_ASYNC_PREF));
+    enableEnumsSupportButton.setSelection(getPref(DartCoreDebug.ENABLE_ENUMS_PREF));
+  }
+
+  private boolean setPref(String prefKey, Button button) {
+    boolean oldValue = getPref(prefKey);
+    boolean newValue = button.getSelection();
+    DartCore.getPlugin().getPrefs().putBoolean(prefKey, newValue);
+    return oldValue != newValue;
   }
 }
