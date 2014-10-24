@@ -95,6 +95,44 @@ public class SemanticHighlightingTest extends
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "as = 0");
   }
 
+  public void test_builtIn_async_bodyModifier() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async {",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "async {");
+  }
+
+  public void test_builtIn_asyncStar_bodyModifier() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async* {",
+        "}",
+        "");
+    assertHasPosition(SemanticHighlightings.BUILT_IN, findOffset("async*"), "async*".length());
+  }
+
+  public void test_builtIn_await_expression() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async {",
+        "  await 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "await 0");
+  }
+
+  public void test_builtIn_await_forEach() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async {",
+        "  await for (var e in []) {}",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "await for");
+  }
+
   public void test_builtIn_const_constructor() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -364,6 +402,15 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "static m()");
   }
 
+  public void test_builtIn_syncStar_bodyModifier() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() sync* {",
+        "}",
+        "");
+    assertHasPosition(SemanticHighlightings.BUILT_IN, findOffset("sync*"), "sync*".length());
+  }
+
   public void test_builtIn_typedef() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -380,6 +427,26 @@ public class SemanticHighlightingTest extends
         "}",
         "");
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "typedef = 0;");
+  }
+
+  public void test_builtIn_yield() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async* {",
+        "  yield 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "yield 0");
+  }
+
+  public void test_builtIn_yieldStar() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() async* {",
+        "  yield* [];",
+        "}",
+        "");
+    assertHasPosition(SemanticHighlightings.BUILT_IN, findOffset("yield* []"), "yield*".length());
   }
 
   public void test_class() throws Exception {

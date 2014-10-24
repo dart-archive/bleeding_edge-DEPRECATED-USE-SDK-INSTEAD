@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AwaitExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Combinator;
@@ -27,6 +28,8 @@ import com.google.dart.engine.ast.EnumConstantDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.ForEachStatement;
+import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
@@ -46,6 +49,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.ast.YieldStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -189,6 +193,17 @@ public class SemanticHighlightings {
           }
         }
       }
+      // function body modifier
+      if (node instanceof FunctionBody) {
+        FunctionBody body = (FunctionBody) node;
+        Token keyword = body.getKeyword();
+        if (keyword != null) {
+          Token star = body.getStar();
+          int offset = keyword.getOffset();
+          int end = star != null ? star.getEnd() : keyword.getEnd();
+          result = addPosition(result, rangeStartEnd(offset, end));
+        }
+      }
       // class
       if (node instanceof ClassDeclaration) {
         ClassDeclaration clazz = (ClassDeclaration) node;
@@ -287,6 +302,26 @@ public class SemanticHighlightings {
               result = addPosition(result, onToken);
             }
           }
+        }
+      }
+      // await
+      if (node instanceof AwaitExpression) {
+        AwaitExpression awaitExpression = (AwaitExpression) node;
+        result = addPosition(result, awaitExpression.getAwaitKeyword());
+      }
+      if (node instanceof ForEachStatement) {
+        ForEachStatement forEachStatement = (ForEachStatement) node;
+        result = addPosition(result, forEachStatement.getAwaitKeyword());
+      }
+      // yield
+      if (node instanceof YieldStatement) {
+        YieldStatement yieldStatement = (YieldStatement) node;
+        Token keyword = yieldStatement.getYieldKeyword();
+        if (keyword != null) {
+          Token star = yieldStatement.getStar();
+          int offset = keyword.getOffset();
+          int end = star != null ? star.getEnd() : keyword.getEnd();
+          result = addPosition(result, rangeStartEnd(offset, end));
         }
       }
       // done

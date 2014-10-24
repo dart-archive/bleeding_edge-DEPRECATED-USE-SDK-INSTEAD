@@ -142,6 +142,9 @@ public class AbstractDartTest extends TestCase {
       analysisContext = AnalysisEngine.getInstance().createAnalysisContext();
       analysisContext.setSourceFactory(sourceFactory);
       AnalysisOptionsImpl analysisOptionsImpl = new AnalysisOptionsImpl();
+      analysisOptionsImpl.setEnableAsync(true);
+      analysisOptionsImpl.setEnableDeferredLoading(true);
+      analysisOptionsImpl.setEnableEnum(true);
       analysisOptionsImpl.setHint(false);
       analysisContext.setAnalysisOptions(analysisOptionsImpl);
     }
