@@ -11,6 +11,7 @@
     <deletionIndication color="#9b5656" />
     <deprecatedMember color="#ab2525" />
     <enum color="#800040" />
+    <enumConstant color="#800040" />
     <field color="#800080" />
     <filteredSearchResultIndication color="#EFEFEF" />
     <findScope color="#BCADAD" />

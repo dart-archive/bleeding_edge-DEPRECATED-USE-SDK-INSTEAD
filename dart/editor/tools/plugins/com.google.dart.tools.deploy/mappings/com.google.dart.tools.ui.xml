@@ -39,6 +39,8 @@
         <semanticHighlightingMapping pluginKey="semanticHighlighting.deprecated" themeKey="deprecatedMember" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.directive" themeKey="directive" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.dynamicType" themeKey="dynamicType" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.enum" themeKey="enum" />
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.enumConstant" themeKey="enumConstant" />
         <semanticHighlightingMapping pluginKey="semanticHighlighting.field" themeKey="field" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.function" themeKey="function" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.functionTypeAlias" themeKey="functionTypeAlias" /> 

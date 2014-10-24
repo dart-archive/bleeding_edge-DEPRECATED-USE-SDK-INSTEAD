@@ -14,7 +14,8 @@
     <deprecatedMember color="#000000" />
     <directive color="#014d64" bold="true" />
     <dynamicType color="#000000" />
-    <enum color="#000000" />
+    <enum color="#0646a7" />
+    <enumConstant color="#87312e" />
     <field color="#87312e" />
     <filteredSearchResultIndication color="#000000" />
     <findScope color="#000000" />

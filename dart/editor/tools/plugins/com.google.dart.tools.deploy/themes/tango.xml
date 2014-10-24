@@ -12,6 +12,7 @@
     <deprecatedMember color="#ab2525" />
     <dynamicType color="#5c8198" />
     <enum color="#885d3b" />
+    <enumConstant color="#885d3b" />
     <field color="#566874" />
     <filteredSearchResultIndication color="#EFEFEF" />
     <findScope color="#BCADAD" />

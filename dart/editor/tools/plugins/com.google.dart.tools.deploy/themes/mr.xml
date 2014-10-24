@@ -11,6 +11,7 @@
     <currentLine color="#D8D8D8" />
     <deprecatedMember color="#D8D8D8" />
     <enum color="#FF0000" />
+    <enumConstant color="#552200" />
     <field color="#000099" />
     <filteredSearchResultIndication color="#D8D8D8" />
     <foreground color="#333333" />

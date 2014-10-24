@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoubleLiteral;
+import com.google.dart.engine.ast.EnumConstantDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -609,6 +610,64 @@ public class SemanticHighlightings {
   }
 
   /**
+   * Semantic highlighting for static fields.
+   */
+  private static class EnumConstantHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      return node.getParent() instanceof EnumConstantDeclaration;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_enumConstant;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return ENUM_CONSTANT;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return true;
+    }
+  }
+
+  private static class EnumHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Element element = node.getStaticElement();
+      if (element instanceof ClassElement) {
+        return ((ClassElement) element).isEnum();
+      }
+      return false;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_enum;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return ENUM;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  /**
    * Semantic highlighting for fields.
    */
   private static class FieldHighlighting extends DefaultSemanticHighlighting {
@@ -1017,7 +1076,6 @@ public class SemanticHighlightings {
     public boolean isItalicByDefault() {
       return true;
     }
-
   }
 
   private static class StaticMethodDeclarationHighlighting extends MethodDeclarationHighlighting {
@@ -1142,6 +1200,16 @@ public class SemanticHighlightings {
    * A named preference part that controls the highlighting of constructor.
    */
   public static final String CONSTRUCTOR = "constructor"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of enumerations.
+   */
+  public static final String ENUM = "enum"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of enumeration constants.
+   */
+  public static final String ENUM_CONSTANT = "enumConstant"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of fields.
@@ -1369,14 +1437,14 @@ public class SemanticHighlightings {
           new DirectiveHighlighting(), new BuiltInHighlighting(),
           new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
           new SetterDeclarationHighlighting(), new AnnotationHighlighting(),
-          new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
-          new ClassHighlighting(), new FunctionTypeAliasHighlighting(),
-          new TypeVariableHighlighting(), new NumberHighlighting(),
-          new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
-          new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
-          new StaticMethodHighlighting(), new ConstructorHighlighting(),
-          new MethodDeclarationHighlighting(), new MethodHighlighting(),
-          new FunctionHighlighting(), new ImportPrefixHighlighting()};
+          new EnumConstantHighlighting(), new StaticFieldHighlighting(), new FieldHighlighting(),
+          new DynamicTypeHighlighting(), new EnumHighlighting(), new ClassHighlighting(),
+          new FunctionTypeAliasHighlighting(), new TypeVariableHighlighting(),
+          new NumberHighlighting(), new LocalVariableDeclarationHighlighting(),
+          new LocalVariableHighlighting(), new ParameterHighlighting(),
+          new StaticMethodDeclarationHighlighting(), new StaticMethodHighlighting(),
+          new ConstructorHighlighting(), new MethodDeclarationHighlighting(),
+          new MethodHighlighting(), new FunctionHighlighting(), new ImportPrefixHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

@@ -15,6 +15,7 @@
     <directive color="#D05080" bold="true" />
     <dynamicType color="#79ABFF" />
     <enum color="#7FB347" />
+    <enumConstant color="#EFC090" />
     <field color="#BED6FF" />
     <filteredSearchResultIndication color="#000000" />
     <findScope color="#111111" />

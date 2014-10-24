@@ -106,6 +106,8 @@ final class DartEditorMessages extends NLS {
   public static String SemanticHighlighting_localVariableDeclaration;
   public static String SemanticHighlighting_localVariable;
   public static String SemanticHighlighting_dynamicType;
+  public static String SemanticHighlighting_enum;
+  public static String SemanticHighlighting_enumConstant;
   public static String SemanticHighlighting_parameterVariable;
   public static String SemanticHighlighting_deprecatedElement;
   public static String SemanticHighlighting_method;
