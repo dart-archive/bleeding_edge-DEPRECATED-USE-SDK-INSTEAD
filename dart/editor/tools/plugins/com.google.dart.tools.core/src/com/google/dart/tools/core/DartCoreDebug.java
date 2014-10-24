@@ -62,7 +62,11 @@ public class DartCoreDebug {
 
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
-  public static final boolean ENABLE_ASYNC = isOptionTrue("experimental/async_await");
+
+  public static final String ENABLE_ASYNC_PREF = "enableAsync";
+  public static final boolean ENABLE_ASYNC = isOptionTrue("experimental/async_await")
+      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ASYNC_PREF, false);
+
   public static final Boolean ENABLE_DEFERRED_LOADING = isOptionTrue("experimental/deferred_loading");
   public static final Boolean ENABLE_ENUMS = isOptionTrue("experimental/enums");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
@@ -70,7 +74,11 @@ public class DartCoreDebug {
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
-  public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
+
+  public static final String ENABLE_ANALYSIS_SERVER_PREF = "enableAnalysisServer";
+  public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer")
+      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, false);
+
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");

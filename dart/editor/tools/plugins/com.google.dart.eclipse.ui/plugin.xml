@@ -192,6 +192,11 @@
             name="%debugPrefPageName">
       </page>
       <page
+            class="com.google.dart.tools.ui.internal.preferences.ExperimentalPreferencePage"
+            id="com.google.dart.tools.ui.experimentalOptionsPage"
+            name="%dartExperimentalPrefName">
+      </page>
+      <page
             category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             class="com.google.dart.tools.debug.ui.internal.preferences.MobilePreferencePage"
             id="com.google.dart.tools.debug.mobilegPreferencePage"

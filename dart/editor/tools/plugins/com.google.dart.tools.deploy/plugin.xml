@@ -482,6 +482,11 @@
             id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
       </page>
       <page
+            class="com.google.dart.tools.ui.internal.preferences.ExperimentalPreferencePage"
+            id="com.google.dart.tools.ui.experimentalOptionsPage"
+            name="%dartExperimentalPrefName">
+      </page>
+      <page
             class="com.google.dart.tools.ui.internal.preferences.FontPreferencePage"
             id="com.google.dart.tools.ui.fontOptionsPage"
             name="%dartFontsPrefName">

@@ -785,6 +785,12 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_indent_using_spaces;
   public static String DartBasePreferencePage_indent_using_spaces_tooltip;
 
+  public static String ExperimentalPreferencePage_enable_analysis_server;
+  public static String ExperimentalPreferencePage_enable_analysis_server_tooltip;
+  public static String ExperimentalPreferencePage_enable_async_support;
+  public static String ExperimentalPreferencePage_enable_async_support_tooltip;
+  public static String ExperimentalPreferencePage_notes;
+
   public static String HintPreferencePage_enable_hints;
   public static String HintPreferencePage_enable_hints_tooltip;
   public static String HintPreferencePage_hints_group;
