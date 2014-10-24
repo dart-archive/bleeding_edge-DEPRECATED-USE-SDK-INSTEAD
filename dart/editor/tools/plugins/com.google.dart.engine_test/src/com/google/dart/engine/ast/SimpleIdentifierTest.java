@@ -24,6 +24,7 @@ import static com.google.dart.engine.ast.AstFactory.classTypeAlias;
 import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.AstFactory.declaredIdentifier;
 import static com.google.dart.engine.ast.AstFactory.emptyStatement;
+import static com.google.dart.engine.ast.AstFactory.enumDeclaration;
 import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.AstFactory.functionDeclaration;
 import static com.google.dart.engine.ast.AstFactory.identifier;
@@ -95,6 +96,18 @@ public class SimpleIdentifierTest extends ParserTestCase {
   public void test_inDeclarationContext_declaredIdentifier() {
     DeclaredIdentifier declaredIdentifier = declaredIdentifier("v");
     SimpleIdentifier identifier = declaredIdentifier.getIdentifier();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_enumConstantDeclaration() {
+    EnumDeclaration enumDeclaration = enumDeclaration("MyEnum", "CONST");
+    SimpleIdentifier identifier = enumDeclaration.getConstants().get(0).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_enumDeclaration() {
+    EnumDeclaration enumDeclaration = enumDeclaration("MyEnum", "A", "B", "C");
+    SimpleIdentifier identifier = enumDeclaration.getName();
     assertTrue(identifier.inDeclarationContext());
   }
 

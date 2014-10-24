@@ -153,6 +153,10 @@ public class SimpleIdentifier extends Identifier {
       return this == ((ConstructorDeclaration) parent).getName();
     } else if (parent instanceof DeclaredIdentifier) {
       return this == ((DeclaredIdentifier) parent).getIdentifier();
+    } else if (parent instanceof EnumDeclaration) {
+      return this == ((EnumDeclaration) parent).getName();
+    } else if (parent instanceof EnumConstantDeclaration) {
+      return this == ((EnumConstantDeclaration) parent).getName();
     } else if (parent instanceof FunctionDeclaration) {
       return this == ((FunctionDeclaration) parent).getName();
     } else if (parent instanceof FunctionTypeAlias) {

@@ -31,7 +31,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "enum E { ONE }",
         "E e() {",
-        "  return E.ONE;",
+        "  return E.TWO;",
         "}"));
     resolve(source);
     assertNoErrors(source);

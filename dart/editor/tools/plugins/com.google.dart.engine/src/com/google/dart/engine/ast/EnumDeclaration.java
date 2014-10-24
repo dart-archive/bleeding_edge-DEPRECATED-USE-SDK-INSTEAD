@@ -171,6 +171,13 @@ public class EnumDeclaration extends CompilationUnitMember {
   }
 
   @Override
+  public void visitChildren(AstVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(name, visitor);
+    constants.accept(visitor);
+  }
+
+  @Override
   protected Token getFirstTokenAfterCommentAndMetadata() {
     return keyword;
   }

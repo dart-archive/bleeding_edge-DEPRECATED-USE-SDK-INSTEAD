@@ -74,6 +74,12 @@ public class EnumConstantDeclaration extends Declaration {
   }
 
   @Override
+  public void visitChildren(AstVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(name, visitor);
+  }
+
+  @Override
   protected Token getFirstTokenAfterCommentAndMetadata() {
     return name.getBeginToken();
   }
