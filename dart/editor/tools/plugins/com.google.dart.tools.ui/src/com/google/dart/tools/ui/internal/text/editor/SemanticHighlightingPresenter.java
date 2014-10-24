@@ -560,60 +560,61 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     List<Position> removedPositionsCopy = Lists.newArrayList(removedPositionsList);
 
     try {
-      synchronized (fPositionLock) {
-        List<Position> oldPositions = fPositions;
-        int newSize = Math.max(
-            fPositions.size() + addedPositions.length - removedPositions.length,
-            10);
+      synchronized (getLockObject(document)) {
+        synchronized (fPositionLock) {
+          List<Position> oldPositions = fPositions;
+          int newSize = Math.max(fPositions.size() + addedPositions.length
+              - removedPositions.length, 10);
 
-        /*
-         * The following loop is a kind of merge sort: it merges two List<Position>, each sorted by
-         * position.offset, into one new list. The first of the two is the previous list of
-         * positions (oldPositions), from which any deleted positions get removed on the fly. The
-         * second of two is the list of added positions. The result is stored in newPositions.
-         */
-        List<Position> newPositions = new ArrayList<Position>(newSize);
-        Position position = null;
-        Position addedPosition = null;
-        for (int i = 0, j = 0, n = oldPositions.size(), m = addedPositions.length; i < n
-            || position != null || j < m || addedPosition != null;) {
-          // loop variant: i + j < old(i + j)
+          /*
+           * The following loop is a kind of merge sort: it merges two List<Position>, each sorted by
+           * position.offset, into one new list. The first of the two is the previous list of
+           * positions (oldPositions), from which any deleted positions get removed on the fly. The
+           * second of two is the list of added positions. The result is stored in newPositions.
+           */
+          List<Position> newPositions = new ArrayList<Position>(newSize);
+          Position position = null;
+          Position addedPosition = null;
+          for (int i = 0, j = 0, n = oldPositions.size(), m = addedPositions.length; i < n
+              || position != null || j < m || addedPosition != null;) {
+            // loop variant: i + j < old(i + j)
 
-          // a) find the next non-deleted Position from the old list
-          while (position == null && i < n) {
-            position = oldPositions.get(i++);
-            if (position.isDeleted() || contain(removedPositionsCopy, position)) {
-              document.removePosition(positionCategory, position);
-              position = null;
+            // a) find the next non-deleted Position from the old list
+            while (position == null && i < n) {
+              position = oldPositions.get(i++);
+              if (position.isDeleted() || contain(removedPositionsCopy, position)) {
+                document.removePosition(positionCategory, position);
+                position = null;
+              }
             }
-          }
 
-          // b) find the next Position from the added list
-          if (addedPosition == null && j < m) {
-            addedPosition = addedPositions[j++];
-            document.addPosition(positionCategory, addedPosition);
-          }
+            // b) find the next Position from the added list
+            if (addedPosition == null && j < m) {
+              addedPosition = addedPositions[j++];
+              document.addPosition(positionCategory, addedPosition);
+            }
 
-          // c) merge: add the next of position/addedPosition with the lower offset
-          if (position != null) {
-            if (addedPosition != null) {
-              if (position.getOffset() <= addedPosition.getOffset()) {
+            // c) merge: add the next of position/addedPosition with the lower offset
+            if (position != null) {
+              if (addedPosition != null) {
+                if (position.getOffset() <= addedPosition.getOffset()) {
+                  newPositions.add(position);
+                  position = null;
+                } else {
+                  newPositions.add(addedPosition);
+                  addedPosition = null;
+                }
+              } else {
                 newPositions.add(position);
                 position = null;
-              } else {
-                newPositions.add(addedPosition);
-                addedPosition = null;
               }
-            } else {
-              newPositions.add(position);
-              position = null;
+            } else if (addedPosition != null) {
+              newPositions.add(addedPosition);
+              addedPosition = null;
             }
-          } else if (addedPosition != null) {
-            newPositions.add(addedPosition);
-            addedPosition = null;
           }
+          fPositions = newPositions;
         }
-        fPositions = newPositions;
       }
     } catch (BadPositionCategoryException e) {
       // Should not happen
