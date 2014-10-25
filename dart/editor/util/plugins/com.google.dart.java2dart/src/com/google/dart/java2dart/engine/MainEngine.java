@@ -273,6 +273,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/sdk"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/source"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/utilities"));
     // configure properties
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isFunctionDeclaration()");
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isInitializedVariableDeclaration()");
@@ -589,6 +590,13 @@ public class MainEngine {
           "//AnalysisDeltaTest.dartSuite();");
       source = replaceSourceFragment(source, "on AssertionFailedError catch", "catch");
       Files.write(source, new File(targetTestFolder + "/resolver_test.dart"), Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildUtilitiesTestLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetTestFolder + "/utilities_test.dart"),
+          Charsets.UTF_8);
     }
     {
       for (CompilationUnitMember member : movedMembers) {
@@ -1484,6 +1492,26 @@ public class MainEngine {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
+    return unit;
+  }
+
+  private static CompilationUnit buildUtilitiesTestLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "utilities_test"));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "utilities/")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            moveMemberToUnit(unit, unitMember);
+          }
+        }
+      }
+    }
+    EngineSemanticProcessor.addMain(unit, mainStatements);
     return unit;
   }
 
