@@ -41,6 +41,10 @@ public class HighlightRegionType {
 
   public static final String DYNAMIC_TYPE = "DYNAMIC_TYPE";
 
+  public static final String ENUM = "ENUM";
+
+  public static final String ENUM_CONSTANT = "ENUM_CONSTANT";
+
   public static final String FIELD = "FIELD";
 
   public static final String FIELD_STATIC = "FIELD_STATIC";
