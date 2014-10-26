@@ -76,6 +76,10 @@ public class AstClonerTest extends EngineTestCase {
     assertClone(assignmentExpression(identifier("a"), TokenType.EQ, identifier("b")));
   }
 
+  public void test_visitAwaitExpression() {
+    assertClone(awaitExpression(identifier("a")));
+  }
+
   public void test_visitBinaryExpression() {
     assertClone(binaryExpression(identifier("a"), TokenType.PLUS, identifier("b")));
   }
@@ -1519,6 +1523,10 @@ public class AstClonerTest extends EngineTestCase {
 
   public void test_visitWithClause_single() {
     assertClone(withClause(typeName("A")));
+  }
+
+  public void test_visitYieldStatement() {
+    assertClone(yieldStatement(identifier("A")));
   }
 
   /**

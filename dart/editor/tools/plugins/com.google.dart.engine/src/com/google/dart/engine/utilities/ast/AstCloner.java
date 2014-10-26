@@ -86,7 +86,7 @@ public class AstCloner implements AstVisitor<AstNode> {
 
   @Override
   public AwaitExpression visitAwaitExpression(AwaitExpression node) {
-    return new AwaitExpression(node.getAwaitKeyword(), node.getExpression());
+    return new AwaitExpression(node.getAwaitKeyword(), cloneNode(node.getExpression()));
   }
 
   @Override
@@ -949,7 +949,7 @@ public class AstCloner implements AstVisitor<AstNode> {
     return new YieldStatement(
         node.getYieldKeyword(),
         node.getStar(),
-        node.getExpression(),
+        cloneNode(node.getExpression()),
         node.getSemicolon());
   }
 
