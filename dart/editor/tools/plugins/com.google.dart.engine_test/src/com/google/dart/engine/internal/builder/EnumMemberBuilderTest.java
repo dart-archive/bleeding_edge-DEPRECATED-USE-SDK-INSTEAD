@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 
 import static com.google.dart.engine.ast.AstFactory.enumDeclaration;
@@ -36,16 +37,19 @@ public class EnumMemberBuilderTest extends EngineTestCase {
     assertNotNull(constant);
     assertEquals(firstName, constant.getName());
     assertTrue(constant.isStatic());
+    assertGetter(constant);
 
     constant = fields[3];
     assertNotNull(constant);
     assertEquals(secondName, constant.getName());
     assertTrue(constant.isStatic());
+    assertGetter(constant);
 
     constant = fields[4];
     assertNotNull(constant);
     assertEquals(thirdName, constant.getName());
     assertTrue(constant.isStatic());
+    assertGetter(constant);
   }
 
   public void test_visitEnumDeclaration_single() {
@@ -61,17 +65,27 @@ public class EnumMemberBuilderTest extends EngineTestCase {
     assertEquals("index", field.getName());
     assertFalse(field.isStatic());
     assertTrue(field.isSynthetic());
+    assertGetter(field);
 
     field = fields[1];
     assertNotNull(field);
     assertEquals("values", field.getName());
     assertTrue(field.isStatic());
     assertTrue(field.isSynthetic());
+    assertGetter(field);
 
     FieldElement constant = fields[2];
     assertNotNull(constant);
     assertEquals(firstName, constant.getName());
     assertTrue(constant.isStatic());
+    assertGetter(constant);
+  }
+
+  private void assertGetter(FieldElement field) {
+    PropertyAccessorElement getter = field.getGetter();
+    assertNotNull(getter);
+    assertSame(field, getter.getVariable());
+    assertNotNull(getter.getType());
   }
 
   private ClassElement buildElement(EnumDeclaration enumDeclaration) {

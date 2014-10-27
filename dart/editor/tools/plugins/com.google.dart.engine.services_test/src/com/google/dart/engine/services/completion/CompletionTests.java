@@ -1715,6 +1715,15 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1-abs", "1-main");
   }
 
+  public void testCompletion_enum() throws Exception {
+    resetWithEnum();
+    test(src(//
+        "enum MyEnum {A, B, C}",
+        "main() {",
+        "  MyEnum.!1;",
+        "}"), "1+values", "1+A", "1+B", "1+C");
+  }
+
   public void testCompletion_exactPrefix_hasHigherRelevance() throws Exception {
     test(src(//
         "var STR;",

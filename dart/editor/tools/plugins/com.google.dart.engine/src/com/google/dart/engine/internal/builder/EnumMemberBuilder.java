@@ -29,6 +29,7 @@ import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.object.IntState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -127,6 +128,7 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
     getter.setReturnType(field.getType());
+    getter.setType(new FunctionTypeImpl(getter));
     field.setGetter(getter);
     return getter;
   }
