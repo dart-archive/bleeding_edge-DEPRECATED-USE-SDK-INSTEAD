@@ -566,6 +566,9 @@ public final class DartUI {
       return null;
     }
     Location location = target.getLocation();
+    if (location == null) {
+      return null;
+    }
     String path = location.getFile();
     IEditorPart editor = openFilePath(path, activate);
     if (editor != null) {
