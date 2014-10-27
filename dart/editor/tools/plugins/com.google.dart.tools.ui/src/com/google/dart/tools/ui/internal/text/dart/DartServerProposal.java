@@ -85,11 +85,17 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
+  private final static char[] TRIGGERS = new char[] {
+      ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
+
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
   private final int relevance;
   private final StyledString styledCompletion;
   private Image image;
+
+  /** Offset needed when the proposal is applied */
+  private int selectionOffset = 0;
 
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
@@ -115,14 +121,31 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     int replacementLength = offset - replacementOffset;
     IDocument doc = viewer.getDocument();
     try {
+      /*
+       * If no characters have been typed and the trigger character is a '.'
+       * then then skip the suggestion and just insert the trigger character
+       * to prevent suggestion from being inserted between .. in a cascade.
+       * This also re-triggers code completion on the cascade.
+       */
+      if (replacementLength == 0 && trigger == '.') {
+        doc.replace(offset, 0, Character.toString(trigger));
+        selectionOffset = 1;
+        return;
+      }
+      /*
+       * Insert the suggestion
+       */
       doc.replace(replacementOffset, replacementLength, completion);
-
-      // Setup for entering method parameters
+      selectionOffset = completion.length();
+      /*
+       * If the suggestion has parameters, initiate entering parameters
+       */
+      int newOffset = replacementOffset + completion.length();
       String param = getParamString();
       if (param != null) {
-        int newOffset = replacementOffset + completion.length();
         doc.replace(newOffset, 0, "()");
         ++newOffset;
+        ++selectionOffset;
 
         LinkedPositionGroup group = new LinkedPositionGroup();
         group.addPosition(new LinkedPosition(doc, newOffset, 0, LinkedPositionGroup.NO_STOP));
@@ -137,8 +160,16 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         ui.setExitPosition(viewer, newOffset + 1, 0, Integer.MAX_VALUE);
         ui.setCyclingMode(LinkedModeUI.CYCLE_NEVER);
         ui.enter();
+        return;
       }
-
+      /*
+       * Insert the trigger character typed if it is not enter or null
+       */
+      if (trigger != '\0' && trigger != '\n') {
+        doc.replace(newOffset, 0, Character.toString(trigger));
+        ++selectionOffset;
+        return;
+      }
     } catch (BadLocationException e) {
       DartCore.logInformation("Failed to replace offset:" + replacementOffset + " length:"
           + replacementLength + " with:" + completion, e);
@@ -207,11 +238,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Point getSelection(IDocument document) {
-    int offset = collector.getReplacementOffset() + getCompletion().length();
-    if (getParamString() != null) {
-      ++offset;
-    }
-    return new Point(offset, 0);
+    return new Point(collector.getReplacementOffset() + selectionOffset, 0);
   }
 
   @Override
@@ -221,7 +248,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public char[] getTriggerCharacters() {
-    return null;
+    return TRIGGERS;
   }
 
   @Override
