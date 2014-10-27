@@ -17,6 +17,7 @@ package com.google.dart.tools.core.generator;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.generator.Stagehand.StagehandTuple;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -34,7 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,25 +45,71 @@ import java.util.Map;
  * 
  * @coverage dart.tools.core.generator
  */
-public class AbstractSample {
+public class AbstractSample implements Comparable<AbstractSample> {
+  private static Stagehand stagehand = new Stagehand();
 
+  private static List<AbstractSample> cachedSamples;
+
+  /**
+   * Get all the known samples. This method can be slow.
+   * 
+   * @return all the known samples
+   */
   public static List<AbstractSample> getAllSamples() {
-    return Arrays.asList(
-        new WebAppSample(),
-        new CommandLineSample(),
-        new PackageSample(),
-        new PolymerSample(),
-        new ChromePackagedAppSample());
+    if (cachedSamples != null) {
+      return cachedSamples;
+    }
+
+    boolean doUpgradeCheck = true;
+
+    if (!stagehand.isInstalled()) {
+      doUpgradeCheck = false;
+
+      stagehand.install();
+    }
+
+    List<StagehandTuple> samples = stagehand.getAvailableSamples();
+
+    // Make sure we're on a reasonably latest version of Stagehand.
+    if (doUpgradeCheck) {
+      new Thread() {
+        @Override
+        public void run() {
+          stagehand.upgrade();
+        }
+      }.start();
+    }
+
+    cachedSamples = new ArrayList<AbstractSample>();
+    // TODO(devoncarew): Remove this when/if a chrome app sample is in stagehand.
+    cachedSamples.add(new ChromePackagedAppSample());
+
+    for (StagehandTuple sample : samples) {
+      cachedSamples.add(new StagehandSample(
+          stagehand,
+          sample.id,
+          sample.description,
+          sample.entrypoint));
+    }
+
+    Collections.sort(cachedSamples);
+
+    return cachedSamples;
   }
 
   private String title;
   private String description;
   private List<String[]> templates = new ArrayList<String[]>();
-  private String mainFile;
+  protected String mainFile;
 
   public AbstractSample(String title, String description) {
     this.title = title;
     this.description = description;
+  }
+
+  @Override
+  public int compareTo(AbstractSample other) {
+    return getTitle().compareToIgnoreCase(other.getTitle());
   }
 
   public IFile generateInto(IContainer container, String sampleName) throws CoreException {
@@ -113,7 +160,7 @@ public class AbstractSample {
   }
 
   public boolean isValidProjectName(String name) {
-    return true;
+    return !name.equalsIgnoreCase(getTitle());
   }
 
   public boolean shouldBeDefault() {
@@ -197,5 +244,4 @@ public class AbstractSample {
       return str.substring(0, 1).toUpperCase() + str.substring(1).replaceAll("_", " ");
     }
   }
-
 }

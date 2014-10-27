@@ -35,7 +35,6 @@ import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
  * Standard workbench wizard that creates a new Dart project resource in the workspace.
  */
 public class DartProjectWizard extends Wizard implements INewWizard {
-
   private IWorkbench workbench;
   private ISelection selection;
   private IProject newProject;

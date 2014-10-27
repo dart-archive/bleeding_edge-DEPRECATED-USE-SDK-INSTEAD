@@ -64,14 +64,13 @@ import java.net.URI;
  */
 @SuppressWarnings("restriction")
 public class CreateApplicationWizard extends BasicNewResourceWizard {
-
   private NewApplicationCreationPage page;
   private IFile createdFile;
   private IProject newProject;
 
   public CreateApplicationWizard() {
-    super();
     setWindowTitle("New Project");
+    setNeedsProgressMonitor(true);
   }
 
   @Override

@@ -25,6 +25,7 @@ import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
@@ -33,10 +34,10 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
@@ -53,14 +54,16 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -164,26 +167,17 @@ public class NewApplicationCreationPage extends WizardPage {
     projectNameField.setFocus();
 
     Group contentGroup = new Group(container, SWT.NONE);
-    contentGroup.setText("Sample content");
+    contentGroup.setText("Project templates");
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
     samplesViewer = new TableViewer(contentGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER
         | SWT.FULL_SELECTION);
-    samplesViewer.setLabelProvider(new LabelProvider());
+    samplesViewer.setLabelProvider(new SamplesLabelProvider());
     samplesViewer.setContentProvider(new ArrayContentProvider());
-    List<AbstractSample> samples = AbstractSample.getAllSamples();
-    samplesViewer.setInput(samples);
-    {
-      Control samplesControl = samplesViewer.getControl();
-      int height = new PixelConverter(samplesControl).convertHeightInCharsToPixels(8);
-      GridDataFactory gdf = GridDataFactory.fillDefaults();
-      gdf.hint(-1, height);
-      gdf.grab(true, false);
-      gdf.align(SWT.FILL, SWT.CENTER);
-      gdf.applyTo(samplesControl);
-    }
-    samplesViewer.setSelection(new StructuredSelection(getDefaultSample(samples)));
+    samplesViewer.setInput(new ArrayList<AbstractSample>());
+    GridDataFactory.fillDefaults().hint(200, 90).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        samplesViewer.getControl());
     samplesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
@@ -196,6 +190,13 @@ public class NewApplicationCreationPage extends WizardPage {
     updateMessageAndEnablement();
 
     setPageComplete(false);
+
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        populateSamplesList();
+      }
+    });
   }
 
   /**
@@ -313,6 +314,31 @@ public class NewApplicationCreationPage extends WizardPage {
     }
 
     return projectNameField.getText().trim();
+  }
+
+  private void populateSamplesList() {
+    try {
+      getContainer().run(true, false, new IRunnableWithProgress() {
+        @Override
+        public void run(IProgressMonitor monitor) throws InvocationTargetException,
+            InterruptedException {
+          monitor.beginTask("", IProgressMonitor.UNKNOWN);
+          final List<AbstractSample> samples = AbstractSample.getAllSamples();
+          Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              samplesViewer.setInput(samples);
+              samplesViewer.setSelection(new StructuredSelection(getDefaultSample(samples)));
+            }
+          });
+          monitor.done();
+        }
+      });
+    } catch (InvocationTargetException e) {
+      DartToolsPlugin.log(e);
+    } catch (InterruptedException e) {
+      DartToolsPlugin.log(e);
+    }
   }
 
   private void update() {

@@ -24,7 +24,7 @@ import java.util.List;
 public class ChromePackagedAppSample extends AbstractSample {
 
   public ChromePackagedAppSample() {
-    super("Chrome packaged application", "Create a sample Chrome packaged application");
+    super("chromeapp", "A Chrome packaged application.");
 
     List<String[]> templates = new ArrayList<String[]>();
 

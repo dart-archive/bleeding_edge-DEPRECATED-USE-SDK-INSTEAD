@@ -43,7 +43,6 @@ import org.eclipse.swt.widgets.Text;
  * Dart project wizard creation page.
  */
 public class DartProjectWizardPage extends WizardPage {
-
   private SamplesComposite samplesComposite;
   private Text defaultLocationPathText;
   private Button browseButton;
@@ -73,7 +72,7 @@ public class DartProjectWizardPage extends WizardPage {
     Control locationControl = createLocationGroup(composite);
     locationControl.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
 
-    samplesComposite = new SamplesComposite(composite, SWT.NONE);
+    samplesComposite = new SamplesComposite(this, composite, SWT.NONE);
     samplesComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     setControl(composite);
