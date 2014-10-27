@@ -127,6 +127,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
     options.setCacheSize(256);
+    options.setEnableEnum(true);
     context.setAnalysisOptions(options);
   }
 
@@ -543,6 +544,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ElementLocation location = constructor.getLocation();
     Element element = context.getElement(location);
     assertSame(constructor, element);
+  }
+
+  public void test_getElement_enum() throws Exception {
+    Source source = addSource("/lib.dart", "enum MyEnum {A, B, C}");
+    analyzeAll_assertFinished();
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    ClassElement myEnum = unit.getEnum("MyEnum");
+    ElementLocation location = myEnum.getLocation();
+    Element element = context.getElement(location);
+    assertSame(myEnum, element);
   }
 
   public void test_getErrors_dart_none() throws Exception {

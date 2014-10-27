@@ -156,6 +156,11 @@ public class CompilationUnitElementImpl extends UriReferencedElementImpl impleme
         return (ClassElementImpl) type;
       }
     }
+    for (ClassElement type : enums) {
+      if (((ClassElementImpl) type).getIdentifier().equals(identifier)) {
+        return (ClassElementImpl) type;
+      }
+    }
     return null;
   }
 

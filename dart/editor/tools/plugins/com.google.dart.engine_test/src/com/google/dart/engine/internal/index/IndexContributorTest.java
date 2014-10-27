@@ -123,6 +123,21 @@ public class IndexContributorTest extends AbstractDartTest {
     assertNoRecordedRelation(relations, classElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
+  public void test_definesClassEnum() throws Exception {
+    parseTestUnit("enum MyEnum {A, B, C}");
+    // prepare elements
+    ClassElement classElementE = findElement("MyEnum {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertDefinesTopLevelElement(
+        relations,
+        testLibraryElement,
+        IndexConstants.DEFINES_CLASS,
+        new ExpectedLocation(classElementE, findOffset("MyEnum {"), "MyEnum"));
+  }
+
   public void test_definesFunction() throws Exception {
     parseTestUnit("myFunction() {}");
     FunctionElement functionElement = findElement("myFunction() {}");

@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
@@ -530,6 +531,18 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement element = node.getElement();
+    enterScope(element);
+    try {
+      recordElementDefinition(element, IndexConstants.DEFINES_CLASS);
+      return super.visitEnumDeclaration(node);
+    } finally {
+      exitScope();
+    }
   }
 
   @Override
