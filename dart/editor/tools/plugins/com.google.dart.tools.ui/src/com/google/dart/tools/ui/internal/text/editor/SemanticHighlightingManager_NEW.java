@@ -307,6 +307,10 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       return "constructor";
     } else if (type.equals(HighlightRegionType.DYNAMIC_TYPE)) {
       return "dynamicType";
+    } else if (type.equals(HighlightRegionType.ENUM)) {
+      return "enum";
+    } else if (type.equals(HighlightRegionType.ENUM_CONSTANT)) {
+      return "enumConstant";
     } else if (type.equals(HighlightRegionType.FIELD)) {
       return "field";
     } else if (type.equals(HighlightRegionType.FIELD_STATIC)) {
