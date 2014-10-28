@@ -102,37 +102,6 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
-  public static RefactoringStatus validateConstantName(String name) {
-    // null
-    if (name == null) {
-      return RefactoringStatus.createErrorStatus("Constant name must not be null.");
-    }
-    // is not identifier
-    RefactoringStatus status = validateIdentifier(name, "Constant");
-    if (!status.isOK()) {
-      return status;
-    }
-    // is private, OK
-    int startIndex = 0;
-    if (name.charAt(0) == '_') {
-      startIndex++;
-    }
-    // does not start with lower case
-    for (int i = startIndex; i < name.length(); i++) {
-      char c = name.charAt(i);
-      if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
-        return RefactoringStatus.createWarningStatus("Constant name should be all uppercase with underscores.");
-      }
-    }
-    // OK
-    return new RefactoringStatus();
-  }
-
-  /**
-   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
-   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
-   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
-   */
   public static RefactoringStatus validateConstructorName(String name) {
     if (name != null && name.isEmpty()) {
       return new RefactoringStatus();

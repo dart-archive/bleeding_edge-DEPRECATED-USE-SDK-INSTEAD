@@ -26,7 +26,6 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularScopePropertyName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularTagSelectorName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateClassName;
-import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstantName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstructorName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFieldName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFunctionName;
@@ -417,71 +416,6 @@ public class NamingConventionsTest extends AbstractDartTest {
         validateClassName("newName  "),
         RefactoringStatusSeverity.ERROR,
         "Class name must not start or end with a blank.");
-  }
-
-  public void test_validateConstantName_empty() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName(""),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not be empty.");
-  }
-
-  public void test_validateConstantName_leadingBlanks() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName("  newName"),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not start or end with a blank.");
-  }
-
-  public void test_validateConstantName_notAllCaps() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName("NewName"),
-        RefactoringStatusSeverity.WARNING,
-        "Constant name should be all uppercase with underscores.");
-  }
-
-  public void test_validateConstantName_notIdentifierMiddle() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName("na-me"),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not contain '-'.");
-  }
-
-  public void test_validateConstantName_notIdentifierStart() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName("2name"),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not start with '2'.");
-  }
-
-  public void test_validateConstantName_null() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName(null),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not be null.");
-  }
-
-  public void test_validateConstantName_OK() throws Exception {
-    assertRefactoringStatusOK(validateConstantName("NAME"));
-  }
-
-  public void test_validateConstantName_OK_digit() throws Exception {
-    assertRefactoringStatusOK(validateConstantName("NAME2"));
-  }
-
-  public void test_validateConstantName_OK_underscoreLeading() throws Exception {
-    assertRefactoringStatusOK(validateConstantName("_NAME"));
-  }
-
-  public void test_validateConstantName_OK_underscoreMiddle() throws Exception {
-    assertRefactoringStatusOK(validateConstantName("MY_NEW_NAME"));
-  }
-
-  public void test_validateConstantName_trailingBlanks() throws Exception {
-    assertRefactoringStatus(
-        validateConstantName("newName  "),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not start or end with a blank.");
   }
 
   public void test_validateConstructorName_doesNotStartWithLowerCase() throws Exception {

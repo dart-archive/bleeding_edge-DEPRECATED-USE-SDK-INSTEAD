@@ -68,12 +68,7 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     result.merge(super.checkNewName(newName));
     if (element instanceof TopLevelVariableElement) {
-      TopLevelVariableElement variableElement = (TopLevelVariableElement) element;
-      if (variableElement.isConst()) {
-        result.merge(NamingConventions.validateConstantName(newName));
-      } else {
-        result.merge(NamingConventions.validateVariableName(newName));
-      }
+      result.merge(NamingConventions.validateVariableName(newName));
     }
     if (element instanceof FunctionElement) {
       result.merge(NamingConventions.validateFunctionName(newName));

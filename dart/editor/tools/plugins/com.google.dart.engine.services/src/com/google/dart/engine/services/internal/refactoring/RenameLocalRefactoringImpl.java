@@ -75,12 +75,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     result.merge(super.checkNewName(newName));
     if (element instanceof LocalVariableElement) {
-      LocalVariableElement variableElement = (LocalVariableElement) element;
-      if (variableElement.isConst()) {
-        result.merge(NamingConventions.validateConstantName(newName));
-      } else {
-        result.merge(NamingConventions.validateVariableName(newName));
-      }
+      result.merge(NamingConventions.validateVariableName(newName));
     } else if (element instanceof ParameterElement) {
       result.merge(NamingConventions.validateParameterName(newName));
     } else if (element instanceof FunctionElement) {

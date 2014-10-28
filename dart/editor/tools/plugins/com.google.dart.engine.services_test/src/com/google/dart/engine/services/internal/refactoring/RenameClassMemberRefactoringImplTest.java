@@ -292,32 +292,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "Choose another name.");
   }
 
-  public void test_checkNewName_FieldElement_const() throws Exception {
-    indexTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static const int TEST = 0;",
-        "}");
-    createRenameRefactoring("TEST = 0;");
-    // null
-    assertRefactoringStatus(
-        refactoring.checkNewName(null),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not be null.");
-    // empty
-    assertRefactoringStatus(
-        refactoring.checkNewName(""),
-        RefactoringStatusSeverity.ERROR,
-        "Constant name must not be empty.");
-    // same name
-    assertRefactoringStatus(
-        refactoring.checkNewName("TEST"),
-        RefactoringStatusSeverity.FATAL,
-        "Choose another name.");
-    // with underscore
-    assertRefactoringStatusOK(refactoring.checkNewName("NEW_NAME"));
-  }
-
   public void test_checkNewName_MethodElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
