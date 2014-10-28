@@ -6,6 +6,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
+import com.google.dart.tools.core.pub.IPackageRootProvider;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -13,8 +14,10 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -40,8 +43,22 @@ public class DartProjectManager {
     }
 
     private boolean shouldSetAnalysisRoots(IResourceChangeEvent event) {
-      return event.getType() == IResourceChangeEvent.POST_CHANGE
-          && event.getDelta().getAffectedChildren(IResourceDelta.ADDED | IResourceDelta.REMOVED).length > 0;
+      if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+        IResourceDelta delta = event.getDelta();
+        if (delta.getAffectedChildren(IResourceDelta.ADDED | IResourceDelta.REMOVED).length > 0) {
+          // Toplevel project added or removed.
+          return true;
+        }
+        for (IResourceDelta child : delta.getAffectedChildren(IResourceDelta.CHANGED)) {
+          if (child.findMember(new Path(".settings/com.google.dart.tools.core.prefs")) != null) {
+            // Toplevel project had its package root changed.
+            // TODO(paulberry): is there a better way to detect this, perhaps with
+            // IPreferenceChangeListener?
+            return true;
+          }
+        }
+      }
+      return false;
     }
   };
 
@@ -68,11 +85,17 @@ public class DartProjectManager {
   public void setAnalysisRoots() {
     List<String> includedPaths = Lists.newArrayList();
     List<String> excludedPaths = Lists.newArrayList();
+    HashMap<String, String> packageRoots = new HashMap<String, String>();
     for (IProject proj : root.getProjects()) {
       try {
         boolean hasNature = proj.isOpen() && proj.hasNature(DartCore.DART_PROJECT_NATURE);
         if (hasNature) {
-          includedPaths.add(proj.getLocation().toOSString());
+          String projPath = proj.getLocation().toOSString();
+          includedPaths.add(projPath);
+          File packageRoot = IPackageRootProvider.DEFAULT.getPackageRoot(proj);
+          if (packageRoot != null) {
+            packageRoots.put(projPath, packageRoot.getPath());
+          }
         }
       } catch (CoreException e) {
         DartCore.logError("Failed to determine if project should be analyzed: " + proj.getName(), e);
@@ -81,8 +104,7 @@ public class DartProjectManager {
     for (String path : ignoreManager.getExclusionPatterns()) {
       excludedPaths.add(path.replace('/', File.separatorChar));
     }
-    // TODO(paulberry): pass down proper package roots.
-    server.analysis_setAnalysisRoots(includedPaths, excludedPaths, null);
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths, packageRoots);
   }
 
   /**

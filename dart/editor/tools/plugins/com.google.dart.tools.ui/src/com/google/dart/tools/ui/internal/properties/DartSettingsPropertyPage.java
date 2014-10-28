@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.properties;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
@@ -69,8 +70,10 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
         String packageRoot = packageRootText.getText().trim();
         if (!oldPackageRoot.equals(packageRoot)) {
           DartCore.getPlugin().setPackageRoot(project, packageRoot);
-          Job job = new CleanLibrariesJob();
-          job.schedule();
+          if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+            Job job = new CleanLibrariesJob();
+            job.schedule();
+          }
         }
       } catch (CoreException ce) {
         DartToolsPlugin.log(ce);
