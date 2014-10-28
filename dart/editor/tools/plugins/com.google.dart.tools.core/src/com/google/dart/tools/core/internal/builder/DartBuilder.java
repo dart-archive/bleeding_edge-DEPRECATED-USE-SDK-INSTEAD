@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.CleanEvent;
@@ -76,6 +77,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
         safeRun(new ParticipantRunner() {
           @Override
           public void run(IProgressMonitor monitor) throws CoreException {
+            // TODO (danrubel) Remove the BuildParticipant entry in the plugin.xml
+            // once analysis server is the norm.
+            if (DartCoreDebug.ENABLE_ANALYSIS_SERVER
+                && participant instanceof AnalysisEngineParticipant) {
+              return;
+            }
             participant.build(event, monitor);
           }
         }, subMonitor);
