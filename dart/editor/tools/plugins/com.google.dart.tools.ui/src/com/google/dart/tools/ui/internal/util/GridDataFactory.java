@@ -386,8 +386,8 @@ public final class GridDataFactory {
   /**
    * Sets the indent of the control within the cell in pixels.
    */
-  public GridDataFactory indent(int hIndex, int vIndent) {
-    data.horizontalIndent = vIndent;
+  public GridDataFactory indent(int hIndent, int vIndent) {
+    data.horizontalIndent = hIndent;
     data.verticalIndent = vIndent;
     return this;
   }

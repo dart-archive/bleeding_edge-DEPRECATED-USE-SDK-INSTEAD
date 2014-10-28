@@ -20,6 +20,7 @@ import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
+import com.google.dart.tools.ui.internal.util.GridDataFactory;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
@@ -31,9 +32,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -109,7 +108,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
     Group nameGroup = new Group(container, SWT.NONE);
     nameGroup.setText("Name and location");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(nameGroup);
+    GridDataFactory.create(nameGroup).grabHorizontal().fill();
     GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(nameGroup);
 
     Label nameLabel = new Label(nameGroup, SWT.NONE);
@@ -160,15 +159,13 @@ public class NewApplicationCreationPage extends WizardPage {
         handleBrowseButton(projectLocationField);
       }
     });
-    PixelConverter converter = new PixelConverter(browseButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseButton);
+    GridDataFactory.create(browseButton).hintWidthUnits(IDialogConstants.BUTTON_WIDTH);
 
     projectNameField.setFocus();
 
     Group contentGroup = new Group(container, SWT.NONE);
     contentGroup.setText("Project templates");
-    GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
+    GridDataFactory.create(contentGroup).indent(0, 10).span(3, 1).grab().fill();
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
     samplesViewer = new TableViewer(contentGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER
@@ -176,8 +173,7 @@ public class NewApplicationCreationPage extends WizardPage {
     samplesViewer.setLabelProvider(new SamplesLabelProvider());
     samplesViewer.setContentProvider(new ArrayContentProvider());
     samplesViewer.setInput(new ArrayList<AbstractSample>());
-    GridDataFactory.fillDefaults().hint(200, 90).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
-        samplesViewer.getControl());
+    GridDataFactory.create(samplesViewer.getControl()).grab().fill().hintChars(90, 8);
     samplesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
