@@ -84,6 +84,7 @@ public class DartCoreDebug {
       || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, false);
 
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
+  public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionValue("experimental/analysisServer/http_port");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
   public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");

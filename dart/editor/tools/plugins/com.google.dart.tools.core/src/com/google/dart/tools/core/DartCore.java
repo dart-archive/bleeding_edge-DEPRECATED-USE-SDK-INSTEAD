@@ -494,6 +494,16 @@ public class DartCore extends Plugin implements DartSdkListener {
               };
             }
           }
+          int httpPort = 0;
+          if (DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT != null
+              && !DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT.isEmpty()) {
+            try {
+              httpPort = Integer.parseInt(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT);
+            } catch (NumberFormatException e) {
+              DartCore.logError("Analysis server HTTP port must be an integer.");
+              System.exit(1);
+            }
+          }
           // create server, if "com.google.dart.svnRoot" flag was not set then use snapshot
           StdioServerSocket socket = new StdioServerSocket(
               runtimePath,
@@ -501,7 +511,8 @@ public class DartCore extends Plugin implements DartSdkListener {
               packageRoot,
               debugStream,
               DartCoreDebug.ANALYSIS_SERVER_DEBUG,
-              DartCoreDebug.ANALYSIS_SERVER_PROFILE);
+              DartCoreDebug.ANALYSIS_SERVER_PROFILE,
+              httpPort);
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
           analysisServer.start();

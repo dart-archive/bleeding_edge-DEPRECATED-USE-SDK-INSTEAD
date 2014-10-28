@@ -47,6 +47,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final DebugPrintStream debugStream;
   private final boolean debugRemoteProcess;
   private final boolean profileRemoteProcess;
+  private int httpPort;
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
@@ -59,7 +60,8 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final String packageRoot;
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
-      DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess) {
+      DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess,
+      int httpPort) {
     this(
         runtimePath,
         analysisServerPath,
@@ -67,12 +69,13 @@ public class StdioServerSocket implements AnalysisServerSocket {
         debugStream,
         new String[] {},
         debugRemoteProcess,
-        profileRemoteProcess);
+        profileRemoteProcess,
+        httpPort);
   }
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, String[] additionalProgramArguments,
-      boolean debugRemoteProcess, boolean profileRemoteProcess) {
+      boolean debugRemoteProcess, boolean profileRemoteProcess, int httpPort) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.packageRoot = packageRoot;
@@ -80,6 +83,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
     this.additionalProgramArguments = additionalProgramArguments;
     this.debugRemoteProcess = debugRemoteProcess;
     this.profileRemoteProcess = profileRemoteProcess;
+    this.httpPort = httpPort;
   }
 
   @Override
@@ -116,6 +120,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
       args.add("--pause-isolates-on-exit");
     }
     args.add(analysisServerPath);
+    if (httpPort != 0) {
+      args.add("--port=" + httpPort);
+    }
     for (String arg : additionalProgramArguments) {
       args.add(arg);
     }
@@ -126,6 +133,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
     errorStream = new ByteLineReaderStream(process.getErrorStream());
     if (debugRemoteProcess) {
       System.out.println("Analysis server debug port " + debugPort);
+    }
+    if (httpPort != 0) {
+      System.out.println("Analysis server http port " + httpPort);
     }
   }
 
