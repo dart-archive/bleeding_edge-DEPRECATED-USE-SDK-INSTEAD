@@ -171,7 +171,7 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
   }
 
   private void reloadPressed() {
-    PubPackageManager.getInstance().initialize();
+    PubPackageManager.getInstance().startPackageListFromPubJob();
   }
 
 }

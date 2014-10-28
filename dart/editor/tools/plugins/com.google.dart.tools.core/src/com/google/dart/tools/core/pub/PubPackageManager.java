@@ -13,8 +13,11 @@
  */
 package com.google.dart.tools.core.pub;
 
+import com.google.common.reflect.TypeToken;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -26,9 +29,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -43,6 +54,32 @@ import java.util.Map;
  */
 public class PubPackageManager {
 
+  /**
+   * Save package information from pub.dartlang to disk
+   */
+  private class PubPackageListWriter implements IPubPackageListener {
+
+    @Override
+    public void pubPackagesChanged(List<PubPackageObject> pubPackages) {
+      Gson gson = new GsonBuilder().create();
+      Type collectionType = new TypeToken<Collection<PubPackageObject>>() {
+      }.getType();
+      String json = gson.toJson(pubPackages, collectionType);
+      File file = getPackagesFile();
+      PrintWriter printWriter = null;
+      try {
+        printWriter = new PrintWriter(new FileWriter(file));
+        printWriter.write(json);
+      } catch (IOException e) {
+        DartCore.logInformation("Exception while saving pub package info", e);
+      } finally {
+        if (printWriter != null) {
+          printWriter.close();
+        }
+      }
+    }
+  }
+
   private static final PubPackageManager INSTANCE = new PubPackageManager();
 
   public static final PubPackageManager getInstance() {
@@ -50,15 +87,22 @@ public class PubPackageManager {
   }
 
   private List<String> packagesList = new ArrayList<String>();
+
   private List<PubPackageObject> pubPackages = new ArrayList<PubPackageObject>();
 
+  private PubPackageListWriter writer = new PubPackageListWriter();
   private final ListenerList listeners = new ListenerList();
 
   /**
    * Used to synchronize access to webPackages
    */
   private Object lock = new Object();
+
   private Job job;
+
+  public PubPackageManager() {
+    listeners.add(writer);
+  }
 
   public void addListener(IPubPackageListener listener) {
     listeners.add(listener);
@@ -69,7 +113,7 @@ public class PubPackageManager {
    */
   public Collection<String> getPackageList() {
     if (packagesList.isEmpty()) {
-      startPackageListFromPubJob();
+      initialize();
     }
     synchronized (lock) {
       return new ArrayList<String>(packagesList);
@@ -89,7 +133,7 @@ public class PubPackageManager {
    */
   public List<PubPackageObject> getPubPackages() {
     if (pubPackages.isEmpty()) {
-      startPackageListFromPubJob();
+      initialize();
     }
     synchronized (lock) {
       return new ArrayList<PubPackageObject>(pubPackages);
@@ -97,6 +141,7 @@ public class PubPackageManager {
   }
 
   public void initialize() {
+    readPackagesFromFile();
     startPackageListFromPubJob();
   }
 
@@ -108,6 +153,26 @@ public class PubPackageManager {
 
   public void removeListener(IPubPackageListener listener) {
     listeners.remove(listener);
+  }
+
+  public void startPackageListFromPubJob() {
+    if (job == null || job.getState() == Job.NONE) {
+      job = new Job("Get package list from pub") {
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+          try {
+            return fillPackageList(monitor);
+          } catch (Exception e) {
+            DartCore.logError(e);
+          }
+          return Status.OK_STATUS;
+        }
+
+      };
+      job.setSystem(true);
+      job.schedule(6000);
+    }
   }
 
   public void stop() {
@@ -172,6 +237,11 @@ public class PubPackageManager {
     return new URL("https://pub.dartlang.org/api/packages?page=" + page).openConnection();
   }
 
+  private File getPackagesFile() {
+    File file = DartCore.getPlugin().getStateLocation().append("pub_packages.json").toFile();
+    return file;
+  }
+
   // {"new_version_url":"http://pub.dartlang.org/api/packages/mongo_dart_query/versions/new",
   //  "name":"mongo_dart_query","uploaders_url":"http://pub.dartlang.org/api/packages/mongo_dart_query/uploaders",
   //  "latest":{"new_dartdoc_url":"http://pub.dartlang.org/api/packages/mongo_dart_query/versions/0.1.8/new_dartdoc",
@@ -225,24 +295,45 @@ public class PubPackageManager {
     return Status.OK_STATUS;
   }
 
-  private void startPackageListFromPubJob() {
-    if (job == null || job.getState() == Job.NONE) {
-      job = new Job("Get package list from pub") {
+  /**
+   * Reads the packages information stored in metadata
+   */
+  private void readPackagesFromFile() {
+    File file = getPackagesFile();
 
-        @Override
-        protected IStatus run(IProgressMonitor monitor) {
-          try {
-            return fillPackageList(monitor);
-          } catch (Exception e) {
-            DartCore.logError(e);
-          }
-          return Status.OK_STATUS;
+    if (file.exists()) {
+      Gson gson = new GsonBuilder().create();
+      Type collectionType = new TypeToken<Collection<PubPackageObject>>() {
+      }.getType();
+      Reader reader = null;
+      try {
+        reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
+        List<PubPackageObject> packages = gson.fromJson(reader, collectionType);
+        List<String> packageNames = new ArrayList<String>();
+        for (PubPackageObject p : packages) {
+          packageNames.add(p.getName());
         }
+        if (!packages.isEmpty()) {
+          synchronized (lock) {
+            pubPackages = packages;
+            packagesList = packageNames;
+          }
+        }
+      } catch (UnsupportedEncodingException e) {
 
-      };
-      job.setSystem(true);
-      job.schedule(6000);
+      } catch (FileNotFoundException e) {
+
+      } finally {
+        if (reader != null) {
+          try {
+            reader.close();
+          } catch (IOException e) {
+
+          }
+        }
+      }
     }
+
   }
 
 }
