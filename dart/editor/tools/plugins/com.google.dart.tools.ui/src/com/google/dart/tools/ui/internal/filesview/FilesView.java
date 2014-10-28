@@ -656,6 +656,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
             IFile file = (IFile) element;
             instrumentation.data("FileName", file.getName());
 
+            forceProjectCharsetForFile(file);
+
             String editorId = IDE.getEditorDescriptor(file).getId();
             boolean isTooComplex = false;
             if (DartUI.ID_CU_EDITOR.equals(editorId)) {
@@ -672,7 +674,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
             if (isTooComplex) {
               DartUI.showTooComplexDartFileWarning(editor);
             }
-          } catch (PartInitException e) {
+          } catch (Throwable e) {
             DartToolsPlugin.log(e);
           }
         } else if (element instanceof IFileStore) {
@@ -760,6 +762,31 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
     actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
     actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
+  }
+
+  /**
+   * When someone sets a project to be UTF-8 in Dart then they expect the entire project to be
+   * UTF-8.
+   * <p>
+   * So, we force file's charset to be the same as the project's charset, unless it was set
+   * explicitly.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=21140
+   */
+  private void forceProjectCharsetForFile(IFile file) {
+    try {
+      String projectCharset = file.getProject().getDefaultCharset();
+      if (projectCharset != null) {
+        String fileSetCharset = file.getCharset(false);
+        if (fileSetCharset == null) {
+          String fileEffectiveCharset = file.getCharset(true);
+          if (!fileEffectiveCharset.equals(projectCharset)) {
+            file.setCharset(projectCharset, null);
+          }
+        }
+      }
+    } catch (Throwable e) {
+    }
   }
 
   private IPreferenceStore getPreferences() {
