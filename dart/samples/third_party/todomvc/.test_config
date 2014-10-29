@@ -1,5 +1,5 @@
 {
   "pre_pub_upgrade_hooks" : {
-    "Upgrade todomvc": "cat $project_root/upgrade_todomvc.patch | patch -p1"
+    "Upgrade todomvc": "bash $project_root/apply_upgrade_patch.sh"
   }
 }
