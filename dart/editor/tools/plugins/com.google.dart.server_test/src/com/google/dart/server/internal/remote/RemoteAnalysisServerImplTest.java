@@ -1051,7 +1051,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'replacementLength': 108,",
         "    'results' : [",
         "      {",
-        "        'kind': 'CLASS',",
+        "        'kind': 'INVOCATION',",
         "        'relevance': 'LOW',",
         "        'completion': 'completion0',",
         "        'selectionOffset': 4,",
@@ -1067,16 +1067,27 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'requiredParameterCount': 2,",
         "        'positionalParameterCount': 0,",
         "        'parameterName': 'param2',",
-        "        'parameterType': 'paramType2'",
+        "        'parameterType': 'paramType2',",
+        "        'element': {",
+        "          'kind': 'METHOD',",
+        "          'name': 'completion0',",
+        "          'flags': 0,",
+        "          'parameters': '(paramType0 param0, paramType1 param1)'",
+        "        }",
         "      },",
         "      {",
-        "        'kind': 'CLASS_ALIAS',",
+        "        'kind': 'IDENTIFIER',",
         "        'relevance': 'DEFAULT',",
         "        'completion': 'completion1',",
         "        'selectionOffset': 10,",
         "        'selectionLength': 11,",
         "        'isDeprecated': true,",
-        "        'isPotential': true",
+        "        'isPotential': true,",
+        "        'element': {",
+        "          'kind': 'CLASS',",
+        "          'name': 'completion1',",
+        "          'flags': 1",
+        "        }",
         "      }",
         "    ],",
         "    'isLast': true",
@@ -1091,7 +1102,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(listener.getCompletionIsLast("completion0")).isEqualTo(true);
     {
       CompletionSuggestion suggestion = suggestions.get(0);
-      assertEquals(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      assertEquals(CompletionSuggestionKind.INVOCATION, suggestion.getKind());
       assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion0");
       assertEquals(4, suggestion.getSelectionOffset());
@@ -1114,10 +1125,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(suggestion.getPositionalParameterCount(), new Integer(0));
       assertEquals(suggestion.getParameterName(), "param2");
       assertEquals(suggestion.getParameterType(), "paramType2");
+      {
+        Element element = suggestion.getElement();
+        assertEquals(element.getName(), "completion0");
+        assertEquals(element.getKind(), ElementKind.METHOD);
+        assertEquals(element.getFlags(), 0);
+        assertEquals(element.getParameters(), "(paramType0 param0, paramType1 param1)");
+      }
     }
     {
       CompletionSuggestion suggestion = suggestions.get(1);
-      assertEquals(CompletionSuggestionKind.CLASS_ALIAS, suggestion.getKind());
+      assertEquals(CompletionSuggestionKind.IDENTIFIER, suggestion.getKind());
       assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion1");
       assertEquals(10, suggestion.getSelectionOffset());
@@ -1134,6 +1152,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertNull(suggestion.getPositionalParameterCount());
       assertNull(suggestion.getParameterName());
       assertNull(suggestion.getParameterType());
+      {
+        Element element = suggestion.getElement();
+        assertEquals(element.getName(), "completion1");
+        assertEquals(element.getKind(), ElementKind.CLASS);
+        assertEquals(element.getFlags(), 1);
+      }
     }
   }
 

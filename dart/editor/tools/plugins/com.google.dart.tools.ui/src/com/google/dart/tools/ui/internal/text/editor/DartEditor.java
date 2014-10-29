@@ -2924,7 +2924,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
-    AnalysisContext sdkContext = DartCore.getProjectManager().getSdkContext();
     if (input instanceof IFileEditorInput) {
       IFileEditorInput fileInput = (IFileEditorInput) input;
       inputResourceFile = fileInput.getFile();

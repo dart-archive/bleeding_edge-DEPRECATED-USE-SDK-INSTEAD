@@ -25,44 +25,31 @@ public class CompletionSuggestionKind {
 
   public static final String ARGUMENT_LIST = "ARGUMENT_LIST";
 
-  public static final String CLASS = "CLASS";
-
-  public static final String CLASS_ALIAS = "CLASS_ALIAS";
-
-  public static final String CONSTRUCTOR = "CONSTRUCTOR";
-
-  public static final String FIELD = "FIELD";
-
-  public static final String FUNCTION = "FUNCTION";
-
-  public static final String FUNCTION_TYPE_ALIAS = "FUNCTION_TYPE_ALIAS";
-
-  public static final String GETTER = "GETTER";
-
   public static final String IMPORT = "IMPORT";
 
+  /**
+   * The element identifier should be inserted at the completion location. For example "someMethod"
+   * in import 'myLib.dart' show someMethod; . For suggestions of this kind, the element attribute is
+   * defined and the completion field is the element's identifier.
+   */
+  public static final String IDENTIFIER = "IDENTIFIER";
+
+  /**
+   * The element is being invoked at the completion location. For example, "someMethod" in
+   * x.someMethod(); . For suggestions of this kind, the element attribute is defined and the
+   * completion field is the element's identifier.
+   */
+  public static final String INVOCATION = "INVOCATION";
+
+  /**
+   * A keyword is being suggested. For suggestions of this kind, the completion is the keyword.
+   */
   public static final String KEYWORD = "KEYWORD";
-
-  public static final String LABEL = "LABEL";
-
-  public static final String LIBRARY_PREFIX = "LIBRARY_PREFIX";
-
-  public static final String LOCAL_VARIABLE = "LOCAL_VARIABLE";
-
-  public static final String METHOD = "METHOD";
-
-  public static final String METHOD_NAME = "METHOD_NAME";
 
   public static final String NAMED_ARGUMENT = "NAMED_ARGUMENT";
 
   public static final String OPTIONAL_ARGUMENT = "OPTIONAL_ARGUMENT";
 
   public static final String PARAMETER = "PARAMETER";
-
-  public static final String SETTER = "SETTER";
-
-  public static final String TOP_LEVEL_VARIABLE = "TOP_LEVEL_VARIABLE";
-
-  public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
 
 }
