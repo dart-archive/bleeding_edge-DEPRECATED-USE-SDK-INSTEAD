@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.core.NotYetImplementedException;
-import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -387,27 +386,31 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-    if (!(breakpoint instanceof DartBreakpoint)) {
-      return false;
-    }
-    DartBreakpoint dartBreakpoint = (DartBreakpoint) breakpoint;
-    IFile file = dartBreakpoint.getFile();
-    // external file?
-    if (currentProject == null || file == null) {
-      return true;
-    }
-    // check the project
-    IProject project = file.getProject();
-    // file from the same project, or a Pub package project
-    if (currentProject.equals(project)) {
-      return true;
-    }
-    // OK, a Pub package project
-    if (PubCacheManager_NEW.isPubCacheProject(project)) {
-      return true;
-    }
-    // a breakpoint from another project
-    return false;
+    // Any breakpoint, we don't know in general case if some project is used or not.
+    // E.g. when package root is used, we might end up referencing a project,
+    // not an external resource.
+    return true;
+//    if (!(breakpoint instanceof DartBreakpoint)) {
+//      return false;
+//    }
+//    DartBreakpoint dartBreakpoint = (DartBreakpoint) breakpoint;
+//    IFile file = dartBreakpoint.getFile();
+//    // external file?
+//    if (currentProject == null || file == null) {
+//      return true;
+//    }
+//    // check the project
+//    IProject project = file.getProject();
+//    // file from the same project, or a Pub package project
+//    if (currentProject.equals(project)) {
+//      return true;
+//    }
+//    // OK, a Pub package project
+//    if (PubCacheManager_NEW.isPubCacheProject(project)) {
+//      return true;
+//    }
+//    // a breakpoint from another project
+//    return false;
   }
 
   @Override
