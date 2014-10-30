@@ -60,7 +60,20 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     }
   }
 
+  private static String getIdentifierCharacters(String str) {
+    int length = str.length();
+    StringBuilder buf = new StringBuilder(length);
+    for (int i = 0; i < length; i++) {
+      char c = str.charAt(i);
+      if (Character.isJavaIdentifierPart(c)) {
+        buf.append(c);
+      }
+    }
+    return buf.toString();
+  }
+
   private final List<OmniElement> results = Lists.newArrayList();
+
   private boolean searchComplete;
 
   public TopLevelElementProvider_NEW(IProgressMonitor progressMonitor) {
@@ -97,8 +110,9 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     return searchComplete;
   }
 
-  private OmniElement[] doSearch(String _pattern) {
-    final String pattern = "^" + CamelUtil.getCamelCaseRegExp(_pattern) + ".*";
+  private OmniElement[] doSearch(String str) {
+    str = getIdentifierCharacters(str);
+    final String pattern = "^" + CamelUtil.getCamelCaseRegExp(str) + ".*";
     final Pattern patternObj = Pattern.compile(pattern);
     //
     searchComplete = false;
