@@ -1505,7 +1505,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   };
 
-  private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
+  private AnalysisServerOutlineListener outlineListener = new AnalysisServerOutlineListener() {
     @Override
     public void computedOutline(String file, final Outline outline) {
       DartEditor.this.outline = outline;
@@ -1727,7 +1727,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.removeNavigationListener(file, navigationListener);
-        analysisServerData.removeOutlineListener(file, analysisServerOutlineListener);
+        analysisServerData.removeOutlineListener(file, outlineListener);
       }
     }
 
@@ -3551,14 +3551,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param input the editor input
    */
   protected void setOutlinePageInput_NEW(DartOutlinePage_NEW page, IEditorInput input) {
-    if (page == null) {
-      return;
-    }
-    AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    String file = getInputFilePath();
-    if (file != null) {
-      analysisServerData.addOutlineListener(file, analysisServerOutlineListener);
-    }
+    // NOOP
   }
 
   /**
@@ -4068,6 +4061,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.addNavigationListener(file, navigationListener);
+        analysisServerData.addOutlineListener(file, outlineListener);
       }
     }
 
