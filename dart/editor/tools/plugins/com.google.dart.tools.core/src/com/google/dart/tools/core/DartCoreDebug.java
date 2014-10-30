@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,6 +107,10 @@ public class DartCoreDebug {
    * Report each of these parameters to the provided instrumentation builder
    */
   public static void record(InstrumentationBuilder instrumentation) {
+
+    // Cause AnalysisEngine to throw exceptions if server is enabled
+    AnalysisEngine.setDisableEngine(ENABLE_ANALYSIS_SERVER);
+
     instrumentation.metric("DEBUG_INDEX_CONTRIBUTOR", DEBUG_INDEX_CONTRIBUTOR);
     instrumentation.metric("METRICS", METRICS);
     instrumentation.metric("WARMUP", WARMUP);

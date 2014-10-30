@@ -49,11 +49,27 @@ public final class AnalysisEngine {
   private static final AnalysisEngine UniqueInstance = new AnalysisEngine();
 
   /**
+   * {@code true} if analysis engine is disabled and throws {@link RuntimeException} when used.
+   */
+  private static boolean engineDisabled = false;
+
+  /**
+   * If engine is disabled, this method throws a {@link RuntimeException} indicating that analysis
+   * engine is disabled and should not be called.
+   */
+  public static void failIfEngineDisabled() {
+    if (engineDisabled) {
+      throw new RuntimeException("AnalysisEngine is disabled and should not be called");
+    }
+  }
+
+  /**
    * Return the unique instance of this class.
    * 
    * @return the unique instance of this class
    */
   public static AnalysisEngine getInstance() {
+    failIfEngineDisabled();
     return UniqueInstance;
   }
 
@@ -82,6 +98,16 @@ public final class AnalysisEngine {
     }
     String extension = FileUtilities.getExtension(fileName);
     return extension.equalsIgnoreCase(SUFFIX_HTML) || extension.equalsIgnoreCase(SUFFIX_HTM);
+  }
+
+  /**
+   * Set whether analysis engine is enabled or disabled. If disabled, then analysis engine will
+   * throw runtime exceptions when clients try to use it. Analysis engine is enabled by default.
+   * 
+   * @param engineDisabled {@code true} if analysis engine should be disabled
+   */
+  public static void setDisableEngine(boolean engineDisabled) {
+    AnalysisEngine.engineDisabled = engineDisabled;
   }
 
   /**
