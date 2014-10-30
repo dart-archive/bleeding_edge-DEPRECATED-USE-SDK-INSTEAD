@@ -77,6 +77,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -138,8 +139,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
             stream.lastRequestProcessed();
           }
         } catch (Throwable e) {
-          // TODO(scheglov) decide how to handle exceptions
-          e.printStackTrace();
+          if (e instanceof IOException) {
+            String message = e.getMessage();
+            if (message != null && message.contains("closed")) {
+              Logging.getLogger().logError("AnalysisServer stream unexpected closed", e);
+              return;
+            }
+          }
+          Logging.getLogger().logError(e.getMessage(), e);
         }
       }
     }
