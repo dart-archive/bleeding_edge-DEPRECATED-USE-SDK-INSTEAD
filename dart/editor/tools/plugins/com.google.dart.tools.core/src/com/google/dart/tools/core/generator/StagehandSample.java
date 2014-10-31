@@ -41,10 +41,14 @@ public class StagehandSample extends AbstractSample {
 
   @Override
   public IFile generateInto(IContainer container, String sampleName) throws CoreException {
-    File projectDirectory = container.getLocation().toFile().getAbsoluteFile();
+    File directory = new File(container.getLocationURI()).getAbsoluteFile();
+
+    if (!directory.exists()) {
+      directory.mkdir();
+    }
 
     try {
-      stagehand.generateInto(projectDirectory, getStagehandId());
+      stagehand.generateInto(directory, getStagehandId());
     } catch (StagehandException e) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
     }
