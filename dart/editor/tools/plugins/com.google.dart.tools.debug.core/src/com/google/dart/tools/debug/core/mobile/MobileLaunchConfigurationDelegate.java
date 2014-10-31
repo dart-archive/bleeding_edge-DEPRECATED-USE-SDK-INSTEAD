@@ -34,6 +34,7 @@ import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -197,8 +198,8 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
-      boolean usePubServe) throws CoreException {
+  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+      IProgressMonitor monitor, boolean usePubServe) throws CoreException {
 
     BrowserManager browserManager = new BrowserManager();
 
@@ -258,7 +259,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       // check if remote connection is alive
       if (!isRemoteConnected()) {
         devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
-        performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
+        performRemoteConnection("localhost", REMOTE_DEBUG_PORT, null, monitor, usePubServe);
       }
     }
   }

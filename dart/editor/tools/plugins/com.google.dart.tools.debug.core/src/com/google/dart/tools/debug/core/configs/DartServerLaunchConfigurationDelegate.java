@@ -28,6 +28,7 @@ import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -93,8 +94,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
-      boolean usePubServe) throws CoreException {
+  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+      IProgressMonitor monitor, boolean usePubServe) throws CoreException {
     if (monitor == null) {
       monitor = new NullProgressMonitor();
     }
@@ -106,6 +107,12 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     monitor.beginTask("Opening Connection...", 1);
 
     try {
+      if (file != null) {
+        ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launchConfiguration);
+        wrapper.setApplicationName(file.getFullPath().toPortableString());
+      }
+
       CoreLaunchUtils.addLaunch(launch);
 
       ServerRemoteProcess process = new ServerRemoteProcess(launch);

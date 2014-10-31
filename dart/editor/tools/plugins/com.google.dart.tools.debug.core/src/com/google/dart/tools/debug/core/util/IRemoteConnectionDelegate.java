@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -29,11 +30,12 @@ public interface IRemoteConnectionDelegate extends ILaunchConfigurationDelegate 
    * 
    * @param host
    * @param port
+   * @param file
    * @param monitor
    * @param usePubServe
    * @throws CoreException
    */
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
-      boolean usePubServe) throws CoreException;
+  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+      IProgressMonitor monitor, boolean usePubServe) throws CoreException;
 
 }

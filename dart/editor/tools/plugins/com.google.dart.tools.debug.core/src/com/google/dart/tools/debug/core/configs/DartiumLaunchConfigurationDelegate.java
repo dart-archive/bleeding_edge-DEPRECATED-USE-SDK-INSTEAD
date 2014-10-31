@@ -117,8 +117,8 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
-      boolean usePubServe) throws CoreException {
+  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+      IProgressMonitor monitor, boolean usePubServe) throws CoreException {
     BrowserManager browserManager = new BrowserManager();
 
     IResourceResolver resolver = null;
