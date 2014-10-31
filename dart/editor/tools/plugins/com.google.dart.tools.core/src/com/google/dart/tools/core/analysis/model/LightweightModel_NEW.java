@@ -34,8 +34,10 @@ public class LightweightModel_NEW extends LightweightModel {
         try {
           IFile file = ResourceUtil.getFile(filePath);
           // client or server library
-          setFileProperty(file, CLIENT_LIBRARY, ExecutableKind.CLIENT.equals(kind));
-          setFileProperty(file, SERVER_LIBRARY, ExecutableKind.SERVER.equals(kind));
+          if (file != null) {
+            setFileProperty(file, CLIENT_LIBRARY, ExecutableKind.CLIENT.equals(kind));
+            setFileProperty(file, SERVER_LIBRARY, ExecutableKind.SERVER.equals(kind));
+          }
           // Dart files referenced by this HTML file
           if (referencedFiles != null) {
             for (String referencedDartFilePath : referencedFiles) {
