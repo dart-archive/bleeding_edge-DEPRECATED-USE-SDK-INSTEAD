@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 // TODO: handle removing deleted breakpoints
 
@@ -44,12 +43,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 class ServerBreakpointManager implements IBreakpointListener {
   private class SetBreakpointHelper {
-    final int NUM_URLS = 2;
-
     final VmIsolate isolate;
     final DartBreakpoint breakpoint;
     final int line;
-    final AtomicInteger numErrors = new AtomicInteger();
 
     public SetBreakpointHelper(VmIsolate isolate, DartBreakpoint breakpoint, int line) {
       this.isolate = isolate;
@@ -58,11 +54,8 @@ class ServerBreakpointManager implements IBreakpointListener {
     }
 
     void setBreakpoint(String url) throws IOException {
-      // fail if no URL
+      // we need some URL
       if (url == null) {
-        if (numErrors.incrementAndGet() == NUM_URLS) {
-          target.writeToStdout("No valid URL for: " + breakpoint);
-        }
         return;
       }
       // try to set
@@ -70,10 +63,8 @@ class ServerBreakpointManager implements IBreakpointListener {
         @Override
         public void handleResult(VmResult<VmBreakpoint> result) {
           if (result.isError()) {
-            if (numErrors.incrementAndGet() == NUM_URLS) {
-              String error = result.getError();
-              target.writeToStdout(error);
-            }
+            // We try to set all breakpoints, so we may set invalid breakpoint.
+            // So, ignore any errors.
           } else {
             addCreatedBreakpoint(breakpoint, result.getResult());
           }
