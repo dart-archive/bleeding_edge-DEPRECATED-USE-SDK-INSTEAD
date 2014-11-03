@@ -22,7 +22,6 @@ gauge: Skip
 google_maps: Skip
 jsonp: Skip
 multi_touch: Skip
-searchable_list: Skip
 solar: Skip
 spirodraw: Skip
 sunflower: Skip
@@ -44,11 +43,9 @@ build_dart: Skip
 
 [ $compiler == dart2js && $mode == debug ]
 polymer_intl/test/polymer_intl_test: Pass, Timeout
-searchable_list/test/demo_app_test: Pass, Timeout
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer_intl/test/polymer_intl_test: Pass, RuntimeError # Issue 18931
-searchable_list/test/demo_app_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/listorder_test: Pass, RuntimeError, Timeout # Issue 18931, Issue 19127
 third_party/todomvc/test/mainpage_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_shadow_test: Pass, RuntimeError # Issue 18931
