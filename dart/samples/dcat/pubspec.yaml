@@ -1,4 +1,0 @@
-name: dcat
-description: A simplified implementation of the cat *nix utility.
-dependencies:
-  args: any
