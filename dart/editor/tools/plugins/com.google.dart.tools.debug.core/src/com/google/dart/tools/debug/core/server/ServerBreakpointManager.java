@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsTyp
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -365,7 +366,8 @@ class ServerBreakpointManager implements IBreakpointListener {
   }
 
   private String getProjectRelativePath(IFile file) {
-    return file.getProjectRelativePath().toPortableString();
+    IPath path = file.getProjectRelativePath();
+    return path == null ? null : path.toPortableString();
   }
 
   private boolean supportsBreakpoint(IBreakpoint breakpoint) {
