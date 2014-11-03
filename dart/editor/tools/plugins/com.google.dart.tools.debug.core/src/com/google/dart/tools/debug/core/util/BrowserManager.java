@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -653,11 +654,17 @@ public class BrowserManager {
     // linux with this property.
     env.remove("LD_LIBRARY_PATH");
 
-    // Add the environment variable DART_FLAGS="--enable-checked-mode"
-    // to enable asserts and type checks
+    // Prepare the environment variable DART_FLAGS.
+    String dartFlags = "";
+    // Enable asserts and type checks.
     if (launchConfig.getCheckedMode()) {
-      env.put("DART_FLAGS", "--enable-checked-mode");
+      dartFlags += " --enable-checked-mode";
     }
+    // Enable async/await.
+    if (DartCoreDebug.ENABLE_ASYNC) {
+      dartFlags += " --enable-async";
+    }
+    env.put("DART_FLAGS", dartFlags);
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
 
