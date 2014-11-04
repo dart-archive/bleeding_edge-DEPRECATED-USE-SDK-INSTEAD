@@ -20,7 +20,8 @@ import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant_NEW;
 import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant_OLD;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
-import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
 import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
@@ -259,11 +260,17 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
           new SmartSemicolonAutoEditStrategy(partitioning),
           new DartStringAutoIndentStrategy(partitioning)};
     } else if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
-      return new IAutoEditStrategy[] {
-          new SmartSemicolonAutoEditStrategy(partitioning),
-          new DartAutoIndentStrategy(partitioning, sourceViewer)};
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        return new IAutoEditStrategy[] {
+            new SmartSemicolonAutoEditStrategy(partitioning),
+            new DartAutoIndentStrategy_NEW(partitioning, sourceViewer)};
+      } else {
+        return new IAutoEditStrategy[] {
+            new SmartSemicolonAutoEditStrategy(partitioning),
+            new DartAutoIndentStrategy_OLD(partitioning, sourceViewer)};
+      }
     } else {
-      return new IAutoEditStrategy[] {new DartAutoIndentStrategy(partitioning, sourceViewer)};
+      return new IAutoEditStrategy[] {new DartAutoIndentStrategy_OLD(partitioning, sourceViewer)};
     }
   }
 

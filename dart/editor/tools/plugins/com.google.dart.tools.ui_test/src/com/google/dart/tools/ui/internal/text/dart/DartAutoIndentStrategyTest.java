@@ -43,7 +43,7 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
     initial = StringUtils.remove(initial, '!');
     expected = StringUtils.remove(expected, '!');
     // force "smart mode"
-    DartAutoIndentStrategy strategy = new DartAutoIndentStrategy(
+    DartAutoIndentStrategy_OLD strategy = new DartAutoIndentStrategy_OLD(
         DartPartitions.DART_PARTITIONING,
         null) {
       @Override

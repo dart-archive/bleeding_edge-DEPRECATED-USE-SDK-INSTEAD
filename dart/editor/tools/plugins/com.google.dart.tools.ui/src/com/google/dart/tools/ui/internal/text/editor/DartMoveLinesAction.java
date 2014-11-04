@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
-import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
@@ -382,14 +384,19 @@ public class DartMoveLinesAction extends TextEditorAction {
 
   private DocumentCommand customizePasteCommand(ISourceViewer viewer, IDocument document,
       String moving, int offset2) {
-    DartAutoIndentStrategy strategy = new DartAutoIndentStrategy(null, viewer);
     DocumentCommand command = new DocumentCommand() {
     };
     command.caretOffset = -1;
     command.doit = true;
     command.offset = offset2;
     command.text = moving;
-    strategy.customizeDocumentCommand(document, command);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartAutoIndentStrategy_NEW strategy = new DartAutoIndentStrategy_NEW(null, viewer);
+      strategy.customizeDocumentCommand(document, command);
+    } else {
+      DartAutoIndentStrategy_OLD strategy = new DartAutoIndentStrategy_OLD(null, viewer);
+      strategy.customizeDocumentCommand(document, command);
+    }
     return command;
   }
 

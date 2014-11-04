@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.wst.ui.autoedit;
 
-import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 
@@ -37,10 +39,17 @@ public class AutoEditStrategyForDart implements IAutoEditStrategy {
   public IAutoEditStrategy[] getAutoEditStrategies(IDocument document) {
     if (strategies == null) {
       String partitioning = IHTMLPartitions.SCRIPT;
-      strategies = new IAutoEditStrategy[] { //
-      new SmartSemicolonAutoEditStrategy(partitioning), //
-          new DartAutoIndentStrategy(partitioning, null), //
-          new DartDocAutoIndentStrategy(partitioning)};
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        strategies = new IAutoEditStrategy[] {
+            new SmartSemicolonAutoEditStrategy(partitioning),
+            new DartAutoIndentStrategy_NEW(partitioning, null),
+            new DartDocAutoIndentStrategy(partitioning)};
+      } else {
+        strategies = new IAutoEditStrategy[] {
+            new SmartSemicolonAutoEditStrategy(partitioning),
+            new DartAutoIndentStrategy_OLD(partitioning, null),
+            new DartDocAutoIndentStrategy(partitioning)};
+      }
     }
     return strategies;
   }

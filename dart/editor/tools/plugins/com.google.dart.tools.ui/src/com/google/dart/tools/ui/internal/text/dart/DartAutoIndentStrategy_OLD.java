@@ -69,7 +69,7 @@ import org.eclipse.ui.texteditor.ITextEditorExtension3;
  * 
  * @coverage dart.editor.ui.text.dart
  */
-public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
+public class DartAutoIndentStrategy_OLD extends DefaultIndentLineAutoEditStrategy {
 
   private static class CompilationUnitInfo {
     char[] buffer;
@@ -638,7 +638,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    *          preferences from, or null to use default // * preferences
    * @param viewer the source viewer that this strategy is attached to
    */
-  public DartAutoIndentStrategy(String partitioning, ISourceViewer viewer) {
+  public DartAutoIndentStrategy_OLD(String partitioning, ISourceViewer viewer) {
     fPartitioning = partitioning;
     fViewer = viewer;
   }
