@@ -53,8 +53,6 @@ public class Stagehand {
     }
   }
 
-  private static final List<StagehandTuple> EMPTY = new ArrayList<Stagehand.StagehandTuple>();
-
   public Stagehand() {
 
   }
@@ -80,7 +78,7 @@ public class Stagehand {
     }
   }
 
-  public List<StagehandTuple> getAvailableSamples() {
+  public List<StagehandTuple> getAvailableSamples() throws StagehandException {
     // pub global run stagehand --machine
     ProcessRunner runner = createPubRunner(new String[] {"global", "run", "stagehand", "--machine"});
 
@@ -88,7 +86,7 @@ public class Stagehand {
       int exitCode = runner.runSync(null);
 
       if (exitCode != 0) {
-        return EMPTY;
+        throw new StagehandException("Error running '" + runner.toString() + "'");
       }
 
       // [{"name":"consoleapp","description":"A minimal command-line application."},{"name",...
@@ -107,10 +105,10 @@ public class Stagehand {
       return result;
     } catch (IOException e) {
       DartCore.logError(e);
-      return EMPTY;
+      throw new StagehandException(e);
     } catch (JSONException e) {
       DartCore.logError(e);
-      return EMPTY;
+      throw new StagehandException(e);
     }
   }
 

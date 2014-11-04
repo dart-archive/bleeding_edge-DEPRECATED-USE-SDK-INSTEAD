@@ -68,7 +68,18 @@ public class AbstractSample implements Comparable<AbstractSample> {
       stagehand.install();
     }
 
-    List<StagehandTuple> samples = stagehand.getAvailableSamples();
+    List<StagehandTuple> samples = null;
+
+    try {
+      samples = stagehand.getAvailableSamples();
+    } catch (StagehandException e) {
+      // TODO: Bubble the error up through the caller?
+      List<AbstractSample> tempResults = new ArrayList<AbstractSample>();
+      tempResults.add(new CommandLineSample());
+      tempResults.add(new PackageSample());
+      tempResults.add(new WebAppSample());
+      return tempResults;
+    }
 
     // Make sure we're on a reasonably latest version of Stagehand.
     if (doUpgradeCheck) {

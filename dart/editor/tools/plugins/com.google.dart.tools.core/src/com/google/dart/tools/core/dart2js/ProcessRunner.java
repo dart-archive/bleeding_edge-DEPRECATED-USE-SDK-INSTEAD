@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.core.dart2js;
 
+import com.google.common.base.Joiner;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -213,6 +214,11 @@ public class ProcessRunner {
     }
   }
 
+  @Override
+  public String toString() {
+    return Joiner.on(" ").join(processBuilder.command());
+  }
+
   protected void pipeOutput(InputStream in, StringBuilder builder) {
     try {
       Reader reader = new InputStreamReader(in, "UTF-8");
@@ -250,5 +256,4 @@ public class ProcessRunner {
    */
   protected void processStarted(Process process) throws IOException {
   }
-
 }
