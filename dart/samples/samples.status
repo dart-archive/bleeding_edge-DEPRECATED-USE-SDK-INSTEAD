@@ -20,7 +20,6 @@ pop_pop_win: Fail # Issues with package loading. TODO(kevmoo)
 clock: Skip
 gauge: Skip
 google_maps: Skip
-multi_touch: Skip
 solar: Skip
 spirodraw: Skip
 sunflower: Skip
