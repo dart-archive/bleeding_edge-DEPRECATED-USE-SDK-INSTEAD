@@ -17,7 +17,6 @@ pop_pop_win: Fail # Issues with package loading. TODO(kevmoo)
 
 [ $runtime == vm ]
 # Skip tests that use dart:html on the standalone VM
-clock: Skip
 sunflower: Skip
 polymer_intl: Skip
 

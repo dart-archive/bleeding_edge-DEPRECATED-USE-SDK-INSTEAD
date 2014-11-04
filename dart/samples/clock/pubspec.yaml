@@ -1,6 +1,0 @@
-name: clock
-description: An html5 clock using absolutely positioned elements
-dependencies:
-  browser: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=0.8.10+6 <2.0.0"
