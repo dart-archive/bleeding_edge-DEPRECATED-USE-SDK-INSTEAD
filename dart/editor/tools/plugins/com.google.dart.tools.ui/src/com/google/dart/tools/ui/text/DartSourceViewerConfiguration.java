@@ -25,11 +25,13 @@ import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
 import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
-import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector;
+import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector_OLD;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringAutoIndentStrategy;
-import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector;
+import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector_OLD;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
@@ -190,7 +192,12 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   /**
    * The double click strategy.
    */
-  private DartDoubleClickSelector fJavaDoubleClickSelector;
+  private DartDoubleClickSelector_OLD fJavaDoubleClickSelector_OLD;
+
+  /**
+   * The double click strategy.
+   */
+  private DartDoubleClickSelector_NEW fJavaDoubleClickSelector_NEW;
 
   /**
    * Creates a new Dart source viewer configuration for viewers in the given editor using the given
@@ -421,13 +428,25 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       return new DefaultTextDoubleClickStrategy();
     } else if (DartPartitions.DART_STRING.equals(contentType)
         || DartPartitions.DART_MULTI_LINE_STRING.equals(contentType)) {
-      return new DartStringDoubleClickSelector();
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        return new DartStringDoubleClickSelector_NEW();
+      } else {
+        return new DartStringDoubleClickSelector_OLD();
+      }
     }
-    if (fJavaDoubleClickSelector == null) {
-      fJavaDoubleClickSelector = new DartDoubleClickSelector();
-      fJavaDoubleClickSelector.setSourceVersion(fPreferenceStore.getString(JavaScriptCore.COMPILER_SOURCE));
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (fJavaDoubleClickSelector_NEW == null) {
+        fJavaDoubleClickSelector_NEW = new DartDoubleClickSelector_NEW();
+        fJavaDoubleClickSelector_NEW.setSourceVersion(fPreferenceStore.getString(JavaScriptCore.COMPILER_SOURCE));
+      }
+      return fJavaDoubleClickSelector_NEW;
+    } else {
+      if (fJavaDoubleClickSelector_OLD == null) {
+        fJavaDoubleClickSelector_OLD = new DartDoubleClickSelector_OLD();
+        fJavaDoubleClickSelector_OLD.setSourceVersion(fPreferenceStore.getString(JavaScriptCore.COMPILER_SOURCE));
+      }
+      return fJavaDoubleClickSelector_OLD;
     }
-    return fJavaDoubleClickSelector;
   }
 
   /**
@@ -704,10 +723,19 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     if (fJavaDocScanner.affectsBehavior(event)) {
       fJavaDocScanner.adaptToPreferenceChange(event);
     }
-    if (fJavaDoubleClickSelector != null
-        && JavaScriptCore.COMPILER_SOURCE.equals(event.getProperty())) {
-      if (event.getNewValue() instanceof String) {
-        fJavaDoubleClickSelector.setSourceVersion((String) event.getNewValue());
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (fJavaDoubleClickSelector_NEW != null
+          && JavaScriptCore.COMPILER_SOURCE.equals(event.getProperty())) {
+        if (event.getNewValue() instanceof String) {
+          fJavaDoubleClickSelector_NEW.setSourceVersion((String) event.getNewValue());
+        }
+      }
+    } else {
+      if (fJavaDoubleClickSelector_OLD != null
+          && JavaScriptCore.COMPILER_SOURCE.equals(event.getProperty())) {
+        if (event.getNewValue() instanceof String) {
+          fJavaDoubleClickSelector_OLD.setSourceVersion((String) event.getNewValue());
+        }
       }
     }
   }

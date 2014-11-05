@@ -41,7 +41,7 @@ public class DartStringDoubleClickSelectorTest extends ParserTestCase {
     int clickOffset = content.indexOf(clickPattern);
     when(textViewer.getSelectedRange()).thenReturn(new Point(clickOffset, 0));
     // ask for double click range
-    DartStringDoubleClickSelector selector = new DartStringDoubleClickSelector();
+    DartStringDoubleClickSelector_OLD selector = new DartStringDoubleClickSelector_OLD();
     selector.doubleClicked(textViewer);
     // validate
     int resultOffset = content.indexOf(resultContent);

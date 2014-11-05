@@ -29,7 +29,7 @@ import org.eclipse.jface.text.Region;
  * 
  * @coverage dart.editor.ui.text
  */
-public class DartStringDoubleClickSelector extends DartDoubleClickSelector {
+public class DartStringDoubleClickSelector_OLD extends DartDoubleClickSelector_OLD {
   @Override
   public void doubleClicked(ITextViewer textViewer) {
     // prepare offset
