@@ -25,26 +25,6 @@ import java.io.IOException;
 public abstract class UpdateResolver {
 
   /**
-   * Infers a latest build from a directory listing fetched from a URL.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  private static class DirectoryListingResolver extends UpdateResolver {
-
-    private final String url;
-
-    DirectoryListingResolver(String url) {
-      this.url = url;
-    }
-
-    @Override
-    public Revision getLatest() throws IOException {
-      return UpdateUtils.getLatestRevision(url);
-    }
-
-  }
-
-  /**
    * Parses revision number from a VERSION file found at a given URL.
    */
   private static class VersionFileResolver extends UpdateResolver {

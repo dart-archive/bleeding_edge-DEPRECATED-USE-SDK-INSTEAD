@@ -15,10 +15,7 @@ package com.google.dart.tools.core.utilities.download;
 
 import com.google.dart.tools.core.DartCore;
 
-import org.eclipse.core.runtime.CoreException;
-
 import java.io.UnsupportedEncodingException;
-import java.util.UUID;
 
 /**
  * Methods for handling user counting on update URLs
@@ -36,9 +33,7 @@ public class UpdateDecoratorForUsageCount {
   public static String decorateURL(String url) {
     //Data that should be appended
     //e.g.
-    //cid=6cdf06c7-2800-4144-8f30-e7925175d4ba  -- Random GUID persisted in workspace
     //&r=c537bd11-1cf8-4244-98ff-90f3fe63ccbe   -- Random tag appended each time
-    //&v=1.7.1                                  -- Version
 
     StringBuilder sb = new StringBuilder();
 
@@ -48,49 +43,12 @@ public class UpdateDecoratorForUsageCount {
       sb.append("&");
     }
 
-    String cid = getCIDParam();
-    String r = getRandomParam();
     String v = getVersionParam();
 
-    sb.append("cid=");
-    sb.append(cid);
-
-    sb.append("&");
     sb.append("v=");
     sb.append(v);
 
-    sb.append("&");
-    sb.append("r=");
-    sb.append(r);
-
     return url + sb.toString();
-  }
-
-  /**
-   * Get the Client ID parameter, generating a new one where needed
-   */
-  public static String getCIDParam() {
-    String cid = DartCore.getPlugin().getPrefs().get(UpdateDecoratorForUsageCount.PREF_USER_CID, "");
-
-    if (cid.isEmpty()) {
-      //Generate a new CID
-      cid = UUID.randomUUID().toString();
-      DartCore.getPlugin().getPrefs().put(UpdateDecoratorForUsageCount.PREF_USER_CID, cid);
-
-      try {
-        DartCore.getPlugin().savePrefs();
-      } catch (CoreException e) {
-        DartCore.logError(e);
-      }
-    }
-    return cid;
-  }
-
-  /**
-   * Get a random parameter for appending to the query
-   */
-  static String getRandomParam() {
-    return UUID.randomUUID().toString();
   }
 
   /**

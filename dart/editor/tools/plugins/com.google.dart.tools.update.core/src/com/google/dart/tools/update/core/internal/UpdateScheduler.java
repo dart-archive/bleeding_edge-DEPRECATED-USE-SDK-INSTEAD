@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Schedules update checks.
  */
@@ -50,14 +52,13 @@ public class UpdateScheduler {
         }
       } finally {
         if (UpdateCore.isAutoUpdateCheckingEnabled()) {
-          schedule(UPDATE_CHECK_INTERVAL);
+          long delta = UpdateCore.getNextUpdateTime() - System.currentTimeMillis();
+          schedule(Math.max(TimeUnit.HOURS.toMillis(1), delta));
         }
       }
       return Status.OK_STATUS;
     }
   }
-
-  private static final long UPDATE_CHECK_INTERVAL = UpdateCore.getUpdateCheckInterval();
 
   private UpdateCheckTimer autoUpdateTimer;
 
@@ -123,6 +124,6 @@ public class UpdateScheduler {
   }
 
   private boolean shouldCheckForUpdates() {
-    return model.isIdle();
+    return model.isIdle() && System.currentTimeMillis() >= UpdateCore.getNextUpdateTime();
   }
 }

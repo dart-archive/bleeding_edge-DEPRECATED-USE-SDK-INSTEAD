@@ -30,6 +30,8 @@ import org.osgi.service.prefs.BackingStoreException;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
@@ -85,9 +87,14 @@ public class UpdateCore extends Plugin {
   private static final String PREFS_AUTO_UPDATE_CHECK = "autoCheckUpdates";
 
   /**
+   * Preference key for last update check time.
+   */
+  public static final String PREFS_LAST_UPDATE_CHECK = "lastUpdateCheck";
+
+  /**
    * Default update check interval.
    */
-  private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.HOURS.toMillis(1);
+  private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.HOURS.toMillis(24);
 
   //The activated plugin
   private static UpdateCore PLUGIN;
@@ -147,10 +154,18 @@ public class UpdateCore extends Plugin {
   }
 
   /**
-   * Get the interval for automatic update checks.
+   * Returns the time in milliseconds after which an update check should be performed.
+   * 
+   * @return the difference, measured in milliseconds, between the next update check time and
+   *         midnight, January 1, 1970 UTC.
+   * @see java.util.Date
    */
-  public static long getUpdateCheckInterval() {
-    return DEFAULT_UPDATE_CHECK_INTERVAL;
+  public static long getNextUpdateTime() {
+    long lastUpdateCheck = PLUGIN.getPreferences().getLong(PREFS_LAST_UPDATE_CHECK, 0);
+    if (lastUpdateCheck == 0) {
+      return getTodayInMillis();
+    }
+    return lastUpdateCheck + DEFAULT_UPDATE_CHECK_INTERVAL;
   }
 
   /**
@@ -315,11 +330,30 @@ public class UpdateCore extends Plugin {
     }
   }
 
+  /**
+   * Record the current day as the day that an update check was performed.
+   */
+  public static void updateChecked() {
+    PLUGIN.getPreferences().putLong(PREFS_LAST_UPDATE_CHECK, getTodayInMillis());
+  }
+
   private static ResourceBundle getResourceBundle() {
     if (PLUGIN == null) {
       throw new IllegalStateException("update checks are only valid post bundle activation");
     }
     return Platform.getResourceBundle(PLUGIN.getBundle());
+  }
+
+  /**
+   * Returns the time in milliseconds for the beginning of the current day.
+   */
+  private static long getTodayInMillis() {
+    GregorianCalendar date = new GregorianCalendar();
+    date = new GregorianCalendar(
+        date.get(Calendar.YEAR),
+        date.get(Calendar.MONTH),
+        date.get(Calendar.DAY_OF_MONTH));
+    return date.getTimeInMillis();
   }
 
   private IEclipsePreferences preferences;
@@ -347,5 +381,4 @@ public class UpdateCore extends Plugin {
     super.stop(context);
     PLUGIN = null;
   }
-
 }

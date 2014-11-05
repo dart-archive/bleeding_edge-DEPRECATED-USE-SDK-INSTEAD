@@ -208,6 +208,7 @@ public class DownloadManager {
           model.enterState(State.FAILED);
         } else {
 
+          UpdateCore.updateChecked();
           model.setLatestAvailableRevision(latest);
           model.enterState(State.CHECKED);
 
