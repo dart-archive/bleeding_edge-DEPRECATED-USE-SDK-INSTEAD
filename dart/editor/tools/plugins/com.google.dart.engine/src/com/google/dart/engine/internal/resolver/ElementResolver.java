@@ -195,12 +195,19 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     private final String name;
 
     /**
+     * The identifier to be highlighted in case of an error
+     */
+    private final Identifier targetIdentifier;
+
+    /**
      * Initialize a newly created synthetic identifier to have the given name.
      * 
      * @param name the name of the synthetic identifier
+     * @param targetIdentifier the identifier to be highlighted in case of an error
      */
-    private SyntheticIdentifier(String name) {
+    private SyntheticIdentifier(String name, Identifier targetIdentifier) {
       this.name = name;
+      this.targetIdentifier = targetIdentifier;
     }
 
     @Override
@@ -224,8 +231,18 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
 
     @Override
+    public int getLength() {
+      return targetIdentifier.getLength();
+    }
+
+    @Override
     public String getName() {
       return name;
+    }
+
+    @Override
+    public int getOffset() {
+      return targetIdentifier.getOffset();
     }
 
     @Override
@@ -1176,7 +1193,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       Element element = resolver.getNameScope().lookup(node, definingLibrary);
       if (element == null && identifier.inSetterContext()) {
         element = resolver.getNameScope().lookup(
-            new SyntheticIdentifier(node.getName() + "="),
+            new SyntheticIdentifier(node.getName() + "=", node),
             definingLibrary);
       }
       if (element == null) {
@@ -1710,7 +1727,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       PrefixElement prefixElement = importElement.getPrefix();
       if (prefixElement != null) {
         Identifier prefixedIdentifier = new SyntheticIdentifier(prefixElement.getName() + "."
-            + identifier.getName());
+            + identifier.getName(), identifier);
         Element importedElement = nameScope.lookup(prefixedIdentifier, definingLibrary);
         if (importedElement != null) {
           if (element == null) {
@@ -2820,14 +2837,15 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
       return element;
     } else if (target instanceof SimpleIdentifier) {
-      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
+      SimpleIdentifier identifier = (SimpleIdentifier) target;
+      Element targetElement = identifier.getStaticElement();
       if (targetElement instanceof PrefixElement) {
         //
         // Look to see whether the name of the method is really part of a prefixed identifier for an
         // imported top-level function or top-level getter that returns a function.
         //
-        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
-        Identifier functionName = new SyntheticIdentifier(name);
+        final String name = identifier.getName() + "." + methodName;
+        Identifier functionName = new SyntheticIdentifier(name, methodName);
         Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
         if (element != null) {
           // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
@@ -3001,7 +3019,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     } else if (element == null
         && (node.inSetterContext() || node.getParent() instanceof CommentReference)) {
       element = resolver.getNameScope().lookup(
-          new SyntheticIdentifier(node.getName() + "="),
+          new SyntheticIdentifier(node.getName() + "=", node),
           definingLibrary);
     }
     ClassElement enclosingClass = resolver.getEnclosingClass();

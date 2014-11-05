@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
@@ -22,6 +23,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
@@ -73,6 +75,15 @@ public class LibraryImportScope extends Scope {
   @Override
   public AnalysisErrorListener getErrorListener() {
     return errorListener;
+  }
+
+  @Override
+  protected Source getSource(AstNode node) {
+    Source source = super.getSource(node);
+    if (source == null) {
+      source = definingLibrary.getDefiningCompilationUnit().getSource();
+    }
+    return source;
   }
 
   @Override

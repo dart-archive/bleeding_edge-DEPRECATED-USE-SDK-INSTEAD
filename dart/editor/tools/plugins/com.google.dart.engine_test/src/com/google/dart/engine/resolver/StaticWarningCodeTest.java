@@ -265,6 +265,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
+  public void test_ambiguousImport_withPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "library test;",
+        "import 'lib1.dart' as p;",
+        "import 'lib2.dart' as p;",
+        "main() {",
+        "  p.f();",
+        "}"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f() {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.AMBIGUOUS_IMPORT);
+  }
+
   public void test_argumentTypeNotAssignable_ambiguousClassName() throws Exception {
     // See dartbug.com/19624
     Source source = addNamedSource("/lib1.dart", createSource(//

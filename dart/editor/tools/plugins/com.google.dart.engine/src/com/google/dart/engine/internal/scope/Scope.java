@@ -178,7 +178,7 @@ public abstract class Scope {
    * @param identifier the identifier whose source is to be returned
    * @return the source that contains the given identifier
    */
-  protected final Source getSource(AstNode node) {
+  protected Source getSource(AstNode node) {
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {
       CompilationUnitElement unitElement = unit.getElement();
