@@ -1142,7 +1142,7 @@ def CreateApiDocs(buildLocation):
   shutil.rmtree(apidir, ignore_errors = True)
 
   CallBuildScript('release', 'ia32', 'api_docs')
-  CallBuildScript('release', 'ia32', 'docgen')
+  CallBuildScript('release', 'ia32', 'dartdocgen')
 
   UploadApiDocs(apidir)
 
