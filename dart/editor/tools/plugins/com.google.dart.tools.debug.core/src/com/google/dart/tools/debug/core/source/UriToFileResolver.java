@@ -20,6 +20,7 @@ import com.google.dart.server.CreateContextConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -251,9 +252,12 @@ public class UriToFileResolver {
         return filePtr[0];
       }
     } else {
-      IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
-      if (file != null) {
-        return file.getLocation().toFile().toURI().toString();
+      ProjectManager projectManager = DartCore.getProjectManager();
+      IFileInfo fileInfo = projectManager.resolveUriToFileInfo(resource, url);
+      if (fileInfo != null) {
+        File file = fileInfo.getFile();
+        File absoluteFile = file.getAbsoluteFile();
+        return absoluteFile.toURI().toString();
       }
     }
     return null;
