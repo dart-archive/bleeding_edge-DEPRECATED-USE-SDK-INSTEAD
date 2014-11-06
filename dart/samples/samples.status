@@ -18,7 +18,6 @@ pop_pop_win: Fail # Issues with package loading. TODO(kevmoo)
 [ $runtime == vm ]
 # Skip tests that use dart:html on the standalone VM
 sunflower: Skip
-polymer_intl: Skip
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/todomvc: Skip # uses dart:html
@@ -33,11 +32,7 @@ build_dart: Skip
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $compiler == dart2js && $mode == debug ]
-polymer_intl/test/polymer_intl_test: Pass, Timeout
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-polymer_intl/test/polymer_intl_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/listorder_test: Pass, RuntimeError, Timeout # Issue 18931, Issue 19127
 third_party/todomvc/test/mainpage_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_shadow_test: Pass, RuntimeError # Issue 18931
