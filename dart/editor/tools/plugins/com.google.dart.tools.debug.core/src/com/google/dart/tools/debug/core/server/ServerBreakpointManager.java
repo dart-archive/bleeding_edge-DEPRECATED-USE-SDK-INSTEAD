@@ -304,7 +304,8 @@ class ServerBreakpointManager implements IBreakpointListener {
           // try file:// URL
           {
             //String url = getAbsoluteUrlForFilePath(filePath);
-            String url = getProjectRelativePath(breakpoint.getFile());
+            IFile file = breakpoint.getFile();
+            String url = getProjectRelativePath(file);
             helper.setBreakpoint(url);
           }
         }
@@ -366,8 +367,13 @@ class ServerBreakpointManager implements IBreakpointListener {
   }
 
   private String getProjectRelativePath(IFile file) {
-    IPath path = file.getProjectRelativePath();
-    return path == null ? null : path.toPortableString();
+    if (file != null) {
+      IPath path = file.getProjectRelativePath();
+      if (path != null) {
+        return path.toPortableString();
+      }
+    }
+    return null;
   }
 
   private boolean supportsBreakpoint(IBreakpoint breakpoint) {
