@@ -23,6 +23,11 @@ package com.google.dart.server.generated.types;
  */
 public class CompletionSuggestionKind {
 
+  /**
+   * A list of arguments for the method or function that is being invoked. For this suggestion kind,
+   * the completion field is a textual representation of the invocation and the parameterNames,
+   * parameterTypes, and requiredParameterCount attributes are defined.
+   */
   public static final String ARGUMENT_LIST = "ARGUMENT_LIST";
 
   public static final String IMPORT = "IMPORT";

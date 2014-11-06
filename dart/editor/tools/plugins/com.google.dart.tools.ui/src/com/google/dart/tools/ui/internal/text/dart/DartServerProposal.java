@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.CharOperation;
@@ -133,6 +134,13 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         return;
       }
       /*
+       * Simplistic argument list completion... strip parens and continue
+       */
+      // TODO (danrubel) improve argument list completion
+      if (completion.startsWith("(")) {
+        completion = completion.substring(1, completion.length() - 1);
+      }
+      /*
        * Insert the suggestion
        */
       doc.replace(replacementOffset, replacementLength, completion);
@@ -146,7 +154,10 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         doc.replace(newOffset, 0, "()");
         ++newOffset;
         ++selectionOffset;
-
+        if (param.length() == 2) { // param is "()"
+          ++selectionOffset;
+          return;
+        }
         LinkedPositionGroup group = new LinkedPositionGroup();
         group.addPosition(new LinkedPosition(doc, newOffset, 0, LinkedPositionGroup.NO_STOP));
 
@@ -491,7 +502,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
    */
   private String getParamString() {
     Element element = suggestion.getElement();
-    if (element != null) {
+    if (element != null && !CompletionSuggestionKind.IDENTIFIER.equals(suggestion.getKind())) {
       String kind = element.getKind();
       if (!GETTER.equals(kind) && !SETTER.equals(kind)) {
         if (element != null) {
