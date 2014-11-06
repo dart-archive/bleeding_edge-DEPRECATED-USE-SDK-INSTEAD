@@ -227,7 +227,7 @@ public class FileNodeManagerTest extends TestCase {
   private Element mockElement() {
     int elementId = nextElementId++;
     Element element = mock(Element.class);
-    when(elementCodec.encode(element)).thenReturn(elementId);
+    when(elementCodec.encode(element, false)).thenReturn(elementId);
     when(elementCodec.decode(context, elementId)).thenReturn(element);
     return element;
   }

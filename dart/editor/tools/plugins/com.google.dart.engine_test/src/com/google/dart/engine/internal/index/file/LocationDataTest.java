@@ -39,7 +39,7 @@ public class LocationDataTest extends TestCase {
   public void test_newFromObjects() throws Exception {
     // prepare Element
     Element element = mock(Element.class);
-    when(elementCodec.encode(element)).thenReturn(42);
+    when(elementCodec.encode(element, false)).thenReturn(42);
     when(elementCodec.decode(context, 42)).thenReturn(element);
     // create
     Location location = new Location(element, 1, 2);

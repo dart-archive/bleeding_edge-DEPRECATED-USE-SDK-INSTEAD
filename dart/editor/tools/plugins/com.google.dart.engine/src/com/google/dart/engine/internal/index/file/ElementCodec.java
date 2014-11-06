@@ -15,12 +15,14 @@ package com.google.dart.engine.internal.index.file;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
+import com.google.dart.engine.source.Source;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -62,9 +64,12 @@ public class ElementCodec {
 
   /**
    * Returns a unique integer that corresponds to the given {@link Element}.
+   * 
+   * @param forKey is {@code true} when "element" is a part of a key, so it should use file paths
+   *          instead of {@link Element} location URIs.
    */
-  public int encode(Element element) {
-    int[] path = getLocationPath(element);
+  public int encode(Element element, boolean forKey) {
+    int[] path = getLocationPath(element, forKey);
     int index = pathToIndex.get(path, -1);
     if (index == -1) {
       index = indexToPath.size();
@@ -105,8 +110,22 @@ public class ElementCodec {
     return components;
   }
 
-  private int[] getLocationPath(Element element) {
+  /**
+   * @param usePath is {@code true} when {@link Source} path should be used instead of URI.
+   */
+  private int[] getLocationPath(Element element, boolean usePath) {
+    // prepare the location components
     String[] components = element.getLocation().getComponents();
+    if (usePath) {
+      LibraryElement library = element.getLibrary();
+      if (library != null) {
+        components[0] = library.getSource().getFullName();
+        if (element.getEnclosingElement() instanceof CompilationUnitElement) {
+          components[1] = library.getDefiningCompilationUnit().getSource().getFullName();
+        }
+      }
+    }
+    // encode the location
     components = components.clone();
     int length = components.length;
     if (hasLocalOffset(components)) {
@@ -139,11 +158,16 @@ public class ElementCodec {
    * Returns an approximation of the given {@link Element}'s location.
    */
   private int[] getLocationPathLimited(Element element) {
-    String[] components = element.getLocation().getComponents();
-    int length = components.length;
-    String firstComponent = components[0];
-    String lastComponent = components[length - 1];
-    lastComponent = StringUtils.substringBefore(lastComponent, "@");
+    String firstComponent;
+    {
+      LibraryElement libraryElement = element.getLibrary();
+      if (libraryElement != null) {
+        firstComponent = libraryElement.getSource().getFullName();
+      } else {
+        firstComponent = "null";
+      }
+    }
+    String lastComponent = element.getDisplayName();
     int firstId = stringCodec.encode(firstComponent);
     int lastId = stringCodec.encode(lastComponent);
     return new int[] {firstId, lastId};

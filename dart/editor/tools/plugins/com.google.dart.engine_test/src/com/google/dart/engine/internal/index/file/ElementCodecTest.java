@@ -16,7 +16,9 @@ package com.google.dart.engine.internal.index.file;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
+import com.google.dart.engine.source.Source;
 
 import junit.framework.TestCase;
 
@@ -34,20 +36,19 @@ public class ElementCodecTest extends TestCase {
   private ElementCodec codec = new ElementCodec(stringCodec);
 
   public void test_encodeHash_local() throws Exception {
+    LibraryElement libraryElement = mockLibraryElement();
     int idA;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "A", "foo@1"});
-      when(element.getLocation()).thenReturn(location);
-      when(context.getElement(location)).thenReturn(element);
+      when(element.getLibrary()).thenReturn(libraryElement);
+      when(element.getDisplayName()).thenReturn("foo");
       idA = codec.encodeHash(element);
     }
     int idB;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "A", "foo@2"});
-      when(element.getLocation()).thenReturn(location);
-      when(context.getElement(location)).thenReturn(element);
+      when(element.getLibrary()).thenReturn(libraryElement);
+      when(element.getDisplayName()).thenReturn("foo");
       idB = codec.encodeHash(element);
     }
     // offset is simply ignored
@@ -57,20 +58,19 @@ public class ElementCodecTest extends TestCase {
   }
 
   public void test_encodeHash_notLocal() throws Exception {
+    LibraryElement libraryElement = mockLibraryElement();
     int idA;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "A"});
-      when(element.getLocation()).thenReturn(location);
-      when(context.getElement(location)).thenReturn(element);
+      when(element.getLibrary()).thenReturn(libraryElement);
+      when(element.getDisplayName()).thenReturn("A");
       idA = codec.encodeHash(element);
     }
     int idB;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "B"});
-      when(element.getLocation()).thenReturn(location);
-      when(context.getElement(location)).thenReturn(element);
+      when(element.getLibrary()).thenReturn(libraryElement);
+      when(element.getDisplayName()).thenReturn("B");
       idB = codec.encodeHash(element);
     }
     assertFalse(idA == idB);
@@ -82,7 +82,7 @@ public class ElementCodecTest extends TestCase {
       ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "foo@1", "bar@2"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       assertEquals(element, codec.decode(context, id));
     }
     {
@@ -91,7 +91,7 @@ public class ElementCodecTest extends TestCase {
           LIB, UNIT, "foo@10", "bar@20"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       assertEquals(element, codec.decode(context, id));
     }
     // check strings, "foo" as a single string, no "foo@1" or "foo@10"
@@ -108,7 +108,7 @@ public class ElementCodecTest extends TestCase {
       ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "foo@42"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       assertEquals(element, codec.decode(context, id));
     }
     {
@@ -116,7 +116,7 @@ public class ElementCodecTest extends TestCase {
       ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "foo@4200"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       assertEquals(element, codec.decode(context, id));
     }
     // check strings, "foo" as a single string, no "foo@42" or "foo@4200"
@@ -131,7 +131,7 @@ public class ElementCodecTest extends TestCase {
     ElementLocation location = new ElementLocationImpl(new String[] {LIB, UNIT, "bar"});
     when(element.getLocation()).thenReturn(location);
     when(context.getElement(location)).thenReturn(element);
-    int id = codec.encode(element);
+    int id = codec.encode(element, false);
     assertEquals(element, codec.decode(context, id));
     // check strings
     assertThat(stringCodec.getNameToIndex()).hasSize(3).includes(
@@ -145,5 +145,13 @@ public class ElementCodecTest extends TestCase {
     stringCodec = null;
     codec = null;
     super.tearDown();
+  }
+
+  private LibraryElement mockLibraryElement() {
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    Source librarySource = mock(Source.class);
+    when(libraryElement.getSource()).thenReturn(librarySource);
+    when(librarySource.getFullName()).thenReturn(LIB);
+    return libraryElement;
   }
 }

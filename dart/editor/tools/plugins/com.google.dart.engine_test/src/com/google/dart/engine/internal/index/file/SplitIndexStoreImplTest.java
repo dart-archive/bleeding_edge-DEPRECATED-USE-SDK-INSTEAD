@@ -557,10 +557,12 @@ public class SplitIndexStoreImplTest extends EngineTestCase {
     when(contextA.getElement(elementLocationB)).thenReturn(elementB);
     when(contextA.getElement(elementLocationC)).thenReturn(elementC);
     when(contextA.getElement(elementLocationD)).thenReturn(elementD);
+    when(librarySource.toString()).thenReturn("librarySource");
     when(sourceA.toString()).thenReturn("sourceA");
     when(sourceB.toString()).thenReturn("sourceB");
     when(sourceC.toString()).thenReturn("sourceC");
     when(sourceD.toString()).thenReturn("sourceD");
+    when(librarySource.getFullName()).thenReturn("/home/user/librarySource.dart");
     when(sourceA.getFullName()).thenReturn("/home/user/sourceA.dart");
     when(sourceB.getFullName()).thenReturn("/home/user/sourceB.dart");
     when(sourceC.getFullName()).thenReturn("/home/user/sourceC.dart");

@@ -28,7 +28,7 @@ public class RelationKeyData {
 
   public RelationKeyData(ElementCodec elementCodec, RelationshipCodec relationshipCodec,
       Element element, Relationship relationship) {
-    this.elementId = elementCodec.encode(element);
+    this.elementId = elementCodec.encode(element, true);
     this.relationshipId = relationshipCodec.encode(relationship);
   }
 

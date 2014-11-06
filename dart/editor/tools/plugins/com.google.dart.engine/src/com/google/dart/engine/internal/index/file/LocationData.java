@@ -16,7 +16,7 @@ public class LocationData {
 
   public LocationData(ElementCodec elementCodec, Location location) {
     Element element = location.getElement();
-    this.elementId = elementCodec.encode(element);
+    this.elementId = elementCodec.encode(element, false);
     this.offset = location.getOffset();
     this.length = location.getLength();
   }
