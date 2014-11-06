@@ -139,6 +139,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
             stream.lastRequestProcessed();
           }
         } catch (Throwable e) {
+          // Ignore exceptions during shutdown
+          if (shutdownRequested) {
+            return;
+          }
           if (e instanceof IOException) {
             String message = e.getMessage();
             if (message != null && message.contains("closed")) {
@@ -218,6 +222,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * A flag indicating whether the watcher should continue monitoring the remote process.
    */
   private boolean watch;
+
+  /**
+   * A flag indicating whether the server shutdown process has been requested.
+   */
+  private boolean shutdownRequested;
 
   public RemoteAnalysisServerImpl(AnalysisServerSocket socket) {
     this.socket = socket;
@@ -450,6 +459,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void server_shutdown() {
+    shutdownRequested = true;
     stopWatcher();
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), new BasicConsumer() {

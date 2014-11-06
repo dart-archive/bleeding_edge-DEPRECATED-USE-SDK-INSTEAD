@@ -48,7 +48,13 @@ public class LightweightModel_NEW extends LightweightModel {
             }
           }
         } catch (CoreException e) {
-          e.printStackTrace();
+          if (!"Workspace is closed.".equals(e.getMessage())) {
+            DartCore.logError(e);
+          }
+        } catch (IllegalStateException e) {
+          if (!"Workspace is closed.".equals(e.getMessage())) {
+            DartCore.logError(e);
+          }
         }
       }
     });
