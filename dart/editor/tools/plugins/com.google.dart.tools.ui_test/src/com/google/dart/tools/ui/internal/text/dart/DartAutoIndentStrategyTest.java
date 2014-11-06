@@ -43,7 +43,7 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
     initial = StringUtils.remove(initial, '!');
     expected = StringUtils.remove(expected, '!');
     // force "smart mode"
-    DartAutoIndentStrategy_OLD strategy = new DartAutoIndentStrategy_OLD(
+    DartAutoIndentStrategy_NEW strategy = new DartAutoIndentStrategy_NEW(
         DartPartitions.DART_PARTITIONING,
         null) {
       @Override
@@ -240,6 +240,18 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "class A {",
         "  !",
         "}").trim());
+  }
+
+  public void test_smartIndentAfterNewLine_class_noClosed_leadingEOLC() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "// this comment used to cause a problem",
+        "class A {!",
+        ""), createSource(//
+        "// this comment used to cause a problem",
+        "class A {",
+        "  !",
+        "}",
+        ""));
   }
 
   public void test_smartIndentAfterNewLine_closure_closed() throws Exception {

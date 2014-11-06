@@ -414,7 +414,6 @@ public class DartAutoIndentStrategy_NEW extends DefaultIndentLineAutoEditStrateg
 
   private int getBracketCount(IDocument d, int startOffset, int endOffset,
       boolean ignoreCloseBrackets) throws BadLocationException {
-
     int bracketCount = 0;
     while (startOffset < endOffset) {
       char curr = d.getChar(startOffset);
@@ -425,10 +424,10 @@ public class DartAutoIndentStrategy_NEW extends DefaultIndentLineAutoEditStrateg
             char next = d.getChar(startOffset);
             if (next == '*') {
               // a comment starts, advance to the comment end
-              startOffset = getCommentEnd(d, startOffset + 1, endOffset);
+              startOffset = getCommentEndBlock(d, startOffset + 1, endOffset);
             } else if (next == '/') {
-              // '//'-comment: nothing to do anymore on this line
-              startOffset = endOffset;
+              // '//'-comment: advance to the EOL comment end
+              startOffset = getCommentEndEOL(d, startOffset + 1, endOffset);
             }
           }
           break;
@@ -461,7 +460,8 @@ public class DartAutoIndentStrategy_NEW extends DefaultIndentLineAutoEditStrateg
     return bracketCount;
   }
 
-  private int getCommentEnd(IDocument d, int offset, int endOffset) throws BadLocationException {
+  private int getCommentEndBlock(IDocument d, int offset, int endOffset)
+      throws BadLocationException {
     while (offset < endOffset) {
       char curr = d.getChar(offset);
       offset++;
@@ -469,6 +469,17 @@ public class DartAutoIndentStrategy_NEW extends DefaultIndentLineAutoEditStrateg
         if (offset < endOffset && d.getChar(offset) == '/') {
           return offset + 1;
         }
+      }
+    }
+    return endOffset;
+  }
+
+  private int getCommentEndEOL(IDocument d, int offset, int endOffset) throws BadLocationException {
+    while (offset < endOffset) {
+      char curr = d.getChar(offset);
+      offset++;
+      if (curr == '\n') {
+        return offset + 1;
       }
     }
     return endOffset;
