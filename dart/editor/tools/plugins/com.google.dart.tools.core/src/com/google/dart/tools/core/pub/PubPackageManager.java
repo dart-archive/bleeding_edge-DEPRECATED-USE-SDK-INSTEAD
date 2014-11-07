@@ -176,12 +176,10 @@ public class PubPackageManager {
   }
 
   public void stop() {
-    if (job != null && !job.cancel()) {
-      try {
-        job.join();
-      } catch (InterruptedException e) {
-        // do nothing
-      }
+    if (job != null) {
+      // Try to cancel the job, but if it can't be cancelled cleanly then it will be cancelled when
+      // the editor exits.
+      job.cancel();
     }
   }
 
