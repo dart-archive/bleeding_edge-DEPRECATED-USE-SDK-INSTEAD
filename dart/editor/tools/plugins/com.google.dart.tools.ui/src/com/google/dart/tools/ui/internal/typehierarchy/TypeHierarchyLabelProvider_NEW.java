@@ -14,11 +14,9 @@
 package com.google.dart.tools.ui.internal.typehierarchy;
 
 import com.google.common.base.Predicate;
-import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
 import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider_NEW.TypeItem;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
@@ -29,6 +27,7 @@ import org.eclipse.swt.graphics.Image;
 public class TypeHierarchyLabelProvider_NEW extends LabelProvider implements
     org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider {
   private final Predicate<Object> lightPredicate;
+  private final ElementLabelProvider_NEW elementLabelProvider = new ElementLabelProvider_NEW();
 
   public TypeHierarchyLabelProvider_NEW(Predicate<Object> lightPredicate) {
     this.lightPredicate = lightPredicate;
@@ -36,11 +35,8 @@ public class TypeHierarchyLabelProvider_NEW extends LabelProvider implements
 
   @Override
   public Image getImage(Object o) {
-    ImageDescriptor desc = DartPluginImages.DESC_OBJS_CLASS;
-    if (lightPredicate.apply(o)) {
-      desc = DartPluginImages.DESC_OBJS_CLASSALT;
-    }
-    return DartToolsPlugin.getImageDescriptorRegistry().get(desc);
+    TypeItem item = (TypeItem) o;
+    return elementLabelProvider.getImage(item.element);
   }
 
   @Override
