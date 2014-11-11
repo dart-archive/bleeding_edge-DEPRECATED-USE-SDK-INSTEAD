@@ -513,6 +513,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
           formatterToken = formatterToken.getNext();
         } else {
           reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken);
+          break;
         }
         // parse argument
         Expression argument = parseDartExpressionInToken(formatterToken);

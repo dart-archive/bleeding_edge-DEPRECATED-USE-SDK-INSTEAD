@@ -753,6 +753,12 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("uppercase");
   }
 
+  public void test_resolveExpression_withFilter_missingColon() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController("{{ctrl.field | uppercase, lowercase}}"));
+    assertErrors(indexSource, AngularCode.MISSING_FORMATTER_COLON);
+  }
+
   public void test_resolveExpression_withFilter_notSimpleIdentifier() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController("{{ctrl.field | not.supported}}"));
