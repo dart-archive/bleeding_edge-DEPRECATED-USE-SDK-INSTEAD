@@ -572,11 +572,9 @@
       </page>
    </extension>
 
-   <extension
-         point="org.eclipse.core.runtime.preferences">
-      <initializer
-            class="com.google.dart.tools.ui.theme.preferences.PreferenceInitializer">
-      </initializer>
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="com.google.dart.tools.ui.theme.preferences.PreferenceInitializer"/>
+      <initializer class="com.google.dart.tools.deploy.DeployPreferenceInitializer"/>
    </extension>
 
    <extension
