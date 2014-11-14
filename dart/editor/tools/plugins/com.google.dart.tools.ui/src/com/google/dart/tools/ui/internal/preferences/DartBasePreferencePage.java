@@ -41,10 +41,8 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -59,32 +57,6 @@ import java.io.IOException;
  */
 @SuppressWarnings("restriction")
 public class DartBasePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
-
-  /**
-   * Listener that only allows digits to be entered into a text field
-   */
-  private final class ValidIntListener implements Listener {
-    @Override
-    public void handleEvent(Event e) {
-      String txt = e.text;
-      // Allow for delete
-      if (txt.isEmpty()) {
-        return;
-      }
-      try {
-        // Only allow digits
-        int num = Integer.parseInt(txt);
-        if (num >= 0) {
-          return;
-        }
-      } catch (NumberFormatException nfe) {
-        // Error
-      }
-
-      e.doit = false;
-      return;
-    }
-  }
 
   public static final String DART_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
 

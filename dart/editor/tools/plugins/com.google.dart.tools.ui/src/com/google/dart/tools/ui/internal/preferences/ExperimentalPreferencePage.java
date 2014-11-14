@@ -24,10 +24,13 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -45,9 +48,11 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     return checkBox;
   }
 
-//  private Button enableAnalysisServerButton;
   private Button enableAsyncSupportButton;
   private Button enableEnumsSupportButton;
+  private Button enableAnalysisServerButton;
+  private Label serverHttpPortLabel;
+  private Text serverHttpPortText;
 
   public ExperimentalPreferencePage() {
     setPreferenceStore(null);
@@ -64,13 +69,16 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
 
-//      boolean serverChanged = setPref(
-//          DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
-//          enableAnalysisServerButton);
+      boolean serverChanged = setPref(
+          DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
+          enableAnalysisServerButton);
+      boolean portChanged = setPref(
+          DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF,
+          serverHttpPortText);
       boolean asyncChanged = setPref(DartCoreDebug.ENABLE_ASYNC_PREF, enableAsyncSupportButton);
       boolean enumsChanged = setPref(DartCoreDebug.ENABLE_ENUMS_PREF, enableEnumsSupportButton);
 
-      boolean hasChanges = /* serverChanged || */asyncChanged || enumsChanged;
+      boolean hasChanges = serverChanged || portChanged || asyncChanged || enumsChanged;
       try {
         DartCore.getPlugin().savePrefs();
       } catch (CoreException e) {
@@ -94,13 +102,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-    // Enable Analysis Server checkbox
-//    enableAnalysisServerButton = createCheckBox(
-//        composite,
-//        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server,
-//        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server_tooltip);
-//    GridDataFactory.fillDefaults().applyTo(enableAnalysisServerButton);
-
     // Enable Async support checkbox
     enableAsyncSupportButton = createCheckBox(
         composite,
@@ -114,6 +115,43 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
         PreferencesMessages.ExperimentalPreferencePage_enable_enums_support,
         PreferencesMessages.ExperimentalPreferencePage_enable_enums_support_tooltip);
     GridDataFactory.fillDefaults().applyTo(enableEnumsSupportButton);
+
+    // Enable Analysis Server checkbox
+    enableAnalysisServerButton = createCheckBox(
+        composite,
+        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server,
+        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server_tooltip);
+    GridDataFactory.fillDefaults().applyTo(enableAnalysisServerButton);
+    enableAnalysisServerButton.addSelectionListener(new SelectionListener() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        widgetSelected(e);
+      }
+
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        updateServerOptionEnablement();
+      }
+    });
+
+    // Analysis Server options
+    {
+      Composite group = new Composite(composite, SWT.NONE);
+      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
+      GridLayoutFactory.fillDefaults().numColumns(2).extendedMargins(40, 0, 0, 0).applyTo(group);
+
+      serverHttpPortLabel = new Label(group, SWT.NONE);
+      serverHttpPortLabel.setText(PreferencesMessages.ExperimentalPreferencePage_server_http_port_label);
+
+      // Http port for analysis server or empty string if none
+      serverHttpPortText = new Text(group, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+      serverHttpPortText.setTextLimit(5);
+      serverHttpPortText.setToolTipText(PreferencesMessages.ExperimentalPreferencePage_server_http_port_tooltip);
+      GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(serverHttpPortText);
+
+      // Only allow integer values
+      serverHttpPortText.addListener(SWT.Verify, new ValidIntListener());
+    }
 
     // Separator
     {
@@ -131,20 +169,48 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     return composite;
   }
 
-  private boolean getPref(String prefKey) {
+  private String getPref(String prefKey) {
+    return DartCore.getPlugin().getPrefs().get(prefKey, "").trim();
+  }
+
+  private boolean getPrefBool(String prefKey) {
     return DartCore.getPlugin().getPrefs().getBoolean(prefKey, false);
   }
 
   private void initFromPrefs() {
-//    enableAnalysisServerButton.setSelection(getPref(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
-    enableAsyncSupportButton.setSelection(getPref(DartCoreDebug.ENABLE_ASYNC_PREF));
-    enableEnumsSupportButton.setSelection(getPref(DartCoreDebug.ENABLE_ENUMS_PREF));
+    enableAnalysisServerButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
+    enableAsyncSupportButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ASYNC_PREF));
+    enableEnumsSupportButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ENUMS_PREF));
+    String textValue = getPref(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF);
+    try {
+      if (Integer.parseInt(textValue) < 0) {
+        textValue = "";
+      }
+    } catch (NumberFormatException nfe) {
+      textValue = "";
+    }
+    serverHttpPortText.setText(textValue);
+    updateServerOptionEnablement();
   }
 
   private boolean setPref(String prefKey, Button button) {
-    boolean oldValue = getPref(prefKey);
+    boolean oldValue = getPrefBool(prefKey);
     boolean newValue = button.getSelection();
     DartCore.getPlugin().getPrefs().putBoolean(prefKey, newValue);
     return oldValue != newValue;
+  }
+
+  private boolean setPref(String prefKey, Text textBox) {
+    String oldValue = getPref(prefKey);
+    String newValue = textBox.getText().trim();
+    DartCore.getPlugin().getPrefs().put(prefKey, newValue);
+    return !oldValue.equals(newValue);
+  }
+
+  private void updateServerOptionEnablement() {
+    boolean enabled = enableAnalysisServerButton.getSelection();
+    serverHttpPortLabel.setForeground(getShell().getDisplay().getSystemColor(
+        enabled ? SWT.COLOR_BLACK : SWT.COLOR_GRAY));
+    serverHttpPortText.setEnabled(enabled);
   }
 }

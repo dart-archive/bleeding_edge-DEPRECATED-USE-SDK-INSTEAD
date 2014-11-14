@@ -85,7 +85,12 @@ public class DartCoreDebug {
       || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, false);
 
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
-  public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionValue("experimental/analysisServer/http_port");
+
+  public static final String ANALYSIS_SERVER_HTTP_PORT_PREF = "analysisServerHttpPort";
+  public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionOrPrefValue(
+      "experimental/analysisServer/http_port",
+      ANALYSIS_SERVER_HTTP_PORT_PREF);
+
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
   public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");
@@ -110,6 +115,9 @@ public class DartCoreDebug {
 
     // Cause AnalysisEngine to throw exceptions if server is enabled
     AnalysisEngine.setDisableEngine(ENABLE_ANALYSIS_SERVER);
+
+    instrumentation.metric("ENABLE_ANALYSIS_SERVER", ENABLE_ANALYSIS_SERVER);
+    instrumentation.metric("ANALYSIS_SERVER_HTTP_PORT", ANALYSIS_SERVER_HTTP_PORT);
 
     instrumentation.metric("DEBUG_INDEX_CONTRIBUTOR", DEBUG_INDEX_CONTRIBUTOR);
     instrumentation.metric("METRICS", METRICS);
@@ -142,6 +150,17 @@ public class DartCoreDebug {
 
     instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", DISABLE_DARTIUM_DEBUGGER);
     instrumentation.metric("DISABLE_CLI_DEBUGGER", DISABLE_CLI_DEBUGGER);
+  }
+
+  /**
+   * Returns a value of the option or the preference.
+   */
+  private static String getOptionOrPrefValue(String optionSuffix, String prefKey) {
+    String value = getOptionValue(optionSuffix);
+    if (value == null || value.length() == 0) {
+      value = DartCore.getPlugin().getPrefs().get(prefKey, "");
+    }
+    return value;
   }
 
   /**
