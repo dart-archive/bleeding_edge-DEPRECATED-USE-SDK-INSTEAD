@@ -235,6 +235,19 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_smartIndentAfterNewLine_class_closed_hasEOLC() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A {!",
+        "// this comment used to cause a problem",
+        "}",
+        ""), createSource(//
+        "class A {",
+        "  !",
+        "// this comment used to cause a problem",
+        "}",
+        ""));
+  }
+
   public void test_smartIndentAfterNewLine_class_noClosed() throws Exception {
     assertSmartInsertAfterNewLine("class A {!", createSource(//
         "class A {",

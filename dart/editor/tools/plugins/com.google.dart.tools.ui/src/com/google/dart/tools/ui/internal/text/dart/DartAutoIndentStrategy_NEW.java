@@ -479,7 +479,7 @@ public class DartAutoIndentStrategy_NEW extends DefaultIndentLineAutoEditStrateg
       char curr = d.getChar(offset);
       offset++;
       if (curr == '\n') {
-        return offset + 1;
+        return offset;
       }
     }
     return endOffset;
