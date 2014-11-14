@@ -91,6 +91,21 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
             " */"));
   }
 
+  public void test_hasInnerComment() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "/**",
+        " * !",
+        " * This /* comment */ causes used to /* cause */ a problems.",
+        " */",
+        ""), createSource(//
+        "/**",
+        " * ",
+        " * !",
+        " * This /* comment */ causes used to /* cause */ a problems.",
+        " */",
+        ""));
+  }
+
   public void test_inEmptyLine() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "/**",

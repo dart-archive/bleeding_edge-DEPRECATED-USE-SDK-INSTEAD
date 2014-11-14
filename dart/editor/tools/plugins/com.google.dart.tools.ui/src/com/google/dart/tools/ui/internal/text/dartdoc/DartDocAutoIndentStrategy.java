@@ -169,11 +169,14 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
       }
 
       String comment = document.get(partition.getOffset(), partition.getLength());
-      if (comment.indexOf("/*", 2) != -1) {
-        return true; // enclosed another comment -> probably a new comment 
-      }
-
-      return false;
+      int openCount = StringUtils.countMatches(comment, "/*");
+      int closeCount = StringUtils.countMatches(comment, "*/");
+      return openCount > closeCount;
+//      if (comment.indexOf("/*", 2) != -1) {
+//        return true; // enclosed another comment -> probably a new comment 
+//      }
+//
+//      return false;
 
     } catch (BadLocationException e) {
       return false;
