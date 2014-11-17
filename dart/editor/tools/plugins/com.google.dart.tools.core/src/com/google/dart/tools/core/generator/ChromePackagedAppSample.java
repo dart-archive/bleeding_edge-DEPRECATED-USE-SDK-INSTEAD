@@ -24,7 +24,7 @@ import java.util.List;
 public class ChromePackagedAppSample extends AbstractSample {
 
   public ChromePackagedAppSample() {
-    super("chromeapp", "A Chrome packaged application.");
+    super("Chrome App", "A Chrome packaged application.");
 
     List<String[]> templates = new ArrayList<String[]>();
 
@@ -40,5 +40,4 @@ public class ChromePackagedAppSample extends AbstractSample {
     setTemplates(templates);
     setMainFile("web/manifest.json");
   }
-
 }

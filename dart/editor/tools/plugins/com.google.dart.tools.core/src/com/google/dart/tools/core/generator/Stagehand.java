@@ -33,16 +33,13 @@ import java.util.List;
 public class Stagehand {
   public static class StagehandTuple {
     public String id;
+    public String label;
     public String description;
     public String entrypoint;
 
-    public StagehandTuple(String id, String description) {
+    public StagehandTuple(String id, String label, String description, String entrypoint) {
       this.id = id;
-      this.description = description;
-    }
-
-    public StagehandTuple(String id, String description, String entrypoint) {
-      this.id = id;
+      this.label = label;
       this.description = description;
       this.entrypoint = entrypoint;
     }
@@ -96,8 +93,15 @@ public class Stagehand {
       for (int i = 0; i < arr.length(); i++) {
         JSONObject obj = arr.getJSONObject(i);
 
+        // Defensively check for a 'label' property; older versions of Stagehand will not have one.
+        String label = obj.optString("label");
+        if (label == null || label.isEmpty()) {
+          label = obj.getString("name");
+        }
+
         result.add(new StagehandTuple(
             obj.getString("name"),
+            label,
             obj.getString("description"),
             obj.optString("entrypoint")));
       }

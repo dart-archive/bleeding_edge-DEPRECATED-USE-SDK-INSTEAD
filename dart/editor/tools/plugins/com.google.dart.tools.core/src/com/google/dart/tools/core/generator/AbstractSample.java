@@ -73,7 +73,6 @@ public class AbstractSample implements Comparable<AbstractSample> {
     try {
       samples = stagehand.getAvailableSamples();
     } catch (StagehandException e) {
-      // TODO: Bubble the error up through the caller?
       List<AbstractSample> tempResults = new ArrayList<AbstractSample>();
       tempResults.add(new CommandLineSample());
       tempResults.add(new PackageSample());
@@ -99,6 +98,7 @@ public class AbstractSample implements Comparable<AbstractSample> {
       cachedSamples.add(new StagehandSample(
           stagehand,
           sample.id,
+          sample.label,
           sample.description,
           sample.entrypoint));
     }

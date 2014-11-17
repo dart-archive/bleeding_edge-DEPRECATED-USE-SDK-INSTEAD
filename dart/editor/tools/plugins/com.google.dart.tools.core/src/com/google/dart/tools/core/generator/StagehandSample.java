@@ -30,11 +30,14 @@ import java.io.File;
  */
 public class StagehandSample extends AbstractSample {
   private Stagehand stagehand;
+  private String templateId;
 
-  public StagehandSample(Stagehand stagehand, String id, String description, String entrypoint) {
-    super(id, description);
+  public StagehandSample(Stagehand stagehand, String templateId, String label, String description,
+      String entrypoint) {
+    super(label, description);
 
     this.stagehand = stagehand;
+    this.templateId = templateId;
 
     setMainFile(entrypoint);
   }
@@ -69,11 +72,11 @@ public class StagehandSample extends AbstractSample {
   }
 
   public String getStagehandId() {
-    return getTitle();
+    return templateId;
   }
 
   @Override
   public boolean shouldBeDefault() {
-    return getTitle().equals("consoleapp");
+    return getStagehandId().equals("consoleapp");
   }
 }
