@@ -59,6 +59,12 @@ public class StdioServerSocket implements AnalysisServerSocket {
    */
   private final String packageRoot;
 
+  /**
+   * Boolean used to have the <code>--no-error-notification</code> which disables all error
+   * notifications from the server.
+   */
+  private final boolean noErrorNotification;
+
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess,
       int httpPort) {
@@ -70,12 +76,14 @@ public class StdioServerSocket implements AnalysisServerSocket {
         new String[] {},
         debugRemoteProcess,
         profileRemoteProcess,
-        httpPort);
+        httpPort,
+        false);
   }
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, String[] additionalProgramArguments,
-      boolean debugRemoteProcess, boolean profileRemoteProcess, int httpPort) {
+      boolean debugRemoteProcess, boolean profileRemoteProcess, int httpPort,
+      boolean noErrorNotification) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.packageRoot = packageRoot;
@@ -84,6 +92,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
     this.debugRemoteProcess = debugRemoteProcess;
     this.profileRemoteProcess = profileRemoteProcess;
     this.httpPort = httpPort;
+    this.noErrorNotification = noErrorNotification;
   }
 
   @Override
@@ -118,6 +127,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
     if (profileRemoteProcess) {
       args.add("--observe");
       args.add("--pause-isolates-on-exit");
+    }
+    if (noErrorNotification) {
+      args.add("--no-error-notification");
     }
     args.add(analysisServerPath);
     if (httpPort != 0) {
