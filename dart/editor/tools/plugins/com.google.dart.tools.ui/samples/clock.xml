@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<sample name="Clock" file="web/clock.dart">
-    <description>A Google I/O style clock. This sample demonstrates using absolute positioning and requestAnimationFrame.</description>
-</sample>

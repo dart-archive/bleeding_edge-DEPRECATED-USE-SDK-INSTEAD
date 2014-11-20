@@ -110,9 +110,10 @@ public class DownloadUtilities {
 
     monitor.done();
 
-    if (connection.getLastModified() != 0) {
-      tempFile.setLastModified(connection.getLastModified());
-    }
+    // Protect against an NPE in Sun's http library.
+//    if (connection.getLastModified() != 0) {
+//      tempFile.setLastModified(connection.getLastModified());
+//    }
 
     return tempFile;
   }

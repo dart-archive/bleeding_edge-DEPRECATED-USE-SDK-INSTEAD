@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="TodoMVC" file="web/index.html" order="4">
-    <description>A simple note taking app, built with alpha Polymer technology.</description>
+<sample name="TodoMVC" file="web/index.html" early="true"
+    url="https://github.com/dart-lang/sample-todomvc-polymer/archive/requires.1.8.zip">
+  <description>A simple note taking application, built with Polymer technology.</description>
 </sample>

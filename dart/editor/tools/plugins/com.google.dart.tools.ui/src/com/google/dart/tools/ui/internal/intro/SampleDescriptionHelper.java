@@ -17,16 +17,11 @@ import com.google.common.collect.Lists;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -38,13 +33,15 @@ import javax.xml.parsers.SAXParserFactory;
  * Helper for providing {@link SampleDescription}s.
  */
 public final class SampleDescriptionHelper {
+  static final String[] SAMPLE_NAMES = new String[] {
+      "dartiverse_search", "pop_pop_win", "sunflower", "todomvc"};
+
   /**
    * @return all {@link SampleDescription} from the "samples" directory.
    */
   public static List<SampleDescription> getDescriptions() {
     List<SampleDescription> descriptions = Lists.newArrayList();
-    File samplesDirectory = getSamplesDirectory();
-    scanSamples(descriptions, samplesDirectory);
+    scanSamples(SAMPLE_NAMES, descriptions);
     Collections.sort(descriptions);
     return descriptions;
   }
@@ -52,15 +49,9 @@ public final class SampleDescriptionHelper {
   /**
    * Scans "samples" directory and attempts to find descriptions for each "sample" child.
    */
-  static void scanSamples(List<SampleDescription> descriptions, File samplesDirectory) {
-    // ignore not directory
-    if (!samplesDirectory.exists() || !samplesDirectory.isDirectory()) {
-      return;
-    }
-
-    // scan samples
-    for (File sampleDirectory : samplesDirectory.listFiles()) {
-      addDescription(descriptions, sampleDirectory);
+  static void scanSamples(String[] names, List<SampleDescription> descriptions) {
+    for (String sampleName : names) {
+      addDescription(sampleName, descriptions);
     }
   }
 
@@ -69,97 +60,67 @@ public final class SampleDescriptionHelper {
    * 
    * @return <code>true</code> if {@link SampleDescription} was added.
    */
-  private static void addDescription(final List<SampleDescription> descriptions,
-      final File directory) {
-    final String sampleName = directory.getName();
-
-    if (doesSampleResourceExist(sampleName + ".xml")) {
-      try {
-        final File logoFile = createSampleImageFile(sampleName + ".png");
-
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser = factory.newSAXParser();
-        DefaultHandler handler = new DefaultHandler() {
-          private StringBuilder sb = new StringBuilder();
-          private String name;
-          private String filePath;
-          private String sortOrder;
-          private String descriptionText;
-
-          @Override
-          public void characters(char[] ch, int start, int length) throws SAXException {
-            sb.append(ch, start, length);
-          }
-
-          @Override
-          public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (qName.equals("description")) {
-              descriptionText = sb.toString();
-            }
-            if (qName.equals("sample") && filePath != null && name != null
-                && descriptionText != null) {
-              descriptions.add(new SampleDescription(
-                  directory,
-                  filePath,
-                  name,
-                  descriptionText,
-                  logoFile,
-                  "samples/" + sampleName + ".png",
-                  sortOrder));
-            }
-          }
-
-          @Override
-          public void startElement(String uri, String localName, String qName, Attributes attributes)
-              throws SAXException {
-            sb.setLength(0);
-            if (qName.equals("sample")) {
-              name = attributes.getValue("name");
-              filePath = attributes.getValue("file");
-              sortOrder = attributes.getValue("order");
-            }
-          }
-        };
-
-        InputStream is = getSampleResourceUrl(sampleName + ".xml").openStream();
-
-        try {
-          saxParser.parse(is, handler);
-        } finally {
-          is.close();
-        }
-      } catch (Throwable e) {
-        DartCore.logError(e);
-      }
-    }
-  }
-
-  private static File createSampleImageFile(String resourceName) throws IOException {
+  private static void addDescription(final String sampleName,
+      final List<SampleDescription> descriptions) {
     try {
-      URL entryUrl = getSampleResourceUrl(resourceName);
-      URL fileUrl = FileLocator.toFileURL(entryUrl);
-      String fileUrlString = fileUrl.toString().replace(" ", "%20");
-      URI fileUri = URI.create(fileUrlString);
-      return new File(fileUri);
-    } catch (Throwable e) {
-      throw new IOException(e);
-    }
-  }
+      SAXParserFactory factory = SAXParserFactory.newInstance();
+      SAXParser saxParser = factory.newSAXParser();
+      DefaultHandler handler = new DefaultHandler() {
+        private StringBuilder sb = new StringBuilder();
+        private String name;
+        private String descriptionText;
+        private String filePath;
+        private String url;
+        private boolean earlyAccess;
 
-  private static boolean doesSampleResourceExist(String resourceName) {
-    return getSampleResourceUrl(resourceName) != null;
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+          sb.append(ch, start, length);
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+          if (qName.equals("description")) {
+            descriptionText = sb.toString();
+          }
+
+          if (qName.equals("sample") && name != null && descriptionText != null) {
+            descriptions.add(new SampleDescription(
+                name,
+                descriptionText,
+                filePath,
+                url,
+                earlyAccess,
+                "samples/" + sampleName + ".png"));
+          }
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes)
+            throws SAXException {
+          sb.setLength(0);
+          if (qName.equals("sample")) {
+            name = attributes.getValue("name");
+            filePath = attributes.getValue("file");
+            url = attributes.getValue("url");
+            earlyAccess = "true".equals(attributes.getValue("early"));
+          }
+        }
+      };
+
+      InputStream is = getSampleResourceUrl(sampleName + ".xml").openStream();
+
+      try {
+        saxParser.parse(is, handler);
+      } finally {
+        is.close();
+      }
+    } catch (Throwable e) {
+      DartCore.logError(e);
+    }
   }
 
   private static URL getSampleResourceUrl(String resourceName) {
     return DartToolsPlugin.getDefault().getBundle().getEntry("/samples/" + resourceName);
   }
-
-  /**
-   * @return the {@link File} of the "samples" directory.
-   */
-  private static File getSamplesDirectory() {
-    File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-    return new File(installDir, "samples");
-  }
-
 }

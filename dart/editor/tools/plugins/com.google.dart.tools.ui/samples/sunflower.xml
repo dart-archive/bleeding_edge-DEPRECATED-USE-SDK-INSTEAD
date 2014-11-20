@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="Sunflower" file="web/sunflower.dart" order="1">
-    <description>Canvas2D, Dart and just a little Fibonacci.</description>
+<sample name="Sunflower" file="web/sunflower.dart"
+    url="https://github.com/dart-lang/sample-sunflower/archive/requires.1.8.zip">
+  <description>Canvas2D, Dart and just a little Fibonacci.</description>
 </sample>

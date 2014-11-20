@@ -13,36 +13,34 @@
  */
 package com.google.dart.tools.ui.internal.intro;
 
-import java.io.File;
-
 /**
- * Description for Dart sample.
+ * A description of a Dart sample.
  */
 public final class SampleDescription implements Comparable<SampleDescription> {
-  public final File directory;
-  public final String file;
   public final String name;
   public final String description;
-  public final String sortOrder;
-
-  public final File logo;
+  public final String file;
+  public final String url;
+  public final boolean earlyAccess;
   public final String logoPath;
 
-  public SampleDescription(File directory, String file, String name, String description, File logo,
-      String logoPath, String sortOrder) {
-    this.directory = directory;
-    this.file = file;
+  public SampleDescription(String name, String description, String file, String url,
+      boolean earlyAccess, String logoPath) {
     this.name = name;
     this.description = description;
-    this.logo = logo;
+    this.file = file;
+    this.url = url;
+    this.earlyAccess = earlyAccess;
     this.logoPath = logoPath;
-    this.sortOrder = sortOrder;
   }
 
   @Override
-  public int compareTo(SampleDescription o) {
-    // TODO(keertip): change to int and compare
-    return sortOrder.compareToIgnoreCase(o.sortOrder);
+  public int compareTo(SampleDescription other) {
+    return name.compareToIgnoreCase(name);
   }
 
+  @Override
+  public String toString() {
+    return name;
+  }
 }

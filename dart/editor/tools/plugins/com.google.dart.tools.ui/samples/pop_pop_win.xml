@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="Pop, Pop, Win!" file="web/index.html" order="2">
-    <description>A Dart based game with graphics and sound.</description>
+<sample name="Pop, Pop, Win!" file="web/index.html"
+    url="https://github.com/dart-lang/sample-pop_pop_win/archive/requires.1.8.zip">
+  <description>A Dart based game with graphics and sound.</description>
 </sample>

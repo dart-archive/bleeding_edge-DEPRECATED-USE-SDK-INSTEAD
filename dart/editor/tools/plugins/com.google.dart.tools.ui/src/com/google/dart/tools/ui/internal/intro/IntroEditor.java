@@ -172,14 +172,15 @@ public class IntroEditor extends EditorPart {
     l.verticalSpacing = 10;
     client.setLayout(l);
 
-    for (final SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
-      if (!description.name.equals("TodoMVC") && !description.name.equals("Angular Dart")) {
-        Composite composite = toolkit.createComposite(client);
-        TableWrapLayout lc = new TableWrapLayout();
-        lc.numColumns = 2;
-        composite.setLayout(lc);
-        addSampleInfo(composite, description);
+    for (SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
+      if (description.earlyAccess) {
+        continue;
       }
+      Composite composite = toolkit.createComposite(client);
+      TableWrapLayout lc = new TableWrapLayout();
+      lc.numColumns = 2;
+      composite.setLayout(lc);
+      addSampleInfo(composite, description);
     }
     section.setClient(client);
 
@@ -253,13 +254,14 @@ public class IntroEditor extends EditorPart {
     client.setLayout(l);
 
     for (final SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
-      if (description.name.equals("TodoMVC") || description.name.equals("Angular Dart")) {
-        composite = toolkit.createComposite(client);
-        lc = new TableWrapLayout();
-        lc.numColumns = 2;
-        composite.setLayout(lc);
-        addSampleInfo(composite, description);
+      if (!description.earlyAccess) {
+        continue;
       }
+      composite = toolkit.createComposite(client);
+      lc = new TableWrapLayout();
+      lc.numColumns = 2;
+      composite.setLayout(lc);
+      addSampleInfo(composite, description);
     }
     section.setClient(client);
 
@@ -310,14 +312,13 @@ public class IntroEditor extends EditorPart {
   }
 
   private void addSampleInfo(Composite client, final SampleDescription description) {
-
     Label label = toolkit.createLabel(client, "", SWT.NONE);
     label.setImage(DartToolsPlugin.getImage(description.logoPath));
     label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     label.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseUp(MouseEvent e) {
-        SampleHelper.openSample(description, getSite());
+        SampleHelper.openSample(description, getSite().getWorkbenchWindow());
       }
     });
 
@@ -329,7 +330,7 @@ public class IntroEditor extends EditorPart {
     formText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        SampleHelper.openSample(description, getSite());
+        SampleHelper.openSample(description, getSite().getWorkbenchWindow());
       }
     });
   }

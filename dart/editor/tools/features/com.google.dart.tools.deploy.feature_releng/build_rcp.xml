@@ -164,74 +164,6 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyname="build.dart.sdk.zip" />
         <echoProperty propertyname="build.download.sdk" />
     </target>
-
-    <!-- - - - - - - - - - - - - - - - - -
-          target: buildSamples
-          Copy sample Dart libraries from the SVN tree into a new "samples" directory
-
-          ant properties required
-           build.source.root = the SVN root directory
-           build.stage.include.dir = required iff samples.out.dir is not already defined
-
-          ant properties set
-           samples.out.dir = the destination "samples" directory, created by this target
-
-         - - - - - - - - - - - - - - - - - -->
-    <target name="buildSamples">
-        <!-- create the samples directory -->
-        <property name="samples.out.dir" value="${build.stage.include.dir}/samples" />
-
-        <!-- delete old samples -->
-        <delete dir="${samples.out.dir}"/>
-
-        <!-- copy specific samples -->
-        <copy todir="${samples.out.dir}">
-            <fileset dir="${build.source.root}/samples">
-                <include name="dartiverse_search/**"/>
-                <include name="sunflower/**"/>
-                <include name="pop_pop_win/**"/>
-
-                <!-- the READMEs are out of date -->
-                <exclude name="**/README"/>
-
-                <!-- the included samples aren't under revision control -->
-                <exclude name="**/.gitignore"/>
-
-                <!-- We do not need to ship the test directories. -->
-                <exclude name="**/test/"/>
-            </fileset>
-            <fileset dir="${build.source.root}/samples/third_party">
-                <include name="todomvc/**"/>
-                <include name="angular_todo/**"/>
-                <exclude name="**/tool/"/>
-                <exclude name="**/.git/"/>
-                <exclude name="**/.gitignore"/>
-                <exclude name="**/test/"/>
-                <exclude name="**/app_package/"/>
-                <exclude name="**/resouce/"/>
-            </fileset>
-        </copy>
-
-        <!-- download and setup the html5 examples -->
-        <!-- TODO(devoncarew): enable when we have more confidence in the html5 samples -->
-        <!-- property name="html5.archive" value="${build.stage.include.dir}/html5.zip" />
-
-        <get src="https://github.com/dart-lang/dart-html5-samples/zipball/master"
-          dest="${html5.archive}"
-          usetimestamp="true" />
-
-        <unzip src="${html5.archive}" dest="${samples.out.dir}/html5">
-            <patternset>
-                <exclude name="**/.gitignore"/>
-            </patternset>
-            <cutdirsmapper dirs="1"/>
-        </unzip>
-
-        <delete file="${html5.archive}"/ -->
-
-        <!-- copy the dart.js file into the samples directory -->
-        <copy todir="${samples.out.dir}" file="${build.source.root}/pkg/browser/lib/dart.js"/>
-    </target>
 	
 	<target name="buildMobile">		
 		<!-- create the android directory -->
@@ -275,7 +207,7 @@ build system.  The PDE build system has to run under Eclipse.
           target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace"
-            depends="initDevWorkspace, buildSamples, buildMobile, installSdk">
+            depends="initDevWorkspace, buildMobile, installSdk">
     </target>
 
     <!-- - - - - - - - - - - - - - - - - -
@@ -341,7 +273,7 @@ build system.  The PDE build system has to run under Eclipse.
     <!--
     copy the code from the svn structure to the PDE structure and get rid of the linked resources
     -->
-    <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildSamples, buildMobile" >
+    <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildMobile" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
 

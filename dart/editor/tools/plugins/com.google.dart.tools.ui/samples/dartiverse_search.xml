@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="Dartiverse Search" file="readme.txt" order="3">
-    <description>Use Dart throughout the application stack.</description>
+<sample name="Dartiverse Search" file="readme.txt"
+    url="https://github.com/dart-lang/sample-dartiverse-search/archive/requires.1.8.zip">
+  <description>Use Dart throughout the application stack.</description>
 </sample>

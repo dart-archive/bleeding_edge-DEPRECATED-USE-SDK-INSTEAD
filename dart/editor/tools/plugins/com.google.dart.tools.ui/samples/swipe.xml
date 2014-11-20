@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<sample name="Swipe" file="web/swipe.dart">
-    <description>A 3D, touch-enabled palindrome. This sample demonstrates CSS 3D transforms and the use of touch gestures.</description>
-</sample>

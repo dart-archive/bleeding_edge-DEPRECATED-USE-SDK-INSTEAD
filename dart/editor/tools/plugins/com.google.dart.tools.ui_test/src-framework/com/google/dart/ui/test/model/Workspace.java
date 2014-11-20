@@ -195,13 +195,10 @@ public class Workspace {
     }
 
     public Project getProject() {
-
       List<Project> projects = findProjects(new Predicate<IProject>() {
         @Override
         public boolean apply(IProject project) {
-          //TODO (pquitslund): consider getting a handle on the created project from the SampleHelper 
-          //(in a future) so we can do this more cleanly
-          return project.getName().startsWith(description.directory.getName());
+          return project.getName().startsWith(description.name);
         }
       }, type);
 

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<sample name="Solar" file="web/solar.dart">
-    <description>A solar system simulator, using canvas 2D and requestAnimationFrame.</description>
-</sample>
