@@ -27,6 +27,11 @@ public final class StringUtilities {
   public static final String EMPTY = "";
 
   /**
+   * An empty array of strings.
+   */
+  public static final String[] EMPTY_ARRAY = new String[0];
+
+  /**
    * Test to see if this string contains any upper case characters.
    * 
    * @param str the string to test

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
@@ -227,7 +228,7 @@ public class DartIgnoreManager {
       if (modified) {
         cacheExclusions();
         storage.store();
-        notifyListeners(new DartIgnoreEvent(absolutePaths, new String[] {}));
+        notifyListeners(new DartIgnoreEvent(absolutePaths, StringUtilities.EMPTY_ARRAY));
         return true;
       }
     }
@@ -432,7 +433,7 @@ public class DartIgnoreManager {
       if (removed.size() > 0) {
         cacheExclusions();
         storage.store();
-        notifyListeners(new DartIgnoreEvent(new String[] {}, absolutePaths));
+        notifyListeners(new DartIgnoreEvent(StringUtilities.EMPTY_ARRAY, absolutePaths));
         return true;
       }
     }
