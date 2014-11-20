@@ -191,15 +191,17 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   protected void processPubspecContents(IResource pubspec, IProject project,
       IProgressMonitor monitor) {
 
-    try {
-      PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(pubspec);
-      if (pubFolder != null) {
-        pubFolder.invalidatePubspec();
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      try {
+        PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(pubspec);
+        if (pubFolder != null) {
+          pubFolder.invalidatePubspec();
+        }
+      } catch (CoreException e) {
+        DartCore.logError(e);
+      } catch (IOException e) {
+        DartCore.logError(e);
       }
-    } catch (CoreException e) {
-      DartCore.logError(e);
-    } catch (IOException e) {
-      DartCore.logError(e);
     }
 
   }
