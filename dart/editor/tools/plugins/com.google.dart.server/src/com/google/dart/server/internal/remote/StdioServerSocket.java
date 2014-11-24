@@ -138,7 +138,21 @@ public class StdioServerSocket implements AnalysisServerSocket {
     for (String arg : additionalProgramArguments) {
       args.add(arg);
     }
-    ProcessBuilder processBuilder = new ProcessBuilder(args.toArray(new String[args.size()]));
+    String[] arguments = args.toArray(new String[args.size()]);
+    if (debugStream != null) {
+      StringBuilder builder = new StringBuilder();
+      builder.append("  ");
+      int count = arguments.length;
+      for (int i = 0; i < count; i++) {
+        if (i > 0) {
+          builder.append(' ');
+        }
+        builder.append(arguments[i]);
+      }
+      debugStream.println(System.currentTimeMillis() + " started analysis server:");
+      debugStream.println(builder.toString());
+    }
+    ProcessBuilder processBuilder = new ProcessBuilder(arguments);
     process = processBuilder.start();
     requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
     responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
