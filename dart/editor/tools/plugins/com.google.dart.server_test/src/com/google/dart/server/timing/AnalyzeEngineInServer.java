@@ -112,7 +112,6 @@ public class AnalyzeEngineInServer extends TimingTest {
         runtimePath,
         analysisServerPath,
         null,
-        null,
         false,
         false,
         0);

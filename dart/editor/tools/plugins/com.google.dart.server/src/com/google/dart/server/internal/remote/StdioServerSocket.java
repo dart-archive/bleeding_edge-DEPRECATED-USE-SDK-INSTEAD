@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Preconditions;
 import com.google.dart.server.AnalysisServerSocket;
+import com.google.dart.server.utilities.general.StringUtilities;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -60,20 +61,22 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final String packageRoot;
 
   /**
-   * Boolean used to have the <code>--no-error-notification</code> which disables all error
-   * notifications from the server.
+   * Boolean used to have the {@code --no-error-notification} which disables all error notifications
+   * from the server.
+   * <p>
+   * This should be {@code null} if the snapshot path is passed as the server path.
    */
   private final boolean noErrorNotification;
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
+  public StdioServerSocket(String runtimePath, String analysisServerPath,
       DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess,
       int httpPort) {
     this(
         runtimePath,
         analysisServerPath,
-        packageRoot,
+        StringUtilities.EMPTY,
         debugStream,
-        new String[] {},
+        StringUtilities.EMPTY_ARRAY,
         debugRemoteProcess,
         profileRemoteProcess,
         httpPort,
