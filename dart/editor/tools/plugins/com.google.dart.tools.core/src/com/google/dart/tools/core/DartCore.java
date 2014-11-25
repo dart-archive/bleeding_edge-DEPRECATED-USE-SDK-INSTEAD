@@ -52,6 +52,7 @@ import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -468,6 +469,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         }
 
         try {
+          String[] additionalArguments = StringUtilities.EMPTY_ARRAY;
           // prepare debug stream
           DebugPrintStream debugStream;
           {
@@ -494,6 +496,13 @@ public class DartCore extends Plugin implements DartSdkListener {
               };
             }
           }
+          // incremental resolution
+          if (DartCoreDebug.ANALYSIS_SERVER_INCREMENTAL_RESOLUTION) {
+            additionalArguments = ArrayUtils.add(
+                additionalArguments,
+                "--enable-incremental-resolution");
+          }
+          // HTTP port
           int httpPort = 0;
           if (DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT != null
               && !DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT.isEmpty()) {
@@ -510,7 +519,7 @@ public class DartCore extends Plugin implements DartSdkListener {
               analysisServerPath,
               packageRoot,
               debugStream,
-              StringUtilities.EMPTY_ARRAY,
+              additionalArguments,
               DartCoreDebug.ANALYSIS_SERVER_DEBUG,
               DartCoreDebug.ANALYSIS_SERVER_PROFILE,
               httpPort,

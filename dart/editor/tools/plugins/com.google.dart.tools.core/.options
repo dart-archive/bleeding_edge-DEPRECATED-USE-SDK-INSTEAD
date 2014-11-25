@@ -40,6 +40,7 @@ com.google.dart.tools.core/experimental/coverage = false
 com.google.dart.tools.core/experimental/analysisServer = false
 com.google.dart.tools.core/experimental/analysisServer/debug = false
 com.google.dart.tools.core/experimental/analysisServer/http_port =
+com.google.dart.tools.core/experimental/analysisServer/incrementalResolution = false
 com.google.dart.tools.core/experimental/analysisServer/logFile =
 com.google.dart.tools.core/experimental/analysisServer/profile = false
 com.google.dart.tools.core/experimental/noPubPackages = false

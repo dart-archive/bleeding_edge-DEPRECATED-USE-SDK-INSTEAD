@@ -86,6 +86,8 @@ public class DartCoreDebug {
 
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
 
+  public static final boolean ANALYSIS_SERVER_INCREMENTAL_RESOLUTION = isOptionTrue("experimental/analysisServer/incrementalResolution");
+
   public static final String ANALYSIS_SERVER_HTTP_PORT_PREF = "analysisServerHttpPort";
   public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionOrPrefValue(
       "experimental/analysisServer/http_port",
