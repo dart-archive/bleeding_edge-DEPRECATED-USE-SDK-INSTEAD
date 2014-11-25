@@ -496,11 +496,14 @@ public class DartCore extends Plugin implements DartSdkListener {
               };
             }
           }
-          // incremental resolution
+          // additional options
           if (DartCoreDebug.ANALYSIS_SERVER_INCREMENTAL_RESOLUTION) {
             additionalArguments = ArrayUtils.add(
                 additionalArguments,
                 "--enable-incremental-resolution");
+          }
+          if (DartCoreDebug.ANALYSIS_SERVER_PRINT_TO_CONSOLE) {
+            additionalArguments = ArrayUtils.add(additionalArguments, "--internal-print-to-console");
           }
           // HTTP port
           int httpPort = 0;

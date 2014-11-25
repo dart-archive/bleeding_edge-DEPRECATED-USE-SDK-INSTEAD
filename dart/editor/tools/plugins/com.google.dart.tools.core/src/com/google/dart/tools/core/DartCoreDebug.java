@@ -94,6 +94,7 @@ public class DartCoreDebug {
       ANALYSIS_SERVER_HTTP_PORT_PREF);
 
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
+  public static final boolean ANALYSIS_SERVER_PRINT_TO_CONSOLE = isOptionTrue("experimental/analysisServer/printToConsole");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
   public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");
   // The defaults are duplicated for tests in
