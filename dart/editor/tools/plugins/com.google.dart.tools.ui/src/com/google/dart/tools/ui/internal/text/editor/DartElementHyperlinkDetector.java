@@ -31,10 +31,8 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction_OLD;
 
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
@@ -79,11 +77,6 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    IAction openAction = editor.getAction("OpenEditor"); //$NON-NLS-1$
-    if (!(openAction instanceof InstrumentedSelectionDispatchAction)) {
-      return null;
-    }
-
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       String file = editor.getInputFilePath();
       if (file != null) {
@@ -114,8 +107,10 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       Element element = ElementLocator.locateWithOffset(node, offset);
       if (element != null) {
         IRegion wordRegion = getWordRegion(node);
-        return new IHyperlink[] {new DartElementHyperlink_OLD(element, wordRegion, new OpenAction_OLD(
-            editor))};
+        return new IHyperlink[] {new DartElementHyperlink_OLD(
+            element,
+            wordRegion,
+            new OpenAction_OLD(editor))};
       }
     }
 
