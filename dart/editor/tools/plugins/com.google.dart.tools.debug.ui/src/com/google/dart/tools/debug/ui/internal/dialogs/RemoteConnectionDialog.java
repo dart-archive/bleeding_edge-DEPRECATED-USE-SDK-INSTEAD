@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
@@ -25,8 +24,11 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 import com.google.dart.tools.ui.themes.Fonts;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -54,6 +56,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.eclipse.ui.dialogs.ListDialog;
 
 import java.util.List;
@@ -123,24 +126,24 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     private IRemoteConnectionDelegate connectionDelegate;
     private String host;
     private int port;
-    private IFile file;
+    private IContainer container;
     private boolean usePubServe;
 
     public ConnectionJob(IRemoteConnectionDelegate connectionDelegate, String host, int port,
-        IFile file, boolean usePubServe) {
+        IContainer container, boolean usePubServe) {
       super("Connecting...");
 
       this.connectionDelegate = connectionDelegate;
       this.host = host;
       this.port = port;
-      this.file = file;
+      this.container = container;
       this.usePubServe = usePubServe;
     }
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       try {
-        connectionDelegate.performRemoteConnection(host, port, file, monitor, usePubServe);
+        connectionDelegate.performRemoteConnection(host, port, container, monitor, usePubServe);
 
         // Show the debugger view.
         Display.getDefault().asyncExec(new Runnable() {
@@ -202,7 +205,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       this.portDefault = portDefault;
     }
 
-    public void connection(String host, int port, IFile file, boolean usePubServe) {
+    public void connection(String host, int port, IContainer container, boolean usePubServe) {
       IRemoteConnectionDelegate connectionDelegate = null;
 
       switch (this) {
@@ -222,7 +225,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       }
 
       if (connectionDelegate != null) {
-        Job job = new ConnectionJob(connectionDelegate, host, port, file, usePubServe);
+        Job job = new ConnectionJob(connectionDelegate, host, port, container, usePubServe);
         job.schedule();
       }
     }
@@ -262,7 +265,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
   private Text portText;
 
-  private Text fileText;
+  private Label resourcePathLabel;
 
   private Text instructionsLabel;
 
@@ -306,7 +309,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
     String host = hostText.getText().trim();
     String port = portText.getText().trim();
-    String filePath = fileText.getText().trim();
+    String resourcePath = resourcePathLabel.getText().trim();
     boolean usePubServe = usePubServeButton.getSelection();
 
     IDialogSettings settings = getDialogSettings();
@@ -314,7 +317,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     settings.put("selected", connection.ordinal());
     settings.put(connection.name() + ".host", host);
     settings.put(connection.name() + ".port", port);
-    settings.put(connection.name() + ".file", filePath);
+    settings.put(connection.name() + ".resource", resourcePath);
     settings.put(connection.name() + ".usePubServe", usePubServe);
 
     int connectionPort;
@@ -329,16 +332,19 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       return;
     }
 
-    IFile file = ResourceUtil.getFile(filePath);
-    if (file == null) {
-      ErrorDialog.openError(getShell(), "Invalid Application File", null, new Status(
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath);
+
+    if (resource == null) {
+      ErrorDialog.openError(getShell(), "Invalid Source Project", null, new Status(
           IStatus.ERROR,
           DartDebugUIPlugin.PLUGIN_ID,
-          "\"" + filePath + "\" is an invalid resource path."));
+          "\"" + resourcePath + "\" is an invalid resource path."));
       return;
     }
 
-    connection.connection(host, connectionPort, file, usePubServe);
+    IContainer container = resource instanceof IContainer ? (IContainer) resource
+        : resource.getParent();
+    connection.connection(host, connectionPort, container, usePubServe);
 
     super.okPressed();
   }
@@ -364,25 +370,36 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     Group group = new Group(parent, SWT.NONE);
     group.setText("Connection parameters");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.fillDefaults().numColumns(2).margins(12, 6).applyTo(group);
+    GridLayoutFactory.fillDefaults().numColumns(3).margins(12, 6).applyTo(group);
 
     label = new Label(group, SWT.NONE);
     label.setText("Host:");
 
     hostText = new Text(group, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(hostText);
+    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(hostText);
 
     label = new Label(group, SWT.NONE);
     label.setText("Port:");
 
     portText = new Text(group, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(portText);
+    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(portText);
 
     label = new Label(group, SWT.NONE);
-    label.setText("File:");
+    label.setText("Project source:");
 
-    fileText = new Text(group, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(fileText);
+    resourcePathLabel = new Label(group, SWT.NONE);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        resourcePathLabel);
+
+    Button projectBrowseButton = new Button(group, SWT.PUSH);
+    projectBrowseButton.setText("Select Folder...");
+    GridDataFactory.swtDefaults().applyTo(projectBrowseButton);
+    projectBrowseButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        handleSourceDirectoryBrowseButton();
+      }
+    });
 
     label = new Label(parent, SWT.NONE);
 
@@ -458,9 +475,26 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     IDialogSettings settings = getDialogSettings();
     hostText.setText(notNull(settings.get(connection.name() + ".host")));
     portText.setText(notNull(settings.get(connection.name() + ".port")));
-    fileText.setText(notNull(settings.get(connection.name() + ".file")));
+    resourcePathLabel.setText(notNull(settings.get(connection.name() + ".resource")));
 
     pubGroup.setVisible(connection == ConnectionType.CHROME);
+  }
+
+  private void handleSourceDirectoryBrowseButton() {
+    ContainerSelectionDialog dialog = new ContainerSelectionDialog(
+        getShell(),
+        null,
+        false,
+        "Select source location");
+
+    dialog.open();
+
+    Object[] results = dialog.getResult();
+
+    if ((results != null) && (results.length > 0)) {
+      String pathStr = ((IPath) results[0]).toString();
+      resourcePathLabel.setText(pathStr);
+    }
   }
 
   private String notNull(String str) {

@@ -76,6 +76,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private VmIsolate currentIsolate;
 
+  @SuppressWarnings("unused")
   private IProject currentProject;
 
   private UriToFileResolver uriToFileResolver;

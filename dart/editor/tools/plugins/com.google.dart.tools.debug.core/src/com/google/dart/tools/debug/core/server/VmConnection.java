@@ -829,20 +829,20 @@ public class VmConnection {
     // TODO(scheglov) commented out on 2014-09-25
     // I still can step into SDK libraries without it.
     // And with it VM sometimes ignores "resume" command and application just hangs.
-//    try {
-//      JSONObject request = new JSONObject();
-//
-//      request.put("command", "setLibraryProperties");
-//      request.put(
-//          "params",
-//          new JSONObject().put("libraryId", libraryId).put(
-//              "debuggingEnabled",
-//              Boolean.toString(debuggingEnabled)));
-//
-//      sendRequest(request, isolate.getId(), null);
-//    } catch (JSONException exception) {
-//      throw new IOException(exception);
-//    }
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "setLibraryProperties");
+      request.put(
+          "params",
+          new JSONObject().put("libraryId", libraryId).put(
+              "debuggingEnabled",
+              Boolean.toString(debuggingEnabled)));
+
+      sendRequest(request, isolate.getId(), null);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   /**

@@ -34,7 +34,7 @@ import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -198,7 +198,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+  public IDebugTarget performRemoteConnection(String host, int port, IContainer container,
       IProgressMonitor monitor, boolean usePubServe) throws CoreException {
 
     BrowserManager browserManager = new BrowserManager();
@@ -216,7 +216,6 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
         port,
         monitor,
         resolver);
-
   }
 
   protected void launchOnMobile(String launchUrl, boolean usePubServe, IProgressMonitor monitor)

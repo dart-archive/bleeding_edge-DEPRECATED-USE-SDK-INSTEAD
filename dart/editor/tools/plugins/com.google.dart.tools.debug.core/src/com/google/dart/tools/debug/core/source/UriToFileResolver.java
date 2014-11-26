@@ -25,6 +25,7 @@ import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunch;
@@ -41,8 +42,7 @@ import java.util.concurrent.TimeUnit;
  * A helper for converting URIs to files paths and vice versa.
  */
 public class UriToFileResolver {
-  private final IResource resource;
-  private final String resourcePath;
+  private IContainer container;
   private final Map<String, String> urlToFileCache = Maps.newHashMap();
   private final Map<String, String> fileToUriCache = Maps.newHashMap();
 
@@ -51,8 +51,20 @@ public class UriToFileResolver {
   public UriToFileResolver(ILaunch launch) {
     ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launchConfiguration);
-    resource = wrapper.getApplicationResource();
-    resourcePath = resource != null ? resource.getLocation().toOSString() : null;
+
+    container = wrapper.getSourceDirectory();
+    if (container == null) {
+      IResource resource = wrapper.getApplicationResource();
+
+      if (resource instanceof IContainer) {
+        container = resource.getParent();
+      } else if (resource != null) {
+        container = resource.getParent();
+      }
+    }
+
+    String resourcePath = container != null ? container.getLocation().toOSString() : null;
+
     // create an execution context
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER && resourcePath != null) {
       DartCore.getAnalysisServer().execution_createContext(
@@ -75,7 +87,7 @@ public class UriToFileResolver {
   }
 
   public String getFileForUri(String url) {
-    if (resource == null) {
+    if (container == null) {
       return null;
     }
     String file = urlToFileCache.get(url);
@@ -87,7 +99,7 @@ public class UriToFileResolver {
   }
 
   public String getUriForPath(String file) {
-    if (resource == null) {
+    if (container == null) {
       return null;
     }
     String uri = fileToUriCache.get(file);
@@ -147,11 +159,10 @@ public class UriToFileResolver {
         filePath = uri.getPath();
       }
 
-      // dart:
       if (filePath == null) {
         return null;
       } else {
-        return filePath;
+        return returnAbsoluteOrRelative(filePath);
       }
     } catch (URISyntaxException e) {
       return null;
@@ -227,7 +238,7 @@ public class UriToFileResolver {
           return uri;
         }
       }
-      return DartCore.getProjectManager().resolvePathToPackage(resource, file);
+      return DartCore.getProjectManager().resolvePathToPackage(container, file);
     }
     return null;
   }
@@ -253,7 +264,7 @@ public class UriToFileResolver {
       }
     } else {
       ProjectManager projectManager = DartCore.getProjectManager();
-      IFileInfo fileInfo = projectManager.resolveUriToFileInfo(resource, url);
+      IFileInfo fileInfo = projectManager.resolveUriToFileInfo(container, url);
       if (fileInfo != null) {
         File file = fileInfo.getFile();
         File absoluteFile = file.getAbsoluteFile();
@@ -264,12 +275,37 @@ public class UriToFileResolver {
   }
 
   private String resolveRelativePath(String url) {
-    if (resource != null) {
-      IResource file = resource.getParent().findMember(url);
+    if (container != null) {
+      IResource file = container.getParent().findMember(url);
       if (file != null) {
         return file.getLocation().toOSString();
       }
     }
     return null;
+  }
+
+  private String returnAbsoluteOrRelative(String path) {
+    // If path exists, return that.
+    File file = new File(path);
+    if (file.exists()) {
+      return path;
+    }
+
+    // Try and return a path relative to the resource.
+    if (container != null) {
+      int index = path.indexOf('/');
+
+      while (index != -1) {
+        String subPath = path.substring(index + 1);
+        IResource resource = container.findMember(subPath);
+        if (resource != null) {
+          return resource.getLocation().toFile().getAbsolutePath();
+        }
+        index = path.indexOf('/', index + 1);
+      }
+    }
+
+    // Else, return the original path.
+    return path;
   }
 }

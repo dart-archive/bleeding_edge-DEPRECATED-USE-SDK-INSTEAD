@@ -32,6 +32,7 @@ import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -117,7 +118,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IFile file,
+  public IDebugTarget performRemoteConnection(String host, int port, IContainer container,
       IProgressMonitor monitor, boolean usePubServe) throws CoreException {
     BrowserManager browserManager = new BrowserManager();
 
@@ -129,12 +130,11 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
 
     return browserManager.performRemoteConnection(tabChooser, host, port, monitor, resolver);
-
   }
 
   private ResourceServer getResourceServer() throws CoreException {
-
     ResourceServer resourceResolver;
+
     try {
       resourceResolver = ResourceServerManager.getServer();
     } catch (IOException ioe) {
