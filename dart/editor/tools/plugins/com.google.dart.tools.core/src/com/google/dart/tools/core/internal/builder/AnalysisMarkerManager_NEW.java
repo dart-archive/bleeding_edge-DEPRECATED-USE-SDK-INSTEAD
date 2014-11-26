@@ -18,6 +18,7 @@ import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorSeverity;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.analysis.model.WorkspaceAnalysisServerListener;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
@@ -38,10 +39,8 @@ import java.util.ArrayList;
  * There is a single instance accessible via {@link #getInstance()} for use during normal execution,
  * but other instances can be created for testing purposes.
  * <p>
- * Typically the {@link AnalysisWorker} repeatedly calls
- * {@link #queueErrors(IResource, LineInfo, AnalysisError[])} until all errors have been queued,
- * then calls {@link #done()} to indicate that, at least for the time being, all errors have been
- * queued.
+ * Typically the {@link WorkspaceAnalysisServerListener} repeatedly calls
+ * {@link #queueErrors(IResource, LineInfo, AnalysisError[])} until all errors have been queued.
  * <p>
  * When the workspace is shutdown, {@link #stop()} should be called to gracefully exit the
  * background process if it is running.
@@ -238,6 +237,11 @@ public class AnalysisMarkerManager_NEW {
   private ArrayList<Result> results;
 
   /**
+   * The time when {@link #results} was updated last time.
+   */
+  private long lastResultsUpdate = 0;
+
+  /**
    * The background thread that translates {@link AnalysisError}s into Eclipse markers or
    * {@code null} if either {@link #translateErrors()} has not been called or background processing
    * is complete and there are no new errors to translate.
@@ -245,14 +249,6 @@ public class AnalysisMarkerManager_NEW {
    * Note: Only access this field while synchronized on {@link #lock}.
    */
   private Thread updateThread;
-
-  /**
-   * {@code true} if no call to {@link #queueErrors(IResource, LineInfo, AnalysisError[])} was made
-   * since the last call to {@link #done()}.
-   * <p>
-   * Note: Only access this field while synchronized on {@link #lock}.
-   */
-  private boolean done;
 
   /**
    * Used exclusively by the background thread during translation. Should not be accessed in any
@@ -287,16 +283,6 @@ public class AnalysisMarkerManager_NEW {
   }
 
   /**
-   * Signal the background process to convert errors to markers, if it is not doing so already.
-   */
-  public void done() {
-    synchronized (lock) {
-      done = true;
-      lock.notifyAll();
-    }
-  }
-
-  /**
    * Queue the specified errors for later translation to Eclipse markers.
    * 
    * @param resource the resource on which the errors should be displayed (not {@code null})
@@ -304,6 +290,7 @@ public class AnalysisMarkerManager_NEW {
    */
   public void queueErrors(IResource resource, AnalysisError[] errors) {
     queueResult(new ErrorResult(resource, errors));
+    lastResultsUpdate = System.currentTimeMillis();
   }
 
   /**
@@ -329,38 +316,12 @@ public class AnalysisMarkerManager_NEW {
   }
 
   /**
-   * Wait up to the specified number of milliseconds for the markers to be translated.
-   * 
-   * @param milliseconds the number of milliseconds to wait for the markers to be translated
-   * @return {@code true} if all markers were translated, else {@code false}
-   */
-  public boolean waitForMarkers(long milliseconds) {
-    synchronized (lock) {
-      long end = System.currentTimeMillis() + milliseconds;
-      while (updateThread != null) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          return false;
-        }
-        try {
-          lock.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
    * Queue the specified result for later translation to Eclipse markers.
    * 
    * @param result the result to be translated (not {@code null})
    */
   private void queueResult(Result result) {
     synchronized (lock) {
-      done = false;
-
       // queue the errors to be translated
       if (results == null) {
         results = new ArrayList<Result>();
@@ -386,21 +347,21 @@ public class AnalysisMarkerManager_NEW {
   private void translateErrors() {
     while (true) {
       synchronized (lock) {
-
-        // If not done, then wait up to 1 second or until signaled
-        if (!done) {
-          try {
-            lock.wait(1000);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
-          }
+        try {
+          lock.wait(50);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
         }
 
         // Exit if nothing to translate
         if (results == null) {
-          lock.notifyAll();
           updateThread = null;
           return;
+        }
+
+        // Wait at least 45 milliseconds to get more errors to translate
+        if (System.currentTimeMillis() - lastResultsUpdate < 45) {
+          continue;
         }
 
         // Grab the current collection of results to be translated
