@@ -121,6 +121,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
     int debugPort = findUnusedPort();
     List<String> args = new ArrayList<String>();
     args.add(runtimePath);
+    args.add("--old_gen_heap_size=4096");
     if (packageRoot != null) {
       args.add("--package-root=" + packageRoot);
     }
