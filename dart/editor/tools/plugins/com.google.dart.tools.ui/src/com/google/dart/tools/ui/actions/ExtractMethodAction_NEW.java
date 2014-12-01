@@ -63,12 +63,14 @@ public class ExtractMethodAction_NEW extends AbstractRefactoringAction_NEW {
 
   @Override
   protected void init() {
-    setText(RefactoringMessages.ExtractLocalAction_label);
+    setText(RefactoringMessages.ExtractMethodAction_label);
     {
-      String id = DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE;
+      String id = DartEditorActionDefinitionIds.EXTRACT_METHOD;
       setId(id);
       setActionDefinitionId(id);
     }
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.EXTRACT_LOCAL_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
+        DartHelpContextIds.EXTRACT_METHOD_ACTION);
   }
 }
