@@ -15,6 +15,8 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.List;
@@ -36,7 +38,18 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
-    List<NavigationRegion> regions = NavigationRegion.fromJsonArray(paramsObject.get("regions").getAsJsonArray());
+    // prepare targets
+    String[] targetFiles = constructStringArray(paramsObject.get("files").getAsJsonArray());
+    List<NavigationTarget> targets = NavigationTarget.fromJsonArray(paramsObject.get("targets").getAsJsonArray());
+    for (NavigationTarget target : targets) {
+      target.lookupFile(targetFiles);
+    }
+    // prepare regions
+    JsonArray z = paramsObject.get("regions").getAsJsonArray();
+    List<NavigationRegion> regions = NavigationRegion.fromJsonArray(z);
+    for (NavigationRegion region : regions) {
+      region.lookupTargets(targets);
+    }
     // notify listener
     getListener().computedNavigation(file, regions);
   }

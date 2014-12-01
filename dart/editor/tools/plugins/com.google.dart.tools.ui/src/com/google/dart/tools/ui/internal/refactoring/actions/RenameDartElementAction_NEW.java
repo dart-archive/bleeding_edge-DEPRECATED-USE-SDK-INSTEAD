@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.actions.AbstractRefactoringAction_NEW;
@@ -83,7 +84,7 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
   }
 
   private void updateSelectedElement() {
-    Element[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
     setEnabled(targets.length != 0);
   }
 }

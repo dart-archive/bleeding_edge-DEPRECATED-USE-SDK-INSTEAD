@@ -20,10 +20,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
-import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -39,20 +37,6 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  * This action opens a {@link DartEditor} with declaration of {@link Element}.
  */
 public class OpenAction_OLD extends AbstractDartSelectionAction_OLD {
-  /**
-   * Returns navigation targets for the given context, may be empty, but not {@code null}.
-   */
-  public static com.google.dart.server.generated.types.Element[] getNavigationTargets(
-      DartSelection selection) {
-    int offset = selection.getOffset();
-    AssistContext assistContext = selection.getContext();
-    if (assistContext != null) {
-      String file = assistContext.getFile();
-      return NewSelectionConverter.getNavigationTargets(file, offset);
-    }
-    return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;
-  }
-
   /**
    * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
    */

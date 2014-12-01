@@ -59,6 +59,7 @@ import com.google.dart.server.generated.types.InlineMethodFeedback;
 import com.google.dart.server.generated.types.InlineMethodOptions;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverriddenMember;
@@ -339,38 +340,30 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'event': 'analysis.navigation',",
         "  'params': {",
         "    'file': '/test.dart',",
+        "    'files': ['/test2.dart', '/test3.dart'],",
+        "    'targets': [",
+        "      {",
+        "        'kind': 'COMPILATION_UNIT',",
+        "        'fileIndex': 0,",
+        "        'offset': 3,",
+        "        'length': 4,",
+        "        'startLine': 5,",
+        "        'startColumn': 6",
+        "      },",
+        "      {",
+        "        'kind': 'CLASS',",
+        "        'fileIndex': 1,",
+        "        'offset': 7,",
+        "        'length': 8,",
+        "        'startLine': 9,",
+        "        'startColumn': 10",
+        "      }",
+        "    ],",
         "    'regions' : [",
         "      {",
         "        'offset': 1,",
         "        'length': 2,",
-        "        'targets': [",
-        "          {",
-        "            'kind': 'COMPILATION_UNIT',",
-        "            'name': 'name0',",
-        "            'location': {",
-        "              'file': '/test2.dart',",
-        "              'offset': 3,",
-        "              'length': 4,",
-        "              'startLine': 5,",
-        "              'startColumn': 6",
-        "            },",
-        "            'flags': 0,",
-        "            'parameters': 'parameters0',",
-        "            'returnType': 'returnType0'",
-        "          },",
-        "          {",
-        "            'kind': 'CLASS',",
-        "            'name': '_name1',",
-        "            'location': {",
-        "              'file': '/test3.dart',",
-        "              'offset': 7,",
-        "              'length': 8,",
-        "              'startLine': 9,",
-        "              'startColumn': 10",
-        "            },",
-        "            'flags': 63",
-        "          }",
-        "        ]",
+        "        'targets': [0, 1]",
         "      }",
         "    ]",
         "  }",
@@ -383,45 +376,25 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       NavigationRegion region = regions.get(0);
       assertEquals(1, region.getOffset());
       assertEquals(2, region.getLength());
-      List<Element> elements = region.getTargets();
-      assertThat(elements).hasSize(2);
+      List<NavigationTarget> targets = region.getTargetObjects();
+      assertThat(targets).hasSize(2);
       {
-        Element element = elements.get(0);
-        assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
-        assertEquals("name0", element.getName());
-        Location location = element.getLocation();
-        assertEquals("/test2.dart", location.getFile());
-        assertEquals(3, location.getOffset());
-        assertEquals(4, location.getLength());
-        assertEquals(5, location.getStartLine());
-        assertEquals(6, location.getStartColumn());
-        assertFalse(element.isAbstract());
-        assertFalse(element.isConst());
-        assertFalse(element.isDeprecated());
-        assertFalse(element.isFinal());
-        assertFalse(element.isPrivate());
-        assertFalse(element.isTopLevelOrStatic());
-        assertEquals("parameters0", element.getParameters());
-        assertEquals("returnType0", element.getReturnType());
+        NavigationTarget target = targets.get(0);
+        assertEquals(ElementKind.COMPILATION_UNIT, target.getKind());
+        assertEquals("/test2.dart", target.getFile());
+        assertEquals(3, target.getOffset());
+        assertEquals(4, target.getLength());
+        assertEquals(5, target.getStartLine());
+        assertEquals(6, target.getStartColumn());
       }
       {
-        Element element = elements.get(1);
-        assertEquals(ElementKind.CLASS, element.getKind());
-        assertEquals("_name1", element.getName());
-        Location location = element.getLocation();
-        assertEquals("/test3.dart", location.getFile());
-        assertEquals(7, location.getOffset());
-        assertEquals(8, location.getLength());
-        assertEquals(9, location.getStartLine());
-        assertEquals(10, location.getStartColumn());
-        assertTrue(element.isAbstract());
-        assertTrue(element.isConst());
-        assertTrue(element.isDeprecated());
-        assertTrue(element.isFinal());
-        assertTrue(element.isPrivate());
-        assertTrue(element.isTopLevelOrStatic());
-        assertNull(element.getParameters());
-        assertNull(element.getReturnType());
+        NavigationTarget target = targets.get(1);
+        assertEquals(ElementKind.CLASS, target.getKind());
+        assertEquals("/test3.dart", target.getFile());
+        assertEquals(7, target.getOffset());
+        assertEquals(8, target.getLength());
+        assertEquals(9, target.getStartLine());
+        assertEquals(10, target.getStartColumn());
       }
     }
   }

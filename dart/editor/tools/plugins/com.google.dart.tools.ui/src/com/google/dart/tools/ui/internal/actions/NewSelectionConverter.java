@@ -28,6 +28,7 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -174,8 +175,7 @@ public class NewSelectionConverter {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static com.google.dart.server.generated.types.Element[] getNavigationTargets(String file,
-      int offset) {
+  public static NavigationTarget[] getNavigationTargets(String file, int offset) {
     // find the smallest navigation region
     NavigationRegion result = null;
     NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(file);
@@ -191,11 +191,11 @@ public class NewSelectionConverter {
     }
     // found a region
     if (result != null) {
-      List<com.google.dart.server.generated.types.Element> elements = result.getTargets();
-      return elements.toArray(new com.google.dart.server.generated.types.Element[elements.size()]);
+      List<NavigationTarget> targets = result.getTargetObjects();
+      return targets.toArray(new NavigationTarget[targets.size()]);
     }
     // not found
-    return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;
+    return NavigationTarget.EMPTY_ARRAY;
   }
 
   /**

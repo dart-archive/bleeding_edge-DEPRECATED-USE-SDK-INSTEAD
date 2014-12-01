@@ -22,9 +22,9 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
-import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
@@ -195,14 +195,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns a navigation {@link Element} at the given position.
+   * Returns a navigation {@link NavigationTarget} at the given position.
    */
-  public synchronized Element findNavigationElement(String file, int offset) {
+  public synchronized NavigationTarget findNavigationElement(String file, int offset) {
     List<NavigationRegion> regions = getNavigationRegions(file);
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {
         if (navigationRegion.containsInclusive(offset)) {
-          return navigationRegion.getTargets().get(0);
+          return navigationRegion.getTargetObjects().get(0);
         }
       }
     }

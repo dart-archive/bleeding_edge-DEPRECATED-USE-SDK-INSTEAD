@@ -32,16 +32,26 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * A description of a region from which the user can navigate to the declaration of an element.
+ * A description of a target to which the user can navigate.
  *
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
-public class NavigationRegion {
+public class NavigationTarget {
 
-  public static final NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
+  public static final NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
 
-  public static final List<NavigationRegion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<NavigationTarget> EMPTY_LIST = Lists.newArrayList();
+
+  /**
+   * The kind of the element.
+   */
+  private final String kind;
+
+  /**
+   * The index of the file (in the enclosing navigation response) to navigate to.
+   */
+  private final int fileIndex;
 
   /**
    * The offset of the region from which the user can navigate.
@@ -54,50 +64,59 @@ public class NavigationRegion {
   private final int length;
 
   /**
-   * The indexes of the targets (in the enclosing navigation response) to which the given region is
-   * bound. By opening the target, clients can implement one form of navigation.
+   * The one-based index of the line containing the first character of the region.
    */
-  private final int[] targets;
-
-  private final List<NavigationTarget> targetObjects = Lists.newArrayList();
+  private final int startLine;
 
   /**
-   * Constructor for {@link NavigationRegion}.
+   * The one-based index of the column containing the first character of the region.
    */
-  public NavigationRegion(int offset, int length, int[] targets) {
+  private final int startColumn;
+
+  private String file;
+
+  /**
+   * Constructor for {@link NavigationTarget}.
+   */
+  public NavigationTarget(String kind, int fileIndex, int offset, int length, int startLine, int startColumn) {
+    this.kind = kind;
+    this.fileIndex = fileIndex;
     this.offset = offset;
     this.length = length;
-    this.targets = targets;
-  }
-
-  public boolean containsInclusive(int x) {
-    return offset <= x && x <= offset + length;
+    this.startLine = startLine;
+    this.startColumn = startColumn;
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NavigationRegion) {
-      NavigationRegion other = (NavigationRegion) obj;
+    if (obj instanceof NavigationTarget) {
+      NavigationTarget other = (NavigationTarget) obj;
       return
+        ObjectUtilities.equals(other.kind, kind) &&
+        other.fileIndex == fileIndex &&
         other.offset == offset &&
         other.length == length &&
-        Arrays.equals(other.targets, targets);
+        other.startLine == startLine &&
+        other.startColumn == startColumn;
     }
     return false;
   }
 
-  public static NavigationRegion fromJson(JsonObject jsonObject) {
+  public static NavigationTarget fromJson(JsonObject jsonObject) {
+    String kind = jsonObject.get("kind").getAsString();
+    int fileIndex = jsonObject.get("fileIndex").getAsInt();
     int offset = jsonObject.get("offset").getAsInt();
     int length = jsonObject.get("length").getAsInt();
-    int[] targets = JsonUtilities.decodeIntArray(jsonObject.get("targets").getAsJsonArray());
-    return new NavigationRegion(offset, length, targets);
+    int startLine = jsonObject.get("startLine").getAsInt();
+    int startColumn = jsonObject.get("startColumn").getAsInt();
+    return new NavigationTarget(kind, fileIndex, offset, length, startLine, startColumn);
   }
 
-  public static List<NavigationRegion> fromJsonArray(JsonArray jsonArray) {
+  public static List<NavigationTarget> fromJsonArray(JsonArray jsonArray) {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<NavigationRegion> list = new ArrayList<NavigationRegion>(jsonArray.size());
+    ArrayList<NavigationTarget> list = new ArrayList<NavigationTarget>(jsonArray.size());
     Iterator<JsonElement> iterator = jsonArray.iterator();
     while (iterator.hasNext()) {
       list.add(fromJson(iterator.next().getAsJsonObject()));
@@ -105,8 +124,22 @@ public class NavigationRegion {
     return list;
   }
 
-  public List<NavigationTarget> getTargetObjects() {
-    return targetObjects;
+  public String getFile() {
+    return file;
+  }
+
+  /**
+   * The index of the file (in the enclosing navigation response) to navigate to.
+   */
+  public int getFileIndex() {
+    return fileIndex;
+  }
+
+  /**
+   * The kind of the element.
+   */
+  public String getKind() {
+    return kind;
   }
 
   /**
@@ -124,39 +157,43 @@ public class NavigationRegion {
   }
 
   /**
-   * The indexes of the targets (in the enclosing navigation response) to which the given region is
-   * bound. By opening the target, clients can implement one form of navigation.
+   * The one-based index of the column containing the first character of the region.
    */
-  public int[] getTargets() {
-    return targets;
+  public int getStartColumn() {
+    return startColumn;
+  }
+
+  /**
+   * The one-based index of the line containing the first character of the region.
+   */
+  public int getStartLine() {
+    return startLine;
   }
 
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(kind);
+    builder.append(fileIndex);
     builder.append(offset);
     builder.append(length);
-    builder.append(targets);
+    builder.append(startLine);
+    builder.append(startColumn);
     return builder.toHashCode();
   }
 
-  public void lookupTargets(List<NavigationTarget> allTargets) {
-    for (int i = 0; i < targets.length; i++) {
-      int targetIndex = targets[i];
-      NavigationTarget target = allTargets.get(targetIndex);
-      targetObjects.add(target);
-    }
+  public void lookupFile(String[] allTargetFiles) {
+    file = allTargetFiles[fileIndex];
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("kind", kind);
+    jsonObject.addProperty("fileIndex", fileIndex);
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("length", length);
-    JsonArray jsonArrayTargets = new JsonArray();
-    for (int elt : targets) {
-      jsonArrayTargets.add(new JsonPrimitive(elt));
-    }
-    jsonObject.add("targets", jsonArrayTargets);
+    jsonObject.addProperty("startLine", startLine);
+    jsonObject.addProperty("startColumn", startColumn);
     return jsonObject;
   }
 
@@ -164,12 +201,18 @@ public class NavigationRegion {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
+    builder.append("kind=");
+    builder.append(kind + ", ");
+    builder.append("fileIndex=");
+    builder.append(fileIndex + ", ");
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
     builder.append(length + ", ");
-    builder.append("targets=");
-    builder.append(StringUtils.join(targets, ", "));
+    builder.append("startLine=");
+    builder.append(startLine + ", ");
+    builder.append("startColumn=");
+    builder.append(startColumn);
     builder.append("]");
     return builder.toString();
   }

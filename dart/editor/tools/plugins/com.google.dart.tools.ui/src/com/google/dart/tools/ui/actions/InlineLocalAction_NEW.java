@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -85,10 +85,10 @@ public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW impleme
 
   private void updateSelectedElement() {
     setEnabled(false);
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    if (elements.length != 0) {
-      Element element = elements[0];
-      setEnabled(element.getKind().equals(ElementKind.LOCAL_VARIABLE));
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    if (targets.length != 0) {
+      NavigationTarget target = targets[0];
+      setEnabled(target.getKind().equals(ElementKind.LOCAL_VARIABLE));
     }
   }
 }

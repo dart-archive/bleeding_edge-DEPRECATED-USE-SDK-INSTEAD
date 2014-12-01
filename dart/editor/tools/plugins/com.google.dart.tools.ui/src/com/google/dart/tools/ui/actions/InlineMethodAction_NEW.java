@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -81,10 +81,10 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
 
   private void updateSelectedElement() {
     setEnabled(false);
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    if (elements.length != 0) {
-      Element element = elements[0];
-      String kind = element.getKind();
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    if (targets.length != 0) {
+      NavigationTarget target = targets[0];
+      String kind = target.getKind();
       setEnabled(ElementKind.METHOD.equals(kind) || ElementKind.FUNCTION.equals(kind)
           || ElementKind.GETTER.equals(kind) || ElementKind.SETTER.equals(kind));
     }

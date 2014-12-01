@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -73,7 +73,7 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
   }
 
   private void updateSelectedElement() {
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    setEnabled(elements.length != 0);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(targets.length != 0);
   }
 }

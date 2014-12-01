@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.NavigationRegion;
+import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
 import com.google.dart.tools.ui.DartUI;
@@ -43,6 +44,17 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
     }
   }
 
+  private static void open(NavigationTarget target) {
+    if (target == null) {
+      return;
+    }
+    try {
+      DartUI.openInEditor(target, true);
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Open", "Exception during open.");
+    }
+  }
+
   public OpenAction_NEW(DartEditor editor) {
     super(editor);
     DartCore.getAnalysisServerData().addNavigationListener(file, this);
@@ -61,10 +73,10 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
 
   @Override
   public void run() {
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    if (elements.length != 0) {
-      Element element = elements[0];
-      open(element);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    if (targets.length != 0) {
+      NavigationTarget target = targets[0];
+      open(target);
     }
   }
 
@@ -94,7 +106,7 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
   }
 
   private void updateSelectedElement() {
-    Element[] elements = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
-    setEnabled(elements.length != 0);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    setEnabled(targets.length != 0);
   }
 }
