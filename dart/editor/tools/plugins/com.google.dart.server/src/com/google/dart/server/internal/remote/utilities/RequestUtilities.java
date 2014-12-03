@@ -54,6 +54,7 @@ public class RequestUtilities {
   // Analysis domain
   private static final String METHOD_ANALYSIS_GET_ERRORS = "analysis.getErrors";
   private static final String METHOD_ANALYSIS_GET_HOVER = "analysis.getHover";
+  private static final String METHOD_ANALYSIS_GET_NAVIGATION = "analysis.getNavigation";
   private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
@@ -175,6 +176,30 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_HOVER, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_NAVIGATION} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getNavigation"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisGetNavigation(String idValue, String file, int offset,
+      int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    params.addProperty(LENGTH, length);
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_NAVIGATION, params);
   }
 
   /**

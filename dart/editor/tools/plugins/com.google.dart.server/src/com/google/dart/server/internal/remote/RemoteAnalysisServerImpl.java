@@ -31,6 +31,7 @@ import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetNavigationConsumer;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
@@ -247,6 +248,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateAnalysisGetHover(id, file, offset), consumer);
+  }
+
+  @Override
+  public void analysis_getNavigation(String file, int offset, int length,
+      GetNavigationConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisGetNavigation(id, file, offset, length));
   }
 
   @Override
