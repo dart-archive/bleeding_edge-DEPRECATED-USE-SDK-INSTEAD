@@ -502,6 +502,14 @@ public class DartCore extends Plugin implements DartSdkListener {
                 additionalArguments,
                 "--enable-incremental-resolution");
           }
+          {
+            String log = DartCoreDebug.ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_LOG;
+            if (log != null) {
+              additionalArguments = ArrayUtils.add(
+                  additionalArguments,
+                  "--incremental-resolution-log=" + log);
+            }
+          }
           if (DartCoreDebug.ANALYSIS_SERVER_PRINT_TO_CONSOLE) {
             additionalArguments = ArrayUtils.add(additionalArguments, "--internal-print-to-console");
           }
