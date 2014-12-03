@@ -45,7 +45,8 @@ public interface AnalysisServer {
    * response for this request will be delayed until they have been computed. If some or all of the
    * errors for the file cannot be computed, then the subset of the errors that can be computed will
    * be returned and the response will contain an error to indicate why the errors could not be
-   * computed.
+   * computed. If the content of the file changes after this request was received but before a
+   * response could be sent, then an error of type CONTENT_MODIFIED will be generated.
    *
    * This request is intended to be used by clients that cannot asynchronously apply updated error
    * information. Clients that can apply error information as it becomes available should use the
@@ -70,6 +71,28 @@ public interface AnalysisServer {
    * @param offset The offset for which hover information is being requested.
    */
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer);
+
+  /**
+   * {@code analysis.getNavigation}
+   *
+   * Return the navigation information associated with the given region of the given file. If the
+   * navigation information for the given file has not yet been computed, or the most recently
+   * computed navigation information for the given file is out of date, then the response for this
+   * request will be delayed until it has been computed. If the content of the file changes after
+   * this request was received but before a response could be sent, then an error of type
+   * CONTENT_MODIFIED will be generated.
+   *
+   * If a navigation region overlaps (but extends either before or after) the given region of the
+   * file it will be included in the result. This means that it is theoretically possible to get the
+   * same navigation region in response to multiple requests. Clients can avoid this by always
+   * choosing a region that starts at the beginning of a line and ends at the end of a (possibly
+   * different) line in the file.
+   *
+   * @param file The file in which navigation information is being requested.
+   * @param offset The offset of the region for which navigation information is being requested.
+   * @param length The length of the region for which navigation information is being requested.
+   */
+  public void analysis_getNavigation(String file, int offset, int length, GetNavigationConsumer consumer);
 
   /**
    * {@code analysis.reanalyze}

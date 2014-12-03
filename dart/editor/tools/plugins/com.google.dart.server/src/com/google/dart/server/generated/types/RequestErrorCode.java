@@ -24,6 +24,12 @@ package com.google.dart.server.generated.types;
 public class RequestErrorCode {
 
   /**
+   * An "analysis.getErrors" or "analysis.getNavigation" request could not be satisfied because the
+   * content of the file changed before the requested results could be computed.
+   */
+  public static final String CONTENT_MODIFIED = "CONTENT_MODIFIED";
+
+  /**
    * An "analysis.getErrors" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */

@@ -27,6 +27,8 @@ public class AnalysisService {
 
   public static final String HIGHLIGHTS = "HIGHLIGHTS";
 
+  public static final String INVALIDATE = "INVALIDATE";
+
   public static final String NAVIGATION = "NAVIGATION";
 
   public static final String OCCURRENCES = "OCCURRENCES";
