@@ -432,6 +432,19 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return an array of analysis server arguments
+   * 
+   * @return a non-null array of arguments
+   */
+  public static String[] getAdditionalAnalysisServerArguments() {
+    String value = getUserDefinedProperty(ANALYSIS_SERVER_ARG_PROP_KEY);
+    if (value == null) {
+      return StringUtilities.EMPTY_ARRAY;
+    }
+    return value.split(",");
+  }
+
+  /**
    * Answer the unique {@link AnalysisServer} used for analysis of anything in the workspace.
    * 
    * @return the {@link AnalysisServer} (not {@code null})
@@ -469,7 +482,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         }
 
         try {
-          String[] additionalArguments = StringUtilities.EMPTY_ARRAY;
+          String[] additionalArguments = DartCore.getAdditionalAnalysisServerArguments();
           // prepare debug stream
           DebugPrintStream debugStream;
           {
@@ -1565,6 +1578,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   private IEclipsePreferences prefs;
+
+  /**
+   * Property key for user-specified analysis server arguments.
+   */
+  public static final String ANALYSIS_SERVER_ARG_PROP_KEY = "com.dart.tools.server.args";
 
   /**
    * Initialize a newly created instance of this class.
