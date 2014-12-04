@@ -938,7 +938,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return <code>true</code> if the given resource should be analyzed
    */
   public static boolean isAnalyzed(IResource resource) {
-    return getProjectManager().getIgnoreManager().isAnalyzed(resource);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return getProjectManager().getIgnoreManager().isAnalyzed(resource);
+    } else {
+      return DartIgnoreManager.getInstance().isAnalyzed(resource);
+    }
   }
 
   /**
