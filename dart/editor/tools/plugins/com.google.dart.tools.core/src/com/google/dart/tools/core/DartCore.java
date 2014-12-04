@@ -1810,7 +1810,9 @@ public class DartCore extends Plugin implements DartSdkListener {
     DartSdkManager.getManager().removeSdkListener(this);
 
     try {
-      getProjectManager().stop();
+      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        getProjectManager().stop();
+      }
 
       synchronized (analysisServerLock) {
         if (analysisServer != null) {
