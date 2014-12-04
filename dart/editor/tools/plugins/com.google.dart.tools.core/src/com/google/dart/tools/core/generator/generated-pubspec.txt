@@ -1,6 +1,7 @@
 name:  %className%
-description:  A sample application
+description: A sample application
 
 #dependencies:
 #  js: any
+#dev_dependencies:
 #  unittest: any

@@ -193,6 +193,7 @@
       </page>
       <page
             class="com.google.dart.tools.ui.internal.preferences.ExperimentalPreferencePage"
+            category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.experimentalOptionsPage"
             name="%dartExperimentalPrefName">
       </page>
