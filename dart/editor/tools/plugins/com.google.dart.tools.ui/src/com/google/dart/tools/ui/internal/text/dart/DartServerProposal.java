@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
@@ -118,10 +120,13 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   @Override
   public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
     String completion = getCompletion();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("ServerProposal-Apply");
+    instrumentation.metric("Trigger", trigger);
+    instrumentation.data("Completion", completion);
     int replacementOffset = collector.getReplacementOffset();
     int replacementLength = offset - replacementOffset;
-    IDocument doc = viewer.getDocument();
     try {
+      IDocument doc = viewer.getDocument();
       /*
        * If no characters have been typed and the trigger character is a '.'
        * then then skip the suggestion and just insert the trigger character
@@ -184,6 +189,9 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     } catch (BadLocationException e) {
       DartCore.logInformation("Failed to replace offset:" + replacementOffset + " length:"
           + replacementLength + " with:" + completion, e);
+      instrumentation.metric("Problem", "BadLocationException");
+    } finally {
+      instrumentation.log();
     }
   }
 

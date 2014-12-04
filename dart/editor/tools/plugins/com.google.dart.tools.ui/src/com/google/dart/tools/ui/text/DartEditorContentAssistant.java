@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.text;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -186,6 +187,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
       InstrumentationBuilder instrumentation = Instrumentation.builder("WaitForProposals");
       try {
         instrumentation.metric("Auto", auto);
+        instrumentation.metric("ServerEnabled", DartCoreDebug.ENABLE_ANALYSIS_SERVER);
         boolean ready = ((DartCompletionProcessor) p).waitUntilReady();
         instrumentation.metric("Ready", ready);
         // If a result was computed, then check if the current selection has moved in such as way
