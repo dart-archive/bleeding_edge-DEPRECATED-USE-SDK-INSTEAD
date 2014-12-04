@@ -2,7 +2,7 @@ name: todomvc
 description: TodoMVC built with the polymer.dart package
 version: 0.15.1
 dependencies:
-  polymer: ">=0.14.0 <0.15.0"
+  polymer: ">=0.15.0 <0.16.0"
 transformers:
 - polymer:
     entry_points: web/index.html
