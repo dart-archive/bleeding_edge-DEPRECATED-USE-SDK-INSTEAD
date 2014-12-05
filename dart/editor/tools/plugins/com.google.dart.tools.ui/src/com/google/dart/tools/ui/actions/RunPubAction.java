@@ -140,6 +140,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
       if (object instanceof IFile) {
         object = ((IFile) object).getParent();
       }
+      IContainer sourceFolder = (IContainer) object;
       while (object != null && ((IContainer) object).findMember(DartCore.PUBSPEC_FILE_NAME) == null) {
         object = ((IContainer) object).getParent();
       }
@@ -147,7 +148,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
         IContainer container = (IContainer) object;
         instrumentation.data("name", container.getName());
         savePubspecFile(container);
-        runPubJob(container);
+        runPubJob(container, sourceFolder);
         return;
       } else {
         instrumentation.metric("Problem", "Object was null").log();
@@ -199,15 +200,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
   }
 
   protected void runPubJob(IContainer container) {
-    if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-      RunPubJob runPubJob = new RunPubJob(container, command, false);
-      runPubJob.schedule();
-    } else {
-      MessageDialog.openError(
-          getShell(),
-          ActionMessages.RunPubAction_fail,
-          ActionMessages.RunPubAction_fileNotFound);
-    }
+    runPubJob(container, null);
   }
 
   private void copy(InputStream in, MessageConsole console) throws IOException {
@@ -219,6 +212,23 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
       String string = Character.toString((char) c);
       stringBuilder.append(string); // store output to check for errors and warnings
       console.print(string);
+    }
+  }
+
+  private void runPubJob(IContainer container, IContainer sourceFolder) {
+    if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+      RunPubJob runPubJob;
+      if (command.equals(RunPubJob.BUILD_COMMAND) && container != sourceFolder) {
+        runPubJob = new RunPubJob(container, command, false, sourceFolder);
+      } else {
+        runPubJob = new RunPubJob(container, command, false);
+      }
+      runPubJob.schedule();
+    } else {
+      MessageDialog.openError(
+          getShell(),
+          ActionMessages.RunPubAction_fail,
+          ActionMessages.RunPubAction_fileNotFound);
     }
   }
 

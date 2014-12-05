@@ -60,7 +60,6 @@ public class RunPubJob extends Job {
   /**
    * The directory which contains the sources to build, used only for pub build command
    */
-  @SuppressWarnings("unused")
   private final IContainer sourceFolder;
 
   /**
@@ -127,7 +126,7 @@ public class RunPubJob extends Job {
       File pubFile = sdk.getPubExecutable();
 
       ProcessBuilder builder = new ProcessBuilder();
-      builder.directory(container.getLocation().toFile());
+      builder.directory(DartCore.getApplicationDirectory(container).getLocation().toFile());
       builder.redirectErrorStream(true);
 
       List<String> args = new ArrayList<String>();
@@ -145,16 +144,13 @@ public class RunPubJob extends Job {
       if (command.equals(BUILD_COMMAND)) {
         args.add("--mode");
         args.add("debug");
-        // TODO(keertip): figure out why build fails when passing in folder name.
-        args.add("--all");
-//        if (sourceFolder != null) {
-//          String folderName = getPubDirectoryParent(sourceFolder);
-//          if (folderName != null) {
-//            args.add(folderName);
-//          }
-//        } else {
-//          args.add("--all");
-//        }
+        if (sourceFolder != null) {
+          String name = sourceFolder.getFullPath().removeFirstSegments(
+              container.getFullPath().segmentCount()).toString();
+          args.add(name);
+        } else {
+          args.add("--all");
+        }
       }
 
       builder.command(args);
@@ -225,17 +221,6 @@ public class RunPubJob extends Job {
    */
   protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
     return new ProcessRunner(builder);
-  }
-
-  @SuppressWarnings("unused")
-  private String getPubDirectoryParent(IContainer folder) {
-    while (folder != null) {
-      if (DartCore.pubDirectories.contains(folder.getName())) {
-        return folder.getName();
-      }
-      folder = folder.getParent();
-    }
-    return null;
   }
 
   private void setDerived(IProgressMonitor monitor) {
