@@ -172,7 +172,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param editor the editor (not {@code null})
    */
   public DartReconcilingStrategy(DartReconcilingEditor editor) {
-    this(editor, AnalysisManager.getInstance(), DartCore.getProjectManager().getIgnoreManager());
+    this(editor, AnalysisManager.getInstance(), null);
   }
 
   /**
@@ -184,20 +184,27 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   public DartReconcilingStrategy(DartReconcilingEditor editor, AnalysisManager analysisManager,
       DartIgnoreManager ignoreManager) {
-    this.editor = editor;
-    this.analysisManager = analysisManager;
-    this.ignoreManager = ignoreManager;
-    editor.setDartReconcilingStrategy(this);
 
-    // Cleanup the receiver when editor is closed
-    editor.addViewerDisposeListener(new DisposeListener() {
-      @Override
-      public void widgetDisposed(DisposeEvent e) {
-        dispose();
-      }
-    });
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      this.editor = editor;
+      this.analysisManager = null;
+      this.ignoreManager = DartIgnoreManager.getInstance();
+    } else {
+      this.editor = editor;
+      this.analysisManager = analysisManager;
+      this.ignoreManager = DartCore.getProjectManager().getIgnoreManager();
+      editor.setDartReconcilingStrategy(this);
 
-    AnalysisWorker.addListener(analysisListener);
+      // Cleanup the receiver when editor is closed
+      editor.addViewerDisposeListener(new DisposeListener() {
+        @Override
+        public void widgetDisposed(DisposeEvent e) {
+          dispose();
+        }
+      });
+
+      AnalysisWorker.addListener(analysisListener);
+    }
   }
 
   /**
