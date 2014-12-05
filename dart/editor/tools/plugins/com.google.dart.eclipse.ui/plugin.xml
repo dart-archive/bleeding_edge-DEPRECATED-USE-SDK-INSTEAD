@@ -240,7 +240,7 @@
          </commonWizard>
          <triggerPoints>
             <adapt type="org.eclipse.core.resources.IProject">
-               <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>
+               <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>      
             </adapt>
          </triggerPoints>
          <possibleChildren>
@@ -267,19 +267,38 @@
          </commonWizard>
         
       </navigatorContent>
+      <commonFilter
+            activeByDefault="true"
+            description="Hides projects from pub cache"
+            id="com.google.dart.eclipse.ui.commonFilter.pubCacheProjects"
+            name="Filter pub cache projects"
+            visibleInUI="true">
+        <filterExpression>
+            <and>
+                <adapt type="org.eclipse.core.resources.IProject">
+                    <test
+                          property="com.google.dart.eclipse.ui.isInPubCache"
+                          value="false"/>
+                </adapt>
+            </and>
+        </filterExpression>
+    </commonFilter>
    </extension>
    <extension
         point="org.eclipse.ui.navigator.viewer">
      <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
         <includes>
-           <contentExtension pattern="com.google.dart.eclipse.ui.navigatorContent"/>
+           <contentExtension 
+              pattern="com.google.dart.eclipse.ui.navigatorContent">
+           </contentExtension>
+           <contentExtension
+              pattern="com.google.dart.eclipse.ui.commonFilter.pubCacheProjects">
+           </contentExtension>
         </includes>
      </viewerContentBinding>
    </extension>
 
-
   <extension point="org.eclipse.ui.menus">
- 
     <menuContribution
           locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.generate">
        <menu
@@ -574,6 +593,16 @@
             id="com.google.dart.eclipse.ui.import.folder"
             name="Existing Source">
       </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="com.google.dart.eclipse.ui.internal.navigator.PubCacheProjectPropertyTester"
+            id="com.google.dart.eclipse.ui.pub.package.propertyTester"
+            namespace="com.google.dart.eclipse.ui"
+            properties="isInPubCache"
+            type="org.eclipse.core.resources.IProject">
+      </propertyTester>
    </extension>
 
 </plugin>
