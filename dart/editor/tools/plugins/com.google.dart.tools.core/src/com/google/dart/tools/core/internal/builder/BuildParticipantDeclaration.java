@@ -82,10 +82,12 @@ public class BuildParticipantDeclaration {
           for (IConfigurationElement element : extension.getConfigurationElements()) {
             if (element.getName().equals(BuildParticipantDeclaration.PARTICIPANT_CONTRIBUTION)) {
               try {
-                if (DartCoreDebug.ENABLE_ANALYSIS_SERVER
-                    && !element.getAttribute("id").equals(
-                        "com.google.dart.tools.core.buildParticipant.analysis.engine")) {
-
+                if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+                  if (!element.getAttribute("id").equals(
+                      "com.google.dart.tools.core.buildParticipant.analysis.engine")) {
+                    declarations.add(new BuildParticipantDeclaration(element));
+                  }
+                } else {
                   declarations.add(new BuildParticipantDeclaration(element));
                 }
               } catch (CoreException e1) {
