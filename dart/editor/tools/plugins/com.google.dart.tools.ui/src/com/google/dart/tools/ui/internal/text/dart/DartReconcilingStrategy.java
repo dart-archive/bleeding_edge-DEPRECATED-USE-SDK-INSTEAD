@@ -192,19 +192,22 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     } else {
       this.editor = editor;
       this.analysisManager = analysisManager;
-      this.ignoreManager = DartCore.getProjectManager().getIgnoreManager();
-      editor.setDartReconcilingStrategy(this);
-
-      // Cleanup the receiver when editor is closed
-      editor.addViewerDisposeListener(new DisposeListener() {
-        @Override
-        public void widgetDisposed(DisposeEvent e) {
-          dispose();
-        }
-      });
-
+      if (ignoreManager == null) {
+        this.ignoreManager = DartCore.getProjectManager().getIgnoreManager();
+      } else {
+        this.ignoreManager = ignoreManager;
+      }
       AnalysisWorker.addListener(analysisListener);
     }
+    editor.setDartReconcilingStrategy(this);
+
+    // Cleanup the receiver when editor is closed
+    editor.addViewerDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(DisposeEvent e) {
+        dispose();
+      }
+    });
   }
 
   /**
