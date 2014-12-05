@@ -230,7 +230,9 @@ public class PubCacheManager_NEW {
       IProjectDescription description = workspace.newProjectDescription(name);
       description.setLocation(new Path(location));
       // create the project
-      project.create(description, null);
+      if (!project.exists()) {
+        project.create(description, null);
+      }
       project.open(null);
       project.setPersistentProperty(PACKAGE_CACHE_PROJECT, "TRUE");
       // done
