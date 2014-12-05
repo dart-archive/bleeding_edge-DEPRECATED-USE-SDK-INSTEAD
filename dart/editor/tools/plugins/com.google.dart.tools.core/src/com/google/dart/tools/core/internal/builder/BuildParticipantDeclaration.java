@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.builder.BuildParticipant;
 
 import org.eclipse.core.resources.IProject;
@@ -81,7 +82,12 @@ public class BuildParticipantDeclaration {
           for (IConfigurationElement element : extension.getConfigurationElements()) {
             if (element.getName().equals(BuildParticipantDeclaration.PARTICIPANT_CONTRIBUTION)) {
               try {
-                declarations.add(new BuildParticipantDeclaration(element));
+                if (DartCoreDebug.ENABLE_ANALYSIS_SERVER
+                    && !element.getAttribute("id").equals(
+                        "com.google.dart.tools.core.buildParticipant.analysis.engine")) {
+
+                  declarations.add(new BuildParticipantDeclaration(element));
+                }
               } catch (CoreException e1) {
                 DartCore.logError(
                     "Exception creating build participant declaration\n  from plugin "
@@ -172,6 +178,7 @@ public class BuildParticipantDeclaration {
    * @param project the project associated with the new participant (not {@code null})
    */
   private BuildParticipant newParticipant(IProject project) throws CoreException {
+
     Object object = configElement.createExecutableExtension(PARTICIPANT_CLASS_ATTR);
     if (object instanceof BuildParticipant) {
       return (BuildParticipant) object;
@@ -182,4 +189,5 @@ public class BuildParticipantDeclaration {
         "Expected build participant to be an instance of\n  " + BuildParticipant.class.getName()
             + "\n  but was " + (object != null ? object.getClass().getName() : "null")));
   }
+
 }

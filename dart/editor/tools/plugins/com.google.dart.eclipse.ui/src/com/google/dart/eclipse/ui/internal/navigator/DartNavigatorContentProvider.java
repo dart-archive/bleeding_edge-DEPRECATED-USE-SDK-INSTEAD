@@ -14,6 +14,8 @@
 package com.google.dart.eclipse.ui.internal.navigator;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
@@ -62,7 +64,11 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 
     if (dartIgnoreListener != null) {
-      DartCore.removeIgnoreListener(dartIgnoreListener);
+      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        DartCore.removeIgnoreListener(dartIgnoreListener);
+      } else {
+        DartIgnoreManager.getInstance().removeListener(dartIgnoreListener);
+      }
     }
   }
 
@@ -121,8 +127,12 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
         contentService.update();
       }
     };
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartCore.addIgnoreListener(dartIgnoreListener);
+    } else {
+      DartIgnoreManager.getInstance().addListener(dartIgnoreListener);
+    }
 
-    DartCore.addIgnoreListener(dartIgnoreListener);
   }
 
   @Override
