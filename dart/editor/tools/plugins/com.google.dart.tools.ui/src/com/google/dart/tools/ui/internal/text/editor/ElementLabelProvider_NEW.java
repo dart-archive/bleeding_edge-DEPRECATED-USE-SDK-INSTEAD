@@ -18,6 +18,7 @@ import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,14 +26,12 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 /**
  * A {@link LabelProvider} for analysis server {@link Element}.
  */
 public class ElementLabelProvider_NEW extends LabelProvider implements
     org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider {
-  private static final Point SIZE = new Point(22, 16);
   private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
   private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
@@ -64,7 +63,7 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
     if (element.isTopLevelOrStatic()) {
       flags |= DartElementImageDescriptor.STATIC;
     }
-    return new DartElementImageDescriptor(base, flags, SIZE);
+    return new DartElementImageDescriptor(base, flags, DartElementImageProvider.BIG_SIZE);
   }
 
   private static ImageDescriptor getBaseImageDescriptor(String elementKind, boolean isPrivate) {

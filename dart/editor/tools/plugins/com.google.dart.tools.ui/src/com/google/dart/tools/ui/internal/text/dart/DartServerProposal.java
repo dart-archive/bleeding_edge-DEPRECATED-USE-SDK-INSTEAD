@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.completion.DartServerProposalCollector;
+import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -33,17 +34,12 @@ import static com.google.dart.server.generated.types.CompletionRelevance.HIGH;
 import static com.google.dart.server.generated.types.CompletionRelevance.LOW;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
-import static com.google.dart.server.generated.types.ElementKind.CLASS;
-import static com.google.dart.server.generated.types.ElementKind.CLASS_TYPE_ALIAS;
-import static com.google.dart.server.generated.types.ElementKind.CONSTRUCTOR;
 import static com.google.dart.server.generated.types.ElementKind.FIELD;
 import static com.google.dart.server.generated.types.ElementKind.FUNCTION;
-import static com.google.dart.server.generated.types.ElementKind.FUNCTION_TYPE_ALIAS;
 import static com.google.dart.server.generated.types.ElementKind.GETTER;
 import static com.google.dart.server.generated.types.ElementKind.LOCAL_VARIABLE;
 import static com.google.dart.server.generated.types.ElementKind.METHOD;
 import static com.google.dart.server.generated.types.ElementKind.PARAMETER;
-import static com.google.dart.server.generated.types.ElementKind.PREFIX;
 import static com.google.dart.server.generated.types.ElementKind.SETTER;
 import static com.google.dart.server.generated.types.ElementKind.TOP_LEVEL_VARIABLE;
 
@@ -85,8 +81,7 @@ import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 public class DartServerProposal implements ICompletionProposal, ICompletionProposalExtension,
     ICompletionProposalExtension2, ICompletionProposalExtension3, ICompletionProposalExtension4,
     ICompletionProposalExtension5, ICompletionProposalExtension6, IDartCompletionProposal {
-
-  private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
+  private static final ElementLabelProvider_NEW ELEMENT_LABEL_PROVIDER = new ElementLabelProvider_NEW();
 
   private final static char[] TRIGGERS = new char[] {
       ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
@@ -320,92 +315,17 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     int overlay = 0;
 
     String kind;
-    boolean isPrivate;
-    boolean isTopLevelOrStatic;
-    boolean isAbstract;
     Element element = suggestion.getElement();
     if (element != null) {
-      kind = element.getKind();
-      isPrivate = element.isPrivate();
-      isTopLevelOrStatic = element.isTopLevelOrStatic();
-      isAbstract = element.isAbstract();
+      return ELEMENT_LABEL_PROVIDER.getImage(element);
     } else {
       kind = suggestion.getKind();
-      isPrivate = false;
-      isTopLevelOrStatic = false;
-      isAbstract = false;
       if (!IMPORT.equals(kind) && !KEYWORD.equals(kind)) {
         DartCore.logError("Expected element for suggestion kind: " + kind);
       }
     }
 
-    // TODO (danrubel) additional info needed from suggestion
-    boolean isInInterfaceOrAnnotation = false;
-
-    if (CLASS.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_CLASS_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_CLASS_PUBLIC;
-      }
-      if (isAbstract) {
-        overlay = DartElementImageDescriptor.ABSTRACT;
-      }
-    }
-
-    else if (CLASS_TYPE_ALIAS.equals(kind)) {
-      descriptor = DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
-    }
-
-    else if (CONSTRUCTOR.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      overlay = DartElementImageDescriptor.CONSTRUCTOR;
-    }
-
-    else if (FUNCTION_TYPE_ALIAS.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-      }
-    }
-
-    else if (FIELD.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_FIELD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_FIELD_PUBLIC;
-      }
-      if (isTopLevelOrStatic) {
-        overlay = DartElementImageDescriptor.STATIC;
-      }
-    }
-
-    else if (FUNCTION.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      if (isTopLevelOrStatic) {
-        overlay = DartElementImageDescriptor.STATIC;
-      }
-    }
-
-    else if (GETTER.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      overlay = DartElementImageDescriptor.GETTER;
-    }
-
-    else if (IMPORT.equals(kind)) {
+    if (IMPORT.equals(kind)) {
       descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
     }
 
@@ -413,36 +333,8 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       descriptor = DartPluginImages.DESC_DART_KEYWORD;
     }
 
-    else if (PREFIX.equals(kind)) {
-      descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
-    }
-
-    else if (LOCAL_VARIABLE.equals(kind)) {
-      descriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
-    }
-
-    else if (METHOD.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      if (isTopLevelOrStatic) {
-        overlay = DartElementImageDescriptor.STATIC;
-      }
-    }
-
-    else if (SETTER.equals(kind)) {
-      if (isPrivate && !isInInterfaceOrAnnotation) {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PRIVATE;
-      } else {
-        descriptor = DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      overlay = DartElementImageDescriptor.SETTER;
-    }
-
-    else if (TOP_LEVEL_VARIABLE.equals(kind)) {
-      descriptor = DartPluginImages.DESC_OBJS_TOP_LEVEL_VARIABLE;
+    else {
+      descriptor = DartPluginImages.DESC_BLANK;
     }
 
     if (descriptor != null) {
@@ -453,11 +345,10 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         descriptor = new DartElementImageDescriptor(
             descriptor,
             overlay,
-            DartElementImageProvider.SMALL_SIZE);
+            DartElementImageProvider.BIG_SIZE);
       }
-    } else {
-      descriptor = DartPluginImages.DESC_BLANK;
     }
+
     return fRegistry.get(descriptor);
   }
 
@@ -489,25 +380,15 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private StyledString computeStyledDisplayString() {
-    StyledString buf = new StyledString();
-    buf.append(suggestion.getCompletion());
-
-    // parameters
+    // element
     Element element = suggestion.getElement();
     if (element != null) {
-      String parameters = element.getParameters();
-      if (parameters != null) {
-        buf.append(parameters, StyledString.DECORATIONS_STYLER);
-      }
+      return ELEMENT_LABEL_PROVIDER.getStyledText(element);
     }
 
-    // return type
-    String returnType = suggestion.getReturnType();
-    if (returnType != null && returnType.length() > 0) {
-      buf.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
-      buf.append(returnType, StyledString.QUALIFIER_STYLER);
-    }
-
+    // not element
+    StyledString buf = new StyledString();
+    buf.append(suggestion.getCompletion());
     return buf;
   }
 
