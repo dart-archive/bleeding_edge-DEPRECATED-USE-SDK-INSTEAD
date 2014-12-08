@@ -74,6 +74,7 @@ import com.google.dart.server.generated.types.RefactoringProblemSeverity;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
 import com.google.dart.server.generated.types.RenameFeedback;
 import com.google.dart.server.generated.types.RenameOptions;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.server.generated.types.SearchResultKind;
 import com.google.dart.server.generated.types.ServerService;
@@ -1322,10 +1323,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getFixes() throws Exception {
     final Object[] errorFixesArray = {null};
+    final RequestError[] requestErrorArray = {null};
     server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
       @Override
       public void computedFixes(List<AnalysisErrorFixes> e) {
         errorFixesArray[0] = e;
+      }
+
+      @Override
+      public void requestError(RequestError onError) {
+        requestErrorArray[0] = onError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1409,6 +1416,153 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     @SuppressWarnings("unchecked")
     List<AnalysisErrorFixes> errorFixes = (List<AnalysisErrorFixes>) errorFixesArray[0];
     assertThat(errorFixes).hasSize(1);
+    assertNull(requestErrorArray[0]);
+    // other assertions would would test the generated fromJson methods
+  }
+
+  public void test_edit_getFixes_error() throws Exception {
+    final Object[] errorFixesArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
+      @Override
+      public void computedFixes(List<AnalysisErrorFixes> e) {
+        errorFixesArray[0] = e;
+      }
+
+      @Override
+      public void requestError(RequestError onError) {
+        requestErrorArray[0] = onError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    assertNull(errorFixesArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
+  public void test_edit_getFixes_error_responseError() throws Exception {
+    final Object[] errorFixesArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
+      @Override
+      public void computedFixes(List<AnalysisErrorFixes> e) {
+        errorFixesArray[0] = e;
+      }
+
+      @Override
+      public void requestError(RequestError onError) {
+        requestErrorArray[0] = onError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'fixes': [",
+        "      {",
+        "        'error': {",
+        "          'severity': 'ERROR',",
+        // bad response, no type:
+//        "          'type': 'SYNTACTIC_ERROR',",
+        "          'location': {",
+        "            'file': '/fileA.dart',",
+        "            'offset': 1,",
+        "            'length': 2,",
+        "            'startLine': 3,",
+        "            'startColumn': 4",
+        "          },",
+        "          'message': 'message A',",
+        "          'correction': 'correction A'",
+        "        },",
+        "        'fixes': [",
+        "          {",
+        "            'message': 'message1',",
+        "            'edits': [",
+        "              {",
+        "                'file':'file1.dart',",
+        "                'fileStamp': 101,",
+        "                'edits': [",
+        "                  {",
+        "                    'offset': 1,",
+        "                    'length': 2,",
+        "                    'replacement': 'replacement1',",
+        "                    'id': 'id1'",
+        "                  }",
+        "                ]",
+        "              }",
+        "            ],",
+        "            'linkedEditGroups': [",
+        "              {",
+        "                'positions': [",
+        "                  {",
+        "                    'file': 'file2.dart',",
+        "                    'offset': 3",
+        "                  }",
+        "                ],",
+        "                'length': 4,",
+        "                'suggestions': [",
+        "                  {",
+        "                    'value': 'value1',",
+        "                    'kind': 'METHOD'",
+        "                  }",
+        "                ]",
+        "              }",
+        "            ],",
+        "            'selection': {",
+        "              'file': 'file3.dart',",
+        "              'offset': 5",
+        "            }",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'fixes' (List<ErrorFixes>)
+    assertNull(errorFixesArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("INVALID_SERVER_RESPONSE", requestError.getCode());
     // other assertions would would test the generated fromJson methods
   }
 
@@ -2026,19 +2180,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(4, edit.getLength());
       assertEquals("replacement2", edit.getReplacement());
     }
-  }
-
-  public void test_error() throws Exception {
-    server.server_shutdown();
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'error': {",
-        "    'code': 'SOME_CODE',",
-        "    'message': 'testing parsing of error response'",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
   }
 
   public void test_execution_createContext() throws Exception {

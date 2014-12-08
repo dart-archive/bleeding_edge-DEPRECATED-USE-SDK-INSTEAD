@@ -19,6 +19,7 @@ import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
 
@@ -71,6 +72,11 @@ public class QuickFixProcessor_NEW {
             break;
           }
         }
+        latch.countDown();
+      }
+
+      @Override
+      public void requestError(RequestError onError) {
         latch.countDown();
       }
     });

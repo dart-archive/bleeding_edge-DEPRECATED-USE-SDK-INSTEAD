@@ -15,6 +15,7 @@ package com.google.dart.server;
 
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
+import com.google.dart.server.generated.types.RequestError;
 
 import java.util.List;
 
@@ -32,4 +33,11 @@ public interface GetFixesConsumer extends Consumer {
    * @param errorFixesArray a list of computed error fixes
    */
   public void computedFixes(List<AnalysisErrorFixes> errorFixesArray);
+
+  /**
+   * If a set of fixes cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param onError the reason why a result was not passed back
+   */
+  public void requestError(RequestError onError);
 }

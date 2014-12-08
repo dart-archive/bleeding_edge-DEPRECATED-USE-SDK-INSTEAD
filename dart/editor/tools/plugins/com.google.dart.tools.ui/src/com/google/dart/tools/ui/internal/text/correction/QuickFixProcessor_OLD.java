@@ -21,6 +21,7 @@ import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -40,8 +41,8 @@ import java.util.concurrent.TimeUnit;
 public class QuickFixProcessor_OLD {
   /**
    * @param problem the {@link AnalysisError} to analyze, not {@code null}.
-   * @return {@code true} if {@link QuickFixProcessor_OLD} can produce {@link ICompletionProposal} to
-   *         fix given problem.
+   * @return {@code true} if {@link QuickFixProcessor_OLD} can produce {@link ICompletionProposal}
+   *         to fix given problem.
    */
   public static boolean hasFix(AnalysisError problem) {
     return CorrectionProcessors.getQuickFixProcessor().hasFix(problem);
@@ -55,6 +56,11 @@ public class QuickFixProcessor_OLD {
       public void computedFixes(List<AnalysisErrorFixes> errorFixesArray) {
         System.out.println("errorFixesArray: " + errorFixesArray);
         // TODO(scheglov) Analysis Server: implement for new API
+        latch.countDown();
+      }
+
+      @Override
+      public void requestError(RequestError onError) {
         latch.countDown();
       }
     });

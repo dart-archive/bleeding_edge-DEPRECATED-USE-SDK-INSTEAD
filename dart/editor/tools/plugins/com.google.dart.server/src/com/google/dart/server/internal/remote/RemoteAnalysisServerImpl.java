@@ -40,6 +40,7 @@ import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.SortMembersConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.RefactoringOptions;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
@@ -505,12 +506,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     return Integer.toString(nextId.getAndIncrement());
   }
 
-  private void processErrorResponse(JsonObject errorObject) throws Exception {
+  private RequestError processErrorResponse(JsonObject errorObject) throws Exception {
     // TODO (jwren) after Error section is done, revisit this.
     String errorCode = errorObject.get("code").getAsString();
     String errorMessage = errorObject.get("message").getAsString();
-    //errorObject.get("data").getAsString();
-    System.err.println(errorCode + ": " + errorMessage);
+    String errorStackTrace = errorObject.get("stackTrace") != null
+        ? errorObject.get("stackTrace").getAsString() : null;
+//    System.err.println(errorCode + ": " + errorMessage);
+    return new RequestError(errorCode, errorMessage, errorStackTrace);
   }
 
   /**
@@ -588,8 +591,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       consumer = consumerMap.get(idString);
     }
     JsonObject errorObject = (JsonObject) response.get("error");
+    RequestError requestError = null;
     if (errorObject != null) {
-      processErrorResponse(errorObject);
+      requestError = processErrorResponse(errorObject);
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
@@ -625,7 +629,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (consumer instanceof GetAssistsConsumer) {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetFixesConsumer) {
-      new FixesProcessor((GetFixesConsumer) consumer).process(resultObject);
+      new FixesProcessor((GetFixesConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof GetAvailableRefactoringsConsumer) {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof GetErrorsConsumer) {
