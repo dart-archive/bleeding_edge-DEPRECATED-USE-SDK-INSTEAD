@@ -37,7 +37,7 @@ public interface GetFixesConsumer extends Consumer {
   /**
    * If a set of fixes cannot be passed back, some {@link RequestError} is passed back instead.
    * 
-   * @param onError the reason why a result was not passed back
+   * @param requestError the reason why a result was not passed back
    */
-  public void requestError(RequestError onError);
+  public void onError(RequestError requestError);
 }

@@ -76,7 +76,7 @@ public class QuickFixProcessor_NEW {
       }
 
       @Override
-      public void requestError(RequestError onError) {
+      public void onError(RequestError requestError) {
         latch.countDown();
       }
     });

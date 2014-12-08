@@ -1331,8 +1331,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       }
 
       @Override
-      public void requestError(RequestError onError) {
-        requestErrorArray[0] = onError;
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1430,8 +1430,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       }
 
       @Override
-      public void requestError(RequestError onError) {
-        requestErrorArray[0] = onError;
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1476,8 +1476,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       }
 
       @Override
-      public void requestError(RequestError onError) {
-        requestErrorArray[0] = onError;
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();

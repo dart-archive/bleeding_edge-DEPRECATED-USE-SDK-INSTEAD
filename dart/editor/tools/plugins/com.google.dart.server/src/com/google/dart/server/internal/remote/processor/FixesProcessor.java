@@ -57,7 +57,7 @@ public class FixesProcessor extends ResultProcessor {
       }
     }
     if (requestError != null) {
-      consumer.requestError(requestError);
+      consumer.onError(requestError);
     }
   }
 }
