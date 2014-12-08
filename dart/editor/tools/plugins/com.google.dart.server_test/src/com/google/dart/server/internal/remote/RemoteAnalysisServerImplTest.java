@@ -102,11 +102,17 @@ import java.util.Map;
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_getErrors() throws Exception {
-    final AnalysisError[][] errors = new AnalysisError[1][1];
+    final AnalysisError[][] errors = {{null}};
+    final RequestError[] requestErrorArray = {null};
     server.analysis_getErrors("/fileA.dart", new GetErrorsConsumer() {
       @Override
       public void computedErrors(AnalysisError[] e) {
         errors[0] = e;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
 
@@ -158,6 +164,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
+    assertNull(requestErrorArray[0]);
     assertThat(errors[0]).hasSize(2);
     assertEquals(new AnalysisError(AnalysisErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
         "/fileA.dart",
@@ -171,6 +178,123 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         6,
         7,
         8), "message B", "correction B"), errors[0][1]);
+  }
+
+  public void test_analysis_getErrors_error() throws Exception {
+    final AnalysisError[][] errors = {{null}};
+    final RequestError[] requestErrorArray = {null};
+    server.analysis_getErrors("/fileA.dart", new GetErrorsConsumer() {
+      @Override
+      public void computedErrors(AnalysisError[] e) {
+        errors[0] = e;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getErrors',",
+        "  'params': {",
+        "    'file': '/fileA.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(errors[0][0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
+  public void test_analysis_getErrors_error_responseError() throws Exception {
+    final AnalysisError[][] errors = {{null}};
+    final RequestError[] requestErrorArray = {null};
+    server.analysis_getErrors("/fileA.dart", new GetErrorsConsumer() {
+      @Override
+      public void computedErrors(AnalysisError[] e) {
+        errors[0] = e;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getErrors',",
+        "  'params': {",
+        "    'file': '/fileA.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'errors' : [",
+        "      {",
+        "        'severity': 'ERROR',",
+        // invalid response, type missing
+//        "        'type': 'SYNTACTIC_ERROR',",
+        "        'location': {",
+        "          'file': '/fileA.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        },",
+        "        'message': 'message A',",
+        "        'correction': 'correction A'",
+        "      },",
+        "      {",
+        "        'severity': 'ERROR',",
+        "        'type': 'COMPILE_TIME_ERROR',",
+        "        'location': {",
+        "          'file': '/fileB.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        },",
+        "        'message': 'message B',",
+        "        'correction': 'correction B'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(errors[0][0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("INVALID_SERVER_RESPONSE", requestError.getCode());
   }
 
   public void test_analysis_getHover() throws Exception {
@@ -1281,6 +1405,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'kinds' (List<RefactoringKind>)
@@ -1410,6 +1535,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    ]",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'fixes' (List<ErrorFixes>)
@@ -1456,6 +1582,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'stackTrace': 'stackTrace0'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     assertNull(errorFixesArray[0]);
@@ -1556,14 +1683,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    ]",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
-    // assertions on 'fixes' (List<ErrorFixes>)
     assertNull(errorFixesArray[0]);
     assertNotNull(requestErrorArray[0]);
     RequestError requestError = requestErrorArray[0];
     assertEquals("INVALID_SERVER_RESPONSE", requestError.getCode());
-    // other assertions would would test the generated fromJson methods
   }
 
   public void test_edit_getRefactoring_request_options_extractLocalVariable() throws Exception {
