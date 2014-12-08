@@ -492,6 +492,16 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     StyledString buf = new StyledString();
     buf.append(suggestion.getCompletion());
 
+    // parameters
+    Element element = suggestion.getElement();
+    if (element != null) {
+      String parameters = element.getParameters();
+      if (parameters != null) {
+        buf.append(parameters, StyledString.DECORATIONS_STYLER);
+      }
+    }
+
+    // return type
     String returnType = suggestion.getReturnType();
     if (returnType != null && returnType.length() > 0) {
       buf.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
