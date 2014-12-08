@@ -84,7 +84,8 @@ public class Element {
 
   /**
    * The parameter list for the element. If the element is not a method or function this field will
-   * not be defined. If the element has zero parameters, this field will have a value of "()".
+   * not be defined. If the element doesn't have parameters (e.g. getter), this field will not be
+   * defined. If the element has zero parameters, this field will have a value of "()".
    */
   private final String parameters;
 
@@ -181,7 +182,8 @@ public class Element {
 
   /**
    * The parameter list for the element. If the element is not a method or function this field will
-   * not be defined. If the element has zero parameters, this field will have a value of "()".
+   * not be defined. If the element doesn't have parameters (e.g. getter), this field will not be
+   * defined. If the element has zero parameters, this field will have a value of "()".
    */
   public String getParameters() {
     return parameters;
