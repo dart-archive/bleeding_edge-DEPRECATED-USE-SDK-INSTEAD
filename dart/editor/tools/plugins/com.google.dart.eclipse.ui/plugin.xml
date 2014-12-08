@@ -206,6 +206,7 @@
       <page
             name="%dartHintsPrefName"
             class="com.google.dart.tools.ui.internal.preferences.HintPreferencePage"
+            category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.preferences.HintPreferencePage">
       </page>
       <page
