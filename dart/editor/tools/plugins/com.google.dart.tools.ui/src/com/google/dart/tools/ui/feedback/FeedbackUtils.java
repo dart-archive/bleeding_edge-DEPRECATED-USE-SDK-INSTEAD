@@ -59,7 +59,8 @@ public class FeedbackUtils {
           HealthUtils.getMaxMem(),
           Runtime.getRuntime().totalMemory(),
           Runtime.getRuntime().freeMemory(),
-          DartCore.getProjectManager().getIndex().getStatistics(),
+          DartCoreDebug.ENABLE_ANALYSIS_SERVER ? null
+              : DartCore.getProjectManager().getIndex().getStatistics(),
           DartCore.getPlugin().isAutoRunPubEnabled());
     }
 

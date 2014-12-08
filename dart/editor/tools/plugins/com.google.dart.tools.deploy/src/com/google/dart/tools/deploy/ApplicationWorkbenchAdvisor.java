@@ -329,7 +329,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   }
 
   protected boolean shouldShowWelcome() {
-    return DartCore.getProjectManager().getProjects().length == 0;
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return ResourcesPlugin.getWorkspace().getRoot().getProjects().length == 0;
+    } else {
+      return DartCore.getProjectManager().getProjects().length == 0;
+    }
   }
 
   //checks to see if a flag has been set noting that workspace layout needs to be reset
