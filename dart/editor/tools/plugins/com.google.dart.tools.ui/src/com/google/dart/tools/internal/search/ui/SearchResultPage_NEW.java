@@ -130,6 +130,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       Location location = match.getLocation();
       String filePath = location.getFile();
       FileLine sourceLine = lineProvider.getLine(filePath, location.getOffset());
+      if (sourceLine == null) {
+        return;
+      }
       // find target LineItem
       LineItem targetLineItem = null;
       for (LineItem lineItem : lines) {
@@ -204,6 +207,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
      */
     public FileLine getLine(String filePath, int offset) {
       String content = getContent(filePath);
+      if (content == null) {
+        return null;
+      }
       // find start of line
       int start = offset;
       while (start > 0 && content.charAt(start - 1) != '\n') {
