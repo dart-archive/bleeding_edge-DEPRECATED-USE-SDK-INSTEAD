@@ -170,7 +170,7 @@ public class ServiceUtils_NEW {
   /**
    * @return the {@link LinkedCorrectionProposal_NEW} for the given {@link SourceChange}.
    */
-  public static ChangeCorrectionProposal toUI(SourceChange sourceChange) {
+  public static ChangeCorrectionProposal toUI(SourceChange sourceChange, int relevance) {
     List<SourceFileEdit> fileEdits = sourceChange.getEdits();
     if (fileEdits.size() != 1) {
       return null;
@@ -178,7 +178,6 @@ public class ServiceUtils_NEW {
     SourceFileEdit fileEdit = fileEdits.get(0);
     // prepare presentation
     Image image = DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-    int relevance = 50;
     // prepare TextChange
     TextChange textChange;
     Change change = toLTK(fileEdit);
@@ -190,7 +189,7 @@ public class ServiceUtils_NEW {
       return null;
     }
     // prepare UI proposal
-    // TODO(scheglov) expose "image" and "relevance" through the server API
+    // TODO(scheglov) expose "image" through the server API
     LinkedCorrectionProposal_NEW uiProposal = new LinkedCorrectionProposal_NEW(
         sourceChange.getMessage(),
         fileEdit.getFile(),

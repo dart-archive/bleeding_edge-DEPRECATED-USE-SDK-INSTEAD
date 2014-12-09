@@ -65,8 +65,9 @@ public class QuickAssistProcessor {
    * Adds the given server's {@link SourceChange}s as LTK proposals.
    */
   static void addServerProposals(List<ICompletionProposal> proposals, List<SourceChange> changes) {
-    for (SourceChange change : changes) {
-      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change);
+    for (int i = 0; i < changes.size(); i++) {
+      SourceChange change = changes.get(i);
+      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change, i);
       if (uiProposal != null) {
         proposals.add(uiProposal);
       }

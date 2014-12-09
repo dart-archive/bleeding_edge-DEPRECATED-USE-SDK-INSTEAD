@@ -53,7 +53,7 @@ public final class CompletionProposalComparator implements Comparator<Object> {
     if (!fOrderAlphabetically) {
       int r1 = getRelevance(p1);
       int r2 = getRelevance(p2);
-      int relevanceDif = r2 - r1;
+      int relevanceDif = r1 - r2;
       if (relevanceDif != 0) {
         return relevanceDif;
       }
