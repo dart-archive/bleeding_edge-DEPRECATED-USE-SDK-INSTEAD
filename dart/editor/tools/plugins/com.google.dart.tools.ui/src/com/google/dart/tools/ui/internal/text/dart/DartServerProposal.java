@@ -13,19 +13,27 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.HoverInformation;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.CharOperation;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.completion.DartServerProposalCollector;
+import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
+import com.google.dart.tools.ui.internal.text.html.HTMLPrinter;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -43,11 +51,16 @@ import static com.google.dart.server.generated.types.ElementKind.PARAMETER;
 import static com.google.dart.server.generated.types.ElementKind.SETTER;
 import static com.google.dart.server.generated.types.ElementKind.TOP_LEVEL_VARIABLE;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.AbstractReusableInformationControlCreator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -70,9 +83,19 @@ import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
+import org.osgi.framework.Bundle;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link DartServerProposal} represents a code completion suggestion returned by
@@ -81,19 +104,62 @@ import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 public class DartServerProposal implements ICompletionProposal, ICompletionProposalExtension,
     ICompletionProposalExtension2, ICompletionProposalExtension3, ICompletionProposalExtension4,
     ICompletionProposalExtension5, ICompletionProposalExtension6, IDartCompletionProposal {
+  /**
+   * The control creator.
+   */
+  private static final class ControlCreator extends AbstractReusableInformationControlCreator {
+    @Override
+    @SuppressWarnings("restriction")
+    public IInformationControl doCreateInformationControl(Shell parent) {
+      String font = PreferenceConstants.APPEARANCE_JAVADOC_FONT;
+      return new org.eclipse.jface.internal.text.html.BrowserInformationControl(
+          parent,
+          font,
+          DartToolsPlugin.getAdditionalInfoAffordanceString()) {
+        @Override
+        public IInformationControlCreator getInformationPresenterControlCreator() {
+          return new PresenterControlCreator();
+        }
+      };
+    }
+  }
+
+  /**
+   * Presenter control creator.
+   */
+  private static final class PresenterControlCreator extends
+      AbstractReusableInformationControlCreator {
+    @Override
+    @SuppressWarnings("restriction")
+    public IInformationControl doCreateInformationControl(Shell parent) {
+      String font = PreferenceConstants.APPEARANCE_JAVADOC_FONT;
+      return new org.eclipse.jface.internal.text.html.BrowserInformationControl(parent, font, true);
+    }
+  }
+
   private static final ElementLabelProvider_NEW ELEMENT_LABEL_PROVIDER = new ElementLabelProvider_NEW();
+
+  /**
+   * The CSS used to format DartDoc information.
+   */
+  private static String CSS_STYLES;
 
   private final static char[] TRIGGERS = new char[] {
       ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
-
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
   private final int relevance;
   private final StyledString styledCompletion;
+
   private Image image;
 
   /** Offset needed when the proposal is applied */
   private int selectionOffset = 0;
+
+  /**
+   * The {@link IInformationControlCreator} for documentation.
+   */
+  private IInformationControlCreator informationControlCreator;
 
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
@@ -198,8 +264,41 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Object getAdditionalProposalInfo(IProgressMonitor monitor) {
-    //TODO (danrubel): determine if additional information is needed and supply it
-    return null;
+    final String[] text = {null};
+    Element element = suggestion.getElement();
+    if (element != null) {
+      Location location = element.getLocation();
+      if (location != null) {
+        final CountDownLatch latch = new CountDownLatch(1);
+        DartCore.getAnalysisServer().analysis_getHover(
+            location.getFile(),
+            location.getOffset(),
+            new GetHoverConsumer() {
+              @Override
+              public void computedHovers(HoverInformation[] hovers) {
+                if (hovers.length != 0) {
+                  HoverInformation hover = hovers[0];
+                  // prepare HTML content
+                  String dartdocText = hover.getDartdoc();
+                  String dartdocHtml = DartDocUtilities.getDartDocAsHtml2(dartdocText);
+                  String info = DartTextHover.getElementDocumentationHtml(
+                      hover.getElementDescription(),
+                      dartdocHtml);
+                  // wrap into HTML page
+                  StringBuffer buffer = new StringBuffer();
+                  HTMLPrinter.insertPageProlog(buffer, 0, getCssStyles());
+                  buffer.append(info);
+                  HTMLPrinter.addPageEpilog(buffer);
+                  // done
+                  text[0] = buffer.toString();
+                  latch.countDown();
+                }
+              }
+            });
+        Uninterruptibles.awaitUninterruptibly(latch, 1000, TimeUnit.MILLISECONDS);
+      }
+    }
+    return text[0];
   }
 
   @Override
@@ -229,9 +328,25 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   @Override
+  @SuppressWarnings("restriction")
   public IInformationControlCreator getInformationControlCreator() {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO(scheglov) Linux is known to crash sometimes when we create Browser.
+    // https://code.google.com/p/dart/issues/detail?id=12903
+    // It always was like this.
+    if (DartCore.isLinux()) {
+      return null;
+    }
+    // For luckier OSes.
+    Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
+    if (shell == null
+        || !org.eclipse.jface.internal.text.html.BrowserInformationControl.isAvailable(shell)) {
+      return null;
+    }
+
+    if (informationControlCreator == null) {
+      informationControlCreator = new ControlCreator();
+    }
+    return informationControlCreator;
   }
 
   @Override
@@ -394,6 +509,48 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   private String getCompletion() {
     return suggestion.getCompletion();
+  }
+
+  /**
+   * Returns the style information for displaying HTML content.
+   */
+  private String getCssStyles() {
+    if (CSS_STYLES == null) {
+      Bundle bundle = Platform.getBundle(DartToolsPlugin.getPluginId());
+      URL url = bundle.getEntry("/DartdocHoverStyleSheet.css"); //$NON-NLS-1$
+      if (url != null) {
+        BufferedReader reader = null;
+        try {
+          url = FileLocator.toFileURL(url);
+          reader = new BufferedReader(new InputStreamReader(url.openStream()));
+          StringBuffer buffer = new StringBuffer(200);
+          String line = reader.readLine();
+          while (line != null) {
+            buffer.append(line);
+            buffer.append('\n');
+            line = reader.readLine();
+          }
+          CSS_STYLES = buffer.toString();
+        } catch (IOException ex) {
+          DartToolsPlugin.log(ex);
+        } finally {
+          try {
+            if (reader != null) {
+              reader.close();
+            }
+          } catch (IOException e) {
+          }
+        }
+
+      }
+    }
+    String css = CSS_STYLES;
+    if (css != null) {
+      FontData fontData = JFaceResources.getFontRegistry().getFontData(
+          PreferenceConstants.APPEARANCE_JAVADOC_FONT)[0];
+      css = HTMLPrinter.convertTopLevelFont(css, fontData);
+    }
+    return css;
   }
 
   /**

@@ -367,6 +367,16 @@ public final class DartDocUtilities {
   }
 
   /**
+   * Return the prettified DartDoc text for the given element.
+   */
+  public static String getDartDocAsHtml2(String docString) {
+    if (docString != null) {
+      return convertToHtml(docString);
+    }
+    return null;
+  }
+
+  /**
    * Return a one-line description of the given Element.
    * 
    * @param type the best known {@link Type} of the given {@link Element}
