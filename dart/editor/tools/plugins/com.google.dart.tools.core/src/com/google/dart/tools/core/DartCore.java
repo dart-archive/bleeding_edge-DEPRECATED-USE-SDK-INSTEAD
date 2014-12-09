@@ -954,8 +954,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
    */
   public static boolean isApplicationDirectory(File directory) {
-    return containsPubspecFile(directory)
-        && (DartCoreDebug.NO_PUB_PACKAGES || containsPackagesDirectory(directory));
+    return containsPubspecFile(directory);
   }
 
   /**
