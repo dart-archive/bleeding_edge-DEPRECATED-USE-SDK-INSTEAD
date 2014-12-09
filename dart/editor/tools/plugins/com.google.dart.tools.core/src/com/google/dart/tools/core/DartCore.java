@@ -360,7 +360,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener to add
    */
   public static void addIgnoreListener(DartIgnoreListener listener) {
-    getProjectManager().getIgnoreManager().addListener(listener);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartIgnoreManager.getInstance().addListener(listener);
+    } else {
+      getProjectManager().getIgnoreManager().addListener(listener);
+    }
   }
 
   /**
@@ -500,6 +504,7 @@ public class DartCore extends Plugin implements DartSdkListener {
                 }
               };
             } else {
+              @SuppressWarnings("resource")
               final PrintStream fileStream = new PrintStream(logPath);
               debugStream = new DebugPrintStream() {
                 @Override
@@ -1412,7 +1417,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the non-<code>null</code> listener to remove
    */
   public static void removeIgnoreListener(DartIgnoreListener listener) {
-    getProjectManager().getIgnoreManager().addListener(listener);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartIgnoreManager.getInstance().removeListener(listener);
+    } else {
+      getProjectManager().getIgnoreManager().addListener(listener);
+    }
   }
 
   public static void setOptions(HashMap<String, String> newOptions) {
