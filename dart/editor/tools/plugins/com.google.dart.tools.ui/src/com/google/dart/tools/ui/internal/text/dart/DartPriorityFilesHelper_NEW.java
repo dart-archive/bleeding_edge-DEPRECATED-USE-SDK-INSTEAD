@@ -172,20 +172,6 @@ public class DartPriorityFilesHelper_NEW {
     }
   }
 
-  private void handlePartHidden(IWorkbenchPart part) {
-    DartPriorityFileEditor editor = getPriorityFileEditor(part);
-    if (editor != null) {
-      updateAnalysisPriorityOrderOnUiThread(editor, false);
-    }
-  }
-
-  private void handlePartVisible(IWorkbenchPart part) {
-    DartPriorityFileEditor editor = getPriorityFileEditor(part);
-    if (editor != null) {
-      updateAnalysisPriorityOrderOnUiThread(editor, true);
-    }
-  }
-
   /**
    * Starts listening for {@link IWorkbenchPage} and adding/removing files of the visible editors.
    */
@@ -196,15 +182,7 @@ public class DartPriorityFilesHelper_NEW {
       handlePartActivated(activePart, false);
     }
     // make files of the currently visible editors a priority ones
-    {
-      List<DartPriorityFileEditor> editors = getVisibleEditors();
-      for (DartPriorityFileEditor editor : editors) {
-        String file = editor.getInputFilePath();
-        if (file != null) {
-          visibleFiles.add(file);
-        }
-      }
-    }
+    prepareVisibleFiles();
     // schedule job to send an initial state
     test_hasPendingJob = true;
     sendToServerJob.schedule();
@@ -230,14 +208,16 @@ public class DartPriorityFilesHelper_NEW {
 
       @Override
       public void partHidden(IWorkbenchPartReference partRef) {
-        IWorkbenchPart part = partRef.getPart(false);
-        if (part != null) {
-          handlePartHidden(part);
+        if (isDartPriorityFileEditor(partRef)) {
+          scheduleSubscriptionsUpdate();
         }
       }
 
       @Override
       public void partInputChanged(IWorkbenchPartReference partRef) {
+        if (isDartPriorityFileEditor(partRef)) {
+          scheduleSubscriptionsUpdate();
+        }
       }
 
       @Override
@@ -246,37 +226,44 @@ public class DartPriorityFilesHelper_NEW {
 
       @Override
       public void partVisible(IWorkbenchPartReference partRef) {
-        IWorkbenchPart part = partRef.getPart(false);
-        if (part != null) {
-          handlePartVisible(part);
+        if (isDartPriorityFileEditor(partRef)) {
+          scheduleSubscriptionsUpdate();
         }
       }
     });
   }
 
+  private boolean isDartPriorityFileEditor(IWorkbenchPartReference partRef) {
+    IWorkbenchPart part = partRef.getPart(false);
+    if (part == null) {
+      return false;
+    }
+    DartPriorityFileEditor editor = getPriorityFileEditor(part);
+    return editor != null;
+  }
+
   /**
-   * Update the order in which files are analyzed in the context associated with the editor. This is
-   * called for each editor as it becomes (in)visible.
-   * 
-   * @param isVisible {@code true} if the editor is visible and the file should be the first file
-   *          analyzed or {@code false} if the editor is closed and the file should be removed from
-   *          the priority list.
+   * Fills {@link #visibleFiles} with visible files.
    */
-  private void updateAnalysisPriorityOrderOnUiThread(DartPriorityFileEditor editor,
-      boolean isVisible) {
-    String file = editor.getInputFilePath();
-    if (file != null) {
-      synchronized (lock) {
-        if (isVisible) {
-          if (!visibleFiles.contains(file)) {
-            visibleFiles.add(file);
-          }
-        } else {
-          visibleFiles.remove(file);
-        }
-        test_hasPendingJob = true;
-        sendToServerJob.schedule(25);
+  private void prepareVisibleFiles() {
+    visibleFiles.clear();
+    List<DartPriorityFileEditor> editors = getVisibleEditors();
+    for (DartPriorityFileEditor editor : editors) {
+      String file = editor.getInputFilePath();
+      if (file != null) {
+        visibleFiles.add(file);
       }
+    }
+  }
+
+  /**
+   * Prepares the list of visible files and a schedules subscription update.
+   */
+  private void scheduleSubscriptionsUpdate() {
+    synchronized (lock) {
+      prepareVisibleFiles();
+      test_hasPendingJob = true;
+      sendToServerJob.schedule(25);
     }
   }
 }
