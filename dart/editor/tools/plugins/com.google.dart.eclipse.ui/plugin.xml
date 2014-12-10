@@ -145,7 +145,12 @@
            sequence="F4"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>         
+       <key
+            sequence="M1+M2+G"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.eclipse.ui.open.find.uses"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    
    <extension
@@ -520,6 +525,11 @@
             defaultHandler="com.google.dart.eclipse.ui.internal.actions.OpenFeedbackDialogHandler"
             id="com.google.dart.eclipse.sendFeedback"
             name="%action.sendFeedbackAction.label">
+      </command>
+      <command
+            defaultHandler="com.google.dart.eclipse.ui.internal.handler.FindUsesHandler"
+            id="com.google.dart.eclipse.ui.open.find.uses"
+            name="Find Uses">
       </command> 
    </extension>
 
