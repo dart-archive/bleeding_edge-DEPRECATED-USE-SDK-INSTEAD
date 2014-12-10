@@ -457,14 +457,15 @@ public class DartCore extends Plugin implements DartSdkListener {
           DartCore.logError("Add the dart sdk (com.google.dart.sdk) as a JVM argument");
           System.exit(1);
         }
+
         String svnRoot = System.getProperty("com.google.dart.svnRoot");
         String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
         String analysisServerPath = null;
         String packageRoot = null;
         if (svnRoot == null) {
           File analysisServerSnapshot = new File(
-              DartCore.getEclipseInstallationDirectory(),
-              "dart-sdk/bin/snapshots/analysis_server.dart.snapshot");
+              DartSdkManager.getManager().getSdk().getDirectory(),
+              "bin/snapshots/analysis_server.dart.snapshot");
           analysisServerPath = analysisServerSnapshot.getAbsolutePath();
           if (!analysisServerSnapshot.exists()) {
             DartCore.logError("Analysis Server snapshot was not found in "
