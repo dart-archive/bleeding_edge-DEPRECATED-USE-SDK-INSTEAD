@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetSuggestionsConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
 
 /**
@@ -30,7 +31,12 @@ public class CompletionIdProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    consumer.computedCompletionId(resultObject.get("id").getAsString());
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      consumer.computedCompletionId(resultObject.get("id").getAsString());
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

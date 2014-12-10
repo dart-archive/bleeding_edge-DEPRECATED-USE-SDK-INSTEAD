@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
+
 /**
  * The interface {@code CompletionSuggestionsConsumer} defines the behavior of objects that consume
  * a completion id.
@@ -26,4 +28,11 @@ public interface GetSuggestionsConsumer extends Consumer {
    * @param completionId a completion id {@link String}
    */
   public void computedCompletionId(String completionId);
+
+  /**
+   * If a completion id cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

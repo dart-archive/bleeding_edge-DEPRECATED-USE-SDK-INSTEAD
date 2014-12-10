@@ -19,6 +19,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerListenerAdapter;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.RequestError;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -47,6 +48,11 @@ public class DartSuggestionReceiver {
       if (latch != null) {
         server.addAnalysisServerListener(listener);
       }
+    }
+
+    @Override
+    public void onError(RequestError requestError) {
+      latch.countDown();
     }
   };
 

@@ -1110,10 +1110,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_completion_getSuggestions() throws Exception {
     final String[] completionIdPtr = {null};
+    final RequestError[] requestErrorArray = {null};
     server.completion_getSuggestions("/fileA.dart", 0, new GetSuggestionsConsumer() {
       @Override
       public void computedCompletionId(String completionId) {
         completionIdPtr[0] = completionId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1135,8 +1141,57 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'id': 'completionId0'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
+    assertNull(requestErrorArray[0]);
     assertEquals("completionId0", completionIdPtr[0]);
+  }
+
+  public void test_completion_getSuggestions_error() throws Exception {
+    final String[] completionIdPtr = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.completion_getSuggestions("/fileA.dart", 0, new GetSuggestionsConsumer() {
+      @Override
+      public void computedCompletionId(String completionId) {
+        completionIdPtr[0] = completionId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'completion.getSuggestions',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 0",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(completionIdPtr[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertNotNull(requestError);
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
   }
 
   public void test_completion_notification_results() throws Exception {

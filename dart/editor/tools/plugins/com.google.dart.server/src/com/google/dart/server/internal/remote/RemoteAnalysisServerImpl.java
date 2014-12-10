@@ -109,7 +109,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     private JsonObject getRequest() {
       return request;
     }
-
   }
 
   /**
@@ -601,7 +600,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // Completion Domain
     //
     if (consumer instanceof GetSuggestionsConsumer) {
-      new CompletionIdProcessor((GetSuggestionsConsumer) consumer).process(resultObject);
+      new CompletionIdProcessor((GetSuggestionsConsumer) consumer).process(
+          resultObject,
+          requestError);
     }
     //
     // Search Domain
