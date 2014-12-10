@@ -137,6 +137,7 @@ public final class ElementFactory {
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.setType(enumType);
     enumElement.setSupertype(getObjectType());
+    enumElement.setEnum(true);
     //
     // Populate the fields.
     //

@@ -23,10 +23,12 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.enumElement;
 import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.library;
@@ -88,6 +90,7 @@ public class ClassElementImplTest extends EngineTestCase {
     FieldElementImpl field = fieldElement(fieldName, false, false, false, null);
     classA.setFields(new FieldElement[] {field});
     assertSame(field, classA.getField(fieldName));
+    assertFalse(field.isEnumConstant());
     // no such field
     assertSame(null, classA.getField("noSuchField"));
   }
@@ -212,6 +215,19 @@ public class ClassElementImplTest extends EngineTestCase {
     // "foo" is static
     setter.setStatic(true);
     assertTrue(classA.hasStaticMember());
+  }
+
+  public void test_isEnum() {
+    String firstConst = "A";
+    String secondConst = "B";
+    ClassElementImpl enumE = enumElement(new TestTypeProvider(), "E", firstConst, secondConst);
+
+    // E is an enum
+    assertTrue(enumE.isEnum());
+
+    // A and B are static members
+    assertTrue(enumE.getField(firstConst).isEnumConstant());
+    assertTrue(enumE.getField(secondConst).isEnumConstant());
   }
 
   public void test_lookUpConcreteMethod_declared() {
