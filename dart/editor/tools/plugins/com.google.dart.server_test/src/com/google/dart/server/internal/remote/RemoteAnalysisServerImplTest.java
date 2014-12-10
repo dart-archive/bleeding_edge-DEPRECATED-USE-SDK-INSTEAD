@@ -338,6 +338,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    ]",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertNotNull(hovers[0]);
     assertEquals(22, hovers[0].getOffset());
@@ -1419,6 +1420,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    ]",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'assists' (List<SourceChange>)
@@ -1493,6 +1495,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'kinds': []",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'kinds' (List<RefactoringKind>)
@@ -2030,6 +2033,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'problems' (List<ErrorFixes>)
@@ -2106,6 +2110,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'feedback'
@@ -2155,6 +2160,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'feedback'
@@ -2203,6 +2209,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'feedback'
@@ -2246,6 +2253,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'feedback'
@@ -2291,6 +2299,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'potentialEdits': ['one']",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'feedback'
@@ -2343,6 +2352,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    }",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     // assertions on 'edit'
@@ -2581,6 +2591,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      }",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("searchId0", searchIdArray[0]);
     assertNotNull(elementArray[0]);
@@ -2618,6 +2629,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'result': {}",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertNull(searchIdArray[0]);
     assertNull(elementArray[0]);
@@ -2649,6 +2661,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'id': 'searchId1'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("searchId1", searchIdArray[0]);
   }
@@ -2679,6 +2692,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'id': 'searchId2'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("searchId2", searchIdArray[0]);
   }
@@ -2709,6 +2723,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'id': 'searchId3'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("searchId3", searchIdArray[0]);
   }
@@ -2770,6 +2785,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    }]",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     @SuppressWarnings("unchecked")
     List<TypeHierarchyItem> items = (List<TypeHierarchyItem>) itemsArray[0];
@@ -2893,6 +2909,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'version': '0.0.1'",
         "  }",
         "}");
+    responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("0.0.1", versionPtr[0]);
   }
