@@ -122,6 +122,11 @@ public class FieldMember extends VariableMember implements FieldElement {
   }
 
   @Override
+  public boolean isEnumConstant() {
+    return getBaseElement().isEnumConstant();
+  }
+
+  @Override
   public boolean isStatic() {
     return getBaseElement().isStatic();
   }

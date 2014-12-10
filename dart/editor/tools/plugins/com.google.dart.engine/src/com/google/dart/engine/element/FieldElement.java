@@ -20,4 +20,11 @@ package com.google.dart.engine.element;
  * @coverage dart.engine.element
  */
 public interface FieldElement extends ClassMemberElement, PropertyInducingElement {
+
+  /**
+   * Return {@code true} if this element is an enum constant.
+   * 
+   * @return {@code true} if this an enum constant
+   */
+  public boolean isEnumConstant();
 }

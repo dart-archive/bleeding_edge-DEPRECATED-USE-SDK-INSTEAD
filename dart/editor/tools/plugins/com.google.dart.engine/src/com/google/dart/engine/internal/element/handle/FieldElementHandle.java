@@ -43,6 +43,11 @@ public class FieldElementHandle extends PropertyInducingElementHandle implements
   }
 
   @Override
+  public boolean isEnumConstant() {
+    return getActualElement().isEnumConstant();
+  }
+
+  @Override
   public boolean isStatic() {
     return getActualElement().isStatic();
   }

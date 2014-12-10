@@ -68,6 +68,12 @@ public class FieldElementImpl extends PropertyInducingElementImpl implements Fie
   }
 
   @Override
+  public boolean isEnumConstant() {
+    ClassElement enclosingClassElt = getEnclosingElement();
+    return enclosingClassElt != null ? enclosingClassElt.isEnum() : false;
+  }
+
+  @Override
   public boolean isStatic() {
     return hasModifier(Modifier.STATIC);
   }
