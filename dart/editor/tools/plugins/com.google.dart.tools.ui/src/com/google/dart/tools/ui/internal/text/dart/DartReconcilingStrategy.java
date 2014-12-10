@@ -193,7 +193,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       this.editor = editor;
       this.analysisManager = analysisManager;
       if (ignoreManager == null) {
-        this.ignoreManager = DartCore.getProjectManager().getIgnoreManager();
+        this.ignoreManager = DartCore.getIgnoreManager();
       } else {
         this.ignoreManager = ignoreManager;
       }

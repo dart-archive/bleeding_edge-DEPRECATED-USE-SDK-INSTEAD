@@ -88,7 +88,7 @@ public class DartPrioritySourcesHelper {
   private final BlockingQueue<PriorityOrderRequest> requestQueue = new LinkedBlockingQueue<PriorityOrderRequest>();
 
   public DartPrioritySourcesHelper(IWorkbench workbench) {
-    this(workbench, DartCore.getProjectManager().getIgnoreManager());
+    this(workbench, DartCore.getIgnoreManager());
   }
 
   public DartPrioritySourcesHelper(IWorkbench workbench, DartIgnoreManager ignoreManager) {
@@ -131,8 +131,8 @@ public class DartPrioritySourcesHelper {
   }
 
   /**
-   * @return the {@link DartPriorityFileEditor} that corresponds to the given
-   *         {@link IWorkbenchPart}, maybe {@code null}.
+   * @return the {@link DartPriorityFileEditor} that corresponds to the given {@link IWorkbenchPart}
+   *         , maybe {@code null}.
    */
   private DartPriorityFileEditor getPrioritySourceEditor(IWorkbenchPart part) {
     if (part != null) {

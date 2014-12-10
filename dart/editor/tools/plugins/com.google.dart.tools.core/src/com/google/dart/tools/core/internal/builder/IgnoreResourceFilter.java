@@ -35,7 +35,7 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
   private boolean hasIgnores;
 
   public IgnoreResourceFilter() {
-    this(DartCore.getProjectManager().getIgnoreManager(), AnalysisMarkerManager.getInstance());
+    this(DartCore.getIgnoreManager(), AnalysisMarkerManager.getInstance());
   }
 
   public IgnoreResourceFilter(DartIgnoreManager ignoreManager, AnalysisMarkerManager markerManager) {

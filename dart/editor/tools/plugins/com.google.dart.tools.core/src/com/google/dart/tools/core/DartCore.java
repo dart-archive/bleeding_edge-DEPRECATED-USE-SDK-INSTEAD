@@ -360,11 +360,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener to add
    */
   public static void addIgnoreListener(DartIgnoreListener listener) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartIgnoreManager.getInstance().addListener(listener);
-    } else {
-      getProjectManager().getIgnoreManager().addListener(listener);
-    }
+    getIgnoreManager().addListener(listener);
   }
 
   /**
@@ -375,7 +371,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws CoreException if there was an error deleting markers
    */
   public static void addToIgnores(IResource resource) throws IOException, CoreException {
-    getProjectManager().getIgnoreManager().addToIgnores(resource);
+    getIgnoreManager().addToIgnores(resource);
   }
 
   /**
@@ -749,6 +745,17 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return the DartIgnoreManager
+   */
+  public static DartIgnoreManager getIgnoreManager() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return DartIgnoreManager.getInstance();
+    } else {
+      return getProjectManager().getIgnoreManager();
+    }
+  }
+
+  /**
    * Utility method for returning one option value only. Equivalent to
    * <code>DartCore.getOptions().get(optionName)</code> Note that it may answer <code>null</code> if
    * this option does not exist.
@@ -943,11 +950,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return <code>true</code> if the given resource should be analyzed
    */
   public static boolean isAnalyzed(IResource resource) {
-    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      return getProjectManager().getIgnoreManager().isAnalyzed(resource);
-    } else {
-      return DartIgnoreManager.getInstance().isAnalyzed(resource);
-    }
+    return getIgnoreManager().isAnalyzed(resource);
   }
 
   /**
@@ -1396,7 +1399,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws IOException if there was an error accessing the ignore file
    */
   public static void removeFromIgnores(IPath resource) throws IOException {
-    getProjectManager().getIgnoreManager().removeFromIgnores(resource);
+    getIgnoreManager().removeFromIgnores(resource);
   }
 
   /**
@@ -1406,7 +1409,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws IOException if there was an error accessing the ignore file
    */
   public static void removeFromIgnores(IResource resource) throws IOException {
-    getProjectManager().getIgnoreManager().removeFromIgnores(resource);
+    getIgnoreManager().removeFromIgnores(resource);
   }
 
   /**
@@ -1416,11 +1419,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the non-<code>null</code> listener to remove
    */
   public static void removeIgnoreListener(DartIgnoreListener listener) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartIgnoreManager.getInstance().removeListener(listener);
-    } else {
-      getProjectManager().getIgnoreManager().addListener(listener);
-    }
+    getIgnoreManager().removeListener(listener);
   }
 
   public static void setOptions(HashMap<String, String> newOptions) {
