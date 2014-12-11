@@ -334,15 +334,39 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   };
 
+  private static boolean isEqualOutlineTree(Outline a, Outline b) {
+    if (a == null || b == null) {
+      return false;
+    }
+    Element elementA = a.getElement();
+    Element elementB = b.getElement();
+    String nameA = elementA.getName();
+    String nameB = elementB.getName();
+    if (!nameA.equals(nameB)) {
+      return false;
+    }
+    List<Outline> childrenA = a.getChildren();
+    List<Outline> childrenB = b.getChildren();
+    if (childrenA.size() != childrenB.size()) {
+      return false;
+    }
+    for (int i = 0; i < childrenA.size(); i++) {
+      Outline childA = childrenA.get(i);
+      Outline childB = childrenB.get(i);
+      if (!isEqualOutlineTree(childA, childB)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private final ListenerList selectionChangedListeners = new ListenerList(ListenerList.IDENTITY);
   private final String contextMenuID;
   private DartEditor editor;
   private Outline input;
   private DartOutlineViewer viewer;
-
   private boolean ignoreSelectionChangedEvent = false;
   private Menu contextMenu;
-
   private CompositeActionGroup actionGroups;
   private IPreferenceStore preferences;
 
@@ -541,7 +565,11 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   }
 
   public void setInput(final Outline input, final int offset) {
+    Outline oldInput = this.input;
     this.input = input;
+    if (isEqualOutlineTree(oldInput, input)) {
+      return;
+    }
     updateViewerWithoutDraw(new Runnable() {
       @Override
       public void run() {
