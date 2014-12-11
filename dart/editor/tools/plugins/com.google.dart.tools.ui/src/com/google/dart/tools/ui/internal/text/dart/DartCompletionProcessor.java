@@ -106,10 +106,11 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    * Wait up to the given amount of time for the receiver to ready. This may involve communication
    * with the Analysis Server and should not be called on the UI thread.
    * 
+   * @param auto {@code true} if triggered automatically such as when the user types a "."
    * @return {@code true} if the processor is ready, else {@code false}
    */
-  public boolean waitUntilReady() {
-    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW() : waitUntilReady_OLD();
+  public boolean waitUntilReady(boolean auto) {
+    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW(auto) : waitUntilReady_OLD();
   }
 
   /*
@@ -137,7 +138,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     return proposals;
   }
 
-  private boolean waitUntilReady_NEW() {
+  private boolean waitUntilReady_NEW(boolean auto) {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());
     final DartEditor dartEditor = (DartEditor) fEditor;
@@ -145,6 +146,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     dartEditor.getDartReconcilingStrategy().reconcile();
     // Request suggestions from server
     DartSuggestionReceiver receiver = new DartSuggestionReceiver(DartCore.getAnalysisServer());
+//    long start = System.currentTimeMillis();
     receiver.requestSuggestions(
         dartEditor.getInputFilePath(),
         dartEditor.getCachedSelectedRange().x,
@@ -152,7 +154,12 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
         8000); // wait up to 8 seconds for suggestions
     // Translate server suggestions into Eclipse proposals
     collector = new DartServerProposalCollector(receiver);
-    return collector.computeAndSortProposals();
+    final boolean sortedProposals = collector.computeAndSortProposals();
+//    long delta = System.currentTimeMillis() - start;
+//    List<ICompletionProposal> proposals = collector.getProposals();
+//    System.out.println(">>> completion in ms: " + delta + " - "
+//        + (proposals != null ? proposals.size() : "no") + " suggestions" + (auto ? " [auto]" : ""));
+    return sortedProposals;
   }
 
   private boolean waitUntilReady_OLD() {

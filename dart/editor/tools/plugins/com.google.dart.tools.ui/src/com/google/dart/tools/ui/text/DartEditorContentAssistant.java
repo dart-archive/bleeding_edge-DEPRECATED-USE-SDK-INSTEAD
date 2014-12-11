@@ -37,6 +37,16 @@ public class DartEditorContentAssistant extends ContentAssistant {
     protected void showAssist(int showStyle) {
       // Not on the UI thread, so block up to 8 seconds waiting for analysis
       if (waitUntilProcessorReady(true)) {
+        final StyledText control = sourceViewer.getTextWidget();
+        if (control.isDisposed()) {
+          return;
+        }
+        control.getDisplay().syncExec(new Runnable() {
+          @Override
+          public void run() {
+            filterProposals(control);
+          }
+        });
         super.showAssist(showStyle);
       }
     }
@@ -62,15 +72,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
           control.getDisplay().asyncExec(new Runnable() {
             @Override
             public void run() {
-
-              // Filter proposals based upon the current document text
-              int offset = getOffset(control);
-              IContentAssistProcessor p = getProcessor(sourceViewer, offset);
-              if (p instanceof DartCompletionProcessor) {
-                IDocument document = sourceViewer.getDocument();
-                ((DartCompletionProcessor) p).filterProposals(document, offset);
-              }
-
+              filterProposals(control);
               DartEditorContentAssistant.super.showPossibleCompletions();
             }
           });
@@ -85,6 +87,18 @@ public class DartEditorContentAssistant extends ContentAssistant {
   @Override
   protected AutoAssistListener createAutoAssistListener() {
     return new DartEditorAutoAssistListener();
+  }
+
+  /**
+   * Filter proposals based upon the current document text
+   */
+  private void filterProposals(final StyledText control) {
+    int offset = getOffset(control);
+    IContentAssistProcessor p = getProcessor(sourceViewer, offset);
+    if (p instanceof DartCompletionProcessor) {
+      IDocument document = sourceViewer.getDocument();
+      ((DartCompletionProcessor) p).filterProposals(document, offset);
+    }
   }
 
   private int getOffset(StyledText control) {
@@ -188,7 +202,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
       try {
         instrumentation.metric("Auto", auto);
         instrumentation.metric("ServerEnabled", DartCoreDebug.ENABLE_ANALYSIS_SERVER);
-        boolean ready = ((DartCompletionProcessor) p).waitUntilReady();
+        boolean ready = ((DartCompletionProcessor) p).waitUntilReady(auto);
         instrumentation.metric("Ready", ready);
         // If a result was computed, then check if the current selection has moved in such as way
         // that the result is no longer useful and should be discarded
