@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.base.Objects;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Outline;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -58,7 +57,6 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
@@ -334,6 +332,22 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   };
 
+  private static Outline getOutlineAtOffset(Outline outline, int offset) {
+    if (outline == null) {
+      return null;
+    }
+    if (!outline.containsInclusive(offset)) {
+      return null;
+    }
+    for (Outline child : outline.getChildren()) {
+      Outline result = getOutlineAtOffset(child, offset);
+      if (result != null) {
+        return result;
+      }
+    }
+    return outline;
+  }
+
   private static boolean isEqualOutlineTree(Outline a, Outline b) {
     if (a == null || b == null) {
       return false;
@@ -368,6 +382,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   private boolean ignoreSelectionChangedEvent = false;
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
+
   private IPreferenceStore preferences;
 
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
@@ -376,9 +391,9 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       doPropertyChange(event);
     }
   };
-
   private static final ViewerComparator NAME_COMPARATOR = new NameComparator();
   private static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
+
   private static final ViewerFilter PUBLIC_FILTER = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object o) {
@@ -528,33 +543,20 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   }
 
-  public void select(final int offset) {
-    updateViewerWithoutDraw(new Runnable() {
-      @Override
-      public void run() {
-        Outline outline = getOutlineAtOffset(input);
-        if (outline != null) {
-          setSelection(new StructuredSelection(outline));
-          viewer.reveal(outline);
-        }
-      }
-
-      private Outline getOutlineAtOffset(Outline outline) {
-        if (outline == null) {
-          return null;
-        }
-        if (!outline.containsInclusive(offset)) {
-          return null;
-        }
-        for (Outline child : outline.getChildren()) {
-          Outline result = getOutlineAtOffset(child);
-          if (result != null) {
-            return result;
-          }
-        }
-        return outline;
-      }
-    });
+  public void select(int offset) {
+    Outline newOutline = getOutlineAtOffset(input, offset);
+    if (newOutline == null) {
+      return;
+    }
+    // check if the same Outline is selected
+    IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
+    Outline oldOutline = (Outline) selection.getFirstElement();
+    if (isEqualOutlineTree(newOutline, oldOutline)) {
+      return;
+    }
+    // set new selection
+    setSelection(new StructuredSelection(newOutline));
+    viewer.reveal(newOutline);
   }
 
   @Override
@@ -567,39 +569,31 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   public void setInput(final Outline input, final int offset) {
     Outline oldInput = this.input;
     this.input = input;
+    // ignore if the same content
     if (isEqualOutlineTree(oldInput, input)) {
       return;
     }
-    updateViewerWithoutDraw(new Runnable() {
-      @Override
-      public void run() {
-        Object[] expandedElements = viewer.getExpandedElements();
-        ignoreSelectionChangedEvent = true;
-        try {
-          viewer.setInput(input);
-        } finally {
-          ignoreSelectionChangedEvent = false;
-        }
-        viewer.setExpandedElements(expandedElements);
-        select(offset);
-      }
-    });
+    // set input
+    Object[] expandedElements = viewer.getExpandedElements();
+    ignoreSelectionChangedEvent = true;
+    try {
+      viewer.setInput(input);
+    } finally {
+      ignoreSelectionChangedEvent = false;
+    }
+    viewer.setExpandedElements(expandedElements);
+    select(offset);
   }
 
   @Override
-  public void setSelection(final ISelection newSelection) {
+  public void setSelection(ISelection newSelection) {
     if (!Objects.equal(viewer.getSelection(), newSelection)) {
-      updateViewerWithoutDraw(new Runnable() {
-        @Override
-        public void run() {
-          ignoreSelectionChangedEvent = true;
-          try {
-            viewer.setSelection(newSelection, true);
-          } finally {
-            ignoreSelectionChangedEvent = false;
-          }
-        }
-      });
+      ignoreSelectionChangedEvent = true;
+      try {
+        viewer.setSelection(newSelection, true);
+      } finally {
+        ignoreSelectionChangedEvent = false;
+      }
     }
   }
 
@@ -626,32 +620,6 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     if (viewer != null) {
       viewer.updateColors();
       viewer.refresh(false);
-    }
-  }
-
-  /**
-   * Performs the given operation over {@link #viewer} while redraw is disabled.
-   */
-  private void updateViewerWithoutDraw(Runnable runnable) {
-    if (viewer != null) {
-      final Control control = viewer.getControl().getParent();
-      control.setRedraw(false);
-      try {
-        runnable.run();
-      } finally {
-        if (DartCore.isLinux()) {
-          // By some reason on Linux we need to add a delay.
-          // It seems like Tree operations are performed not in the UI thread.
-          Display.getCurrent().timerExec(50, new Runnable() {
-            @Override
-            public void run() {
-              control.setRedraw(true);
-            }
-          });
-        } else {
-          control.setRedraw(true);
-        }
-      }
     }
   }
 }
