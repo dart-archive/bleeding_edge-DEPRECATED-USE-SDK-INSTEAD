@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -53,6 +54,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages the override and overwrite indicators for the given Dart element and annotation model.
@@ -169,6 +171,21 @@ public class OverrideIndicatorManager {
       this.element_OLD = astElement;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof OverrideIndicator) {
+        OverrideIndicator other = (OverrideIndicator) obj;
+        return other.isOverride == isOverride && Objects.equal(other.element, element)
+            && Objects.equal(other.element_OLD, element_OLD);
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(isOverride, element, element_OLD);
+    }
+
     /**
      * @return <code>true</code> if replacing of the exiting element, or <code>false</code> if new
      *         implementation of abstract element.
@@ -212,7 +229,7 @@ public class OverrideIndicatorManager {
 
   private final IAnnotationModel annotationModel;
   private final Object annotationModelLockObject;
-  private Annotation[] overrideAnnotations;
+  private Set<Annotation> overrideAnnotations = Sets.newHashSet();
   private CompilationUnitEditor dartEditor;
   private String file;
   private IDartReconcilingListener reconcileListener = new IDartReconcilingListener() {
@@ -290,22 +307,7 @@ public class OverrideIndicatorManager {
       return;
     }
     // add annotations to the model
-    synchronized (annotationModelLockObject) {
-      if (annotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
-            overrideAnnotations,
-            annotationMap);
-      } else {
-        removeAnnotations();
-        Iterator<Map.Entry<Annotation, Position>> iter = annotationMap.entrySet().iterator();
-        while (iter.hasNext()) {
-          Map.Entry<Annotation, Position> mapEntry = iter.next();
-          annotationModel.addAnnotation(mapEntry.getKey(), mapEntry.getValue());
-        }
-      }
-      overrideAnnotations = annotationMap.keySet().toArray(
-          new Annotation[annotationMap.keySet().size()]);
-    }
+    updateAnnotations(annotationMap);
   }
 
   /**
@@ -347,41 +349,28 @@ public class OverrideIndicatorManager {
       annotationMap.put(new OverrideIndicator(element, text, isOverride), position);
     }
     // add annotations to the model
-    synchronized (annotationModelLockObject) {
-      if (annotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
-            overrideAnnotations,
-            annotationMap);
-      } else {
-        removeAnnotations();
-        Iterator<Map.Entry<Annotation, Position>> iter = annotationMap.entrySet().iterator();
-        while (iter.hasNext()) {
-          Map.Entry<Annotation, Position> mapEntry = iter.next();
-          annotationModel.addAnnotation(mapEntry.getKey(), mapEntry.getValue());
-        }
-      }
-      overrideAnnotations = annotationMap.keySet().toArray(
-          new Annotation[annotationMap.keySet().size()]);
-    }
+    updateAnnotations(annotationMap);
   }
 
   /**
    * Removes all override indicators from this manager's annotation model.
    */
   void removeAnnotations() {
-    if (overrideAnnotations == null) {
+    if (overrideAnnotations.isEmpty()) {
       return;
     }
     // remove annotations from the model
     synchronized (annotationModelLockObject) {
       if (annotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(overrideAnnotations, null);
+        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
+            overrideAnnotations.toArray(new Annotation[overrideAnnotations.size()]),
+            null);
       } else {
-        for (int i = 0, length = overrideAnnotations.length; i < length; i++) {
-          annotationModel.removeAnnotation(overrideAnnotations[i]);
+        for (Annotation annotation : overrideAnnotations) {
+          annotationModel.removeAnnotation(annotation);
         }
       }
-      overrideAnnotations = null;
+      overrideAnnotations = Sets.newHashSet();
     }
   }
 
@@ -399,5 +388,40 @@ public class OverrideIndicatorManager {
       }
     }
     return annotationModel;
+  }
+
+  private void updateAnnotations(Map<Annotation, Position> annotationMap) {
+    synchronized (annotationModelLockObject) {
+      Set<Annotation> newAnnotations = Sets.newHashSet(annotationMap.keySet());
+      if (annotationModel instanceof IAnnotationModelExtension) {
+        Set<Annotation> removedAnnotations = Sets.newHashSet();
+        for (Annotation annotation : overrideAnnotations) {
+          Position oldPosition = annotationModel.getPosition(annotation);
+          // if the same position for the same annotation, ignore it
+          Position newPosition = annotationMap.get(annotation);
+          if (oldPosition.equals(newPosition)) {
+            annotationMap.remove(annotation);
+            continue;
+          }
+          // otherwise, replace the annotation
+          removedAnnotations.add(annotation);
+          annotationMap.remove(annotation);
+        }
+        // update model only if there are changes
+        if (!removedAnnotations.isEmpty() || !annotationMap.isEmpty()) {
+          ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
+              removedAnnotations.toArray(new Annotation[removedAnnotations.size()]),
+              annotationMap);
+        }
+      } else {
+        removeAnnotations();
+        Iterator<Map.Entry<Annotation, Position>> iter = annotationMap.entrySet().iterator();
+        while (iter.hasNext()) {
+          Map.Entry<Annotation, Position> mapEntry = iter.next();
+          annotationModel.addAnnotation(mapEntry.getKey(), mapEntry.getValue());
+        }
+      }
+      overrideAnnotations = newAnnotations;
+    }
   }
 }
