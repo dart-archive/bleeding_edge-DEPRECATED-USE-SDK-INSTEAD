@@ -13,9 +13,13 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.gson.JsonObject;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 
@@ -33,8 +37,26 @@ public class AssistsProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    List<SourceChange> sourceChanges = SourceChange.fromJsonArray(resultObject.get("assists").getAsJsonArray());
-    consumer.computedSourceChanges(sourceChanges);
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      try {
+        List<SourceChange> sourceChanges = SourceChange.fromJsonArray(resultObject.get("assists").getAsJsonArray());
+        consumer.computedSourceChanges(sourceChanges);
+      } catch (Exception e) {
+        // catch any exceptions in the formatting of this response
+        String message = e.getMessage();
+        String stackTrace = null;
+        if (e.getStackTrace() != null) {
+          stackTrace = ExceptionUtils.getStackTrace(e);
+        }
+        requestError = new RequestError(
+            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
+            message != null ? message : "",
+            stackTrace);
+      }
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

@@ -1317,10 +1317,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getAssists() throws Exception {
     final Object[] sourceChangesArray = {null};
+    final RequestError[] requestErrorArray = {null};
     server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
       @Override
       public void computedSourceChanges(List<SourceChange> sourceChanges) {
         sourceChangesArray[0] = sourceChanges;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1423,11 +1429,183 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
+    // assertion on requestErrorArray
+    assertNull(requestErrorArray[0]);
     // assertions on 'assists' (List<SourceChange>)
     @SuppressWarnings("unchecked")
     List<SourceChange> sourceChanges = (List<SourceChange>) sourceChangesArray[0];
     assertThat(sourceChanges).hasSize(2);
     // other assertions would would test the generated fromJson methods
+  }
+
+  public void test_edit_getAssists_error() throws Exception {
+    final Object[] sourceChangesArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
+      @Override
+      public void computedSourceChanges(List<SourceChange> sourceChanges) {
+        sourceChangesArray[0] = sourceChanges;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(sourceChangesArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
+  public void test_edit_getAssists_error_responseError() throws Exception {
+    final Object[] sourceChangesArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
+      @Override
+      public void computedSourceChanges(List<SourceChange> sourceChanges) {
+        sourceChangesArray[0] = sourceChanges;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'assists': [",
+        "      {",
+        "        'message': 'message1',",
+        "        'edits': [",
+        "          {",
+        "            'file':'file1.dart',",
+        // invalid response
+//        "            'fileStamp': 101,",
+        "            'edits': [",
+        "              {",
+        "                'offset': 1,",
+        "                'length': 2,",
+        "                'replacement': 'replacement1',",
+        "                'id': 'id1'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'linkedEditGroups': [",
+        "          {",
+        "            'positions': [",
+        "              {",
+        "                'file': 'file2.dart',",
+        "                'offset': 3",
+        "              }",
+        "            ],",
+        "            'length': 4,",
+        "            'suggestions': [",
+        "              {",
+        "                'value': 'value1',",
+        "                'kind': 'METHOD'",
+        "              }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'selection': {",
+        "          'file': 'file3.dart',",
+        "          'offset': 5",
+        "        }",
+        "      },",
+        "      {",
+        "        'message': 'message2',",
+        "        'edits': [",
+        "          {",
+        "            'file':'someFile3.dart',",
+        "            'fileStamp': 102,",
+        "            'edits': [",
+        "              {",
+        "                'offset': 6,",
+        "                'length': 7,",
+        "                'replacement': 'replacement2'",
+        "             },",
+        "             {",
+        "                'offset': 8,",
+        "                'length': 9,",
+        "                'replacement': 'replacement2'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ],",
+        "        'linkedEditGroups': [",
+        "          {",
+        "            'positions': [",
+        "              {",
+        "                'file': 'file4.dart',",
+        "                'offset': 10",
+        "              }",
+        "            ],",
+        "            'length': 12,",
+        "            'suggestions': [",
+        "              {",
+        "                'value': 'value2',",
+        "                'kind': 'PARAMETER'",
+        "              }",
+        "            ]",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(sourceChangesArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("INVALID_SERVER_RESPONSE", requestError.getCode());
   }
 
   public void test_edit_getAvailableRefactorings() throws Exception {

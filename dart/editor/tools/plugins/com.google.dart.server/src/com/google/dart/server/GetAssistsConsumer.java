@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 
 import java.util.List;
@@ -30,4 +31,11 @@ public interface GetAssistsConsumer extends Consumer {
    * @param proposals an array of computed {@link SourceChange}s
    */
   public void computedSourceChanges(List<SourceChange> sourceChanges);
+
+  /**
+   * If a set of assists cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }
