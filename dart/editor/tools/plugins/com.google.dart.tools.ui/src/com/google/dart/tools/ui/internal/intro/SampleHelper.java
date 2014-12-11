@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.intro;
 
-import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.utilities.download.DownloadUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -25,6 +23,7 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -114,10 +113,8 @@ public class SampleHelper {
     final File newProjectDir = ProjectUtils.generateUniqueSampleDirFrom(sampleName, potentialDir);
 
     final String newProjectName = newProjectDir.getName();
-    final IProject newProjectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(
-        newProjectName);
+    final IProject newProject = ResourcesPlugin.getWorkspace().getRoot().getProject(newProjectName);
     final URI location = newProjectDir.toURI();
-    final File fileToOpen = new File(newProjectDir, description.file);
 
     // Copy sample to new directory before creating project so that builder will have the
     // resources to analyze first time through.
@@ -137,15 +134,17 @@ public class SampleHelper {
         try {
           ProjectUtils.createNewProject(
               newProjectName,
-              newProjectHandle,
+              newProject,
               ProjectType.NONE,
               location,
               window,
               window.getShell());
 
-          Project project = DartCore.getProjectManager().getProject(newProjectHandle);
-          IFile resource = (IFile) project.getResource(new FileBasedSource(fileToOpen));
-          EditorUtility.openInTextEditor(resource, true);
+          IResource mainFile = newProject.findMember(description.file);
+
+          if (mainFile instanceof IFile) {
+            EditorUtility.openInTextEditor((IFile) mainFile, true);
+          }
         } catch (CoreException e) {
           showErrorStatus("Error Opening Sample", e.getStatus());
           return;
