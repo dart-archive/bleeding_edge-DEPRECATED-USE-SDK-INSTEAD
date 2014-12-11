@@ -98,7 +98,7 @@ public class PubspecModel {
 
   private IFile file;
 
-  private Map<String, Object> yamlMap;
+  private Map<String, Object> yamlMap = new HashMap<String, Object>();
 
   private final List<PubspecException> exceptions = Lists.newArrayList();
 
@@ -549,7 +549,7 @@ public class PubspecModel {
             devDependenciesMap));
       }
       yamlMap.remove(PubspecConstants.TRANSFORMERS);
-      if (!transformers.isEmpty()) {
+      if (transformers != null && !transformers.isEmpty()) {
         yamlMap.put(PubspecConstants.TRANSFORMERS, transformers);
       }
     }
