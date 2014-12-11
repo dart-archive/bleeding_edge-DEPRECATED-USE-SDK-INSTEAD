@@ -22,6 +22,7 @@ import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -124,6 +125,11 @@ public class QuickAssistProcessor {
                 @Override
                 public void computedSourceChanges(List<SourceChange> _changes) {
                   changes.addAll(_changes);
+                  latch.countDown();
+                }
+
+                @Override
+                public void onError(RequestError requestError) {
                   latch.countDown();
                 }
               });
