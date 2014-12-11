@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
@@ -39,5 +40,11 @@ public class DartUIPreferenceInitializer extends AbstractPreferenceInitializer {
         JavaScriptCore.COMPILER_TASK_PRIORITIES,
         JavaScriptCore.DEFAULT_TASK_PRIORITIES);
     defaultPreferences.put(JavaScriptCore.COMPILER_TASK_CASE_SENSITIVE, JavaScriptCore.ENABLED);
+
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      store.setValue(PreferenceConstants.CODEASSIST_AUTOACTIVATION_DELAY, 0);
+    } else {
+      store.setValue(PreferenceConstants.CODEASSIST_AUTOACTIVATION_DELAY, 80);
+    }
   }
 }

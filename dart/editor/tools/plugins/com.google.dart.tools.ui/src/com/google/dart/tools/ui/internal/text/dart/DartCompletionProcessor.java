@@ -109,8 +109,9 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
    * @param auto {@code true} if triggered automatically such as when the user types a "."
    * @return {@code true} if the processor is ready, else {@code false}
    */
-  public boolean waitUntilReady(boolean auto) {
-    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW(auto) : waitUntilReady_OLD();
+  public boolean waitUntilReady(boolean auto, int offset) {
+    return DartCoreDebug.ENABLE_ANALYSIS_SERVER ? waitUntilReady_NEW(auto, offset)
+        : waitUntilReady_OLD();
   }
 
   /*
@@ -138,7 +139,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     return proposals;
   }
 
-  private boolean waitUntilReady_NEW(boolean auto) {
+  private boolean waitUntilReady_NEW(boolean auto, int offset) {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());
     final DartEditor dartEditor = (DartEditor) fEditor;
@@ -147,10 +148,8 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     // Request suggestions from server
     DartSuggestionReceiver receiver = new DartSuggestionReceiver(DartCore.getAnalysisServer());
 //    long start = System.currentTimeMillis();
-    receiver.requestSuggestions(
-        dartEditor.getInputFilePath(),
-        dartEditor.getCachedSelectedRange().x,
-        // TODO (danrubel) reduce to 1/4 second
+    receiver.requestSuggestions(dartEditor.getInputFilePath(), offset,
+    // TODO (danrubel) reduce to 1/4 second
         8000); // wait up to 8 seconds for suggestions
     // Translate server suggestions into Eclipse proposals
     collector = new DartServerProposalCollector(receiver);

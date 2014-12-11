@@ -25,7 +25,13 @@ import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.custom.CaretEvent;
+import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * Instances of {@code DartEditorContentAssistant} wait for analysis to complete on a background
@@ -34,28 +40,66 @@ import org.eclipse.swt.custom.StyledText;
 public class DartEditorContentAssistant extends ContentAssistant {
   protected class DartEditorAutoAssistListener extends AutoAssistListener {
     @Override
+    public void keyPressed(final KeyEvent e) {
+      // Run in async, so let the widget to update the caret offset.
+      Display.getCurrent().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          super_keyPressed(e);
+        }
+      });
+    }
+
+    @Override
     protected void showAssist(int showStyle) {
       // Not on the UI thread, so block up to 8 seconds waiting for analysis
-      if (waitUntilProcessorReady(true)) {
-        final StyledText control = sourceViewer.getTextWidget();
+      if (waitUntilProcessorReady(true, caretOffset)) {
+        StyledText control = sourceViewer.getTextWidget();
         if (control.isDisposed()) {
           return;
         }
-        control.getDisplay().syncExec(new Runnable() {
-          @Override
-          public void run() {
-            filterProposals(control);
-          }
-        });
+        filterProposals();
         super.showAssist(showStyle);
       }
+    }
+
+    private void super_keyPressed(KeyEvent e) {
+      super.keyPressed(e);
     }
   }
 
   private final ISourceViewer sourceViewer;
 
+  private boolean hasFocus;
+  private final FocusListener focusListener = new FocusListener() {
+    @Override
+    public void focusGained(FocusEvent e) {
+      hasFocus = true;
+    }
+
+    @Override
+    public void focusLost(FocusEvent e) {
+      hasFocus = false;
+    }
+  };
+
+  private int caretOffset;
+  private final CaretListener caretListener = new CaretListener() {
+    @Override
+    public void caretMoved(CaretEvent event) {
+      caretOffset = event.caretOffset;
+    }
+  };
+
   public DartEditorContentAssistant(ISourceViewer sourceViewer) {
     this.sourceViewer = sourceViewer;
+  }
+
+  @Override
+  public void install(ITextViewer textViewer) {
+    super.install(textViewer);
+    sourceViewer.getTextWidget().addFocusListener(focusListener);
+    sourceViewer.getTextWidget().addCaretListener(caretListener);
   }
 
   @Override
@@ -64,7 +108,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
     Thread thread = new Thread(getClass().getSimpleName() + " wait for content") {
       @Override
       public void run() {
-        if (waitUntilProcessorReady(false)) {
+        if (waitUntilProcessorReady(false, caretOffset)) {
           final StyledText control = sourceViewer.getTextWidget();
           if (control.isDisposed()) {
             return;
@@ -72,7 +116,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
           control.getDisplay().asyncExec(new Runnable() {
             @Override
             public void run() {
-              filterProposals(control);
+              filterProposals();
               DartEditorContentAssistant.super.showPossibleCompletions();
             }
           });
@@ -85,33 +129,26 @@ public class DartEditorContentAssistant extends ContentAssistant {
   }
 
   @Override
+  public void uninstall() {
+    sourceViewer.getTextWidget().removeFocusListener(focusListener);
+    sourceViewer.getTextWidget().removeCaretListener(caretListener);
+    super.uninstall();
+  }
+
+  @Override
   protected AutoAssistListener createAutoAssistListener() {
     return new DartEditorAutoAssistListener();
   }
 
   /**
-   * Filter proposals based upon the current document text
+   * Filter proposals based upon the current document text.
    */
-  private void filterProposals(final StyledText control) {
-    int offset = getOffset(control);
-    IContentAssistProcessor p = getProcessor(sourceViewer, offset);
+  private void filterProposals() {
+    IContentAssistProcessor p = getProcessor(sourceViewer, caretOffset);
     if (p instanceof DartCompletionProcessor) {
       IDocument document = sourceViewer.getDocument();
-      ((DartCompletionProcessor) p).filterProposals(document, offset);
+      ((DartCompletionProcessor) p).filterProposals(document, caretOffset);
     }
-  }
-
-  private int getOffset(StyledText control) {
-    final int[] result = new int[1];
-    if (!control.isDisposed()) {
-      control.getDisplay().syncExec(new Runnable() {
-        @Override
-        public void run() {
-          result[0] = sourceViewer.getSelectedRange().x;
-        }
-      });
-    }
-    return result[0];
   }
 
   /**
@@ -139,17 +176,6 @@ public class DartEditorContentAssistant extends ContentAssistant {
     return result[0];
   }
 
-  private boolean hasFocus(final StyledText control) {
-    final boolean[] result = new boolean[1];
-    control.getDisplay().syncExec(new Runnable() {
-      @Override
-      public void run() {
-        result[0] = control.isFocusControl();
-      }
-    });
-    return result[0];
-  }
-
   /**
    * Determine if the content assist computed for the given editor and offset is still valid.
    * 
@@ -158,19 +184,18 @@ public class DartEditorContentAssistant extends ContentAssistant {
    * @return {@code true} if the content assist is still valid, else {@code false}
    */
   private boolean isValid(StyledText control, int originalOffset) {
-    if (control.isDisposed() || !hasFocus(control)) {
+    if (control.isDisposed() || !hasFocus) {
       return false;
     }
-    int newOffset = getOffset(control);
-    if (newOffset == originalOffset) {
+    if (caretOffset == originalOffset) {
       return true;
     }
-    if (newOffset < originalOffset) {
+    if (caretOffset < originalOffset) {
       return false;
     }
     // If the user has typed characters in an identifier, then the completion results
     // are still valid and will be filtered based upon the newly typed characters
-    String text = getText(control, originalOffset, newOffset - 1);
+    String text = getText(control, originalOffset, caretOffset - 1);
     for (int index = 0; index < text.length(); ++index) {
       char ch = text.charAt(index);
       if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '$') {
@@ -187,7 +212,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
    * @param auto {@code true} if triggered automatically such as when the user types a "."
    * @return {@code true} if the processor is ready, else {@code false}
    */
-  private boolean waitUntilProcessorReady(boolean auto) {
+  private boolean waitUntilProcessorReady(boolean auto, int offset) {
     StyledText control = sourceViewer.getTextWidget();
     if (control.isDisposed()) {
       return false;
@@ -195,14 +220,13 @@ public class DartEditorContentAssistant extends ContentAssistant {
     if (control.getDisplay().getThread() == Thread.currentThread()) {
       throw new RuntimeException("Do not wait for content assist on the UI thread");
     }
-    int offset = getOffset(control);
     IContentAssistProcessor p = getProcessor(sourceViewer, offset);
     if (p instanceof DartCompletionProcessor) {
       InstrumentationBuilder instrumentation = Instrumentation.builder("WaitForProposals");
       try {
         instrumentation.metric("Auto", auto);
         instrumentation.metric("ServerEnabled", DartCoreDebug.ENABLE_ANALYSIS_SERVER);
-        boolean ready = ((DartCompletionProcessor) p).waitUntilReady(auto);
+        boolean ready = ((DartCompletionProcessor) p).waitUntilReady(auto, offset);
         instrumentation.metric("Ready", ready);
         // If a result was computed, then check if the current selection has moved in such as way
         // that the result is no longer useful and should be discarded
