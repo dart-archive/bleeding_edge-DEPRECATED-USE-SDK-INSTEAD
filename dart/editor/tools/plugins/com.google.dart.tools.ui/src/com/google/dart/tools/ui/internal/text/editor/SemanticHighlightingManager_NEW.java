@@ -268,7 +268,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   }
 
   @Override
-  public void computedHighlights(String file, final HighlightRegion[] highlights) {
+  public void computedHighlights(String file, HighlightRegion[] highlights) {
     // create HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
     for (int i = 0; i < highlights.length; i++) {
@@ -276,11 +276,18 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       newPositions[i] = new HighlightPosition(highlight);
     }
     positions = newPositions;
-    // invalidate presentation
+    // Invalidate presentation.
+    // Delay it, so that in case of the code completion activation, we can display completions
+    // before the semantic highlighting and catch up while user stares at the completion list.
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        viewer.invalidateTextPresentation();
+        Display.getDefault().timerExec(5, new Runnable() {
+          @Override
+          public void run() {
+            viewer.invalidateTextPresentation();
+          }
+        });
       }
     });
   }
