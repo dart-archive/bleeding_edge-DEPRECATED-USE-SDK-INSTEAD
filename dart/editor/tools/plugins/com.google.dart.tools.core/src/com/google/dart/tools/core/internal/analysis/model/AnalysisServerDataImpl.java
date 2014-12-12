@@ -365,6 +365,6 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   void internalServerStatus(AnalysisStatus status) {
-    isAnalyzing = status.isAnalyzing();
+    isAnalyzing = status != null && status.isAnalyzing();
   }
 }
