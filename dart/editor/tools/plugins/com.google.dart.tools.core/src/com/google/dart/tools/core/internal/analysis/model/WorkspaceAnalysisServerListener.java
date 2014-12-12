@@ -179,9 +179,9 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
    * @return the status message that should be displayed
    */
   private String getStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
-    if (pubStatus.isListingPackageDirs()) {
+    if (pubStatus != null && pubStatus.isListingPackageDirs()) {
       return "Running pub...";
-    } else if (analysisStatus.isAnalyzing()) {
+    } else if (analysisStatus != null && analysisStatus.isAnalyzing()) {
       return "Analyzing...";
     }
     return null;
