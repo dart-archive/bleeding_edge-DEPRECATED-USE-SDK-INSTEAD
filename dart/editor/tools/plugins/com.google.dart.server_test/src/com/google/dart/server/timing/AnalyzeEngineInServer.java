@@ -17,6 +17,7 @@ import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListenerAdapter;
 import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 
@@ -39,7 +40,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     private boolean isAnalyzing = true;
 
     @Override
-    public void serverStatus(AnalysisStatus analysisStatus) {
+    public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
       if (analysisStatus != null) {
         isAnalyzing = analysisStatus.isAnalyzing();
       }

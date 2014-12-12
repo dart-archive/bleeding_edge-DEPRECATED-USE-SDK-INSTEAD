@@ -15,6 +15,8 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisStatus;
+import com.google.dart.server.generated.types.PubStatus;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -31,10 +33,29 @@ public class NotificationServerStatusProcessor extends NotificationProcessor {
   @Override
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
-    JsonObject analysisObject = paramsObject.get("analysis").getAsJsonObject();
+    AnalysisStatus analysisStatus = getAnalysisStatus(paramsObject);
+    PubStatus pubStatus = getPubStatus(paramsObject);
+    getListener().serverStatus(analysisStatus, pubStatus);
+  }
+
+  private AnalysisStatus getAnalysisStatus(JsonObject paramsObject) {
+    JsonElement analysisMember = paramsObject.get("analysis");
+    if (analysisMember == null) {
+      return null;
+    }
+    JsonObject analysisObject = analysisMember.getAsJsonObject();
     boolean isAnalyzing = analysisObject.get("isAnalyzing").getAsBoolean();
     String analysisTarget = safelyGetAsString(analysisObject, "analysisTarget");
-    // notify listener
-    getListener().serverStatus(new AnalysisStatus(isAnalyzing, analysisTarget));
+    return new AnalysisStatus(isAnalyzing, analysisTarget);
+  }
+
+  private PubStatus getPubStatus(JsonObject paramsObject) {
+    JsonElement pubMember = paramsObject.get("pub");
+    if (pubMember == null) {
+      return null;
+    }
+    JsonObject pubObject = pubMember.getAsJsonObject();
+    boolean isListingPackageDirs = pubObject.get("isListingPackageDirs").getAsBoolean();
+    return new PubStatus(isListingPackageDirs);
   }
 }

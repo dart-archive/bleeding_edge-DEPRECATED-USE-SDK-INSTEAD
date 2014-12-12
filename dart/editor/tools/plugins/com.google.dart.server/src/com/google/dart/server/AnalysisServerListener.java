@@ -21,6 +21,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -159,9 +160,12 @@ public interface AnalysisServerListener {
   public void serverError(boolean isFatal, String message, String stackTrace);
 
   /**
-   * Reports the current analysis status of the server.
+   * Reports the current status of the server.
    * 
-   * @param status the current analysis status of the server
+   * @param analysisStatus the current analysis status of the server, or {@code null} if there is no
+   *          analysis status
+   * @param pubStatus the current pub status of the server, or {@code null} if there is no pub
+   *          status
    */
-  public void serverStatus(AnalysisStatus status);
+  public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus);
 }

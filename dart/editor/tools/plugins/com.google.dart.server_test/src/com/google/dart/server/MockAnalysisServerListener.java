@@ -21,6 +21,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -89,7 +90,7 @@ public class MockAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus status) {
+  public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     throw new UnsupportedOperationException();
   }
 }

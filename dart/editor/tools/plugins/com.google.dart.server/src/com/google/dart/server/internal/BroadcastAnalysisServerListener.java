@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -155,9 +156,9 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus analysisStatus) {
+  public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.serverStatus(analysisStatus);
+      listener.serverStatus(analysisStatus, pubStatus);
     }
   }
 

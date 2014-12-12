@@ -28,6 +28,7 @@ import com.google.dart.server.generated.types.NavigationTarget;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
@@ -317,8 +318,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void serverStatus(AnalysisStatus status) {
-    this.analysisStatus = status;
+  public synchronized void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
+    this.analysisStatus = analysisStatus;
   }
 
   /**

@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
+import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
@@ -46,7 +47,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   private final DartProjectManager projectManager;
 
   private final Object statusLock = new Object();
-  private boolean statusAnalyzing = false;
+  private boolean serverBusy = false;
   private Job statusJob;
 
   public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl,
@@ -133,35 +134,57 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus status) {
-    dataImpl.internalServerStatus(status);
+  public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
+    dataImpl.internalServerStatus(analysisStatus);
+    String statusMessage = getStatus(analysisStatus, pubStatus);
     synchronized (statusLock) {
-      if (status.isAnalyzing()) {
+      if (statusMessage != null) {
         if (statusJob == null) {
           //
-          // Start a build level job to display progress in the status area
+          // Start a build level job to display progress in the status area.
           //
-          statusAnalyzing = true;
-          statusJob = new Job("Analyzing...") {
+          serverBusy = true;
+          statusJob = new Job(statusMessage) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
-              waitUntilAnalysisComplete();
+              waitUntilServerIdle();
               return Status.OK_STATUS;
             }
           };
           statusJob.setPriority(Job.BUILD);
           statusJob.schedule();
+        } else {
+          statusJob.setName(statusMessage);
         }
       } else {
         if (statusJob != null) {
           //
-          // Signal the status job to exit
+          // Signal the status job to exit.
           //
-          statusAnalyzing = false;
+          serverBusy = false;
           statusLock.notifyAll();
         }
       }
     }
+  }
+
+  /**
+   * Return the status message that should be displayed given the analysis and pub status objects,
+   * or {@code null} if there is no status message to be displayed.
+   * 
+   * @param analysisStatus the current analysis status of the server, or {@code null} if there is no
+   *          analysis status
+   * @param pubStatus the current pub status of the server, or {@code null} if there is no pub
+   *          status
+   * @return the status message that should be displayed
+   */
+  private String getStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
+    if (pubStatus.isListingPackageDirs()) {
+      return "Running pub...";
+    } else if (analysisStatus.isAnalyzing()) {
+      return "Analyzing...";
+    }
+    return null;
   }
 
   private void scheduleResourceErrorMarkersUpdate(String filePath, AnalysisError[] errors) {
@@ -174,9 +197,9 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
-  private void waitUntilAnalysisComplete() {
+  private void waitUntilServerIdle() {
     synchronized (statusLock) {
-      while (statusAnalyzing) {
+      while (serverBusy) {
         try {
           statusLock.wait(3000);
         } catch (InterruptedException e) {
