@@ -266,9 +266,14 @@ public class UriToFileResolver {
       ProjectManager projectManager = DartCore.getProjectManager();
       IFileInfo fileInfo = projectManager.resolveUriToFileInfo(container, url);
       if (fileInfo != null) {
-        File file = fileInfo.getFile();
-        File absoluteFile = file.getAbsoluteFile();
-        return absoluteFile.toURI().toString();
+        // Return the workspace relative file, if there is one.
+        if (fileInfo.getResource() != null) {
+          return fileInfo.getResource().getLocationURI().toString();
+        } else {
+          File file = fileInfo.getFile();
+          File absoluteFile = file.getAbsoluteFile();
+          return absoluteFile.toURI().toString();
+        }
       }
     }
     return null;
