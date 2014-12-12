@@ -555,6 +555,7 @@ public class DartCore extends Plugin implements DartSdkListener {
               DartCoreDebug.ANALYSIS_SERVER_PROFILE,
               httpPort,
               false);
+          socket.setClientId("org.dartlang.darteditor");
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
           analysisServer.start();

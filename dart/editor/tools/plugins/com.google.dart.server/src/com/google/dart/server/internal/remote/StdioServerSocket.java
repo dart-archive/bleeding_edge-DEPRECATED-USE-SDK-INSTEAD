@@ -68,6 +68,12 @@ public class StdioServerSocket implements AnalysisServerSocket {
    */
   private final boolean noErrorNotification;
 
+  /**
+   * The identifier used to identify this client to the server, or {@code null} if the client does
+   * not choose to identify itself.
+   */
+  private String clientId;
+
   public StdioServerSocket(String runtimePath, String analysisServerPath,
       DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess,
       int httpPort) {
@@ -116,33 +122,18 @@ public class StdioServerSocket implements AnalysisServerSocket {
     return responseStream;
   }
 
+  /**
+   * Set the identifier used to identify this client to the server to the given identifier. The
+   * identifier must be set before the server has been started.
+   */
+  public void setClientId(String id) {
+    clientId = id;
+  }
+
   @Override
   public void start() throws Exception {
     int debugPort = findUnusedPort();
-    List<String> args = new ArrayList<String>();
-    args.add(runtimePath);
-    args.add("--old_gen_heap_size=4096");
-    if (packageRoot != null) {
-      args.add("--package-root=" + packageRoot);
-    }
-    if (debugRemoteProcess) {
-      args.add("--debug:" + debugPort);
-    }
-    if (profileRemoteProcess) {
-      args.add("--observe");
-      args.add("--pause-isolates-on-exit");
-    }
-    if (noErrorNotification) {
-      args.add("--no-error-notification");
-    }
-    args.add(analysisServerPath);
-    if (httpPort != 0) {
-      args.add("--port=" + httpPort);
-    }
-    for (String arg : additionalProgramArguments) {
-      args.add(arg);
-    }
-    String[] arguments = args.toArray(new String[args.size()]);
+    String[] arguments = computeProcessArguments(debugPort);
     if (debugStream != null) {
       StringBuilder builder = new StringBuilder();
       builder.append("  ");
@@ -199,5 +190,53 @@ public class StdioServerSocket implements AnalysisServerSocket {
     }
     processToStop.destroy();
     System.out.println("Terminated " + analysisServerPath);
+  }
+
+  /**
+   * Compute and return the command-line arguments used to start the analysis server process.
+   * 
+   * @param debugPort the port that the VM should use for debug connections
+   * @return the command-line arguments that were computed
+   */
+  private String[] computeProcessArguments(int debugPort) {
+    List<String> args = new ArrayList<String>();
+    //
+    // The path to the VM.
+    //
+    args.add(runtimePath);
+    //
+    // VM arguments.
+    //
+    args.add("--old_gen_heap_size=4096");
+    if (packageRoot != null) {
+      args.add("--package-root=" + packageRoot);
+    }
+    if (debugRemoteProcess) {
+      args.add("--debug:" + debugPort);
+    }
+    if (profileRemoteProcess) {
+      args.add("--observe");
+      args.add("--pause-isolates-on-exit");
+    }
+    if (noErrorNotification) {
+      args.add("--no-error-notification");
+    }
+    //
+    // The analysis server path.
+    //
+    args.add(analysisServerPath);
+    //
+    // Analysis server arguments.
+    //
+    if (clientId != null) {
+      args.add("--client-id=" + clientId);
+    }
+    if (httpPort != 0) {
+      args.add("--port=" + httpPort);
+    }
+    for (String arg : additionalProgramArguments) {
+      args.add(arg);
+    }
+    return args.toArray(new String[args.size()]);
   }
 }
