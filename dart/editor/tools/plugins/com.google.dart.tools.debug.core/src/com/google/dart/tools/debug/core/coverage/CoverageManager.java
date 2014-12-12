@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -190,8 +189,7 @@ public class CoverageManager {
     if (scriptResource == null) {
       return null;
     }
-    ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(scriptResource);
-    return resourceMap.getResource();
+    return scriptResource.getProject();
   }
 
   private static boolean isInWorkspace(File file) {
