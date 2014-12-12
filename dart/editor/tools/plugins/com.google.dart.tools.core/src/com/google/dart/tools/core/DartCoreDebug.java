@@ -77,7 +77,6 @@ public class DartCoreDebug {
 
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
 
-  public static final boolean ANALYSIS_SERVER_INCREMENTAL_RESOLUTION = isOptionTrue("experimental/analysisServer/incrementalResolution");
   public static final boolean ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_API = isOptionTrue("experimental/analysisServer/incrementalResolutionApi");
   public static final String ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_LOG = getOptionValue("experimental/analysisServer/incrementalResolutionLog");
 
