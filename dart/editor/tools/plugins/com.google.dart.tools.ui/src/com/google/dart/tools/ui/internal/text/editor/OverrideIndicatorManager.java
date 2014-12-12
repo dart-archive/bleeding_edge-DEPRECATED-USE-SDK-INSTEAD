@@ -399,7 +399,7 @@ public class OverrideIndicatorManager {
           Position oldPosition = annotationModel.getPosition(annotation);
           // if the same position for the same annotation, ignore it
           Position newPosition = annotationMap.get(annotation);
-          if (oldPosition.equals(newPosition)) {
+          if (oldPosition != null && oldPosition.equals(newPosition)) {
             annotationMap.remove(annotation);
             continue;
           }
