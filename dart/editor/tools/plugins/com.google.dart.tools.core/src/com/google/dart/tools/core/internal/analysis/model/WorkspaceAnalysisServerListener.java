@@ -139,11 +139,11 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
     String statusMessage = getStatus(analysisStatus, pubStatus);
     synchronized (statusLock) {
       if (statusMessage != null) {
+        serverBusy = true;
         if (statusJob == null) {
           //
           // Start a build level job to display progress in the status area.
           //
-          serverBusy = true;
           statusJob = new Job(statusMessage) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
