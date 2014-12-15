@@ -206,14 +206,14 @@ public class BrowserManager {
 
     monitor.beginTask("Launching Dartium...", enableDebugging ? 7 : 2);
 
-    File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
+    File dartium = DartSdkManager.getManager().getDartiumExecutable();
 
     if (dartium == null) {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
           "Could not find Dartium executable in "
-              + DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory()
+              + DartSdkManager.getManager().getDartiumWorkingDirectory()
               + ". Download and install Dartium from http://www.dartlang.org/tools/dartium/."));
     }
 

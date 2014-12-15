@@ -266,7 +266,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   private String performSdkCheck() {
     if (!DartSdkManager.getManager().hasSdk()) {
       return "Dartium is not installed ("
-          + DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory() + ")";
+          + DartSdkManager.getManager().getDartiumWorkingDirectory() + ")";
     } else {
       return null;
     }

@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.utilities.io.FileUtilities;
+import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.download.DownloadUtilities;
@@ -62,6 +64,26 @@ public class DartSdkManager {
   private static final String USER_DEFINED_SDK_KEY = "dart.sdk";
 
   private static final String SDK_ZIP = "latest/sdk/dartsdk-{0}-{1}-release.zip";
+
+  /**
+   * The name of the directory on non-Mac that contains dartium.
+   */
+  private static final String DARTIUM_DIRECTORY_NAME = "chromium"; //$NON-NLS-1$
+
+  /**
+   * The name of the file containing the Dartium executable on Linux.
+   */
+  private static final String DARTIUM_EXECUTABLE_NAME_LINUX = "chrome"; //$NON-NLS-1$
+
+  /**
+   * The name of the file containing the Dartium executable on Macintosh.
+   */
+  private static final String DARTIUM_EXECUTABLE_NAME_MAC = "Chromium.app/Contents/MacOS/Chromium"; //$NON-NLS-1$
+
+  /**
+   * The name of the file containing the Dartium executable on Windows.
+   */
+  private static final String DARTIUM_EXECUTABLE_NAME_WIN = "Chrome.exe"; //$NON-NLS-1$
 
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
@@ -133,6 +155,11 @@ public class DartSdkManager {
     return null;
   }
 
+  /**
+   * The file containing the Dartium executable.
+   */
+  private File dartiumExecutable;
+
   private DirectoryBasedDartSdk sdk;
   private String sdkContextId;
 
@@ -144,6 +171,44 @@ public class DartSdkManager {
 
   public void addSdkListener(DartSdkListener lisener) {
     listeners.add(lisener);
+  }
+
+  /**
+   * Return the file containing the Dartium executable, or {@code null} if it does not exist.
+   * 
+   * @return the file containing the Dartium executable
+   */
+  public File getDartiumExecutable() {
+    synchronized (this) {
+      if (dartiumExecutable == null) {
+        dartiumExecutable = FileUtilities.verifyExecutable(new File(
+            getDartiumWorkingDirectory(),
+            getDartiumBinaryName()));
+      }
+    }
+    return dartiumExecutable;
+  }
+
+  /**
+   * Return the directory where dartium can be found (the directory that will be the working
+   * directory is Dartium is invoked without changing the default).
+   * 
+   * @return the directory where dartium can be found
+   */
+  public File getDartiumWorkingDirectory() {
+    //TODO(keertip): add pref to specify dartium install location
+    return new File(getEclipseInstallationDirectory(), DARTIUM_DIRECTORY_NAME);
+  }
+
+  /**
+   * Return the directory where dartium can be found (the directory that will be the working
+   * directory is Dartium is invoked without changing the default).
+   * 
+   * @param installDir the installation directory
+   * @return the directory where dartium can be found
+   */
+  public File getDartiumWorkingDirectory(File installDir) {
+    return new File(installDir, DARTIUM_DIRECTORY_NAME);
   }
 
   public DirectoryBasedDartSdk getSdk() {
@@ -179,6 +244,15 @@ public class DartSdkManager {
     return getSdk() != null && getSdk() != NONE;
   }
 
+  /**
+   * Return {@code true} if the Dartium binary is available.
+   * 
+   * @return {@code true} if the Dartium binary is available
+   */
+  public boolean isDartiumInstalled() {
+    return getDartiumExecutable() != null;
+  }
+
   public void removeSdkListener(DartSdkListener listener) {
     listeners.remove(listener);
   }
@@ -208,6 +282,21 @@ public class DartSdkManager {
     DownloadUtilities.copyFile(newSDK, currentSDK, monitor);
 
     return currentSDK;
+  }
+
+  /**
+   * Return the name of the file containing the Dartium executable.
+   * 
+   * @return the name of the file containing the Dartium executable
+   */
+  private String getDartiumBinaryName() {
+    if (OSUtilities.isWindows()) {
+      return DARTIUM_EXECUTABLE_NAME_WIN;
+    } else if (OSUtilities.isMac()) {
+      return DARTIUM_EXECUTABLE_NAME_MAC;
+    } else {
+      return DARTIUM_EXECUTABLE_NAME_LINUX;
+    }
   }
 
   private String getSdkUrl(String channel) {

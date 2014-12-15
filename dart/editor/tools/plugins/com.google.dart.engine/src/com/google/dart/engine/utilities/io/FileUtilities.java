@@ -15,6 +15,7 @@ package com.google.dart.engine.utilities.io;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.logging.Logger;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -116,6 +117,17 @@ public final class FileUtilities {
     }
     // If that fails, then try to make it executable for the current user.
     return file.setExecutable(true, true);
+  }
+
+  /**
+   * Verify that the given executable file exists and is executable.
+   * 
+   * @param file the binary file
+   * @return the file if it exists and is executable, else {@code null}
+   */
+  @DartExpressionBody("file.isExecutable() ? file : null")
+  public static File verifyExecutable(File file) {
+    return ensureExecutable(file) ? file : null;
   }
 
   /**

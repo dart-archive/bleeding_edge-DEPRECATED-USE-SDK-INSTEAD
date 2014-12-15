@@ -238,7 +238,7 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
   protected String performSdkCheck() {
     if (!DartSdkManager.getManager().hasSdk()) {
       return "Dartium is not installed ("
-          + DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory() + ")";
+          + DartSdkManager.getManager().getDartiumWorkingDirectory() + ")";
     } else {
       return null;
     }

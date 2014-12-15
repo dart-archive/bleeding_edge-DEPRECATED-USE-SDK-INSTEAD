@@ -187,7 +187,7 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
 
     boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode);
 
-    File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
+    File dartium = DartSdkManager.getManager().getDartiumExecutable();
 
     if (dartium == null) {
       throw new CoreException(new Status(

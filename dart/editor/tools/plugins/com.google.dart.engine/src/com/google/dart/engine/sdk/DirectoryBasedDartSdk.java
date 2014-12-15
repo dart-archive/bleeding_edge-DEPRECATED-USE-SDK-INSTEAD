@@ -27,7 +27,6 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
-import com.google.dart.engine.utilities.translation.DartExpressionBody;
 import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.engine.utilities.translation.DartOptional;
 
@@ -331,9 +330,10 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getDart2JsExecutable() {
     synchronized (this) {
       if (dart2jsExecutable == null) {
-        dart2jsExecutable = verifyExecutable(new File(
-            new File(sdkDirectory, BIN_DIRECTORY_NAME),
-            OSUtilities.isWindows() ? DART2JS_EXECUTABLE_NAME_WIN : DART2JS_EXECUTABLE_NAME));
+        dart2jsExecutable = FileUtilities.verifyExecutable(new File(new File(
+            sdkDirectory,
+            BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? DART2JS_EXECUTABLE_NAME_WIN
+            : DART2JS_EXECUTABLE_NAME));
       }
     }
     return dart2jsExecutable;
@@ -347,9 +347,10 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getDartFmtExecutable() {
     synchronized (this) {
       if (dartFmtExecutable == null) {
-        dartFmtExecutable = verifyExecutable(new File(
-            new File(sdkDirectory, BIN_DIRECTORY_NAME),
-            OSUtilities.isWindows() ? DARTFMT_EXECUTABLE_NAME_WIN : DARTFMT_EXECUTABLE_NAME));
+        dartFmtExecutable = FileUtilities.verifyExecutable(new File(new File(
+            sdkDirectory,
+            BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? DARTFMT_EXECUTABLE_NAME_WIN
+            : DARTFMT_EXECUTABLE_NAME));
       }
     }
     return dartFmtExecutable;
@@ -363,7 +364,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getDartiumExecutable() {
     synchronized (this) {
       if (dartiumExecutable == null) {
-        dartiumExecutable = verifyExecutable(new File(
+        dartiumExecutable = FileUtilities.verifyExecutable(new File(
             getDartiumWorkingDirectory(),
             getDartiumBinaryName()));
       }
@@ -448,9 +449,10 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getPubExecutable() {
     synchronized (this) {
       if (pubExecutable == null) {
-        pubExecutable = verifyExecutable(new File(
-            new File(sdkDirectory, BIN_DIRECTORY_NAME),
-            OSUtilities.isWindows() ? PUB_EXECUTABLE_NAME_WIN : PUB_EXECUTABLE_NAME));
+        pubExecutable = FileUtilities.verifyExecutable(new File(new File(
+            sdkDirectory,
+            BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? PUB_EXECUTABLE_NAME_WIN
+            : PUB_EXECUTABLE_NAME));
       }
     }
     return pubExecutable;
@@ -509,9 +511,9 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getVmExecutable() {
     synchronized (this) {
       if (vmExecutable == null) {
-        vmExecutable = verifyExecutable(new File(
-            new File(sdkDirectory, BIN_DIRECTORY_NAME),
-            getVmBinaryName()));
+        vmExecutable = FileUtilities.verifyExecutable(new File(new File(
+            sdkDirectory,
+            BIN_DIRECTORY_NAME), getVmBinaryName()));
       }
     }
     return vmExecutable;
@@ -625,14 +627,4 @@ public class DirectoryBasedDartSdk implements DartSdk {
     }
   }
 
-  /**
-   * Verify that the given executable file exists and is executable.
-   * 
-   * @param file the binary file
-   * @return the file if it exists and is executable, else {@code null}
-   */
-  @DartExpressionBody("file.isExecutable() ? file : null")
-  private File verifyExecutable(File file) {
-    return FileUtilities.ensureExecutable(file) ? file : null;
-  }
 }

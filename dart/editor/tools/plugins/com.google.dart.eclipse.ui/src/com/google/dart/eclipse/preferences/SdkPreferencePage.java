@@ -204,12 +204,10 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     File dartiumDir = null;
     File dartiumFile = null;
 
-    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
+    DartSdkManager manager = DartSdkManager.getManager();
 
-    if (sdk != null) {
-      dartiumDir = sdk.getDartiumWorkingDirectory();
-      dartiumFile = sdk.getDartiumExecutable();
-    }
+    dartiumDir = manager.getDartiumWorkingDirectory();
+    dartiumFile = manager.getDartiumExecutable();
 
     if (dartiumDir == null) {
       dartiumStatuslabel.setText("Dartium is not installed");

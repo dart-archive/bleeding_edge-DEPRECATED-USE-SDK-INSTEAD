@@ -46,7 +46,7 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
       return false;
     }
 
-    if (!DartSdkManager.getManager().getSdk().isDartiumInstalled()) {
+    if (!DartSdkManager.getManager().isDartiumInstalled()) {
       return false;
     }
 

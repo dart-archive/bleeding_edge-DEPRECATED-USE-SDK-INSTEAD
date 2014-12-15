@@ -76,8 +76,7 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
 
   @Override
   public boolean canLaunch(IResource resource) {
-    if (!DartSdkManager.getManager().hasSdk()
-        || !DartSdkManager.getManager().getSdk().isDartiumInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk() || !DartSdkManager.getManager().isDartiumInstalled()) {
       return false;
     }
 

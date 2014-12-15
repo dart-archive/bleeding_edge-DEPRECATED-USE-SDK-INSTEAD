@@ -195,7 +195,7 @@ public class InstallUpdateAction extends Action {
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     List<Executable> executables = new ArrayList<Executable>();
     Executable.add(executables, "Dart VM", sdk.getVmExecutable());
-    Executable.add(executables, "Dartium", sdk.getDartiumExecutable());
+    Executable.add(executables, "Dartium", DartSdkManager.getManager().getDartiumExecutable());
     int index = 0;
     while (index < executables.size()) {
       if (!executables.get(index).rename()) {
@@ -375,7 +375,7 @@ public class InstallUpdateAction extends Action {
     }
     terminateRunningDartLaunches();
 
-    File dartium = DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory(installTarget);
+    File dartium = DartSdkManager.getManager().getDartiumWorkingDirectory(installTarget);
     try {
       UpdateUtils.delete(dartium, mon.newChild(2));
     } catch (Throwable th) {
@@ -400,7 +400,7 @@ public class InstallUpdateAction extends Action {
 
     //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
     UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles()); //$NON-NLS-1$
-    UpdateUtils.ensureExecutable(DartSdkManager.getManager().getSdk().getDartiumExecutable());
+    UpdateUtils.ensureExecutable(DartSdkManager.getManager().getDartiumExecutable());
 
     //run install.py if present
     if (installScript.exists()) {

@@ -215,7 +215,7 @@ public class FeedbackUtils {
   }
 
   static boolean isDartiumInstalled() {
-    return isSdkInstalled() && DartSdkManager.getManager().getSdk().isDartiumInstalled();
+    return isSdkInstalled() && DartSdkManager.getManager().isDartiumInstalled();
   }
 
   static boolean isSdkInstalled() {
