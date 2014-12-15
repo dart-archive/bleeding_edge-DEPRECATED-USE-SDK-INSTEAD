@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.SortMembersConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.gson.JsonObject;
 
@@ -30,8 +31,14 @@ public class SortMembersProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    SourceFileEdit fileEdit = SourceFileEdit.fromJson(resultObject.get("edit").getAsJsonObject());
-    consumer.computedEdit(fileEdit);
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      JsonObject editObject = resultObject.get("edit").getAsJsonObject();
+      SourceFileEdit fileEdit = SourceFileEdit.fromJson(editObject);
+      consumer.computedEdit(fileEdit);
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

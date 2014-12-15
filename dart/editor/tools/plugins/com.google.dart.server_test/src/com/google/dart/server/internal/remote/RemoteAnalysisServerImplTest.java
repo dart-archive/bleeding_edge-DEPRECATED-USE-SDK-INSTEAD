@@ -2489,12 +2489,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_sortMembers() throws Exception {
-    // TODO
     final SourceFileEdit[] fileEditArray = {null};
     server.edit_sortMembers("/file.dart", new SortMembersConsumer() {
       @Override
       public void computedEdit(SourceFileEdit fileEdit) {
         fileEditArray[0] = fileEdit;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -2549,6 +2552,52 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(4, edit.getLength());
       assertEquals("replacement2", edit.getReplacement());
     }
+  }
+
+  public void test_edit_sortMembers_error() throws Exception {
+    final SourceFileEdit[] fileEditArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_sortMembers("/file.dart", new SortMembersConsumer() {
+      @Override
+      public void computedEdit(SourceFileEdit fileEdit) {
+        fileEditArray[0] = fileEdit;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.sortMembers',",
+        "  'params': {",
+        "    'file': '/file.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'SORT_MEMBERS_PARSE_ERRORS',",
+        "    'message': 'Error during `edit.sortMembers`: file has 1 scan/parse errors.'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(fileEditArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("SORT_MEMBERS_PARSE_ERRORS", requestError.getCode());
+    assertEquals(
+        "Error during `edit.sortMembers`: file has 1 scan/parse errors.",
+        requestError.getMessage());
   }
 
   public void test_execution_createContext() throws Exception {

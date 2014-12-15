@@ -636,7 +636,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (consumer instanceof GetErrorsConsumer) {
       new AnalysisErrorsProcessor((GetErrorsConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof SortMembersConsumer) {
-      new SortMembersProcessor((SortMembersConsumer) consumer).process(resultObject);
+      new SortMembersProcessor((SortMembersConsumer) consumer).process(resultObject, requestError);
     }
     //
     // Execution Domain

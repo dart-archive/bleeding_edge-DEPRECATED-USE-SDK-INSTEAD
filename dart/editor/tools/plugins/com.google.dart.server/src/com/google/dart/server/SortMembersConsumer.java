@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceFileEdit;
 
 /**
@@ -28,4 +29,11 @@ public interface SortMembersConsumer extends Consumer {
    * @param edit the computed {@link SourceFileEdit}
    */
   public void computedEdit(SourceFileEdit edit);
+
+  /**
+   * If sort changes cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }
