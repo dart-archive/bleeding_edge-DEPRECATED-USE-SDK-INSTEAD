@@ -1142,11 +1142,8 @@ public class DartIndenter {
 
         // special: array initializer
         if (looksLikeArrayInitializerIntro()) {
-          if (fPrefs.prefArrayDeepIndent) {
-            return setFirstElementAlignment(pos, bound);
-          } else {
-            fIndent = fPrefs.prefArrayIndent;
-          }
+          fPosition = pos;
+          fIndent = fPrefs.prefBlockIndent;
         } else {
           fIndent = fPrefs.prefBlockIndent;
         }
@@ -1165,14 +1162,7 @@ public class DartIndenter {
 
       case Symbols.TokenLBRACKET:
         pos = fPosition; // store
-
-        // special: method declaration deep indentation
-        if (fPrefs.prefArrayDimensionsDeepIndent) {
-          return setFirstElementAlignment(pos, bound);
-        }
-
-        // normal: return the bracket as reference
-        fIndent = fPrefs.prefBracketIndent;
+        fIndent = fPrefs.prefBlockIndent;
         return pos; // restore
 
       default:

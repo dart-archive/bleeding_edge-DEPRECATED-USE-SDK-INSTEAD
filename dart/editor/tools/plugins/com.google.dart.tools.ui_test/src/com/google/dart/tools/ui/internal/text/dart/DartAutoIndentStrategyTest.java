@@ -354,6 +354,40 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}").trim());
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=21893
+   */
+  public void test_smartIndentAfterNewLine_listLiteral() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  var aaaaaaaaaaaa = [!",
+        "  ];",
+        "}"), createSource(//
+        "main() {",
+        "  var aaaaaaaaaaaa = [",
+        "    !",
+        "  ];",
+        "}"));
+  }
+
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=21893
+   */
+  public void test_smartIndentAfterNewLine_mapLiteral() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  var mmmmmmmmm = {!",
+        "  };",
+        "}"), createSource(//
+        "main() {",
+        "  var mmmmmmmmm = {",
+        "    !",
+        "  };",
+        "}"));
+  }
+
   public void test_smartIndentAfterNewLine_method_hasClosed() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "class A {",
