@@ -586,6 +586,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     WebkitLocation location = frames.get(0).getLocation();
 
     WebkitScript script = getConnection().getDebugger().getScript(location.getScriptId());
+
+    if (script == null) {
+      return false;
+    }
+
     String url = script.getUrl();
 
     if (url.endsWith(".dart.js") || url.endsWith(".precompiled.js")) {
