@@ -63,6 +63,8 @@ public class DartSdkManager {
 
   private static final String USER_DEFINED_SDK_KEY = "dart.sdk";
 
+  private static final String USER_DEFINED_DARTIUM_KEY = "dart.chromium";
+
   private static final String SDK_ZIP = "latest/sdk/dartsdk-{0}-{1}-release.zip";
 
   /**
@@ -160,6 +162,11 @@ public class DartSdkManager {
    */
   private File dartiumExecutable;
 
+  /**
+   * The directory containing the Dartium executable.
+   */
+  private File dartiumDirectory;
+
   private DirectoryBasedDartSdk sdk;
   private String sdkContextId;
 
@@ -196,8 +203,21 @@ public class DartSdkManager {
    * @return the directory where dartium can be found
    */
   public File getDartiumWorkingDirectory() {
-    //TODO(keertip): add pref to specify dartium install location
-    return new File(getEclipseInstallationDirectory(), DARTIUM_DIRECTORY_NAME);
+    if (dartiumDirectory == null) {
+      File dartiumDir = getUserDefinedDirectory(USER_DEFINED_DARTIUM_KEY);
+      if (dartiumDir != null && !dartiumDir.exists()) {
+        DartCore.logError(USER_DEFINED_SDK_KEY + " defined in " + DartCore.EDITOR_PROPERTIES
+            + " but does not exist: " + dartiumDir);
+        dartiumDir = null;
+      }
+      if (dartiumDir == null) {
+        dartiumDir = new File(getEclipseInstallationDirectory(), DARTIUM_DIRECTORY_NAME);
+      }
+      if (dartiumDir.exists()) {
+        dartiumDirectory = dartiumDir;
+      }
+    }
+    return dartiumDirectory;
   }
 
   /**
@@ -325,12 +345,12 @@ public class DartSdkManager {
   }
 
   /**
-   * Return the user-defined SDK directory.
+   * Return the user-defined directory.
    * 
    * @return the directory or {@code null} if it is not defined
    */
-  private File getUserDefinedSdkDirectory() {
-    String sdkPath = DartCore.getUserDefinedProperty(USER_DEFINED_SDK_KEY);
+  private File getUserDefinedDirectory(String key) {
+    String sdkPath = DartCore.getUserDefinedProperty(key);
     if (sdkPath != null) {
       sdkPath = sdkPath.trim();
       if (sdkPath.length() > 0) {
@@ -341,7 +361,7 @@ public class DartSdkManager {
   }
 
   private void initSdk() {
-    File sdkDir = getUserDefinedSdkDirectory();
+    File sdkDir = getUserDefinedDirectory(USER_DEFINED_SDK_KEY);
     if (sdkDir != null && !sdkDir.exists()) {
       DartCore.logError(USER_DEFINED_SDK_KEY + " defined in " + DartCore.EDITOR_PROPERTIES
           + " but does not exist: " + sdkDir);
