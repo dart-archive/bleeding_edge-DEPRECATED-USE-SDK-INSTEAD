@@ -479,6 +479,11 @@
             allPopups="false"
             locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
          <command commandId="com.google.dart.tools.debug.ui.remoteConnection" />
+         <command
+               commandId="com.google.dart.eclipse.ui.pub.serve.stop"
+               label="Stop Pub Serve"
+               style="push">
+         </command>
       </menuContribution>
   </extension>
 
@@ -511,7 +516,7 @@
          point="org.eclipse.ui.commands">
       <!--<command
             categoryId="org.eclipse.ui.category.navigate"
-            defaultHandler="com.google.dart.eclipse.ui.internal.handlers.OpenTypeDialogHandler"
+            defaultHandler="com.google.dart.eclipse.ui.internal.handler.OpenTopLevelDeclarationsHandler"
             description="%command.openType.desc"
             id="com.google.dart.eclipse.openType"
             name="%command.openType.name"/>-->
@@ -530,6 +535,12 @@
             defaultHandler="com.google.dart.eclipse.ui.internal.handler.FindUsesHandler"
             id="com.google.dart.eclipse.ui.open.find.uses"
             name="Find Uses">
+      </command>
+      <command
+            defaultHandler="com.google.dart.eclipse.ui.internal.handler.StopPubServeHandler"
+            description="Stops pub serve"
+            id="com.google.dart.eclipse.ui.pub.serve.stop"
+            name="Stop Pub Serve">
       </command> 
    </extension>
 

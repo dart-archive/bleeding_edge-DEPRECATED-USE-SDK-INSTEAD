@@ -201,6 +201,7 @@ public class PubServeManager implements IResourceChangeListener {
   public void terminatePubServe() {
     dispose();
     notifyListeners(false);
+    DartCore.getConsole().printSeparator("Pub Serve stopped");
   }
 
   /**

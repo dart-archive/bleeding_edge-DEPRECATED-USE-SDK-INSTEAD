@@ -21,5 +21,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.expressions,
  org.eclipse.core.filesystem,
  org.eclipse.jface.text,
- com.google.dart.eclipse.core
+ com.google.dart.eclipse.core,
+ com.google.dart.tools.debug.core
 Bundle-Activator: com.google.dart.eclipse.DartEclipseUI
