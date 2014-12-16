@@ -402,6 +402,22 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_enum_externalLibrary() throws Exception {
+    resetWithEnum();
+    addNamedSource("/my_lib.dart", createSource(//
+        "library my_lib;",
+        "enum EEE {A, B, C}"));
+    Source source = addSource(createSource(//
+        "import 'my_lib.dart';",
+        "",
+        "main() {",
+        "  EEE e = null;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_extractedMethodAsConstant() throws Exception {
     Source source = addSource(createSource(//
         "abstract class Comparable<T> {",

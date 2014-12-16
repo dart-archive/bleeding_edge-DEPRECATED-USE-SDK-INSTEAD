@@ -165,6 +165,9 @@ public class NamespaceBuilder {
     for (PropertyAccessorElement element : compilationUnit.getAccessors()) {
       addIfPublic(definedNames, element);
     }
+    for (ClassElement element : compilationUnit.getEnums()) {
+      addIfPublic(definedNames, element);
+    }
     for (FunctionElement element : compilationUnit.getFunctions()) {
       addIfPublic(definedNames, element);
     }
