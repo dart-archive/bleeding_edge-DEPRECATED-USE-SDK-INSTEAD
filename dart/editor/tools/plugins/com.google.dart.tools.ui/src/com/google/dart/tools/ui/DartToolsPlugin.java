@@ -832,6 +832,14 @@ public class DartToolsPlugin extends AbstractUIPlugin {
 //    PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(fThemeListener);
 
     trackActiveWindow();
+
+    // Initialize image registry in UI thread.
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        getImageDescriptorRegistry();
+      }
+    });
   }
 
   @SuppressWarnings("deprecation")
