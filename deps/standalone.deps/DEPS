@@ -16,8 +16,11 @@ vars = {
   "fake_async_rev": "@38614",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
+  "observe_rev": "@11f536784589a288d275462f7407a1f07ba4de75",
+  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
   "petitparser_rev" : "@37878",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
 
@@ -49,11 +52,17 @@ deps = {
       Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
       Var("net_nss_rev"),
 
-  # Stuff needed to run pkg tests.
+  # External packages.
   "dart/third_party/pkg/fake_async":
       "/third_party/fake_async" + Var("fake_async_rev"),
+  "dart/third_party/pkg/observe":
+      "https://github.com/dart-lang/observe.git" + Var("observe_rev"),
+  "dart/third_party/pkg/path":
+      "https://github.com/dart-lang/path.git" + Var("path_rev"),
   "dart/third_party/pkg/petitparser":
       "/third_party/petitparser" + Var("petitparser_rev"),
+  "dart/third_party/pkg/stack_trace":
+      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
 }
 
 deps_os = {
