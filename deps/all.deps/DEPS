@@ -59,6 +59,7 @@ vars = {
   "scheduled_test_rev": "@d10b6e93c2ca351e1b7ec765be7a0f5fdc74c269",
   "snakeyaml_rev" : "@19997",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
   "watcher_rev": "@684f0482e7394dee1f66bd810f297dcf9d8a08de",
@@ -182,6 +183,8 @@ deps = {
   "dart/third_party/pkg/scheduled_test":
       "https://github.com/dart-lang/scheduled_test.git" +
       Var("scheduled_test_rev"),
+  "dart/third_party/pkg/source_span":
+      "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "dart/third_party/pkg/stack_trace":
       "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
   "dart/third_party/pkg/string_scanner":
