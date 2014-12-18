@@ -20,6 +20,7 @@ vars = {
   "apache_compress_rev" : "@19997",
   "apache_http_rev" : "@37872",
   "args4j_rev" : "@19997",
+  "barback_rev" : "@9ae66cb15cafef521406b2263ee8b873e1786524",
   "bzip2_rev" : "@19997",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -36,21 +37,35 @@ vars = {
   "gsutil_rev" : "@33376",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
+  "http_rev" : "@593e0da58bb11a1b5c3b05899e9f23942b731ff7",
+  "http_multi_server_rev" : "@ae174d9ba95dc887f7e3db41609baef471724c3b",
+  "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
+  "http_throttle_rev" : "@91559418133b7f231267cb62bf21b20b823be4c2",
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rev" : "@19997",
+  "json_rpc_2_rev": "@2e9d94ed26357df802a8f7ef659085eddb50afe9",
   "junit_rev" : "@19997",
+  "metatest_rev": "@c75bae9e8709d49ff925819db0bf432ca7dd8373",
   "mockito_rev" : "@19997",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
+  "oauth2_rev": "@71f81317ee48df9fee51d48c505b0a793a425816",
+  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
+  "pool_rev": "@d14707b910a9288fe8284bd1e39a2c0407851cf7",
   "pub_semver_rev": "@182d55d7207e3af5e76e96834fa7cf63c55ce09a",
+  "scheduled_test_rev": "@d10b6e93c2ca351e1b7ec765be7a0f5fdc74c269",
   "snakeyaml_rev" : "@19997",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
+  "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
+  "watcher_rev": "@684f0482e7394dee1f66bd810f297dcf9d8a08de",
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@40446",
   "weberknecht_rev" : "@33599",
+  "yaml_rev": "@494e498384e93172c7572b2d4da074b856ff1a9a",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
@@ -136,15 +151,46 @@ deps = {
   "dart/third_party/font-awesome":
       "/third_party/font-awesome" + Var("font_awesome_rev"),
   "dart/third_party/pkg/async_await":
-     "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
+      "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
+  "dart/third_party/pkg/barback":
+      "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
   "dart/third_party/pkg/fake_async":
       "/third_party/fake_async" + Var("fake_async_rev"),
   "dart/third_party/pkg/glob":
-     "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
-  "dart/third_party/pkg/pub_semver":
-     "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_rev"),
+      "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
+  "dart/third_party/pkg/http":
+      "https://github.com/dart-lang/http.git" + Var("http_rev"),
+  "dart/third_party/pkg/http_multi_server":
+      "https://github.com/dart-lang/http_multi_server.git" +
+      Var("http_multi_server_rev"),
+  "dart/third_party/pkg/http_parser":
+      "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
+  "dart/third_party/pkg/json_rpc_2":
+      "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
+  "dart/third_party/pkg/metatest":
+      "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
+  "dart/third_party/pkg/oauth2":
+      "https://github.com/dart-lang/oauth2.git" + Var("oauth2_rev"),
+  "dart/third_party/pkg/path":
+      "https://github.com/dart-lang/path.git" + Var("path_rev"),
   "dart/third_party/pkg/petitparser":
       "/third_party/petitparser" + Var("petitparser_rev"),
+  "dart/third_party/pkg/pool":
+      "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
+  "dart/third_party/pkg/pub_semver":
+      "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_rev"),
+  "dart/third_party/pkg/scheduled_test":
+      "https://github.com/dart-lang/scheduled_test.git" +
+      Var("scheduled_test_rev"),
+  "dart/third_party/pkg/stack_trace":
+      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
+  "dart/third_party/pkg/string_scanner":
+      "https://github.com/dart-lang/string_scanner.git" +
+      Var("string_scanner_rev"),
+  "dart/third_party/pkg/watcher":
+      "https://github.com/dart-lang/watcher.git" + Var("watcher_rev"),
+  "dart/third_party/pkg/yaml":
+      "https://github.com/dart-lang/yaml.git" + Var("yaml_rev"),
 
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.
