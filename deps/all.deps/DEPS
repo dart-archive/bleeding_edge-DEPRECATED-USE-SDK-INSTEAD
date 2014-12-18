@@ -63,7 +63,6 @@ vars = {
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
-  "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
   "watcher_rev": "@684f0482e7394dee1f66bd810f297dcf9d8a08de",
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@40446",
