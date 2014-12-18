@@ -197,7 +197,7 @@ deps = {
   "dart/third_party/pkg/shelf_web_socket":
       "https://github.com/dart-lang/shelf_web_socket.git" +
       Var("shelf_web_socket_rev"),
-  "dart/third_party/smoke":
+  "dart/third_party/pkg/smoke":
       "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
   "dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
