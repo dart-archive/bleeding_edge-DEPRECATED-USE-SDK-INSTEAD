@@ -24,6 +24,7 @@ import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.Location;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.CharOperation;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
@@ -293,6 +294,12 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
                   text[0] = buffer.toString();
                   latch.countDown();
                 }
+              }
+
+              @Override
+              public void onError(RequestError requestError) {
+                DartCore.logIfServerRequestError(requestError);
+                latch.countDown();
               }
             });
         Uninterruptibles.awaitUninterruptibly(latch, 1000, TimeUnit.MILLISECONDS);

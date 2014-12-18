@@ -299,10 +299,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_getHover() throws Exception {
     final HoverInformation[] hovers = new HoverInformation[1];
+    final RequestError[] requestErrorArray = {null};
     server.analysis_getHover("/fileA.dart", 17, new GetHoverConsumer() {
       @Override
       public void computedHovers(HoverInformation[] result) {
         hovers[0] = result[0];
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
 
@@ -340,6 +346,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
+    assertNull(requestErrorArray[0]);
     assertNotNull(hovers[0]);
     assertEquals(22, hovers[0].getOffset());
     assertEquals(5, hovers[0].getLength());
@@ -351,6 +358,54 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("some parameter", hovers[0].getParameter());
     assertEquals("typeA", hovers[0].getPropagatedType());
     assertEquals("typeB", hovers[0].getStaticType());
+  }
+
+  public void test_analysis_getHover_error() throws Exception {
+    final HoverInformation[] hovers = new HoverInformation[1];
+    final RequestError[] requestErrorArray = {null};
+    server.analysis_getHover("/fileA.dart", 17, new GetHoverConsumer() {
+      @Override
+      public void computedHovers(HoverInformation[] result) {
+        hovers[0] = result[0];
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getHover',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 17",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(hovers[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertNotNull(requestError);
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
   }
 
   public void test_analysis_notification_errors() throws Exception {

@@ -622,7 +622,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // Edit Domain
     //
     else if (consumer instanceof GetHoverConsumer) {
-      new HoverProcessor((GetHoverConsumer) consumer).process(resultObject);
+      new HoverProcessor((GetHoverConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof GetRefactoringConsumer) {
       new GetRefactoringProcessor(requestToRefactoringKindMap, (GetRefactoringConsumer) consumer).process(
           idString,

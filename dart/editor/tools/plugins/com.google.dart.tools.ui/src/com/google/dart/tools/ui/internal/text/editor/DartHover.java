@@ -32,6 +32,7 @@ import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.generated.types.HoverInformation;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -608,14 +609,20 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         String file = editor.getInputFilePath();
         if (file != null) {
           final CountDownLatch latch = new CountDownLatch(1);
-          final HoverInformation[] result = new HoverInformation[1];
+          final HoverInformation[] hoverInformation = new HoverInformation[1];
           DartCore.getAnalysisServer().analysis_getHover(file, offset, new GetHoverConsumer() {
             @Override
             public void computedHovers(HoverInformation[] hovers) {
               if (hovers != null && hovers.length > 0) {
-                result[0] = hovers[0];
+                hoverInformation[0] = hovers[0];
                 latch.countDown();
               }
+            }
+
+            @Override
+            public void onError(RequestError requestError) {
+              DartCore.logIfServerRequestError(requestError);
+              latch.countDown();
             }
           });
           // This executes on a background thread that does not hold the workspace lock
@@ -623,7 +630,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           // Wait a long time only if there is nothing else to show
           long waitTimeMillis = annotations.isEmpty() ? 4000 : 500;
           Uninterruptibles.awaitUninterruptibly(latch, waitTimeMillis, TimeUnit.MILLISECONDS);
-          return new HoverInfo_NEW(result[0], annotations);
+          return new HoverInfo_NEW(hoverInformation[0], annotations);
         }
       } else {
         AstNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);

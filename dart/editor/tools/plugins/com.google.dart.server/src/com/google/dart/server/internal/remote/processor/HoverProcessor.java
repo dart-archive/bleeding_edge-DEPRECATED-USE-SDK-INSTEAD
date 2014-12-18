@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.generated.types.HoverInformation;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -35,13 +36,18 @@ public class HoverProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
-    Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
-    while (iter.hasNext()) {
-      JsonObject hoverJsonObject = iter.next().getAsJsonObject();
-      hovers.add(HoverInformation.fromJson(hoverJsonObject));
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
+      Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
+      while (iter.hasNext()) {
+        JsonObject hoverJsonObject = iter.next().getAsJsonObject();
+        hovers.add(HoverInformation.fromJson(hoverJsonObject));
+      }
+      consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
     }
-    consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

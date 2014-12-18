@@ -24,6 +24,8 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.types.RequestError;
+import com.google.dart.server.generated.types.RequestErrorCode;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.internal.remote.DebugPrintStream;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
@@ -1343,6 +1345,15 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Log the given {@link RequestError} if it is a {@link RequestErrorCode#SERVER_ERROR}.
+   */
+  public static void logIfServerRequestError(RequestError requestError) {
+    if (RequestErrorCode.SERVER_ERROR.equals(requestError.getCode())) {
+      logRequestError(requestError);
+    }
+  }
+
+  /**
    * Log the given informational message.
    * 
    * @param message an explanation of why the error occurred or what it means
@@ -1368,6 +1379,20 @@ public class DartCore extends Plugin implements DartSdkListener {
     }
 
     instrumentationLogInfoImpl(message, exception);
+  }
+
+  /**
+   * Log the given {@link RequestError}.
+   */
+  public static void logRequestError(RequestError requestError) {
+    StringBuilder buf = new StringBuilder();
+    buf.append("RequestError:\n");
+    buf.append(requestError.getMessage());
+    buf.append("\n");
+    buf.append(requestError.getStackTrace());
+    buf.append("\n");
+    String str = buf.toString();
+    DartCore.logError(str);
   }
 
   /**
