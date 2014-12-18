@@ -146,7 +146,6 @@ deps = {
   "dart/third_party/json": "/third_party/json" + Var("json_rev"),
   "dart/third_party/junit": "/third_party/junit" + Var("junit_rev"),
   "dart/third_party/mockito": "/third_party/mockito" + Var("mockito_rev"),
-  "dart/third_party/smoke": "/third_party/smoke" + Var("smoke_rev"),
   "dart/third_party/snakeyaml": "/third_party/snakeyaml" + Var("snakeyaml_rev"),
   "dart/third_party/websocket": "/third_party/websocket" + Var("websocket_rev"),
   "dart/third_party/d8": "/third_party/d8" + Var("d8_rev"),
@@ -198,6 +197,8 @@ deps = {
   "dart/third_party/pkg/shelf_web_socket":
       "https://github.com/dart-lang/shelf_web_socket.git" +
       Var("shelf_web_socket_rev"),
+  "dart/third_party/smoke":
+      "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
   "dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "dart/third_party/pkg/stack_trace":
