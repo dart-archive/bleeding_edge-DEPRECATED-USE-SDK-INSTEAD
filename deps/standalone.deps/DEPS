@@ -22,6 +22,7 @@ vars = {
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
+  "observatory_pub_packages_rev": "@42474",
 }
 
 deps = {
@@ -52,6 +53,12 @@ deps = {
       Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
       Var("net_nss_rev"),
 
+  # Observatory stuff
+  "dart/third_party/observatory_pub_packages":
+      "/third_party/observatory_pub_packages" +
+      Var("observatory_pub_packages_rev"),
+
+  # Stuff needed to run pkg tests.
   # External packages.
   "dart/third_party/pkg/fake_async":
       "/third_party/fake_async" + Var("fake_async_rev"),
