@@ -25,6 +25,8 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.PubStatus;
+import com.google.dart.server.generated.types.RequestError;
+import com.google.dart.server.generated.types.RequestErrorCode;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
@@ -115,6 +117,14 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
     // remove markers
     for (String file : files) {
       scheduleResourceErrorMarkersUpdate(file, AnalysisError.EMPTY_ARRAY);
+    }
+  }
+
+  @Override
+  public void requestError(RequestError requestError) {
+    String errorCode = requestError.getCode();
+    if (RequestErrorCode.SERVER_ERROR.equals(errorCode)) {
+      DartCore.logRequestError(requestError);
     }
   }
 

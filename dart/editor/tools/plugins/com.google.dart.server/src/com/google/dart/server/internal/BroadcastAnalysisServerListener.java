@@ -25,6 +25,7 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.PubStatus;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -138,6 +139,13 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   public void removeListener(AnalysisServerListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
+    }
+  }
+
+  @Override
+  public void requestError(RequestError requestError) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.requestError(requestError);
     }
   }
 

@@ -621,7 +621,6 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
             @Override
             public void onError(RequestError requestError) {
-              DartCore.logIfServerRequestError(requestError);
               latch.countDown();
             }
           });

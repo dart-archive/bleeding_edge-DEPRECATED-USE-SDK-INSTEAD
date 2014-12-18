@@ -22,6 +22,7 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.PubStatus;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -76,6 +77,11 @@ public class MockAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void flushedResults(List<String> files) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void requestError(RequestError requestError) {
     throw new UnsupportedOperationException();
   }
 

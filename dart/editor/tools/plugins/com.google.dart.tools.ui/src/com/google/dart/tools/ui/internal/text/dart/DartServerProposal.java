@@ -298,7 +298,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
               @Override
               public void onError(RequestError requestError) {
-                DartCore.logIfServerRequestError(requestError);
                 latch.countDown();
               }
             });

@@ -22,6 +22,7 @@ import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.server.generated.types.Outline;
 import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.PubStatus;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 
 import java.util.List;
@@ -141,6 +142,11 @@ public interface AnalysisServerListener {
    * It is not possible to subscribe to or unsubscribe from this notification.
    */
   public void flushedResults(List<String> files);
+
+  /**
+   * An error returned in result of some request.
+   */
+  public void requestError(RequestError requestError);
 
   /**
    * Reports that the server is running. This notification is issued once after the server has

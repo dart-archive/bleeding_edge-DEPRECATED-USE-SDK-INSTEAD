@@ -593,6 +593,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     RequestError requestError = null;
     if (errorObject != null) {
       requestError = processErrorResponse(errorObject);
+      listener.requestError(requestError);
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
