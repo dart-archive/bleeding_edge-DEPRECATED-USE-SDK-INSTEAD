@@ -13,6 +13,7 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
 import com.google.dart.server.generated.types.ExtractMethodFeedback;
@@ -22,9 +23,12 @@ import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringProblem;
 import com.google.dart.server.generated.types.RenameFeedback;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonObject;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -45,52 +49,72 @@ public class GetRefactoringProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(String requestId, JsonObject resultObject) {
-    // problems
-    List<RefactoringProblem> initialProblems = getRefactoringProblems(
-        resultObject,
-        "initialProblems");
-    List<RefactoringProblem> optionsProblems = getRefactoringProblems(
-        resultObject,
-        "optionsProblems");
-    List<RefactoringProblem> finalProblems = getRefactoringProblems(resultObject, "finalProblems");
+  public void process(String requestId, JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      try {
+        // problems
+        List<RefactoringProblem> initialProblems = getRefactoringProblems(
+            resultObject,
+            "initialProblems");
+        List<RefactoringProblem> optionsProblems = getRefactoringProblems(
+            resultObject,
+            "optionsProblems");
+        List<RefactoringProblem> finalProblems = getRefactoringProblems(
+            resultObject,
+            "finalProblems");
 
-    // change
-    SourceChange change = null;
-    if (resultObject.has("change")) {
-      change = SourceChange.fromJson(resultObject.get("change").getAsJsonObject());
-    }
+        // change
+        SourceChange change = null;
+        if (resultObject.has("change")) {
+          change = SourceChange.fromJson(resultObject.get("change").getAsJsonObject());
+        }
 
-    // potential edits
-    List<String> potentialEdits = JsonUtilities.decodeStringList(resultObject.get("potentialEdits") != null
-        ? resultObject.get("potentialEdits").getAsJsonArray() : null);
+        // potential edits
+        List<String> potentialEdits = JsonUtilities.decodeStringList(resultObject.get("potentialEdits") != null
+            ? resultObject.get("potentialEdits").getAsJsonArray() : null);
 
-    //
-    // Compute all refactoring-kind specific "Feedback" and put them into the feedback map
-    //
-    RefactoringFeedback feedback = null;
-    if (resultObject.has("feedback")) {
-      JsonObject feedbackObject = resultObject.get("feedback").getAsJsonObject();
-      String kind = requestToRefactoringKindMap.remove(requestId);
-      if (RefactoringKind.EXTRACT_LOCAL_VARIABLE.equals(kind)) {
-        feedback = ExtractLocalVariableFeedback.fromJson(feedbackObject);
-      } else if (RefactoringKind.EXTRACT_METHOD.equals(kind)) {
-        feedback = ExtractMethodFeedback.fromJson(feedbackObject);
-      } else if (RefactoringKind.INLINE_LOCAL_VARIABLE.equals(kind)) {
-        feedback = InlineLocalVariableFeedback.fromJson(feedbackObject);
-      } else if (RefactoringKind.INLINE_METHOD.equals(kind)) {
-        feedback = InlineMethodFeedback.fromJson(feedbackObject);
-      } else if (RefactoringKind.RENAME.equals(kind)) {
-        feedback = RenameFeedback.fromJson(feedbackObject);
+        //
+        // Compute all refactoring-kind specific "Feedback" and put them into the feedback map
+        //
+        RefactoringFeedback feedback = null;
+        if (resultObject.has("feedback")) {
+          JsonObject feedbackObject = resultObject.get("feedback").getAsJsonObject();
+          String kind = requestToRefactoringKindMap.remove(requestId);
+          if (RefactoringKind.EXTRACT_LOCAL_VARIABLE.equals(kind)) {
+            feedback = ExtractLocalVariableFeedback.fromJson(feedbackObject);
+          } else if (RefactoringKind.EXTRACT_METHOD.equals(kind)) {
+            feedback = ExtractMethodFeedback.fromJson(feedbackObject);
+          } else if (RefactoringKind.INLINE_LOCAL_VARIABLE.equals(kind)) {
+            feedback = InlineLocalVariableFeedback.fromJson(feedbackObject);
+          } else if (RefactoringKind.INLINE_METHOD.equals(kind)) {
+            feedback = InlineMethodFeedback.fromJson(feedbackObject);
+          } else if (RefactoringKind.RENAME.equals(kind)) {
+            feedback = RenameFeedback.fromJson(feedbackObject);
+          }
+        }
+        consumer.computedRefactorings(
+            initialProblems,
+            optionsProblems,
+            finalProblems,
+            feedback,
+            change,
+            potentialEdits);
+      } catch (Exception e) {
+        // catch any exceptions in the formatting of this response
+        String message = e.getMessage();
+        String stackTrace = null;
+        if (e.getStackTrace() != null) {
+          stackTrace = ExceptionUtils.getStackTrace(e);
+        }
+        requestError = new RequestError(
+            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
+            message != null ? message : "",
+            stackTrace);
       }
     }
-    consumer.computedRefactorings(
-        initialProblems,
-        optionsProblems,
-        finalProblems,
-        feedback,
-        change,
-        potentialEdits);
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 
   private List<RefactoringProblem> getRefactoringProblems(JsonObject resultObject, String name) {

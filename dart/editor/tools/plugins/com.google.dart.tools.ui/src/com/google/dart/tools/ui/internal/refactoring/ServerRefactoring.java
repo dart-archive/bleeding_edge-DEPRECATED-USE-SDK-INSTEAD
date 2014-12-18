@@ -20,6 +20,7 @@ import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RefactoringProblem;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.base.StringStatusContext;
@@ -152,6 +153,11 @@ public abstract class ServerRefactoring extends Refactoring {
             optionsStatus = toRefactoringStatus(optionsProblems);
             finalStatus = toRefactoringStatus(finalProblems);
             change = toLTK(_change, externalFiles);
+            latch.countDown();
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
             latch.countDown();
           }
         });

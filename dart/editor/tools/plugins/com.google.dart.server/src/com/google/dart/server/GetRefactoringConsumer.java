@@ -15,6 +15,7 @@ package com.google.dart.server;
 
 import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringProblem;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 
 import java.util.List;
@@ -55,4 +56,11 @@ public interface GetRefactoringConsumer extends Consumer {
   public void computedRefactorings(List<RefactoringProblem> initialProblems,
       List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
       RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits);
+
+  /**
+   * If a set of changes cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

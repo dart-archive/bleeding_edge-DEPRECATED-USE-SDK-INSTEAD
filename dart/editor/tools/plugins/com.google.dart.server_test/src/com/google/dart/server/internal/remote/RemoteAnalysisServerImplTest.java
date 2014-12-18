@@ -1929,6 +1929,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_edit_getRefactoring_request_options_extractLocalVariable() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     RefactoringOptions options = new ExtractLocalVariableOptions("name1", true);
     server.edit_getRefactoring(
         RefactoringKind.EXTRACT_LOCAL_VARIABLE,
@@ -1942,6 +1943,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedRefactorings(List<RefactoringProblem> initialProblems,
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1962,9 +1968,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_request_options_extractMethod() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     RefactoringMethodParameter p1 = new RefactoringMethodParameter(
         "id1",
         RefactoringMethodParameterKind.REQUIRED,
@@ -1995,6 +2003,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedRefactorings(List<RefactoringProblem> initialProblems,
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -2032,10 +2045,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_request_options_extractMethod_noParameters()
       throws Exception {
+    final RequestError[] requestErrorArray = {null};
     RefactoringOptions options = new ExtractMethodOptions(
         "returnType1",
         true,
@@ -2054,6 +2069,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedRefactorings(List<RefactoringProblem> initialProblems,
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -2077,9 +2097,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_request_options_inlineMethod() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     RefactoringOptions options = new InlineMethodOptions(true, true);
     server.edit_getRefactoring(
         RefactoringKind.INLINE_METHOD,
@@ -2093,6 +2115,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedRefactorings(List<RefactoringProblem> initialProblems,
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -2113,9 +2140,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_request_options_rename() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     RefactoringOptions options = new RenameOptions("newName1");
     server.edit_getRefactoring(
         RefactoringKind.RENAME,
@@ -2129,6 +2158,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedRefactorings(List<RefactoringProblem> initialProblems,
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -2148,9 +2182,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_response() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final Object[] initialProblemsArray = {null};
     final Object[] optionsProblemsArray = {null};
     final Object[] finalProblemsArray = {null};
@@ -2176,6 +2212,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
             feedbackArray[0] = feedback;
             changeArray[0] = change;
             potentialEditsArray[0] = potentialEdits;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2250,10 +2291,75 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(potentialEdits).hasSize(1);
     assertEquals("one", potentialEdits.get(0));
 
+    assertNull(requestErrorArray[0]);
+
     // other assertions would would test the generated fromJson methods
   }
 
+  public void test_edit_getRefactoring_response_error() throws Exception {
+    final RequestError[] requestErrorArray = {null};
+    final Object[] initialProblemsArray = {null};
+    final Object[] optionsProblemsArray = {null};
+    final Object[] finalProblemsArray = {null};
+    final RefactoringFeedback[] feedbackArray = {null};
+    final SourceChange[] changeArray = {null};
+    final Object[] potentialEditsArray = {null};
+    RefactoringOptions options = null;
+    server.edit_getRefactoring(
+        RefactoringKind.RENAME,
+        "file1.dart",
+        1,
+        2,
+        false,
+        options,
+        new GetRefactoringConsumer() {
+          @Override
+          public void computedRefactorings(List<RefactoringProblem> initialProblems,
+              List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
+              RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
+            initialProblemsArray[0] = initialProblems;
+            optionsProblemsArray[0] = optionsProblems;
+            finalProblemsArray[0] = finalProblems;
+            feedbackArray[0] = feedback;
+            changeArray[0] = change;
+            potentialEditsArray[0] = potentialEdits;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
+          }
+        });
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(initialProblemsArray[0]);
+    assertNull(optionsProblemsArray[0]);
+    assertNull(finalProblemsArray[0]);
+    assertNull(feedbackArray[0]);
+    assertNull(changeArray[0]);
+    assertNull(potentialEditsArray[0]);
+
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
   public void test_edit_getRefactoring_response_feedback_extractLocalVariable() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
@@ -2269,6 +2375,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2296,9 +2407,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals(feedback.getNames(), Lists.newArrayList("one", "two"));
     assertThat(feedback.getOffsets()).hasSize(2).contains(1, 2);
     assertThat(feedback.getLengths()).hasSize(3).contains(3, 4, 5);
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_response_feedback_extractMethod() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
@@ -2314,6 +2427,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2351,9 +2469,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(feedback.getParameters()).hasSize(0);
     assertThat(feedback.getOffsets()).hasSize(3).contains(3, 4, 5);
     assertThat(feedback.getLengths()).hasSize(4).contains(6, 7, 8, 9);
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_response_feedback_inlineLocalVariable() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
@@ -2369,6 +2489,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2394,9 +2519,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     InlineLocalVariableFeedback feedback = (InlineLocalVariableFeedback) feedbackArray[0];
     assertEquals("myVar", feedback.getName());
     assertEquals(3, feedback.getOccurrences());
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_response_feedback_inlineMethod() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final RefactoringFeedback[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
@@ -2412,6 +2539,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2439,9 +2571,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("myClassName", feedback.getClassName());
     assertEquals("myMethodName", feedback.getMethodName());
     assertEquals(true, feedback.isDeclaration());
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getRefactoring_response_feedback_rename() throws Exception {
+    final RequestError[] requestErrorArray = {null};
     final Object[] feedbackArray = {null};
     RefactoringOptions options = null;
     server.edit_getRefactoring(
@@ -2457,6 +2591,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
               List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems,
               RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits) {
             feedbackArray[0] = feedback;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -2486,6 +2625,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals(2, feedback.getLength());
     assertEquals("class", feedback.getElementKindName());
     assertEquals("oldName", feedback.getOldName());
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_sortMembers() throws Exception {

@@ -626,7 +626,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (consumer instanceof GetRefactoringConsumer) {
       new GetRefactoringProcessor(requestToRefactoringKindMap, (GetRefactoringConsumer) consumer).process(
           idString,
-          resultObject);
+          resultObject,
+          requestError);
     } else if (consumer instanceof GetAssistsConsumer) {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof GetFixesConsumer) {
