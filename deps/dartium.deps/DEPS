@@ -16,8 +16,10 @@ vars.update({
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
   "dartium_webkit_revision": "186462",
   "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
+  "metatest_rev": "@c75bae9e8709d49ff925819db0bf432ca7dd8373",
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
+  "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
   "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
 
   "co19_rev": "@786",
@@ -54,12 +56,17 @@ deps.update({
 
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
+  "src/dart/third_party/pkg/metatest":
+      "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   "src/dart/third_party/pkg/path":
       "https://github.com/dart-lang/path.git" + Var("path_rev"),
   "src/dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "src/dart/third_party/pkg/stack_trace":
       "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
+  "src/dart/third_party/pkg/string_scanner":
+      "https://github.com/dart-lang/string_scanner.git" +
+      Var("string_scanner_rev"),
 
   "src/dart/third_party/WebCore":
     "/third_party/WebCore",
