@@ -46,19 +46,19 @@ public class Outline {
   /**
    * A description of the element represented by this node.
    */
-  private final Element element;
+  private Element element;
 
   /**
    * The offset of the first character of the element. This is different than the offset in the
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
-  private final int offset;
+  private int offset;
 
   /**
    * The length of the element.
    */
-  private final int length;
+  private int length;
 
   private final Outline parent;
 
@@ -158,8 +158,34 @@ public class Outline {
     return builder.toHashCode();
   }
 
+  /**
+   * The children of the node. The field will be omitted if the node has no children.
+   */
   public void setChildren(List<Outline> children) {
     this.children = children;
+  }
+
+  /**
+   * A description of the element represented by this node.
+   */
+  public void setElement(Element element) {
+    this.element = element;
+  }
+
+  /**
+   * The length of the element.
+   */
+  public void setLength(int length) {
+    this.length = length;
+  }
+
+  /**
+   * The offset of the first character of the element. This is different than the offset in the
+   * Element, which if the offset of the name of the element. It can be used, for example, to map
+   * locations in the file back to an outline.
+   */
+  public void setOffset(int offset) {
+    this.offset = offset;
   }
 
   @Override

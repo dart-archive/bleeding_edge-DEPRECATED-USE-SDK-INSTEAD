@@ -348,10 +348,15 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     return outline;
   }
 
+  /**
+   * Checks if two given {@link Outline} objects are equal, and copies location information from "b"
+   * to "a".
+   */
   private static boolean isEqualOutlineTree(Outline a, Outline b) {
     if (a == null || b == null) {
       return false;
     }
+    // compare elements
     Element elementA = a.getElement();
     Element elementB = b.getElement();
     String nameA = elementA.getName();
@@ -359,6 +364,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     if (!nameA.equals(nameB)) {
       return false;
     }
+    // compare children
     List<Outline> childrenA = a.getChildren();
     List<Outline> childrenB = b.getChildren();
     if (childrenA.size() != childrenB.size()) {
@@ -371,6 +377,10 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return false;
       }
     }
+    // OK, update "a"
+    a.setOffset(b.getOffset());
+    a.setLength(b.getLength());
+    a.setElement(b.getElement());
     return true;
   }
 
@@ -551,7 +561,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     // check if the same Outline is selected
     IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
     Outline oldOutline = (Outline) selection.getFirstElement();
-    if (isEqualOutlineTree(newOutline, oldOutline)) {
+    if (isEqualOutlineTree(oldOutline, newOutline)) {
       return;
     }
     // set new selection
@@ -566,13 +576,11 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   }
 
-  public void setInput(final Outline input, final int offset) {
-    Outline oldInput = this.input;
-    this.input = input;
-    // ignore if the same content
-    if (isEqualOutlineTree(oldInput, input)) {
+  public void setInput(Outline input, int offset) {
+    if (isEqualOutlineTree(this.input, input)) {
       return;
     }
+    this.input = input;
     // set input
     Object[] expandedElements = viewer.getExpandedElements();
     ignoreSelectionChangedEvent = true;
