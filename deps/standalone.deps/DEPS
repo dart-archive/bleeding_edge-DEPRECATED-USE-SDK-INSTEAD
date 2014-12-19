@@ -14,16 +14,16 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "fake_async_rev": "@38614",
-  "matcher_rev": "@43e2811b53ee3a8df862524c186bed89e29f703d",
+  "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
-  "observe_rev": "@11f536784589a288d275462f7407a1f07ba4de75",
-  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
+  "observe_rev": "@fatal: bad default revision 'HEAD'",
+  "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "petitparser_rev" : "@37878",
   "smoke_rev": "@52abda1f29d5c9aad1baa8424ac115912bafcc0d",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
-  "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
-  "unittest_rev": "@2381a2e53080d4c8a499c2a9d4d224a96490feaf",
+  "stack_trace_rev": "@62a0cfe0c3e7270b75d71a7f356599bb63e5ae4e",
+  "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "observatory_pub_packages_rev": "@42487",
 }
