@@ -19,6 +19,7 @@ vars = {
   "apache_ant_rev" : "@19997",
   "apache_compress_rev" : "@19997",
   "apache_http_rev" : "@37872",
+  "args_rev" : "@0ae49d3054e79031f561f1bfd1c23c69ee1e92fb",
   "args4j_rev" : "@19997",
   "barback_rev" : "@9ae66cb15cafef521406b2263ee8b873e1786524",
   "bzip2_rev" : "@19997",
@@ -37,15 +38,18 @@ vars = {
   "gsutil_rev" : "@33376",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
+  "html5lib_rev" : "@faeb31061fcf60c952cc551902739c7d864cb0cd",
   "http_rev" : "@593e0da58bb11a1b5c3b05899e9f23942b731ff7",
   "http_multi_server_rev" : "@ae174d9ba95dc887f7e3db41609baef471724c3b",
   "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
   "http_throttle_rev" : "@91559418133b7f231267cb62bf21b20b823be4c2",
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
+  "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rev" : "@19997",
   "json_rpc_2_rev": "@2e9d94ed26357df802a8f7ef659085eddb50afe9",
   "junit_rev" : "@19997",
+  "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_rev": "@43e2811b53ee3a8df862524c186bed89e29f703d",
   "metatest_rev": "@c75bae9e8709d49ff925819db0bf432ca7dd8373",
   "mockito_rev" : "@19997",
@@ -60,8 +64,10 @@ vars = {
   "pool_rev": "@d14707b910a9288fe8284bd1e39a2c0407851cf7",
   "pub_semver_rev": "@182d55d7207e3af5e76e96834fa7cf63c55ce09a",
   "scheduled_test_rev": "@d10b6e93c2ca351e1b7ec765be7a0f5fdc74c269",
+  "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@52abda1f29d5c9aad1baa8424ac115912bafcc0d",
   "snakeyaml_rev" : "@19997",
+  "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_web_socket_rev": "@9934402597e52adab21013efc51d9cf891dbc09a",
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
@@ -161,6 +167,8 @@ deps = {
 
   "dart/third_party/font-awesome":
       "/third_party/font-awesome" + Var("font_awesome_rev"),
+  "dart/third_party/pkg/args":
+      "https://github.com/dart-lang/args.git" + Var("args_rev"),
   "dart/third_party/pkg/async_await":
       "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
   "dart/third_party/pkg/barback":
@@ -169,6 +177,8 @@ deps = {
       "/third_party/fake_async" + Var("fake_async_rev"),
   "dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
+  "dart/third_party/pkg/html5lib":
+      "html5libs://github.com/dart-lang/html5lib.git" + Var("html5lib_rev"),
   "dart/third_party/pkg/http":
       "https://github.com/dart-lang/http.git" + Var("http_rev"),
   "dart/third_party/pkg/http_multi_server":
@@ -178,8 +188,12 @@ deps = {
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "dart/third_party/pkg/http_throttle":
       "https://github.com/dart-lang/http_throttle.git" + Var("http_throttle_rev"),
+  "dart/third_party/pkg/intl":
+      "https://github.com/dart-lang/intl.git" + Var("intl_rev"),
   "dart/third_party/pkg/json_rpc_2":
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
+  "dart/third_party/pkg/logging":
+      "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
   "dart/third_party/pkg/matcher":
       "https://github.com/dart-lang/matcher.git" + Var("matcher_rev"),
   "dart/third_party/pkg/metatest":
@@ -199,11 +213,15 @@ deps = {
   "dart/third_party/pkg/scheduled_test":
       "https://github.com/dart-lang/scheduled_test.git" +
       Var("scheduled_test_rev"),
+  "dart/third_party/pkg/shelf":
+      "https://github.com/dart-lang/shelf.git" + Var("shelf_rev"),
   "dart/third_party/pkg/shelf_web_socket":
       "https://github.com/dart-lang/shelf_web_socket.git" +
       Var("shelf_web_socket_rev"),
   "dart/third_party/pkg/smoke":
       "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
+  "dart/third_party/pkg/source_maps":
+      "https://github.com/dart-lang/source_maps.git" + Var("source_maps_rev"),
   "dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "dart/third_party/pkg/stack_trace":
