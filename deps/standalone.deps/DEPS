@@ -14,6 +14,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "fake_async_rev": "@38614",
+  "matcher_rev": "@43e2811b53ee3a8df862524c186bed89e29f703d",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "observe_rev": "@11f536784589a288d275462f7407a1f07ba4de75",
@@ -22,6 +23,7 @@ vars = {
   "smoke_rev": "@52abda1f29d5c9aad1baa8424ac115912bafcc0d",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
+  "unittest_rev": "@2381a2e53080d4c8a499c2a9d4d224a96490feaf",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "observatory_pub_packages_rev": "@42487",
 }
@@ -63,6 +65,8 @@ deps = {
   # External packages.
   "dart/third_party/pkg/fake_async":
       "/third_party/fake_async" + Var("fake_async_rev"),
+  "dart/third_party/pkg/matcher":
+      "https://github.com/dart-lang/matcher.git" + Var("matcher_rev"),
   "dart/third_party/pkg/observe":
       "https://github.com/dart-lang/observe.git" + Var("observe_rev"),
   "dart/third_party/pkg/path":
@@ -73,6 +77,8 @@ deps = {
       "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
   "dart/third_party/pkg/stack_trace":
       "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
+  "dart/third_party/pkg/unittest":
+      "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
 }
 
 deps_os = {

@@ -15,13 +15,16 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/2125",
   "dartium_webkit_revision": "187551",
-  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
+
+  "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
+  "matcher_rev": "@43e2811b53ee3a8df862524c186bed89e29f703d",
   "metatest_rev": "@c75bae9e8709d49ff925819db0bf432ca7dd8373",
+  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
+  "unittest_rev": "@2381a2e53080d4c8a499c2a9d4d224a96490feaf",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
 
   "co19_rev": "@786",
   "fake_async_rev": "@38614",
@@ -57,6 +60,8 @@ deps.update({
 
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
+  "dart/third_party/pkg/matcher":
+      "https://github.com/dart-lang/matcher.git" + Var("matcher_rev"),
   "src/dart/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   "src/dart/third_party/pkg/path":
@@ -68,6 +73,8 @@ deps.update({
   "src/dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
+  "dart/third_party/pkg/unittest":
+      "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "src/dart/third_party/pkg/web_components":
       "https://github.com/dart-lang/web-components.git" +
       Var("web_components_rev"),
