@@ -178,7 +178,7 @@ deps = {
   "dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   "dart/third_party/pkg/html5lib":
-      "html5libs://github.com/dart-lang/html5lib.git" + Var("html5lib_rev"),
+      "https://github.com/dart-lang/html5lib.git" + Var("html5lib_rev"),
   "dart/third_party/pkg/http":
       "https://github.com/dart-lang/http.git" + Var("http_rev"),
   "dart/third_party/pkg/http_multi_server":
