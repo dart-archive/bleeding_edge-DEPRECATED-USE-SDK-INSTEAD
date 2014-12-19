@@ -20,6 +20,7 @@ vars.update({
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
   "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
+  "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "http_parser_rev" : "@6769e916aa2f0a14ae8d5d2cdbddaed81e419665",
 
   "co19_rev": "@786",
@@ -67,6 +68,9 @@ deps.update({
   "src/dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
+  "src/dart/third_party/pkg/web_components":
+      "https://github.com/dart-lang/web-components.git" +
+      Var("web_components_rev"),
 
   "src/dart/third_party/WebCore":
     "/third_party/WebCore",

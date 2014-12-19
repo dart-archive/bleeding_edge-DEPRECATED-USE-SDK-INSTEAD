@@ -69,6 +69,7 @@ vars = {
   "string_scanner_rev": "@1b8df03e5f9fe50ccfddef894c4032b3e98c31c4",
   "unittest_rev": "@2381a2e53080d4c8a499c2a9d4d224a96490feaf",
   "watcher_rev": "@684f0482e7394dee1f66bd810f297dcf9d8a08de",
+  "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@40446",
   "weberknecht_rev" : "@33599",
@@ -214,6 +215,9 @@ deps = {
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "dart/third_party/pkg/watcher":
       "https://github.com/dart-lang/watcher.git" + Var("watcher_rev"),
+  "dart/third_party/pkg/web_components":
+      "https://github.com/dart-lang/web-components.git" +
+      Var("web_components_rev"),
   "dart/third_party/pkg/yaml":
       "https://github.com/dart-lang/yaml.git" + Var("yaml_rev"),
 
