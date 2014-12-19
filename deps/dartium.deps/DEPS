@@ -15,6 +15,7 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
   "dartium_webkit_revision": "186462",
+  "path_rev": "@a2d53a06f1cedf32363bdc5419476c33b9f728bc",
   "source_span_rev": "@e2bab188ccf65cef5d95de2ec12f16d2026f9832",
   "stack_trace_rev": "@22d92b32de066e4932867c3ab3c8d8f7d9f29f44",
 
@@ -50,6 +51,8 @@ deps.update({
   "src/dart":
     Var("dart_branch") + "/dart",
 
+  "src/dart/third_party/pkg/path":
+      "https://github.com/dart-lang/path.git" + Var("path_rev"),
   "src/dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "src/dart/third_party/pkg/stack_trace":
