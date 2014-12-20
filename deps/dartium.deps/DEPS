@@ -60,7 +60,7 @@ deps.update({
 
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
-  "dart/third_party/pkg/matcher":
+  "src/dart/third_party/pkg/matcher":
       "https://github.com/dart-lang/matcher.git" + Var("matcher_rev"),
   "src/dart/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
