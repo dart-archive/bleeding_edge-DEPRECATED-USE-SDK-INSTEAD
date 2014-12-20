@@ -27,6 +27,7 @@ vars = {
   "clang_rev" : "@28450",
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@33092",
+  "csslib_rev" : "@994d20b90038fedd2aa7ad31f2a31456da96b225",
   "async_await_rev" : "@04e540562a04380a3e20a422c8bfe306e6f79f95",
   "d8_rev" : "@39739",
   "eclipse_rev" : "@38742",
@@ -173,6 +174,8 @@ deps = {
       "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
   "dart/third_party/pkg/barback":
       "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
+  "dart/third_party/pkg/csslib":
+      "https://github.com/dart-lang/csslib.git" + Var("csslib_rev"),
   "dart/third_party/pkg/fake_async":
       "/third_party/fake_async" + Var("fake_async_rev"),
   "dart/third_party/pkg/glob":
