@@ -73,7 +73,7 @@ deps.update({
   "src/dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
-  "dart/third_party/pkg/unittest":
+  "src/dart/third_party/pkg/unittest":
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "src/dart/third_party/pkg/web_components":
       "https://github.com/dart-lang/web-components.git" +
