@@ -20,7 +20,7 @@ vars = {
   "observe_rev": "@fatal: bad default revision 'HEAD'",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "petitparser_rev" : "@37878",
-  "smoke_rev": "@52abda1f29d5c9aad1baa8424ac115912bafcc0d",
+  "smoke_rev": "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "stack_trace_rev": "@62a0cfe0c3e7270b75d71a7f356599bb63e5ae4e",
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
