@@ -16,6 +16,7 @@ vars.update({
   "dartium_webkit_branch": "/blink/branches/dart/2125",
   "dartium_webkit_revision": "187551",
 
+  "args_rev": "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
@@ -58,6 +59,8 @@ deps.update({
   "src/dart":
     Var("dart_branch") + "/dart",
 
+  "src/dart/third_party/pkg/args":
+      "https://github.com/dart-lang/args.git" + Var("args_rev"),
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/matcher":
