@@ -74,6 +74,7 @@ vars = {
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_rev": "@62a0cfe0c3e7270b75d71a7f356599bb63e5ae4e",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
+  "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
   "watcher_rev": "@f1015e987b4e5a3b7fb65d8716ae9b5ee372b470",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
@@ -232,6 +233,9 @@ deps = {
   "dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
+  "dart/third_party/sunflower":
+      "https://github.com/dart-lang/sample-sunflower.git" +
+      Var("sunflower_rev"),
   "dart/third_party/pkg/unittest":
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "dart/third_party/pkg/watcher":
