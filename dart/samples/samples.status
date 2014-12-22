@@ -8,10 +8,6 @@ build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
 
-[ $runtime == vm ]
-# Skip tests that use dart:html on the standalone VM
-sunflower: Skip
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
