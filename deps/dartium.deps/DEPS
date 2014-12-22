@@ -76,7 +76,8 @@ deps.update({
   "src/dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
-  "src/dart/third_party/pkg/unittest":
+  # TODO(sigmund): should be src/dart/third_party/pkg/unittest (dartbug.com/21949)
+  "src/dart/pkg/unittest":
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "src/dart/third_party/pkg/web_components":
       "https://github.com/dart-lang/web-components.git" +
