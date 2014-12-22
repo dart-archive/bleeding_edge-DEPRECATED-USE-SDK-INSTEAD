@@ -17,7 +17,7 @@ vars = {
   "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
-  "observe_rev": "@fatal: bad default revision 'HEAD'",
+  "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "petitparser_rev" : "@37878",
   "smoke_rev": "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
