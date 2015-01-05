@@ -65,6 +65,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -558,11 +559,18 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     this.viewerConfiguration = viewerConfiguration;
     if (editor instanceof CompilationUnitEditor) {
       this.editor = (CompilationUnitEditor) editor;
-      this.editor.getViewer().getTextWidget().addMouseListener(new MouseAdapter() {
+      StyledText textWidget = this.editor.getViewer().getTextWidget();
+      textWidget.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseDown(MouseEvent e) {
           SourceRange range = DartHover.this.editor.getTextSelectionRange();
           lastClickOffset = range != null ? range.getOffset() : -1;
+        }
+      });
+      textWidget.addMouseMoveListener(new MouseMoveListener() {
+        @Override
+        public void mouseMove(MouseEvent e) {
+          lastClickOffset = -1;
         }
       });
     }
