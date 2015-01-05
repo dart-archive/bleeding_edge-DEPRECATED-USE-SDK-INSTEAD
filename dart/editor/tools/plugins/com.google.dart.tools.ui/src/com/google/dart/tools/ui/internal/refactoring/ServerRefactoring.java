@@ -57,6 +57,7 @@ public abstract class ServerRefactoring extends Refactoring {
   private final int offset;
   private final int length;
 
+  protected RefactoringStatus serverErrorStatus;
   protected RefactoringStatus initialStatus;
   protected RefactoringStatus optionsStatus;
   protected RefactoringStatus finalStatus;
@@ -76,6 +77,9 @@ public abstract class ServerRefactoring extends Refactoring {
     if (!setOptions(false)) {
       return TIMEOUT_STATUS;
     }
+    if (serverErrorStatus != null) {
+      return serverErrorStatus;
+    }
     // done if already fatal
     if (finalStatus.hasFatalError()) {
       return finalStatus;
@@ -94,6 +98,9 @@ public abstract class ServerRefactoring extends Refactoring {
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) {
     if (!setOptions(true)) {
       return TIMEOUT_STATUS;
+    }
+    if (serverErrorStatus != null) {
+      return serverErrorStatus;
     }
     return initialStatus;
   }
@@ -131,6 +138,7 @@ public abstract class ServerRefactoring extends Refactoring {
   protected abstract void setFeedback(RefactoringFeedback feedback);
 
   protected boolean setOptions(boolean validateOnly) {
+    serverErrorStatus = null;
     final CountDownLatch latch = new CountDownLatch(1);
     RefactoringOptions options = getOptions();
     DartCore.getAnalysisServer().edit_getRefactoring(
@@ -158,6 +166,8 @@ public abstract class ServerRefactoring extends Refactoring {
 
           @Override
           public void onError(RequestError requestError) {
+            String message = "Server error: " + requestError.getMessage();
+            serverErrorStatus = RefactoringStatus.createFatalErrorStatus(message);
             latch.countDown();
           }
         });
