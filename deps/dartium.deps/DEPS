@@ -20,6 +20,7 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
+  "observatory_pub_packages_rev": "@42487",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_rev": "@62a0cfe0c3e7270b75d71a7f356599bb63e5ae4e",
@@ -92,6 +93,9 @@ deps.update({
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
     "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
+  "src/dart/third_party/observatory_pub_packages":
+      "/third_party/observatory_pub_packages" +
+      Var("observatory_pub_packages_rev"),
 })
 
 deps_os['win'].update({
