@@ -40,6 +40,6 @@ public class ConvertMethodToGetterRefactoringProposal_NEW extends
 
   @Override
   public int getRelevance() {
-    return 9;
+    return 99;
   }
 }

@@ -112,7 +112,7 @@ public class SortMembersProposal_NEW implements IDartCompletionProposal {
 
   @Override
   public int getRelevance() {
-    return 5;
+    return 100;
   }
 
   @Override
