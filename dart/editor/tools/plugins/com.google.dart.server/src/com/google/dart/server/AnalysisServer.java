@@ -226,6 +226,20 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
+   * {@code edit.format}
+   *
+   * Format the contents of a single file. The currently selected region of text is passed in so that
+   * the selection can be preserved across the formatting operation. The updated selection will be as
+   * close to matching the original as possible, but whitespace at the beginning or end of the
+   * selected region will be ignored.
+   *
+   * @param file The file containing the code to be formatted.
+   * @param selectionOffset The offset of the current selection in the file.
+   * @param selectionLength The length of the current selection in the file.
+   */
+  public void edit_format(String file, int selectionOffset, int selectionLength, FormatConsumer consumer);
+
+  /**
    * {@code edit.getAssists}
    *
    * Return the set of assists that are available at the given location. An assist is distinguished

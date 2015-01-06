@@ -82,6 +82,12 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void edit_format(String file, int selectionOffset, int selectionLength,
+      FormatConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
     throw new UnsupportedOperationException();
   }

@@ -22,6 +22,7 @@ import com.google.dart.server.FindElementReferencesConsumer;
 import com.google.dart.server.FindMemberDeclarationsConsumer;
 import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.dart.server.FindTopLevelDeclarationsConsumer;
+import com.google.dart.server.FormatConsumer;
 import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
@@ -1370,6 +1371,122 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     }
   }
 
+  public void test_edit_format() throws Exception {
+    final Object[] editsArray = {null};
+    final int[] selectionOffsetArray = {-1};
+    final int[] selectionLengthArray = {-1};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_format("/fileA.dart", 1, 2, new FormatConsumer() {
+      @Override
+      public void computedFormat(List<SourceEdit> edits, int selectionOffset, int selectionLength) {
+        editsArray[0] = edits;
+        selectionOffsetArray[0] = selectionOffset;
+        selectionLengthArray[0] = selectionLength;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.format',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'selectionOffset': 1,",
+        "    'selectionLength': 2",
+        "  }",
+        "}");
+    if (!requests.contains(expected)) {
+      fail("Expected '" + expected + "' found '" + requests + "'");
+    }
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'edits': [",
+        "      {",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'replacement': 'replacement'",
+        "      }",
+        "    ],",
+        "    'selectionOffset': 3,",
+        "    'selectionLength': 4",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    // assertion on requestErrorArray
+    assertNull(requestErrorArray[0]);
+    // assertions on 'assists' (List<SourceEdit>)
+    @SuppressWarnings("unchecked")
+    List<SourceEdit> edits = (List<SourceEdit>) editsArray[0];
+    assertNotNull(edits);
+    assertThat(edits).hasSize(1);
+    assertEquals(3, selectionOffsetArray[0]);
+    assertEquals(4, selectionLengthArray[0]);
+    // other assertions would would test the generated fromJson methods
+  }
+
+  public void test_edit_format_error() throws Exception {
+    final Object[] editsArray = {null};
+    final int[] selectionOffsetArray = {-1};
+    final int[] selectionLengthArray = {-1};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_format("/fileA.dart", 1, 2, new FormatConsumer() {
+      @Override
+      public void computedFormat(List<SourceEdit> edits, int selectionOffset, int selectionLength) {
+        editsArray[0] = edits;
+        selectionOffsetArray[0] = selectionOffset;
+        selectionLengthArray[0] = selectionLength;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.format',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'selectionOffset': 1,",
+        "    'selectionLength': 2",
+        "  }",
+        "}");
+    if (!requests.contains(expected)) {
+      fail("Expected '" + expected + "' found '" + requests + "'");
+    }
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(editsArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
   public void test_edit_getAssists() throws Exception {
     final Object[] sourceChangesArray = {null};
     final RequestError[] requestErrorArray = {null};
@@ -1414,7 +1531,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "                'length': 2,",
         "                'replacement': 'replacement1',",
         "                'id': 'id1'",
-        "             }",
+        "              }",
         "            ]",
         "          }",
         "        ],",

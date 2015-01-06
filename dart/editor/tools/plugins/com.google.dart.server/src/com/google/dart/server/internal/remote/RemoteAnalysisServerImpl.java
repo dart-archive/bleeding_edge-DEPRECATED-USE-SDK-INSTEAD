@@ -26,6 +26,7 @@ import com.google.dart.server.FindElementReferencesConsumer;
 import com.google.dart.server.FindMemberDeclarationsConsumer;
 import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.dart.server.FindTopLevelDeclarationsConsumer;
+import com.google.dart.server.FormatConsumer;
 import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
@@ -51,6 +52,7 @@ import com.google.dart.server.internal.remote.processor.FindMemberDeclarationsPr
 import com.google.dart.server.internal.remote.processor.FindMemberReferencesProcessor;
 import com.google.dart.server.internal.remote.processor.FindTopLevelDeclarationsProcessor;
 import com.google.dart.server.internal.remote.processor.FixesProcessor;
+import com.google.dart.server.internal.remote.processor.FormatProcessor;
 import com.google.dart.server.internal.remote.processor.GetRefactoringProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.MapUriProcessor;
@@ -321,6 +323,16 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(
         id,
         RequestUtilities.generateCompletionGetSuggestions(id, file, offset),
+        consumer);
+  }
+
+  @Override
+  public void edit_format(String file, int selectionOffset, int selectionLength,
+      FormatConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditFormat(id, file, selectionOffset, selectionLength),
         consumer);
   }
 
@@ -622,7 +634,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     //
     // Edit Domain
     //
-    else if (consumer instanceof GetHoverConsumer) {
+    else if (consumer instanceof FormatConsumer) {
+      new FormatProcessor((FormatConsumer) consumer).process(resultObject, requestError);
+    } else if (consumer instanceof GetHoverConsumer) {
       new HoverProcessor((GetHoverConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof GetRefactoringConsumer) {
       new GetRefactoringProcessor(requestToRefactoringKindMap, (GetRefactoringConsumer) consumer).process(

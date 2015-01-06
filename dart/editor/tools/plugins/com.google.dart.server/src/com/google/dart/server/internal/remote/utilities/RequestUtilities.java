@@ -43,6 +43,8 @@ public class RequestUtilities {
   private static final String METHOD = "method";
   private static final String OFFSET = "offset";
   private static final String PARAMS = "params";
+  private static final String SELECTION_LENGTH = "selectionLength";
+  private static final String SELECTION_OFFSET = "selectionOffset";
   private static final String SUBSCRIPTIONS = "subscriptions";
   private static final String URI = "uri";
 
@@ -63,6 +65,7 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
 
   // Edit domain
+  private static final String METHOD_EDIT_FORMAT = "edit.format";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_AVAILABLE_REFACTORING = "edit.getAvailableRefactorings";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
@@ -338,6 +341,29 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_FORMAT} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.format"
+   *   "params": {
+   *     "file": FilePath
+   *     "selectionOffset": int
+   *     "selectionLength": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditFormat(String idValue, String file, int offset, int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(SELECTION_OFFSET, offset);
+    params.addProperty(SELECTION_LENGTH, length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_FORMAT, params);
   }
 
   /**
