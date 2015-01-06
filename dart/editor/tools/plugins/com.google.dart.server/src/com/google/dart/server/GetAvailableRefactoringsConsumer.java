@@ -14,6 +14,7 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.RefactoringKind;
+import com.google.dart.server.generated.types.RequestError;
 
 import java.util.List;
 
@@ -31,4 +32,12 @@ public interface GetAvailableRefactoringsConsumer extends Consumer {
    * @see RefactoringKind
    */
   public void computedRefactoringKinds(List<String> refactoringKinds);
+
+  /**
+   * If a set of refactoring kinds cannot be passed back, some {@link RequestError} is passed back
+   * instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

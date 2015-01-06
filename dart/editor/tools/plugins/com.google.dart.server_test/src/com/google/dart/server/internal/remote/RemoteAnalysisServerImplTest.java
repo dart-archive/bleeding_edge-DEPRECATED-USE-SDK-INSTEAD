@@ -1665,6 +1665,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getAvailableRefactorings() throws Exception {
     final Object[] refactoringKindsArray = {null};
+    final RequestError[] requestErrorArray = {null};
     server.edit_getAvailableRefactorings(
         "/fileA.dart",
         1,
@@ -1673,6 +1674,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           @Override
           public void computedRefactoringKinds(List<String> refactoringKinds) {
             refactoringKindsArray[0] = refactoringKinds;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1706,10 +1712,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "CONVERT_GETTER_TO_METHOD",
         "CONVERT_METHOD_TO_GETTER",
         "EXTRACT_LOCAL_VARIABLE");
+
+    // request errors is null
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_edit_getAvailableRefactorings_emptyKindsList() throws Exception {
     final Object[] refactoringKindsArray = {null};
+    final RequestError[] requestErrorArray = {null};
     server.edit_getAvailableRefactorings(
         "/fileA.dart",
         1,
@@ -1718,6 +1728,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           @Override
           public void computedRefactoringKinds(List<String> refactoringKinds) {
             refactoringKindsArray[0] = refactoringKinds;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
 
@@ -1735,6 +1750,50 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     @SuppressWarnings("unchecked")
     List<String> refactoringKinds = (List<String>) refactoringKindsArray[0];
     assertThat(refactoringKinds).hasSize(0);
+
+    // request errors is null
+    assertNull(requestErrorArray[0]);
+  }
+
+  public void test_edit_getAvailableRefactorings_error() throws Exception {
+    final Object[] refactoringKindsArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.edit_getAvailableRefactorings(
+        "/fileA.dart",
+        1,
+        2,
+        new GetAvailableRefactoringsConsumer() {
+          @Override
+          public void computedRefactoringKinds(List<String> refactoringKinds) {
+            refactoringKindsArray[0] = refactoringKinds;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
+          }
+        });
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(refactoringKindsArray[0]);
+
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
   }
 
   public void test_edit_getFixes() throws Exception {
