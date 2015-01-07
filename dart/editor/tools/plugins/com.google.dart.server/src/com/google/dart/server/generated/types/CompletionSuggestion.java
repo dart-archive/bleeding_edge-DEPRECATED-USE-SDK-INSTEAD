@@ -131,10 +131,10 @@ public class CompletionSuggestion {
   private final Integer requiredParameterCount;
 
   /**
-   * The number of positional parameters for the function or method being suggested. This field is
+   * True if the function or method being suggested has at least one named parameter. This field is
    * omitted if the parameterNames field is omitted.
    */
-  private final Integer positionalParameterCount;
+  private final Boolean hasNamedParameters;
 
   /**
    * The name of the optional parameter being suggested. This field is omitted if the suggestion is
@@ -151,7 +151,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Integer positionalParameterCount, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -167,7 +167,7 @@ public class CompletionSuggestion {
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
     this.requiredParameterCount = requiredParameterCount;
-    this.positionalParameterCount = positionalParameterCount;
+    this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
   }
@@ -192,7 +192,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
         ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
         ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
-        ObjectUtilities.equals(other.positionalParameterCount, positionalParameterCount) &&
+        ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
         ObjectUtilities.equals(other.parameterName, parameterName) &&
         ObjectUtilities.equals(other.parameterType, parameterType);
     }
@@ -215,10 +215,10 @@ public class CompletionSuggestion {
     List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
     List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
     Integer requiredParameterCount = jsonObject.get("requiredParameterCount") == null ? null : jsonObject.get("requiredParameterCount").getAsInt();
-    Integer positionalParameterCount = jsonObject.get("positionalParameterCount") == null ? null : jsonObject.get("positionalParameterCount").getAsInt();
+    Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, element, returnType, parameterNames, parameterTypes, requiredParameterCount, positionalParameterCount, parameterName, parameterType);
+    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -274,6 +274,14 @@ public class CompletionSuggestion {
   }
 
   /**
+   * True if the function or method being suggested has at least one named parameter. This field is
+   * omitted if the parameterNames field is omitted.
+   */
+  public Boolean getHasNamedParameters() {
+    return hasNamedParameters;
+  }
+
+  /**
    * True if the suggested element is deprecated.
    */
   public boolean isDeprecated() {
@@ -325,14 +333,6 @@ public class CompletionSuggestion {
    */
   public List<String> getParameterTypes() {
     return parameterTypes;
-  }
-
-  /**
-   * The number of positional parameters for the function or method being suggested. This field is
-   * omitted if the parameterNames field is omitted.
-   */
-  public Integer getPositionalParameterCount() {
-    return positionalParameterCount;
   }
 
   /**
@@ -391,7 +391,7 @@ public class CompletionSuggestion {
     builder.append(parameterNames);
     builder.append(parameterTypes);
     builder.append(requiredParameterCount);
-    builder.append(positionalParameterCount);
+    builder.append(hasNamedParameters);
     builder.append(parameterName);
     builder.append(parameterType);
     return builder.toHashCode();
@@ -438,8 +438,8 @@ public class CompletionSuggestion {
     if (requiredParameterCount != null) {
       jsonObject.addProperty("requiredParameterCount", requiredParameterCount);
     }
-    if (positionalParameterCount != null) {
-      jsonObject.addProperty("positionalParameterCount", positionalParameterCount);
+    if (hasNamedParameters != null) {
+      jsonObject.addProperty("hasNamedParameters", hasNamedParameters);
     }
     if (parameterName != null) {
       jsonObject.addProperty("parameterName", parameterName);
@@ -484,8 +484,8 @@ public class CompletionSuggestion {
     builder.append(StringUtils.join(parameterTypes, ", ") + ", ");
     builder.append("requiredParameterCount=");
     builder.append(requiredParameterCount + ", ");
-    builder.append("positionalParameterCount=");
-    builder.append(positionalParameterCount + ", ");
+    builder.append("hasNamedParameters=");
+    builder.append(hasNamedParameters + ", ");
     builder.append("parameterName=");
     builder.append(parameterName + ", ");
     builder.append("parameterType=");

@@ -1275,7 +1275,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'parameterNames': ['param0', 'param1'],",
         "        'parameterTypes': ['paramType0', 'paramType1'],",
         "        'requiredParameterCount': 2,",
-        "        'positionalParameterCount': 0,",
+        "        'hasNamedParameters': false,",
         "        'parameterName': 'param2',",
         "        'parameterType': 'paramType2',",
         "        'element': {",
@@ -1332,7 +1332,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertThat(parameterTypes).contains("paramType0");
       assertThat(parameterTypes).contains("paramType1");
       assertEquals(suggestion.getRequiredParameterCount(), new Integer(2));
-      assertEquals(suggestion.getPositionalParameterCount(), new Integer(0));
+      assertEquals(suggestion.getHasNamedParameters(), new Boolean(false));
       assertEquals(suggestion.getParameterName(), "param2");
       assertEquals(suggestion.getParameterType(), "paramType2");
       {
@@ -1359,7 +1359,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertNull(suggestion.getParameterNames());
       assertNull(suggestion.getParameterTypes());
       assertNull(suggestion.getRequiredParameterCount());
-      assertNull(suggestion.getPositionalParameterCount());
+      assertNull(suggestion.getHasNamedParameters());
       assertNull(suggestion.getParameterName());
       assertNull(suggestion.getParameterType());
       {

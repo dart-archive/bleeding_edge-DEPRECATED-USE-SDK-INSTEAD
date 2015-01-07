@@ -112,8 +112,8 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
-        0,
-        0,
+        null,
+        null,
         null,
         null));
     completions1.add(new CompletionSuggestion(
@@ -131,8 +131,8 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
-        0,
-        0,
+        null,
+        null,
         null,
         null));
 
@@ -186,8 +186,8 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
-        0,
-        0,
+        null,
+        null,
         null,
         null));
     completions1.add(new CompletionSuggestion(
@@ -205,8 +205,8 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
-        0,
-        0,
+        null,
+        null,
         null,
         null));
     completions2.add(new CompletionSuggestion(
@@ -224,8 +224,8 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
-        0,
-        0,
+        null,
+        null,
         null,
         null));
 

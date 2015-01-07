@@ -95,6 +95,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -154,13 +155,40 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   private Image image;
 
-  /** Offset needed when the proposal is applied */
+  /**
+   * The offset into {@link replacementString} where the cursor should be placed if the proposal is
+   * accepted. Computed by {@see computeCompletion}.
+   */
   private int selectionOffset = 0;
+
+  /**
+   * The length of text that should be selected if the proposal is accepted. Computed by {@see
+   * computeCompletion}.
+   */
+  private int selectionLength = 0;
 
   /**
    * The {@link IInformationControlCreator} for documentation.
    */
   private IInformationControlCreator informationControlCreator;
+
+  /**
+   * The replacement string, or null if it has not yet been computed. Computed by {@see
+   * computeCompletion}.
+   */
+  private String replacementString = null;
+
+  /**
+   * If the completion is a method call with at least one argument, offsets within replacementString
+   * of the arguments. Otherwise null. Computed by {@see computeCompletion}.
+   */
+  private int[] argumentOffsets = null;
+
+  /**
+   * If the completion is a method call with at least one argument, the lengths of the arguments.
+   * Otherwise null. Computed by {@see computeCompletion}.
+   */
+  private int[] argumentLengths = null;
 
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
@@ -197,7 +225,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
        */
       if (replacementLength == 0 && trigger == '.') {
         doc.replace(offset, 0, Character.toString(trigger));
-        selectionOffset = 1;
         return;
       }
       /*
@@ -211,31 +238,18 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
        * Insert the suggestion
        */
       doc.replace(replacementOffset, replacementLength, completion);
-      selectionOffset = completion.length();
       /*
        * If the suggestion has parameters, initiate entering parameters
        */
-      int newOffset = replacementOffset + completion.length();
-      String param = getParamString();
-      if (param != null) {
-        doc.replace(newOffset, 0, "()");
-        ++newOffset;
-        ++selectionOffset;
-        if (param.length() == 2) { // param is "()"
-          ++selectionOffset;
-          return;
-        }
-        LinkedPositionGroup group = new LinkedPositionGroup();
-        group.addPosition(new LinkedPosition(doc, newOffset, 0, LinkedPositionGroup.NO_STOP));
-
+      if (argumentLengths != null) {
+        // Set up linked position groups for the arguments.
         LinkedModeModel model = new LinkedModeModel();
-        model.addGroup(group);
+        buildLinkedModeModel(model, doc, replacementOffset);
         model.forceInstall();
 
         LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
-        ui.setSimpleMode(true);
         ui.setExitPolicy(new ExitPolicy(')', doc, viewer));
-        ui.setExitPosition(viewer, newOffset + 1, 0, Integer.MAX_VALUE);
+        ui.setExitPosition(viewer, replacementOffset + completion.length(), 0, Integer.MAX_VALUE);
         ui.setCyclingMode(LinkedModeUI.CYCLE_NEVER);
         ui.enter();
         return;
@@ -244,8 +258,12 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
        * Insert the trigger character typed if it is not enter or null
        */
       if (trigger != '\0' && trigger != '\n') {
-        doc.replace(newOffset, 0, Character.toString(trigger));
+        doc.replace(
+            replacementOffset + selectionOffset,
+            selectionLength,
+            Character.toString(trigger));
         ++selectionOffset;
+        selectionLength = 0;
         return;
       }
     } catch (BadLocationException e) {
@@ -363,7 +381,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
     int length = Math.max(0, completionOffset - collector.getReplacementOffset());
-    return getCompletion().substring(0, length);
+    return suggestion.getCompletion().substring(0, length);
   }
 
   @Override
@@ -373,7 +391,8 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Point getSelection(IDocument document) {
-    return new Point(collector.getReplacementOffset() + selectionOffset, 0);
+    computeCompletion();
+    return new Point(collector.getReplacementOffset() + selectionOffset, selectionLength);
   }
 
   @Override
@@ -428,6 +447,64 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     char[] name = string.toCharArray();
     return start.equalsIgnoreCase(prefix)
         || CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
+  }
+
+  protected void buildLinkedModeModel(LinkedModeModel model, IDocument document, int baseOffset)
+      throws BadLocationException {
+    // TODO(paulberry): consider extending to support optional arguments, as
+    // FilledArgumentNamesMethodProposal does.
+    for (int i = 0; i != argumentOffsets.length; i++) {
+      LinkedPositionGroup group = new LinkedPositionGroup();
+      LinkedPosition pos = new LinkedPosition(
+          document,
+          baseOffset + argumentOffsets[i],
+          argumentLengths[i],
+          LinkedPositionGroup.NO_STOP);
+      group.addPosition(pos);
+      model.addGroup(group);
+    }
+  }
+
+  /**
+   * Compute {@link replacementString}, {@link selectionOffset}, {@link selectionLength},
+   * {@link argumentOffsets}, and {@link argumentLengths}, if they haven't been computed already.
+   */
+  private void computeCompletion() {
+    if (replacementString != null) {
+      // Already computed.
+      return;
+    }
+    List<String> parameterNames = suggestion.getParameterNames();
+    if (parameterNames == null) {
+      // Just complete a single identifier.
+      replacementString = suggestion.getCompletion();
+      selectionOffset = replacementString.length();
+      selectionLength = 0;
+    } else {
+      // Complete with the identifier, parens, and arguments.
+      StringBuffer buffer = new StringBuffer(suggestion.getCompletion());
+      buffer.append('(');
+      int requiredParameterCount = suggestion.getRequiredParameterCount();
+      if (requiredParameterCount > 0) {
+        argumentOffsets = new int[requiredParameterCount];
+        argumentLengths = new int[requiredParameterCount];
+        for (int i = 0; i < requiredParameterCount; i++) {
+          if (i != 0) {
+            buffer.append(", ");
+          }
+          argumentOffsets[i] = buffer.length();
+          buffer.append(parameterNames.get(i));
+          argumentLengths[i] = buffer.length() - argumentOffsets[i];
+        }
+        selectionOffset = argumentOffsets[0];
+        selectionLength = argumentLengths[0];
+      } else {
+        selectionOffset = buffer.length();
+        selectionLength = 0;
+      }
+      buffer.append(')');
+      replacementString = buffer.toString();
+    }
   }
 
   private Image computeImage() {
@@ -514,7 +591,8 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private String getCompletion() {
-    return suggestion.getCompletion();
+    computeCompletion();
+    return replacementString;
   }
 
   /**
