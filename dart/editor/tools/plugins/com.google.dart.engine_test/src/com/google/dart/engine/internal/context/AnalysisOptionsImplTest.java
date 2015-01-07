@@ -26,6 +26,7 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       options.setCacheSize(i);
       options.setDart2jsHint(booleanValue);
       options.setEnableDeferredLoading(booleanValue);
+      options.setEnableEnum(booleanValue);
       options.setGenerateSdkErrors(booleanValue);
       options.setHint(booleanValue);
       options.setIncremental(booleanValue);
@@ -36,7 +37,6 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       assertEquals(options.getAnalyzePolymer(), copy.getAnalyzePolymer());
       assertEquals(options.getCacheSize(), copy.getCacheSize());
       assertEquals(options.getDart2jsHint(), copy.getDart2jsHint());
-      assertEquals(options.getEnableAsync(), copy.getEnableAsync());
       assertEquals(options.getEnableDeferredLoading(), copy.getEnableDeferredLoading());
       assertEquals(options.getEnableEnum(), copy.getEnableEnum());
       assertEquals(options.getGenerateSdkErrors(), copy.getGenerateSdkErrors());
@@ -80,14 +80,6 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     boolean value = !options.getDart2jsHint();
     options.setDart2jsHint(value);
     assertEquals(value, options.getDart2jsHint());
-  }
-
-  public void test_getEnableAsync() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    assertEquals(AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC, options.getEnableAsync());
-    boolean value = !options.getEnableAsync();
-    options.setEnableAsync(value);
-    assertEquals(value, options.getEnableAsync());
   }
 
   public void test_getEnableDeferredLoading() {

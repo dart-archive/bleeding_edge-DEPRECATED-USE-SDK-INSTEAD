@@ -29,7 +29,8 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The default value for enabling async support.
    */
-  public static boolean DEFAULT_ENABLE_ASYNC = false;
+  @Deprecated
+  public static boolean DEFAULT_ENABLE_ASYNC = true;
 
   /**
    * The default value for enabling deferred loading.
@@ -155,6 +156,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     return dart2jsHint;
   }
 
+  @Deprecated
   @Override
   public boolean getEnableAsync() {
     return enableAsync;
@@ -242,8 +244,9 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * 
    * @param enableAsync {@code true} if async support should be enabled
    */
+  @Deprecated
   public void setEnableAsync(boolean enableAsync) {
-    this.enableAsync = enableAsync;
+    // Async support cannot be disabled
   }
 
   /**
