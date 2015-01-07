@@ -18,6 +18,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.CreateContextConsumer;
 import com.google.dart.server.MapUriConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
@@ -73,6 +74,10 @@ public class UriToFileResolver {
             @Override
             public void computedExecutionContext(String contextId) {
               executionContextId = contextId;
+            }
+
+            @Override
+            public void onError(RequestError requestError) {
             }
           });
     }

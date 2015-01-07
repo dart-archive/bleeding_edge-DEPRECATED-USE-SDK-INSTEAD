@@ -2973,10 +2973,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_execution_createContext() throws Exception {
     final String[] contextIds = {null};
+    final RequestError[] requestErrorArray = {null};
     server.execution_createContext("/a/b", new CreateContextConsumer() {
       @Override
       public void computedExecutionContext(String contextId) {
         contextIds[0] = contextId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3000,6 +3006,51 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("23", contextIds[0]);
+    assertNull(requestErrorArray[0]);
+  }
+
+  public void test_execution_createContext_error() throws Exception {
+    final String[] contextIds = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.execution_createContext("/a/b", new CreateContextConsumer() {
+      @Override
+      public void computedExecutionContext(String contextId) {
+        contextIds[0] = contextId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.createContext',",
+        "  'params': {",
+        "    'contextRoot': '/a/b'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'MESSAGE'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(contextIds[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CODE", requestError.getCode());
+    assertEquals("MESSAGE", requestError.getMessage());
   }
 
   public void test_execution_deleteContext() throws Exception {

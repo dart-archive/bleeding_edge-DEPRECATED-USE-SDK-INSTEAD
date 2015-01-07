@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
+
 /**
  * The interface {@code CreateContextConsumer} defines the behavior of objects that consume create
  * context responses.
@@ -26,4 +28,12 @@ public interface CreateContextConsumer extends Consumer {
    * @param contextId the id of the context that was computed
    */
   public void computedExecutionContext(String contextId);
+
+  /**
+   * If an execution context cannot be passed back, some {@link RequestError} is passed back
+   * instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

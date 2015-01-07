@@ -14,7 +14,11 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.CreateContextConsumer;
+import com.google.dart.server.ExtendedRequestErrorCode;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Instances of the class {@code CreateContextProcessor} process the result of an
@@ -41,8 +45,26 @@ public class CreateContextProcessor extends ResultProcessor {
    * 
    * @param resultObject the result object to be processed
    */
-  public void process(JsonObject resultObject) {
-    String contextId = resultObject.get("id").getAsString();
-    consumer.computedExecutionContext(contextId);
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      try {
+        String contextId = resultObject.get("id").getAsString();
+        consumer.computedExecutionContext(contextId);
+      } catch (Exception exception) {
+        // catch any exceptions in the formatting of this response
+        String message = exception.getMessage();
+        String stackTrace = null;
+        if (exception.getStackTrace() != null) {
+          stackTrace = ExceptionUtils.getStackTrace(exception);
+        }
+        requestError = new RequestError(
+            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
+            message != null ? message : "",
+            stackTrace);
+      }
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

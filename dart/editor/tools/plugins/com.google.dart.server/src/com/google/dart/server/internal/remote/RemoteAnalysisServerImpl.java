@@ -660,7 +660,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // Execution Domain
     //
     else if (consumer instanceof CreateContextConsumer) {
-      new CreateContextProcessor((CreateContextConsumer) consumer).process(resultObject);
+      new CreateContextProcessor((CreateContextConsumer) consumer).process(
+          resultObject,
+          requestError);
     } else if (consumer instanceof MapUriConsumer) {
       new MapUriProcessor((MapUriConsumer) consumer).process(resultObject);
     }
