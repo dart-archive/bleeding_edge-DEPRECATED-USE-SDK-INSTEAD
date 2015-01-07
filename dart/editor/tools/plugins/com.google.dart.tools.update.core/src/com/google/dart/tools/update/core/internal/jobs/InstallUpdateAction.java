@@ -194,8 +194,12 @@ public class InstallUpdateAction extends Action {
 
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     List<Executable> executables = new ArrayList<Executable>();
-    Executable.add(executables, "Dart VM", sdk.getVmExecutable());
-    Executable.add(executables, "Dartium", DartSdkManager.getManager().getDartiumExecutable());
+    // check if executables are updated only when sdk in use is the one
+    // in the editor install directory
+    if (DartSdkManager.getManager().isDefaultSdk()) {
+      Executable.add(executables, "Dart VM", sdk.getVmExecutable());
+      Executable.add(executables, "Dartium", DartSdkManager.getManager().getDartiumExecutable());
+    }
     int index = 0;
     while (index < executables.size()) {
       if (!executables.get(index).rename()) {
@@ -365,6 +369,8 @@ public class InstallUpdateAction extends Action {
         mon.newChild(20));
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
+    terminateRunningDartLaunches();
+
     File sdkDir = new File(installTarget, "dart-sdk"); //$NON-NLS-1$
     UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4));
     UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(4)); //$NON-NLS-1$
@@ -373,7 +379,6 @@ public class InstallUpdateAction extends Action {
     if (androidDir.exists()) {
       UpdateUtils.deleteDirectory(androidDir, mon.newChild(4));
     }
-    terminateRunningDartLaunches();
 
     File dartium = DartSdkManager.getManager().getDartiumWorkingDirectory(installTarget);
     try {

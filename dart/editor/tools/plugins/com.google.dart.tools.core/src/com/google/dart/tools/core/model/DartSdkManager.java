@@ -273,6 +273,10 @@ public class DartSdkManager {
     return getDartiumExecutable() != null;
   }
 
+  public boolean isDefaultSdk() {
+    return getDefaultEditorSdkDirectory().equals(getSdk().getDirectory());
+  }
+
   public void removeSdkListener(DartSdkListener listener) {
     listeners.remove(listener);
   }
