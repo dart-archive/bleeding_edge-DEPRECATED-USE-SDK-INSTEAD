@@ -476,24 +476,24 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   private int computeRelevance() {
     String relevance = suggestion.getRelevance();
     if (HIGH.equals(relevance)) {
-      return 100;
-    } else if (LOW.equals(relevance)) {
       return 0;
+    } else if (LOW.equals(relevance)) {
+      return 100;
     } else { // DEFAULT
       Element element = suggestion.getElement();
       if (element != null) {
         String kind = element.getKind();
         if (LOCAL_VARIABLE.equals(kind) || PARAMETER.equals(kind)) {
-          return 79;
+          return 20;
         } else if (FIELD.equals(kind)) {
-          return 78;
+          return 21;
         } else if (METHOD.equals(kind) || GETTER.equals(kind) || SETTER.equals(kind)
             || FUNCTION.equals(kind)) {
-          return 77;
+          return 22;
         } else if (TOP_LEVEL_VARIABLE.equals(kind)) {
-          return 76;
+          return 23;
         } else if (KEYWORD.equals(kind)) {
-          return 75;
+          return 24;
         }
       }
       return 50;
