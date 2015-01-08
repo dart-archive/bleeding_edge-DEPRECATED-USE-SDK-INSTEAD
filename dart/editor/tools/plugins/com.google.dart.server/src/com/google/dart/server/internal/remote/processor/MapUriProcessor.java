@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.MapUriConsumer;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -43,24 +42,8 @@ public class MapUriProcessor extends ResultProcessor {
    * @param resultObject the result object to be processed
    */
   public void process(JsonObject resultObject) {
-    String file = getOptionalString(resultObject, "file");
-    String uri = getOptionalString(resultObject, "uri");
+    String file = safelyGetAsString(resultObject, "file");
+    String uri = safelyGetAsString(resultObject, "uri");
     consumer.computedFileOrUri(file, uri);
-  }
-
-  /**
-   * Return the value of the given optional member in the given object as a string, or {@code null}
-   * if the member is not defined.
-   * 
-   * @param resultObject the object containing the member
-   * @param memberName the name of the member to be returned
-   * @return the value of the optional member
-   */
-  private String getOptionalString(JsonObject resultObject, String memberName) {
-    JsonElement element = resultObject.get(memberName);
-    if (element == null) {
-      return null;
-    }
-    return element.getAsString();
   }
 }
