@@ -42,7 +42,7 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
-  "co19_rev": "@786",
+  "co19_rev": "@801",
   "fake_async_rev": "@38614",
 })
 
