@@ -211,6 +211,12 @@ public class DartSdkManager {
         dartiumDir = null;
       }
       if (dartiumDir == null) {
+        dartiumDir = getDirectoryFromPath(DartCore.getPlugin().getDartiumLocationPref());
+        if (dartiumDir != null && !dartiumDir.exists()) {
+          dartiumDir = null;
+        }
+      }
+      if (dartiumDir == null) {
         dartiumDir = new File(getEclipseInstallationDirectory(), DARTIUM_DIRECTORY_NAME);
       }
       if (dartiumDir.exists()) {
@@ -323,6 +329,16 @@ public class DartSdkManager {
     }
   }
 
+  private File getDirectoryFromPath(String path) {
+    if (path != null) {
+      path = path.trim();
+      if (path.length() > 0) {
+        return new File(path);
+      }
+    }
+    return null;
+  }
+
   private String getSdkUrl(String channel) {
 
     String sdkZip = NLS.bind(SDK_ZIP, getPlatformCode(), getPlatformBititude());
@@ -355,13 +371,7 @@ public class DartSdkManager {
    */
   private File getUserDefinedDirectory(String key) {
     String sdkPath = DartCore.getUserDefinedProperty(key);
-    if (sdkPath != null) {
-      sdkPath = sdkPath.trim();
-      if (sdkPath.length() > 0) {
-        return new File(sdkPath);
-      }
-    }
-    return null;
+    return getDirectoryFromPath(sdkPath);
   }
 
   private void initSdk() {
@@ -370,6 +380,12 @@ public class DartSdkManager {
       DartCore.logError(USER_DEFINED_SDK_KEY + " defined in " + DartCore.EDITOR_PROPERTIES
           + " but does not exist: " + sdkDir);
       sdkDir = null;
+    }
+    if (sdkDir == null) {
+      sdkDir = getDirectoryFromPath(DartCore.getPlugin().getSdkLocationPref());
+      if (sdkDir != null && !sdkDir.exists()) {
+        sdkDir = null;
+      }
     }
     if (sdkDir == null) {
       sdkDir = getDefaultPluginsSdkDirectory();

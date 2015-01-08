@@ -199,6 +199,16 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PREFS_DART2JS_FLAGS = "dart2jsFlags";
 
   /**
+   * Preference for specifying location of the Dart SDK.
+   */
+  public static final String PREFS_SDK_LOCATION = "sdkLocation";
+
+  /**
+   * Preference for specifying location of Dartium
+   */
+  public static final String PREFS_DARTIUM_LOCATION = "dartiumLocation";
+
+  /**
    * Preference to control if "not a member" warnings should be reported for inferred types.
    */
   public static final String TYPE_CHECKS_FOR_INFERRED_TYPES = "typeChecksForInferredTypes";
@@ -1641,6 +1651,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     return StringUtilities.parseArgumentString(getDart2jsFlags());
   }
 
+  public String getDartiumLocationPref() {
+    return getPrefs().get(PREFS_DARTIUM_LOCATION, "");
+  }
+
   public boolean getDisableDartBasedBuilder(IProject project) {
     return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
   }
@@ -1701,6 +1715,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
+  }
+
+  public String getSdkLocationPref() {
+    return getPrefs().get(PREFS_SDK_LOCATION, "");
   }
 
   public boolean isAngularAnalysisEnabled() {
