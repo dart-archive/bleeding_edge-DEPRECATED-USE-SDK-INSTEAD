@@ -1799,12 +1799,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
     // Quick Type Hierarchy
-
-    if (selection instanceof DartSelection) {
-      DartSelection dartSelection = (DartSelection) selection;
-      if (ActionUtil.isOpenHierarchyAvailable(dartSelection)) {
-        IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+      if (action != null && action.isEnabled()) {
         menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+      }
+    } else {
+      if (selection instanceof DartSelection) {
+        DartSelection dartSelection = (DartSelection) selection;
+        if (ActionUtil.isOpenHierarchyAvailable(dartSelection)) {
+          IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+          menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+        }
       }
     }
 
