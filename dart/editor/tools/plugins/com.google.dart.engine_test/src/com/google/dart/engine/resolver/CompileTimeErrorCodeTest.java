@@ -609,37 +609,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constDeferredClass() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "class A {",
-            "  const A();",
-            "}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as a;",
-                "main() {",
-                "  const a.A();",
-                "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {CompileTimeErrorCode.CONST_DEFERRED_CLASS});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A();",
+        "}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as a;",
+            "main() {",
+            "  const a.A();",
+            "}")}, new ErrorCode[] {CompileTimeErrorCode.CONST_DEFERRED_CLASS});
   }
 
   public void test_constDeferredClass_namedConstructor() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "class A {",
-            "  const A.b();",
-            "}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as a;",
-                "main() {",
-                "  const a.A.b();",
-                "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {CompileTimeErrorCode.CONST_DEFERRED_CLASS});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A.b();",
+        "}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as a;",
+            "main() {",
+            "  const a.A.b();",
+            "}")}, new ErrorCode[] {CompileTimeErrorCode.CONST_DEFERRED_CLASS});
   }
 
   public void test_constEval_newInstance_constConstructor() throws Exception {
@@ -826,7 +820,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constInitializedWithNonConstValueFromDeferredClass() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const V = 1;"), //
@@ -834,12 +828,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "const B = a.V;")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_constInitializedWithNonConstValueFromDeferredClass_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const V = 1;"), //
@@ -847,7 +840,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "const B = a.V + 1;")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
@@ -1357,7 +1349,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_extendsDeferredClass() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class A {}"), //
@@ -1365,12 +1357,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "class B extends a.A {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS});
   }
 
   public void test_extendsDeferredClass_classTypeAlias() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class A {}"), //
@@ -1379,7 +1370,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "import 'lib1.dart' deferred as a;",
                 "class M {}",
                 "class C = a.A with M;")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS});
   }
 
@@ -1791,7 +1781,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsDeferredClass() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class A {}"), //
@@ -1799,12 +1789,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "class B implements a.A {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS});
   }
 
   public void test_implementsDeferredClass_classTypeAlias() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class A {}"), //
@@ -1814,7 +1803,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "class B {}",
                 "class M {}",
                 "class C = B with M implements a.A;")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS});
   }
 
@@ -2503,7 +2491,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_invalidAnnotationFromDeferredLibrary() throws Exception {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class V { const V(); }",
@@ -2512,13 +2500,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "@a.v main () {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_invalidAnnotationFromDeferredLibrary_constructor() throws Exception {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class C { const C(); }"), //
@@ -2526,13 +2513,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "@a.C() main () {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_invalidAnnotationFromDeferredLibrary_namedConstructor() throws Exception {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class C { const C.name(); }"), //
@@ -2540,7 +2526,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "@a.C.name() main () {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY});
   }
 
@@ -2933,7 +2918,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_mixinDeferredClass() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "class A {}"), //
@@ -2941,22 +2926,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "class B extends Object with a.A {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.MIXIN_DEFERRED_CLASS});
   }
 
   public void test_mixinDeferredClass_classTypeAlias() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "class A {}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as a;",
-                "class B {}",
-                "class C = B with a.A;")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {CompileTimeErrorCode.MIXIN_DEFERRED_CLASS});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "class A {}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as a;",
+            "class B {}",
+            "class C = B with a.A;")}, new ErrorCode[] {CompileTimeErrorCode.MIXIN_DEFERRED_CLASS});
   }
 
   public void test_mixinInheritsFromNotObject_classDeclaration_extends() throws Exception {
@@ -3366,7 +3347,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstantDefaultValueFromDeferredLibrary() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const V = 1;"), //
@@ -3374,12 +3355,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "f({x : a.V}) {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstantDefaultValueFromDeferredLibrary_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const V = 1;"), //
@@ -3387,7 +3367,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "library root;",
                 "import 'lib1.dart' deferred as a;",
                 "f({x : a.V + 1}) {}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
@@ -3405,7 +3384,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstCaseExpressionFromDeferredLibrary() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3418,12 +3397,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "      break;",
                 "  }",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstCaseExpressionFromDeferredLibrary_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3436,7 +3414,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "      break;",
                 "  }",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY});
   }
 
@@ -3451,7 +3428,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstListElementFromDeferredLibrary() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3461,12 +3438,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const [a.c];",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstListElementFromDeferredLibrary_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3476,7 +3452,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const [a.c + 1];",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY});
   }
 
@@ -3511,7 +3486,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstMapKeyFromDeferredLibrary() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3521,12 +3496,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const {a.c : 0};",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstMapKeyFromDeferredLibrary_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3536,7 +3510,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const {a.c + 1 : 0};",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY});
   }
 
@@ -3551,7 +3524,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstMapValueFromDeferredLibrary() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3561,12 +3534,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const {'a' : a.c};",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstMapValueFromDeferredLibrary_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3576,7 +3548,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "f() {",
                 "  return const {'a' : a.c + 1};",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY});
   }
 
@@ -3690,7 +3661,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstValueInInitializerFromDeferredLibrary_field() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3701,12 +3672,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "  final int x;",
                 "  const A() : x = a.c;",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstValueInInitializerFromDeferredLibrary_field_nested() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3717,12 +3687,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "  final int x;",
                 "  const A() : x = a.c + 1;",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstValueInInitializerFromDeferredLibrary_redirecting() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3733,12 +3702,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "  const A.named(p);",
                 "  const A() : this.named(a.c);",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY});
   }
 
   public void test_nonConstValueInInitializerFromDeferredLibrary_super() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "const int c = 1;"), //
@@ -3751,7 +3719,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "class B extends A {",
                 "  const B() : super(a.c);",
                 "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY});
   }
 
@@ -4361,7 +4328,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_sharedDeferredPrefix() throws Exception {
-    resolveWithAndWithoutExperimental(
+    resolve(
         new String[] {createSource(//
             "library lib1;",
             "f1() {}"), //
@@ -4371,7 +4338,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
                 "import 'lib1.dart' deferred as lib;",
                 "import 'lib2.dart' as lib;",
                 "main() { lib.f1(); lib.f2(); }")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
         new ErrorCode[] {CompileTimeErrorCode.SHARED_DEFERRED_PREFIX});
   }
 

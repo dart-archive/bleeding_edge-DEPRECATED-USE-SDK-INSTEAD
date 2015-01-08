@@ -35,12 +35,14 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The default value for enabling deferred loading.
    */
+  @Deprecated
   public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
    * The default value for enabling enum support.
    */
-  public static boolean DEFAULT_ENABLE_ENUM = false;
+  @Deprecated
+  public static boolean DEFAULT_ENABLE_ENUM = true;
 
   /**
    * A flag indicating whether analysis is to analyze Angular.
@@ -162,11 +164,13 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     return enableAsync;
   }
 
+  @Deprecated
   @Override
   public boolean getEnableDeferredLoading() {
     return enableDeferredLoading;
   }
 
+  @Deprecated
   @Override
   public boolean getEnableEnum() {
     return enableEnum;
@@ -254,8 +258,9 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * 
    * @param enableDeferredLoading {@code true} if deferred loading should be enabled
    */
+  @Deprecated
   public void setEnableDeferredLoading(boolean enableDeferredLoading) {
-    this.enableDeferredLoading = enableDeferredLoading;
+    // Deferred loading support cannot be disabled
   }
 
   /**
@@ -263,8 +268,9 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * 
    * @param enableEnum {@code true} if enum support should be enabled
    */
+  @Deprecated
   public void setEnableEnum(boolean enableEnum) {
-    this.enableEnum = enableEnum;
+    // Enum support cannot be disabled
   }
 
   /**

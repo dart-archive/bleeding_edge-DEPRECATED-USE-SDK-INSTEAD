@@ -14,7 +14,6 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonHintCodeTest extends ResolverTestCase {
@@ -235,16 +234,13 @@ public class NonHintCodeTest extends ResolverTestCase {
   }
 
   public void test_importDeferredLibraryWithLoadFunction() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "f() {}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as lib1;",
-                "main() { lib1.f(); }")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "f() {}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as lib1;",
+            "main() { lib1.f(); }")}, new ErrorCode[] {});
   }
 
   public void test_issue20904BuggyTypePromotionAtIfJoin_1() throws Exception {

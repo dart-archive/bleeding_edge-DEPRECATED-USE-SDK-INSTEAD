@@ -21,7 +21,6 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -739,20 +738,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constDeferredClass_new() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "class A {",
-            "  const A.b();",
-            "}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as a;",
-                "main() {",
-                "  new a.A.b();",
-                "}")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A.b();",
+        "}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as a;",
+            "main() {",
+            "  new a.A.b();",
+            "}")}, new ErrorCode[] {});
   }
 
   public void test_constEval_functionTypeLiteral() throws Exception {
@@ -2464,19 +2460,14 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_loadLibraryDefined() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "foo() => 22;"), //
-            createSource(//
-                "import 'lib1.dart' deferred as other;",
-                "main() {",
-                "  other.loadLibrary().then((_) => other.foo());",
-                "}")},
-        new ErrorCode[] {
-            ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED,
-            StaticTypeWarningCode.UNDEFINED_FUNCTION},
-        new ErrorCode[] {});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "foo() => 22;"), //
+        createSource(//
+            "import 'lib1.dart' deferred as other;",
+            "main() {",
+            "  other.loadLibrary().then((_) => other.foo());",
+            "}")}, new ErrorCode[] {});
   }
 
   public void test_mapKeyTypeNotAssignable() throws Exception {
@@ -3892,24 +3883,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_sharedDeferredPrefix() throws Exception {
-    resolveWithAndWithoutExperimental(
-        new String[] {createSource(//
-            "library lib1;",
-            "f1() {}"), //
-            createSource(//
-                "library lib2;",
-                "f2() {}"), //
-            createSource(//
-                "library lib3;",
-                "f3() {}"), //
-            createSource(//
-                "library root;",
-                "import 'lib1.dart' deferred as lib1;",
-                "import 'lib2.dart' as lib;",
-                "import 'lib3.dart' as lib;",
-                "main() { lib1.f1(); lib.f2(); lib.f3(); }")},
-        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
-        new ErrorCode[] {});
+    resolve(new String[] {createSource(//
+        "library lib1;",
+        "f1() {}"), //
+        createSource(//
+            "library lib2;",
+            "f2() {}"), //
+        createSource(//
+            "library lib3;",
+            "f3() {}"), //
+        createSource(//
+            "library root;",
+            "import 'lib1.dart' deferred as lib1;",
+            "import 'lib2.dart' as lib;",
+            "import 'lib3.dart' as lib;",
+            "main() { lib1.f1(); lib.f2(); lib.f3(); }")}, new ErrorCode[] {});
   }
 
   public void test_staticAccessToInstanceMember_annotation() throws Exception {

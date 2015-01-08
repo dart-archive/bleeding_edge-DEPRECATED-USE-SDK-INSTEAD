@@ -25,8 +25,6 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       options.setAnalyzePolymer(booleanValue);
       options.setCacheSize(i);
       options.setDart2jsHint(booleanValue);
-      options.setEnableDeferredLoading(booleanValue);
-      options.setEnableEnum(booleanValue);
       options.setGenerateSdkErrors(booleanValue);
       options.setHint(booleanValue);
       options.setIncremental(booleanValue);
@@ -37,8 +35,6 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       assertEquals(options.getAnalyzePolymer(), copy.getAnalyzePolymer());
       assertEquals(options.getCacheSize(), copy.getCacheSize());
       assertEquals(options.getDart2jsHint(), copy.getDart2jsHint());
-      assertEquals(options.getEnableDeferredLoading(), copy.getEnableDeferredLoading());
-      assertEquals(options.getEnableEnum(), copy.getEnableEnum());
       assertEquals(options.getGenerateSdkErrors(), copy.getGenerateSdkErrors());
       assertEquals(options.getHint(), copy.getHint());
       assertEquals(options.getIncremental(), copy.getIncremental());
@@ -80,24 +76,6 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     boolean value = !options.getDart2jsHint();
     options.setDart2jsHint(value);
     assertEquals(value, options.getDart2jsHint());
-  }
-
-  public void test_getEnableDeferredLoading() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    assertEquals(
-        AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING,
-        options.getEnableDeferredLoading());
-    boolean value = !options.getEnableDeferredLoading();
-    options.setEnableDeferredLoading(value);
-    assertEquals(value, options.getEnableDeferredLoading());
-  }
-
-  public void test_getEnableEnum() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    assertEquals(AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM, options.getEnableEnum());
-    boolean value = !options.getEnableEnum();
-    options.setEnableEnum(value);
-    assertEquals(value, options.getEnableEnum());
   }
 
   public void test_getGenerateSdkErrors() {

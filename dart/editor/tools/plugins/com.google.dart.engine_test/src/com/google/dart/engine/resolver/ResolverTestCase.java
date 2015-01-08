@@ -260,6 +260,13 @@ public class ResolverTestCase extends EngineTestCase {
     return analysisContext.computeLibraryElement(librarySource);
   }
 
+  protected void resolve(String[] strSources, ErrorCode[] codes) throws Exception {
+    // Analysis and assertions
+    Source source = resolveSources(strSources);
+    assertErrors(source, codes);
+    verify(source);
+  }
+
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
    * 

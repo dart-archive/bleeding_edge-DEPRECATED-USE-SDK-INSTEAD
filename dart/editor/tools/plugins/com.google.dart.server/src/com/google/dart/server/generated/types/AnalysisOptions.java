@@ -45,16 +45,22 @@ public class AnalysisOptions {
   public static final List<AnalysisOptions> EMPTY_LIST = Lists.newArrayList();
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed async feature.
    */
   private final Boolean enableAsync;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
   private final Boolean enableDeferredLoading;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed enum feature.
    */
   private final Boolean enableEnums;
@@ -117,6 +123,8 @@ public class AnalysisOptions {
   }
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed async feature.
    */
   public Boolean getEnableAsync() {
@@ -124,6 +132,8 @@ public class AnalysisOptions {
   }
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
   public Boolean getEnableDeferredLoading() {
@@ -131,6 +141,8 @@ public class AnalysisOptions {
   }
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed enum feature.
    */
   public Boolean getEnableEnums() {

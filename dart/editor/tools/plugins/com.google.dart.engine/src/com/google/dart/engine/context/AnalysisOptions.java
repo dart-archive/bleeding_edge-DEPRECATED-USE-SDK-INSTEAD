@@ -58,6 +58,7 @@ public interface AnalysisOptions {
    * 
    * @return {@code true} if analysis is to include the new async support
    */
+  @Deprecated
   public boolean getEnableAsync();
 
   /**
@@ -65,6 +66,7 @@ public interface AnalysisOptions {
    * 
    * @return {@code true} if analysis is to include the new deferred loading support
    */
+  @Deprecated
   public boolean getEnableDeferredLoading();
 
   /**
@@ -72,6 +74,7 @@ public interface AnalysisOptions {
    * 
    * @return {@code true} if analysis is to include the new enum support
    */
+  @Deprecated
   public boolean getEnableEnum();
 
   /**
