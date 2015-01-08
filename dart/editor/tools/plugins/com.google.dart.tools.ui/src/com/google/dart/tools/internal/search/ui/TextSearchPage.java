@@ -16,6 +16,7 @@ package com.google.dart.tools.internal.search.ui;
 
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.search.ui.text.FileSearchPage;
 import com.google.dart.tools.search.internal.ui.text.FileSearchQuery;
 import com.google.dart.tools.search.internal.ui.text.FileSearchResult;
@@ -223,10 +224,14 @@ public class TextSearchPage extends SearchPage {
         continue;
       }
       // remove if in wrong folder
-      if (isInWrongPackageFolder(file)) {
-        Match[] matches = searchResult.getMatches(element);
-        searchResult.removeMatches(matches);
-        continue;
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        // we don't create 'packages' with the analysis server
+      } else {
+        if (isInWrongPackageFolder(file)) {
+          Match[] matches = searchResult.getMatches(element);
+          searchResult.removeMatches(matches);
+          continue;
+        }
       }
     }
   }
