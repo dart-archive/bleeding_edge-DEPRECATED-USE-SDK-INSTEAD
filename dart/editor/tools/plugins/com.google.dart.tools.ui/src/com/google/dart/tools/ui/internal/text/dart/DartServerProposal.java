@@ -248,6 +248,8 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
        * This also re-triggers code completion on the cascade.
        */
       if (replacementLength == 0 && trigger == '.') {
+        selectionOffset = 1;
+        selectionLength = 0;
         doc.replace(offset, 0, Character.toString(trigger));
         return;
       }
@@ -532,6 +534,10 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       } else {
         selectionOffset = buffer.length();
         selectionLength = 0;
+        // If this method does not take any parameters, then position the cursor after the ')'
+        if (parameterNames.isEmpty()) {
+          ++selectionOffset;
+        }
       }
       buffer.append(')');
       replacementString = buffer.toString();
