@@ -20,6 +20,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.Location;
@@ -136,18 +137,44 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     }
   }
 
+  private final class ProposalContextInformation implements IContextInformation {
+    String informationDisplayString;
+
+    public ProposalContextInformation(String informationDisplayString) {
+      this.informationDisplayString = informationDisplayString;
+    }
+
+    @Override
+    public String getContextDisplayString() {
+      // TODO(paulberry): apparently not used?
+      return null;
+    }
+
+    @Override
+    public Image getImage() {
+      // TODO(paulberry): apparently not used?
+      return null;
+    }
+
+    @Override
+    public String getInformationDisplayString() {
+      return informationDisplayString;
+    }
+
+  }
+
   private static final ElementLabelProvider_NEW ELEMENT_LABEL_PROVIDER = new ElementLabelProvider_NEW();
 
   /**
    * The CSS used to format DartDoc information.
    */
   private static String CSS_STYLES;
-
   private final static char[] TRIGGERS = new char[] {
       ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
   private final int relevance;
+
   private final StyledString styledCompletion;
 
   private Image image;
@@ -324,8 +351,15 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public IContextInformation getContextInformation() {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO(paulberry): figure out how to make the boldfacing of the context information update
+    // when the cursor is advanced from one parameter to the next, and how to make the context
+    // information go away when the cursor advances past the closing paren.
+    String s = getParamString();
+    if (s != null) {
+      return new ProposalContextInformation(s);
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -632,6 +666,22 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       css = HTMLPrinter.convertTopLevelFont(css, fontData);
     }
     return css;
+  }
+
+  /**
+   * @return A string representing the parameters or {@code null} if no parameters for completion
+   */
+  private String getParamString() {
+    Element element = suggestion.getElement();
+    if (element != null && !CompletionSuggestionKind.IDENTIFIER.equals(suggestion.getKind())) {
+      String kind = element.getKind();
+      if (!GETTER.equals(kind) && !SETTER.equals(kind)) {
+        if (element != null) {
+          return element.getParameters();
+        }
+      }
+    }
+    return null;
   }
 }
 
