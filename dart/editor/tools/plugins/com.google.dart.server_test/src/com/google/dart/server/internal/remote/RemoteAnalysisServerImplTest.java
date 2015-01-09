@@ -42,7 +42,6 @@ import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.AnalysisService;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.ChangeContentOverlay;
-import com.google.dart.server.generated.types.CompletionRelevance;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
@@ -1262,7 +1261,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'results' : [",
         "      {",
         "        'kind': 'INVOCATION',",
-        "        'relevance': 'LOW',",
+        "        'relevance': 2000,",
         "        'completion': 'completion0',",
         "        'selectionOffset': 4,",
         "        'selectionLength': 5,",
@@ -1287,7 +1286,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      },",
         "      {",
         "        'kind': 'IDENTIFIER',",
-        "        'relevance': 'DEFAULT',",
+        "        'relevance': 1000,",
         "        'completion': 'completion1',",
         "        'selectionOffset': 10,",
         "        'selectionLength': 11,",
@@ -1313,7 +1312,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     {
       CompletionSuggestion suggestion = suggestions.get(0);
       assertEquals(CompletionSuggestionKind.INVOCATION, suggestion.getKind());
-      assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
+      assertEquals(2000, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion0");
       assertEquals(4, suggestion.getSelectionOffset());
       assertEquals(5, suggestion.getSelectionLength());
@@ -1346,7 +1345,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     {
       CompletionSuggestion suggestion = suggestions.get(1);
       assertEquals(CompletionSuggestionKind.IDENTIFIER, suggestion.getKind());
-      assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
+      assertEquals(1000, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion1");
       assertEquals(10, suggestion.getSelectionOffset());
       assertEquals(11, suggestion.getSelectionLength());

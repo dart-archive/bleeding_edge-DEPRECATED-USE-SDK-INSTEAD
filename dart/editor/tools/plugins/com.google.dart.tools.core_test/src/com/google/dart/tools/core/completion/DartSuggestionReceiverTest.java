@@ -99,7 +99,7 @@ public class DartSuggestionReceiverTest extends TestCase {
 
     completions0.add(new CompletionSuggestion(
         "kind",
-        "relevance",
+        1000,
         "completion0",
         1,
         2,
@@ -118,7 +118,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null));
     completions1.add(new CompletionSuggestion(
         "kind",
-        "relevance",
+        1000,
         "completion1",
         1,
         2,
@@ -173,7 +173,7 @@ public class DartSuggestionReceiverTest extends TestCase {
 
     completions0.add(new CompletionSuggestion(
         "kind",
-        "relevance",
+        1000,
         "completion0",
         1,
         2,
@@ -192,7 +192,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null));
     completions1.add(new CompletionSuggestion(
         "kind",
-        "relevance",
+        1000,
         "completion1",
         1,
         2,
@@ -211,7 +211,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null));
     completions2.add(new CompletionSuggestion(
         "kind",
-        "relevance",
+        1000,
         "completion2",
         1,
         2,

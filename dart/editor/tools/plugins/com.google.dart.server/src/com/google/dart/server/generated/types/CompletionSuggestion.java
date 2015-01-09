@@ -50,9 +50,9 @@ public class CompletionSuggestion {
   private final String kind;
 
   /**
-   * The relevance of this completion suggestion.
+   * The relevance of this completion suggestion where a higher number indicates a higher relevance.
    */
-  private final String relevance;
+  private final int relevance;
 
   /**
    * The identifier to be inserted if the suggestion is selected. If the suggestion is for a method
@@ -151,7 +151,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -178,7 +178,7 @@ public class CompletionSuggestion {
       CompletionSuggestion other = (CompletionSuggestion) obj;
       return
         ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.relevance, relevance) &&
+        other.relevance == relevance &&
         ObjectUtilities.equals(other.completion, completion) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
@@ -201,7 +201,7 @@ public class CompletionSuggestion {
 
   public static CompletionSuggestion fromJson(JsonObject jsonObject) {
     String kind = jsonObject.get("kind").getAsString();
-    String relevance = jsonObject.get("relevance").getAsString();
+    int relevance = jsonObject.get("relevance").getAsInt();
     String completion = jsonObject.get("completion").getAsString();
     int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
     int selectionLength = jsonObject.get("selectionLength").getAsInt();
@@ -336,9 +336,9 @@ public class CompletionSuggestion {
   }
 
   /**
-   * The relevance of this completion suggestion.
+   * The relevance of this completion suggestion where a higher number indicates a higher relevance.
    */
-  public String getRelevance() {
+  public int getRelevance() {
     return relevance;
   }
 

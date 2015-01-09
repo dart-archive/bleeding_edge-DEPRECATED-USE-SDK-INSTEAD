@@ -20,7 +20,6 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
-import com.google.dart.server.generated.types.CompletionSuggestionKind;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.server.generated.types.Location;
@@ -39,8 +38,6 @@ import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
-import static com.google.dart.server.generated.types.CompletionRelevance.HIGH;
-import static com.google.dart.server.generated.types.CompletionRelevance.LOW;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
 import static com.google.dart.server.generated.types.ElementKind.FIELD;
@@ -551,29 +548,29 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   }
 
   private int computeRelevance() {
-    String relevance = suggestion.getRelevance();
-    if (HIGH.equals(relevance)) {
-      return 0;
-    } else if (LOW.equals(relevance)) {
-      return 100;
-    } else { // DEFAULT
+    int relevance = suggestion.getRelevance();
+    if (relevance != 1000) {
+      return relevance;
+    }
+    // TODO (danrubel) move this code to the server
+    { // DEFAULT
       Element element = suggestion.getElement();
       if (element != null) {
         String kind = element.getKind();
         if (LOCAL_VARIABLE.equals(kind) || PARAMETER.equals(kind)) {
-          return 20;
+          return 1059;
         } else if (FIELD.equals(kind)) {
-          return 21;
+          return 1058;
         } else if (METHOD.equals(kind) || GETTER.equals(kind) || SETTER.equals(kind)
             || FUNCTION.equals(kind)) {
-          return 22;
+          return 1057;
         } else if (TOP_LEVEL_VARIABLE.equals(kind)) {
-          return 23;
+          return 1056;
         } else if (KEYWORD.equals(kind)) {
-          return 24;
+          return 1055;
         }
       }
-      return 50;
+      return 1000;
     }
   }
 
@@ -635,22 +632,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       css = HTMLPrinter.convertTopLevelFont(css, fontData);
     }
     return css;
-  }
-
-  /**
-   * @return A string representing the parameters or {@code null} if no parameters for completion
-   */
-  private String getParamString() {
-    Element element = suggestion.getElement();
-    if (element != null && !CompletionSuggestionKind.IDENTIFIER.equals(suggestion.getKind())) {
-      String kind = element.getKind();
-      if (!GETTER.equals(kind) && !SETTER.equals(kind)) {
-        if (element != null) {
-          return element.getParameters();
-        }
-      }
-    }
-    return null;
   }
 }
 
