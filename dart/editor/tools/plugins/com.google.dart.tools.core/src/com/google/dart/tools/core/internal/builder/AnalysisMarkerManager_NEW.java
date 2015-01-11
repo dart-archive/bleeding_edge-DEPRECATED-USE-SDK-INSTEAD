@@ -393,10 +393,7 @@ public class AnalysisMarkerManager_NEW {
       } catch (CoreException e) {
         DartCore.logError("Exception translating analysis errors to markers", e);
       } catch (NullPointerException e) {
-        // Suppress this error if we are shutting down causing the workspace is in an invalid state
-        if (!monitor.isCanceled()) {
-          throw e;
-        }
+        // Suppress this error, it happens because of workspace shutdown.
       }
     }
   }
