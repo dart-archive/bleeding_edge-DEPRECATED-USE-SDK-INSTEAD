@@ -93,7 +93,7 @@ void wrappedRandomArray(Dart_Port dest_port_id,
         param2->type == Dart_CObject_kSendPort) {
       int seed = param0->value.as_int32;
       int length = param1->value.as_int32;
-      reply_port_id = param2->value.as_send_port;
+      reply_port_id = param2->value.as_send_port.id;
       uint8_t* values = randomArray(seed, length);
 
       if (values != NULL) {
