@@ -40,6 +40,11 @@ public interface AnalysisServerSocket {
   ResponseStream getResponseStream();
 
   /**
+   * Return {@code true} if the socket is open.
+   */
+  boolean isOpen();
+
+  /**
    * Start the remote server and initialize request sink and response stream.
    */
   void start() throws Exception;

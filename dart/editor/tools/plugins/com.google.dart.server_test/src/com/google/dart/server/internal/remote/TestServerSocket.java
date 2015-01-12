@@ -40,6 +40,11 @@ public class TestServerSocket implements AnalysisServerSocket {
     return responseStream;
   }
 
+  @Override
+  public boolean isOpen() {
+    return started;
+  }
+
   public boolean isStarted() {
     return started;
   }

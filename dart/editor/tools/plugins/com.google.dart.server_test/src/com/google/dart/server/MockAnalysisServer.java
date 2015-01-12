@@ -135,6 +135,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public boolean isSocketOpen() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     throw new UnsupportedOperationException();
   }

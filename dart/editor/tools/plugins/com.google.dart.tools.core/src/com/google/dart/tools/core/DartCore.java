@@ -1737,6 +1737,12 @@ public class DartCore extends Plugin implements DartSdkListener {
     return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_HINTS_PREFERENCE, true);
   }
 
+  public boolean isLintsEnabled() {
+    // TODO (pquitslund) not yet implemented
+//    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_LINTS_PREFERENCE, true);
+    return false;
+  }
+
   /**
    * Save the core plugin preferences
    * 

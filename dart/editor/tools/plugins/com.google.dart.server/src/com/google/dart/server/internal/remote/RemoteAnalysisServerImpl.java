@@ -415,6 +415,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateExecutionSetSubscriptions(id, subscriptions));
   }
 
+  public boolean isSocketOpen() {
+    return socket.isOpen();
+  }
+
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.removeListener(listener);

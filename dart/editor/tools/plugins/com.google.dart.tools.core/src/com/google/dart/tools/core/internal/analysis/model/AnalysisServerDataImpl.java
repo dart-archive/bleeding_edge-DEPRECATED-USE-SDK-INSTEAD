@@ -269,7 +269,8 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
         DartCoreDebug.ENABLE_DEFERRED_LOADING,
         DartCoreDebug.ENABLE_ENUMS,
         DartCore.getPlugin().isHintsDart2JSEnabled(),
-        DartCore.getPlugin().isHintsEnabled()));
+        DartCore.getPlugin().isHintsEnabled(),
+        DartCore.getPlugin().isLintsEnabled()));
   }
 
   void internalComputedErrors(String file, AnalysisError[] errors) {

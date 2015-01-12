@@ -355,6 +355,11 @@ public interface AnalysisServer {
   public void execution_setSubscriptions(List<String> subscriptions);
 
   /**
+   * Return {@code true} if the socket is open.
+   */
+  public boolean isSocketOpen();
+
+  /**
    * Remove the given listener from the list of listeners that will receive notification when new
      * analysis results become available.
    *

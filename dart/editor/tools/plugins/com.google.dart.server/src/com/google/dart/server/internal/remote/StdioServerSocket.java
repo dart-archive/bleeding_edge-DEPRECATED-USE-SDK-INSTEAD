@@ -122,6 +122,18 @@ public class StdioServerSocket implements AnalysisServerSocket {
     return responseStream;
   }
 
+  @Override
+  public boolean isOpen() {
+    try {
+      if (process != null) {
+        process.exitValue();
+      }
+      return false;
+    } catch (IllegalThreadStateException ex) {
+      return true;
+    }
+  }
+
   /**
    * Set the identifier used to identify this client to the server to the given identifier. The
    * identifier must be set before the server has been started.

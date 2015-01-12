@@ -1088,7 +1088,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_all_false() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(false, false, false, false, false);
+    AnalysisOptions options = new AnalysisOptions(false, false, false, false, false, false);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1101,7 +1101,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'enableDeferredLoading': false,",
         "      'enableEnums': false,",
         "      'generateDart2jsHints': false,",
-        "      'generateHints': false",
+        "      'generateHints': false,",
+        "      'generateLints': false",
         "    }",
         "  }",
         "}");
@@ -1109,7 +1110,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_all_true() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(true, true, true, true, true);
+    AnalysisOptions options = new AnalysisOptions(true, true, true, true, true, true);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1122,7 +1123,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'enableDeferredLoading': true,",
         "      'enableEnums': true,",
         "      'generateDart2jsHints': true,",
-        "      'generateHints': true",
+        "      'generateHints': true,",
+        "      'generateLints': true",
         "    }",
         "  }",
         "}");
@@ -1130,7 +1132,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_subset1() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(true, null, null, null, null);
+    AnalysisOptions options = new AnalysisOptions(true, null, null, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1147,7 +1149,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_subset2() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(false, true, null, null, null);
+    AnalysisOptions options = new AnalysisOptions(false, true, null, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
