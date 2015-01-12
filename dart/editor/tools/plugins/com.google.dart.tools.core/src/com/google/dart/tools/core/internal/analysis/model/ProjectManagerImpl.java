@@ -424,6 +424,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void setLintOption(boolean enableLint) {
+    for (Project project : getProjects()) {
+      project.setLintOption(enableLint);
+    }
+  }
+
+  @Override
   public void start() {
     new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
     analyzeAllProjects();

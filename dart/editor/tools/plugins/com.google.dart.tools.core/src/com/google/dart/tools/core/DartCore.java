@@ -190,6 +190,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String ENABLE_HINTS_PREFERENCE = "enableHints";
 
   /**
+   * Preference for enabling lints.
+   */
+  public static final String ENABLE_LINTS_PREFERENCE = "enableLints";
+
+  /**
    * Preference for enabling dart2js related hints.
    */
   public static final String ENABLE_HINTS_DART2JS_PREFERENCE = "enableHints_dart2js";
@@ -1738,9 +1743,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   public boolean isLintsEnabled() {
-    // TODO (pquitslund) not yet implemented
-//    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_LINTS_PREFERENCE, true);
-    return false;
+    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_LINTS_PREFERENCE, false);
   }
 
   /**

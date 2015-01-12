@@ -213,11 +213,19 @@ public interface ContextManager {
 
   /**
    * Set the hint option for all the analysis context, based on changes to the hint preference
-   * DartCore.ENABLE_HINT_PREFERENCE
+   * DartCore.ENABLE_HINTS_PREFERENCE
    * 
    * @param enableHint
    */
   void setHintOption(boolean enableHint);
+
+  /**
+   * Set the lint option for all the analysis context, based on changes to the hint preference
+   * DartCore.ENABLE_LINTS_PREFERENCE
+   * 
+   * @param enableLint
+   */
+  void setLintOption(boolean enableLint);
 
   /**
    * Stop workers for the specified context.
