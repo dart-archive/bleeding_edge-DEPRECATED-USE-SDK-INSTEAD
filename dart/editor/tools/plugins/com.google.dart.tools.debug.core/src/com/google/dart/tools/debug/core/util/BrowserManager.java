@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -661,9 +660,9 @@ public class BrowserManager {
       dartFlags += " --enable-checked-mode";
     }
     // Enable async/await.
-    if (DartCoreDebug.ENABLE_ASYNC) {
-      dartFlags += " --enable-async";
-    }
+    //TODO(pquitslund): remove when no longer required
+    dartFlags += " --enable-async";
+
     env.put("DART_FLAGS", dartFlags);
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;

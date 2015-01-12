@@ -602,6 +602,16 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public void setLintOption(boolean enableLint) {
+    //TODO(pquitslund): add lint to analysis options
+//    for (AnalysisContext context : getAnalysisContexts()) {
+//      AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+//      options.setLint(enableLint);
+//      context.setAnalysisOptions(options);
+//    }
+  }
+
+  @Override
   public String toString() {
     String name;
     try {
@@ -864,8 +874,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     options.setDart2jsHint(DartCore.getPlugin().isHintsDart2JSEnabled());
     options.setAnalyzeAngular(DartCore.getPlugin().isAngularAnalysisEnabled());
     options.setIncremental(DartCoreDebug.EXPERIMENTAL);
-    options.setEnableAsync(DartCoreDebug.ENABLE_ASYNC);
-    options.setEnableEnum(DartCoreDebug.ENABLE_ENUMS);
 
     AnalysisEngine.getInstance().setEnableUnionTypes(DartCoreDebug.ENABLE_UNION_TYPES);
     AnalysisEngine.getInstance().setStrictUnionTypes(DartCoreDebug.STRICT_UNION_TYPES);

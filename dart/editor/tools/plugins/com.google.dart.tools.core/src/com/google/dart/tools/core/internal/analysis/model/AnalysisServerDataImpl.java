@@ -265,9 +265,9 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   @Override
   public void updateOptions() {
     server.analysis_updateOptions(new AnalysisOptions(
-        DartCoreDebug.ENABLE_ASYNC,
+        true /* async */,
         DartCoreDebug.ENABLE_DEFERRED_LOADING,
-        DartCoreDebug.ENABLE_ENUMS,
+        true /* enums */,
         DartCore.getPlugin().isHintsDart2JSEnabled(),
         DartCore.getPlugin().isHintsEnabled(),
         DartCore.getPlugin().isLintsEnabled()));

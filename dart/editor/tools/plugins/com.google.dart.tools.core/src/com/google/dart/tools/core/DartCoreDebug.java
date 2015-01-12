@@ -56,15 +56,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
 
-  public static final String ENABLE_ASYNC_PREF = "enableAsync";
-  public static final boolean ENABLE_ASYNC = isOptionTrue("experimental/async_await")
-      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ASYNC_PREF, false);
-
   public static final Boolean ENABLE_DEFERRED_LOADING = isOptionTrue("experimental/deferred_loading");
-
-  public static final String ENABLE_ENUMS_PREF = "enableEnums";
-  public static final Boolean ENABLE_ENUMS = isOptionTrue("experimental/enums")
-      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ENUMS_PREF, false);
 
   public static final boolean ENABLE_NEW_FEEDBACK = isOptionTrue("experimental/feedback");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");

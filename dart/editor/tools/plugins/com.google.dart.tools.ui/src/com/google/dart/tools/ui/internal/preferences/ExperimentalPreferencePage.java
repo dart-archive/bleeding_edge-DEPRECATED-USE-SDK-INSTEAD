@@ -48,8 +48,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     return checkBox;
   }
 
-  private Button enableAsyncSupportButton;
-  private Button enableEnumsSupportButton;
   private Button enableAnalysisServerButton;
   private Label serverHttpPortLabel;
   private Text serverHttpPortText;
@@ -75,10 +73,8 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
       boolean portChanged = setPref(
           DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF,
           serverHttpPortText);
-      boolean asyncChanged = setPref(DartCoreDebug.ENABLE_ASYNC_PREF, enableAsyncSupportButton);
-      boolean enumsChanged = setPref(DartCoreDebug.ENABLE_ENUMS_PREF, enableEnumsSupportButton);
 
-      boolean hasChanges = serverChanged || portChanged || asyncChanged || enumsChanged;
+      boolean hasChanges = serverChanged || portChanged;
       try {
         DartCore.getPlugin().savePrefs();
       } catch (CoreException e) {
@@ -101,20 +97,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
-
-    // Enable Async support checkbox
-    enableAsyncSupportButton = createCheckBox(
-        composite,
-        PreferencesMessages.ExperimentalPreferencePage_enable_async_support,
-        PreferencesMessages.ExperimentalPreferencePage_enable_async_support_tooltip);
-    GridDataFactory.fillDefaults().applyTo(enableAsyncSupportButton);
-
-    // Enable Enums support checkbox
-    enableEnumsSupportButton = createCheckBox(
-        composite,
-        PreferencesMessages.ExperimentalPreferencePage_enable_enums_support,
-        PreferencesMessages.ExperimentalPreferencePage_enable_enums_support_tooltip);
-    GridDataFactory.fillDefaults().applyTo(enableEnumsSupportButton);
 
     // Enable Analysis Server checkbox
     enableAnalysisServerButton = createCheckBox(
@@ -179,8 +161,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
 
   private void initFromPrefs() {
     enableAnalysisServerButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
-    enableAsyncSupportButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ASYNC_PREF));
-    enableEnumsSupportButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ENUMS_PREF));
     String textValue = getPref(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF);
     try {
       if (Integer.parseInt(textValue) < 0) {
