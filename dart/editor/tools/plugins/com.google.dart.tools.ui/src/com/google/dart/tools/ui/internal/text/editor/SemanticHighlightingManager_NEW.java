@@ -246,6 +246,9 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       themeKey = "semanticHighlighting." + themeKey;
       // prepare color
       RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
+      if (foregroundRGB == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
+        continue;
+      }
       Color foregroundColor = colorManager.getColor(foregroundRGB);
       // prepare font style
       boolean fontBold = store.getBoolean(themeKey + ".bold");
