@@ -353,9 +353,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public IContextInformation getContextInformation() {
-    // TODO(paulberry): figure out how to make the boldfacing of the context information update
-    // when the cursor is advanced from one parameter to the next, and how to make the context
-    // information go away when the cursor advances past the closing paren.
     String s = getParamString();
     if (s != null) {
       return new ProposalContextInformation(s);
@@ -366,7 +363,12 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public int getContextInformationPosition() {
-    return collector.getReplacementOffset() + collector.getReplacementLength();
+    // The context information position is the position where the arguments begin (this is used by
+    // DartParameterListValidator as the starting point for counting commas, to figure out which
+    // parameter the user is currently typing).  So it's the same as the start of the text which
+    // should be selected when the completion is accepted.
+    computeCompletion();
+    return collector.getReplacementOffset() + selectionOffset;
   }
 
   @Override
