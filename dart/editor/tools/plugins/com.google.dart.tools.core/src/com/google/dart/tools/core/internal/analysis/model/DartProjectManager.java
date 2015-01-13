@@ -9,6 +9,7 @@ import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -54,6 +55,11 @@ public class DartProjectManager {
             // Toplevel project had its package root changed.
             // TODO(paulberry): is there a better way to detect this, perhaps with
             // IPreferenceChangeListener?
+            return true;
+          }
+          IResource resource = child.getResource();
+          if (resource instanceof IProject && ((IProject) resource).isOpen()
+              && ((child.getFlags() & IResourceDelta.OPEN) != 0)) {
             return true;
           }
         }
