@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
+
 /**
  * The interface {@code MapUriConsumer} defines the behavior of objects that consume map uri
  * responses.
@@ -29,4 +31,12 @@ public interface MapUriConsumer extends Consumer {
    *          was not given in the request
    */
   public void computedFileOrUri(String file, String uri);
+
+  /**
+   * If a file or uri was not mapped and cannot be passed back, some {@link RequestError} is passed
+   * back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

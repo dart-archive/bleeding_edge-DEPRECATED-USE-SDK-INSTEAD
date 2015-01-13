@@ -232,6 +232,11 @@ public class UriToFileResolver {
                 uriPtr[0] = uri;
                 latch.countDown();
               }
+
+              @Override
+              public void onError(RequestError requestError) {
+                latch.countDown();
+              }
             });
         Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.SECONDS);
         return uriPtr[0];
@@ -261,6 +266,11 @@ public class UriToFileResolver {
               @Override
               public void computedFileOrUri(String file, String uri) {
                 filePtr[0] = file;
+                latch.countDown();
+              }
+
+              @Override
+              public void onError(RequestError requestError) {
                 latch.countDown();
               }
             });

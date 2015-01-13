@@ -40,11 +40,6 @@ public class CreateContextProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  /**
-   * Process the given result.
-   * 
-   * @param resultObject the result object to be processed
-   */
   public void process(JsonObject resultObject, RequestError requestError) {
     if (resultObject != null) {
       try {

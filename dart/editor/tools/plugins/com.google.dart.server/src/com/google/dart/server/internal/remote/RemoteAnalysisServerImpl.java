@@ -415,6 +415,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateExecutionSetSubscriptions(id, subscriptions));
   }
 
+  @Override
   public boolean isSocketOpen() {
     return socket.isOpen();
   }
@@ -668,7 +669,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           resultObject,
           requestError);
     } else if (consumer instanceof MapUriConsumer) {
-      new MapUriProcessor((MapUriConsumer) consumer).process(resultObject);
+      new MapUriProcessor((MapUriConsumer) consumer).process(resultObject, requestError);
     }
     //
     // Server Domain

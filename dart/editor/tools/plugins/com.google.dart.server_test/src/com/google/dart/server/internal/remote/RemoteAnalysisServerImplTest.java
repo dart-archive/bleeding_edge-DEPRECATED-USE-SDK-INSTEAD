@@ -3068,14 +3068,67 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_execution_mapUri_error() throws Exception {
+    final String[] files = {null};
+    final String[] uris = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.execution_mapUri("23", null, "package:/foo/foo.dart", new MapUriConsumer() {
+      @Override
+      public void computedFileOrUri(String file, String uri) {
+        files[0] = file;
+        uris[0] = uri;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.mapUri',",
+        "  'params': {",
+        "    'id': '23',",
+        "    'uri' : 'package:/foo/foo.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'execution.mapUri',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'MESSAGE'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(files[0]);
+    assertNull(uris[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CODE", requestError.getCode());
+    assertEquals("MESSAGE", requestError.getMessage());
+  }
+
   public void test_execution_mapUri_file() throws Exception {
     final String[] files = {null};
     final String[] uris = {null};
+    final RequestError[] requestErrorArray = {null};
     server.execution_mapUri("23", "/a/b", null, new MapUriConsumer() {
       @Override
       public void computedFileOrUri(String file, String uri) {
         files[0] = file;
         uris[0] = uri;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3101,16 +3154,23 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     assertNull(files[0]);
     assertEquals("package:/foo/foo.dart", uris[0]);
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_execution_mapUri_uri() throws Exception {
     final String[] files = {null};
     final String[] uris = {null};
+    final RequestError[] requestErrorArray = {null};
     server.execution_mapUri("23", null, "package:/foo/foo.dart", new MapUriConsumer() {
       @Override
       public void computedFileOrUri(String file, String uri) {
         files[0] = file;
         uris[0] = uri;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3136,6 +3196,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     assertEquals("/a/b", files[0]);
     assertNull(uris[0]);
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_execution_notification_launchData() throws Exception {
