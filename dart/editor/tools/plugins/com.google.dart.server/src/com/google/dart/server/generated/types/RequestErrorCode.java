@@ -30,6 +30,12 @@ public class RequestErrorCode {
   public static final String CONTENT_MODIFIED = "CONTENT_MODIFIED";
 
   /**
+   * An "edit.format" request specified a FilePath which does not match a Dart file in an analysis
+   * root.
+   */
+  public static final String FORMAT_INVALID_FILE = "FORMAT_INVALID_FILE";
+
+  /**
    * An "analysis.getErrors" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */
