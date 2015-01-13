@@ -224,11 +224,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     AnalysisWorker.removeListener(analysisListener);
     // clear the cached source content to ensure the source will be read from disk
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      if (isOverlayAdded) {
-        RemoveContentOverlay change = new RemoveContentOverlay();
-        updateFileContent(change);
-        isOverlayAdded = false;
-      }
+      removeOverlay();
     } else {
       sourceChanged(null);
     }
@@ -299,6 +295,15 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   @Override
   public void reconcile(IRegion partition) {
     reconcile();
+  }
+
+  public void saved() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      reconcile();
+      removeOverlay();
+    } else {
+      // We don't use overlays with the Java based analyzer.
+    }
   }
 
   /**
@@ -394,6 +399,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (context != null) {
       ContextManager manager = getContextManager();
       analysisManager.performAnalysisInBackground(manager, context);
+    }
+  }
+
+  private void removeOverlay() {
+    if (isOverlayAdded) {
+      RemoveContentOverlay change = new RemoveContentOverlay();
+      updateFileContent(change);
+      isOverlayAdded = false;
     }
   }
 

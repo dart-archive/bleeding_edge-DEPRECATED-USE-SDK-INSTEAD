@@ -1616,6 +1616,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         checkEditableState();
       }
     }
+    if (dartReconcilingStrategy != null) {
+      dartReconcilingStrategy.saved();
+    }
   }
 
   /*
