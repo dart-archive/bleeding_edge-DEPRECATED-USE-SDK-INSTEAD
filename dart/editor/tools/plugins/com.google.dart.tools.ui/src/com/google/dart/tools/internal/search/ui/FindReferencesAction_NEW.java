@@ -20,6 +20,7 @@ import com.google.dart.server.FindMemberReferencesConsumer;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.NavigationTarget;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerNavigationListener;
@@ -201,6 +202,11 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
                         }
                       }
                     });
+              }
+
+              @Override
+              public void onError(RequestError requestError) {
+                latch.countDown();
               }
             });
         Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);

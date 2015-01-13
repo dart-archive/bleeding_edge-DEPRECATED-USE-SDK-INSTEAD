@@ -3259,6 +3259,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   public void test_search_findElementReferences() throws Exception {
     final String[] searchIdArray = new String[] {null};
     final Element[] elementArray = new Element[] {null};
+    final RequestError[] requestErrorArray = {null};
     server.search_findElementReferences(
         "/fileA.dart",
         17,
@@ -3268,6 +3269,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedElementReferences(String searchId, Element element) {
             searchIdArray[0] = searchId;
             elementArray[0] = element;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3306,11 +3312,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     assertEquals("searchId0", searchIdArray[0]);
     assertNotNull(elementArray[0]);
+    assertNull(requestErrorArray[0]);
   }
 
-  public void test_search_findElementReferences_noElement() throws Exception {
+  public void test_search_findElementReferences_error() throws Exception {
     final String[] searchIdArray = new String[] {null};
     final Element[] elementArray = new Element[] {null};
+    final RequestError[] requestErrorArray = {null};
     server.search_findElementReferences(
         "/fileA.dart",
         17,
@@ -3320,6 +3328,62 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           public void computedElementReferences(String searchId, Element element) {
             searchIdArray[0] = searchId;
             elementArray[0] = element;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findElementReferences',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 17,",
+        "    'includePotential': false",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'MESSAGE'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(searchIdArray[0]);
+    assertNull(elementArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CODE", requestError.getCode());
+    assertEquals("MESSAGE", requestError.getMessage());
+  }
+
+  public void test_search_findElementReferences_noElement() throws Exception {
+    final String[] searchIdArray = new String[] {null};
+    final Element[] elementArray = new Element[] {null};
+    final RequestError[] requestErrorArray = {null};
+    server.search_findElementReferences(
+        "/fileA.dart",
+        17,
+        false,
+        new FindElementReferencesConsumer() {
+          @Override
+          public void computedElementReferences(String searchId, Element element) {
+            searchIdArray[0] = searchId;
+            elementArray[0] = element;
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            requestErrorArray[0] = requestError;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3344,6 +3408,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     assertNull(searchIdArray[0]);
     assertNull(elementArray[0]);
+    assertNull(requestErrorArray[0]);
   }
 
   public void test_search_findMemberDeclarations() throws Exception {

@@ -14,6 +14,7 @@
 package com.google.dart.server;
 
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.RequestError;
 
 /**
  * The interface {@code FindElementReferencesConsumer} defines the behavior of objects that consume
@@ -31,4 +32,12 @@ public interface FindElementReferencesConsumer extends Consumer {
    *          field will be absent.
    */
   public void computedElementReferences(String searchId, Element element);
+
+  /**
+   * If a search id and element cannot be passed back, some {@link RequestError} is passed back
+   * instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

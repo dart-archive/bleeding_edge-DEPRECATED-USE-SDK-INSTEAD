@@ -626,7 +626,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // Search Domain
     //
     else if (consumer instanceof FindElementReferencesConsumer) {
-      new FindElementReferencesProcessor((FindElementReferencesConsumer) consumer).process(resultObject);
+      new FindElementReferencesProcessor((FindElementReferencesConsumer) consumer).process(
+          resultObject,
+          requestError);
     } else if (consumer instanceof FindMemberDeclarationsConsumer) {
       new FindMemberDeclarationsProcessor((FindMemberDeclarationsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof FindMemberReferencesConsumer) {
