@@ -635,7 +635,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           resultObject,
           requestError);
     } else if (consumer instanceof FindTopLevelDeclarationsConsumer) {
-      new FindTopLevelDeclarationsProcessor((FindTopLevelDeclarationsConsumer) consumer).process(resultObject);
+      new FindTopLevelDeclarationsProcessor((FindTopLevelDeclarationsConsumer) consumer).process(
+          resultObject,
+          requestError);
     } else if (consumer instanceof GetTypeHierarchyConsumer) {
       new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
     }

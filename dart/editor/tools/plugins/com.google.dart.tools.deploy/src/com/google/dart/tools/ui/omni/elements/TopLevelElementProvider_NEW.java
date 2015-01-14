@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.omni.elements;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.FindTopLevelDeclarationsConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
@@ -139,6 +140,11 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
                     }
                   }
                 });
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
+            latch.countDown();
           }
         });
     Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);

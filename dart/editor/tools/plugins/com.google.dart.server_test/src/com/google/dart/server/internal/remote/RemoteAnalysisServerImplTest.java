@@ -3573,10 +3573,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_search_findTopLevelDeclarations() throws Exception {
     final String[] searchIdArray = new String[1];
+    final RequestError[] requestErrorArray = {null};
     server.search_findTopLevelDeclarations("some-pattern", new FindTopLevelDeclarationsConsumer() {
       @Override
       public void computedSearchId(String searchId) {
         searchIdArray[0] = searchId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3600,6 +3606,49 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertEquals("searchId3", searchIdArray[0]);
+    assertNull(requestErrorArray[0]);
+  }
+
+  public void test_search_findTopLevelDeclarations_error() throws Exception {
+    final String[] searchIdArray = new String[1];
+    final RequestError[] requestErrorArray = {null};
+    server.search_findTopLevelDeclarations("some-pattern", new FindTopLevelDeclarationsConsumer() {
+      @Override
+      public void computedSearchId(String searchId) {
+        searchIdArray[0] = searchId;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findTopLevelDeclarations',",
+        "  'params': {",
+        "    'pattern': 'some-pattern'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'MESSAGE'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(searchIdArray[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertEquals("CODE", requestError.getCode());
+    assertEquals("MESSAGE", requestError.getMessage());
   }
 
   public void test_search_getTypeHierarchy() throws Exception {

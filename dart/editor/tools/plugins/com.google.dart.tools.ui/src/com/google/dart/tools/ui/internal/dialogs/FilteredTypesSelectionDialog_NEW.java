@@ -17,6 +17,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.FindTopLevelDeclarationsConsumer;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
@@ -950,6 +951,10 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
             @Override
             public void computedSearchId(String searchId) {
               DartCore.getAnalysisServerData().addSearchResultsListener(searchId, requestor);
+            }
+
+            @Override
+            public void onError(RequestError requestError) {
             }
           });
       Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);
