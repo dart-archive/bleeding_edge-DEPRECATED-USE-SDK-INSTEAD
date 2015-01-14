@@ -58,8 +58,8 @@ public class DartProjectManager {
             return true;
           }
           IResource resource = child.getResource();
-          if (resource instanceof IProject && ((IProject) resource).isOpen()
-              && ((child.getFlags() & IResourceDelta.OPEN) != 0)) {
+          // for project open and close
+          if (resource instanceof IProject && ((child.getFlags() & IResourceDelta.OPEN) != 0)) {
             return true;
           }
         }
