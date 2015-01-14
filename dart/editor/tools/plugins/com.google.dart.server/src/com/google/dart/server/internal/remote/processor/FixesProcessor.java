@@ -13,13 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 
@@ -43,17 +40,9 @@ public class FixesProcessor extends ResultProcessor {
         List<AnalysisErrorFixes> errorFixesArray = AnalysisErrorFixes.fromJsonArray(resultObject.get(
             "fixes").getAsJsonArray());
         consumer.computedFixes(errorFixesArray);
-      } catch (Exception e) {
+      } catch (Exception exception) {
         // catch any exceptions in the formatting of this response
-        String message = e.getMessage();
-        String stackTrace = null;
-        if (e.getStackTrace() != null) {
-          stackTrace = ExceptionUtils.getStackTrace(e);
-        }
-        requestError = new RequestError(
-            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
-            message != null ? message : "",
-            stackTrace);
+        requestError = generateRequestError(exception);
       }
     }
     if (requestError != null) {

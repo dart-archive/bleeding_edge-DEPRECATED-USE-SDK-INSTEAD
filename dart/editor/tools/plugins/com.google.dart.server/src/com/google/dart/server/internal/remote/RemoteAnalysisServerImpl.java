@@ -528,7 +528,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     String errorMessage = errorObject.get("message").getAsString();
     String errorStackTrace = errorObject.get("stackTrace") != null
         ? errorObject.get("stackTrace").getAsString() : null;
-//    System.err.println(errorCode + ": " + errorMessage);
     return new RequestError(errorCode, errorMessage, errorStackTrace);
   }
 

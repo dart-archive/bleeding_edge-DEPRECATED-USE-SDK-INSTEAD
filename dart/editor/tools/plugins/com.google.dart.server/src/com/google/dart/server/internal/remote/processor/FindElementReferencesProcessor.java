@@ -13,13 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.FindElementReferencesConsumer;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Instances of {@code FindElementReferencesProcessor} translate JSON result objects for a given
@@ -44,15 +41,7 @@ public class FindElementReferencesProcessor extends ResultProcessor {
         consumer.computedElementReferences(searchId, element);
       } catch (Exception exception) {
         // catch any exceptions in the formatting of this response
-        String message = exception.getMessage();
-        String stackTrace = null;
-        if (exception.getStackTrace() != null) {
-          stackTrace = ExceptionUtils.getStackTrace(exception);
-        }
-        requestError = new RequestError(
-            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
-            message != null ? message : "",
-            stackTrace);
+        requestError = generateRequestError(exception);
       }
     }
     if (requestError != null) {

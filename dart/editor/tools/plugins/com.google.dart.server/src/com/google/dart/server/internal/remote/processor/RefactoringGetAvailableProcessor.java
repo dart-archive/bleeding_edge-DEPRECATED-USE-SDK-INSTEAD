@@ -13,13 +13,10 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonObject;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 
@@ -42,17 +39,9 @@ public class RefactoringGetAvailableProcessor extends ResultProcessor {
       try {
         List<String> refactoringKinds = JsonUtilities.decodeStringList(resultObject.get("kinds").getAsJsonArray());
         consumer.computedRefactoringKinds(refactoringKinds);
-      } catch (Exception e) {
+      } catch (Exception exception) {
         // catch any exceptions in the formatting of this response
-        String message = e.getMessage();
-        String stackTrace = null;
-        if (e.getStackTrace() != null) {
-          stackTrace = ExceptionUtils.getStackTrace(e);
-        }
-        requestError = new RequestError(
-            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
-            message != null ? message : "",
-            stackTrace);
+        requestError = generateRequestError(exception);
       }
     }
     if (requestError != null) {

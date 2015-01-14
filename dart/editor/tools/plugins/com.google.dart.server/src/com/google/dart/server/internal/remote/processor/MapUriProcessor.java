@@ -13,12 +13,9 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.ExtendedRequestErrorCode;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Instances of the class {@code MapUriProcessor} process the result of an {@code execution.mapUri}
@@ -48,15 +45,7 @@ public class MapUriProcessor extends ResultProcessor {
         consumer.computedFileOrUri(file, uri);
       } catch (Exception exception) {
         // catch any exceptions in the formatting of this response
-        String message = exception.getMessage();
-        String stackTrace = null;
-        if (exception.getStackTrace() != null) {
-          stackTrace = ExceptionUtils.getStackTrace(exception);
-        }
-        requestError = new RequestError(
-            ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE,
-            message != null ? message : "",
-            stackTrace);
+        requestError = generateRequestError(exception);
       }
     }
     if (requestError != null) {

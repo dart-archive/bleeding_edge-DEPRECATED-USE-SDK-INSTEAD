@@ -33,9 +33,14 @@ public class SortMembersProcessor extends ResultProcessor {
 
   public void process(JsonObject resultObject, RequestError requestError) {
     if (resultObject != null) {
-      JsonObject editObject = resultObject.get("edit").getAsJsonObject();
-      SourceFileEdit fileEdit = SourceFileEdit.fromJson(editObject);
-      consumer.computedEdit(fileEdit);
+      try {
+        JsonObject editObject = resultObject.get("edit").getAsJsonObject();
+        SourceFileEdit fileEdit = SourceFileEdit.fromJson(editObject);
+        consumer.computedEdit(fileEdit);
+      } catch (Exception exception) {
+        // catch any exceptions in the formatting of this response
+        requestError = generateRequestError(exception);
+      }
     }
     if (requestError != null) {
       consumer.onError(requestError);

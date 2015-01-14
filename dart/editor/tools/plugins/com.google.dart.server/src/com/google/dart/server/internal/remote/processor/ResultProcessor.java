@@ -13,11 +13,26 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.dart.server.ExtendedRequestErrorCode;
+import com.google.dart.server.generated.types.RequestError;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 /**
  * Abstract processor class for processing responses sent to consumers.
  * 
  * @coverage dart.server.remote
  */
 public class ResultProcessor extends JsonProcessor {
+
+  RequestError generateRequestError(Exception exception) {
+    String message = exception.getMessage();
+    String stackTrace = null;
+    if (exception.getStackTrace() != null) {
+      stackTrace = ExceptionUtils.getStackTrace(exception);
+    }
+    return new RequestError(ExtendedRequestErrorCode.INVALID_SERVER_RESPONSE, message != null
+        ? message : "", stackTrace);
+  }
 
 }

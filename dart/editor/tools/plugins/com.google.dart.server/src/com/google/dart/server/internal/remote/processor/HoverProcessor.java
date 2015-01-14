@@ -38,13 +38,18 @@ public class HoverProcessor extends ResultProcessor {
 
   public void process(JsonObject resultObject, RequestError requestError) {
     if (resultObject != null) {
-      ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
-      Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
-      while (iter.hasNext()) {
-        JsonObject hoverJsonObject = iter.next().getAsJsonObject();
-        hovers.add(HoverInformation.fromJson(hoverJsonObject));
+      try {
+        ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
+        Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
+        while (iter.hasNext()) {
+          JsonObject hoverJsonObject = iter.next().getAsJsonObject();
+          hovers.add(HoverInformation.fromJson(hoverJsonObject));
+        }
+        consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
+      } catch (Exception exception) {
+        // catch any exceptions in the formatting of this response
+        requestError = generateRequestError(exception);
       }
-      consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
     }
     if (requestError != null) {
       consumer.onError(requestError);
