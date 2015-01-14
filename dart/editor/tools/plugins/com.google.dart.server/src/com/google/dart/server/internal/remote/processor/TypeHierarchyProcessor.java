@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetTypeHierarchyConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -32,10 +33,20 @@ public class TypeHierarchyProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    JsonArray typeHierarchyItemsArray = resultObject.get("hierarchyItems") != null
-        ? resultObject.get("hierarchyItems").getAsJsonArray() : null;
-    // construct type hierarchy item list and notify listener
-    consumer.computedHierarchy(TypeHierarchyItem.fromJsonArray(typeHierarchyItemsArray));
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      try {
+        JsonArray typeHierarchyItemsArray = resultObject.get("hierarchyItems") != null
+            ? resultObject.get("hierarchyItems").getAsJsonArray() : null;
+        // construct type hierarchy item list and notify listener
+        consumer.computedHierarchy(TypeHierarchyItem.fromJsonArray(typeHierarchyItemsArray));
+      } catch (Exception exception) {
+        // catch any exceptions in the formatting of this response
+        requestError = generateRequestError(exception);
+      }
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.functions.PositionElement;
@@ -186,6 +187,10 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
           public void computedHierarchy(List<TypeHierarchyItem> computedItems) {
             items = computedItems;
             inputHierarchyChanged(viewer);
+          }
+
+          @Override
+          public void onError(RequestError requestError) {
           }
         });
   }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 
 import java.util.List;
@@ -35,4 +36,11 @@ public interface GetTypeHierarchyConsumer extends Consumer {
    *          file has not been sufficiently analyzed to allow a type hierarchy to be produced.
    */
   public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems);
+
+  /**
+   * If hierarchy items cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

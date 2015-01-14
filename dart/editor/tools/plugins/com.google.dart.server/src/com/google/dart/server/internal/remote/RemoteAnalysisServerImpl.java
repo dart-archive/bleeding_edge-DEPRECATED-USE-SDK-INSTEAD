@@ -639,7 +639,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           resultObject,
           requestError);
     } else if (consumer instanceof GetTypeHierarchyConsumer) {
-      new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
+      new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(
+          resultObject,
+          requestError);
     }
     //
     // Edit Domain

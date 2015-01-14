@@ -3653,10 +3653,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_search_getTypeHierarchy() throws Exception {
     final Object[] itemsArray = {null};
+    final RequestError[] requestErrorArray = {null};
     server.search_getTypeHierarchy("/fileA.dart", 1, new GetTypeHierarchyConsumer() {
       @Override
       public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems) {
         itemsArray[0] = hierarchyItems;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3713,6 +3719,47 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     @SuppressWarnings("unchecked")
     List<TypeHierarchyItem> items = (List<TypeHierarchyItem>) itemsArray[0];
     assertThat(items).hasSize(1);
+    assertNull(requestErrorArray[0]);
+  }
+
+  public void test_search_getTypeHierarchy_error() throws Exception {
+    final Object[] itemsArray = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.search_getTypeHierarchy("/fileA.dart", 1, new GetTypeHierarchyConsumer() {
+      @Override
+      public void computedHierarchy(List<TypeHierarchyItem> hierarchyItems) {
+        itemsArray[0] = hierarchyItems;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.getTypeHierarchy',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'MESSAGE'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertNull(itemsArray[0]);
+    assertNotNull(requestErrorArray[0]);
   }
 
   public void test_search_notification_results() throws Exception {
