@@ -42,11 +42,7 @@ public class ByteLineReaderStream implements LineReaderStream {
 
   @Override
   public String readLine() throws Exception {
-    String line = reader.readLine();
-//      if (line == null) {
-//        System.err.println(System.currentTimeMillis() + " <= --eof--");
-//      }
-    return line;
+    return reader.readLine();
   }
 
   @Override

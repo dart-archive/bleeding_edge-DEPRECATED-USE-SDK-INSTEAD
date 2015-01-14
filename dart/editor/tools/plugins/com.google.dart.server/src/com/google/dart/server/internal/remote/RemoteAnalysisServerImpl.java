@@ -523,7 +523,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   private RequestError processErrorResponse(JsonObject errorObject) throws Exception {
-    // TODO (jwren) after Error section is done, revisit this.
     String errorCode = errorObject.get("code").getAsString();
     String errorMessage = errorObject.get("message").getAsString();
     String errorStackTrace = errorObject.get("stackTrace") != null
@@ -596,7 +595,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // prepare ID
     JsonPrimitive idJsonPrimitive = (JsonPrimitive) response.get("id");
     if (idJsonPrimitive == null) {
-      // TODO (jwren) handle this case
       return;
     }
     String idString = idJsonPrimitive.getAsString();
