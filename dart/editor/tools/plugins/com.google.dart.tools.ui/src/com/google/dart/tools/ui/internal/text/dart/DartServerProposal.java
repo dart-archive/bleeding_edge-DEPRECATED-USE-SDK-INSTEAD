@@ -276,7 +276,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
         ui.setExitPolicy(new ExitPolicy(')', doc, viewer));
         ui.setExitPosition(viewer, replacementOffset + completion.length(), 0, Integer.MAX_VALUE);
-        ui.setCyclingMode(LinkedModeUI.CYCLE_NEVER);
+        ui.setCyclingMode(LinkedModeUI.CYCLE_WHEN_NO_PARENT);
         ui.enter();
         return;
       }
