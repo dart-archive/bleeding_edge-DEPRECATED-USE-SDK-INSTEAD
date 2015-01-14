@@ -47,6 +47,5 @@ public class FindElementReferencesProcessor extends ResultProcessor {
     if (requestError != null) {
       consumer.onError(requestError);
     }
-
   }
 }
