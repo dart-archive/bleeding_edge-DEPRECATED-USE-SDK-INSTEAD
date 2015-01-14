@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
+
 /**
  * The interface {@code FindMemberReferencesConsumer} defines the behavior of objects that consume
  * the find member references request.
@@ -26,4 +28,11 @@ public interface FindMemberReferencesConsumer extends Consumer {
    * @param searchId the identifier used to associate results with this search request
    */
   public void computedSearchId(String searchId);
+
+  /**
+   * If a search id cannot be passed back, some {@link RequestError} is passed back instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }

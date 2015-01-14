@@ -100,6 +100,11 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
                         }
                       });
                 }
+
+                @Override
+                public void onError(RequestError requestError) {
+                  latch.countDown();
+                }
               });
           Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
           return allResults;

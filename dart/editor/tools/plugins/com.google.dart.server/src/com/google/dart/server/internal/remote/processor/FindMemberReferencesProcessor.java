@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.FindMemberReferencesConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
 
 /**
@@ -30,8 +31,18 @@ public class FindMemberReferencesProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    String searchId = resultObject.get("id").getAsString();
-    consumer.computedSearchId(searchId);
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      try {
+        String searchId = resultObject.get("id").getAsString();
+        consumer.computedSearchId(searchId);
+      } catch (Exception exception) {
+        // catch any exceptions in the formatting of this response
+        requestError = generateRequestError(exception);
+      }
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }
