@@ -108,6 +108,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
@@ -2022,7 +2023,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   public String getInputFilePath() {
     // may be workspace IFile
     if (inputResourceFile != null) {
-      return inputResourceFile.getLocation().toOSString();
+      IPath location = inputResourceFile.getLocation();
+      if (location == null) {
+        return null;
+      }
+      return location.toOSString();
     }
     // may be Java file
     if (inputJavaFile != null) {
