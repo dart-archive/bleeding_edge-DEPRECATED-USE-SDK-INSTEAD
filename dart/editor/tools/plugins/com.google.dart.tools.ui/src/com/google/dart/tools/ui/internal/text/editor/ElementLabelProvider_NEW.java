@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
+import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -34,6 +35,16 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
     org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider {
   private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
   private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
+
+  /**
+   * Return {@code true} if the given {@link Element}s have the same visual presentation.
+   */
+  public static boolean areEqual(Element a, Element b) {
+    return ObjectUtilities.equals(a.getKind(), b.getKind())
+        && ObjectUtilities.equals(a.getName(), b.getName()) && a.getFlags() == b.getFlags()
+        && ObjectUtilities.equals(a.getParameters(), b.getParameters())
+        && ObjectUtilities.equals(a.getReturnType(), b.getReturnType());
+  }
 
   public static ImageDescriptor getImageDescriptor(Element element) {
     String kind = element.getKind();

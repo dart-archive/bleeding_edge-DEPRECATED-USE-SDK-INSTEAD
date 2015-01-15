@@ -359,9 +359,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     // compare elements
     Element elementA = a.getElement();
     Element elementB = b.getElement();
-    String nameA = elementA.getName();
-    String nameB = elementB.getName();
-    if (!nameA.equals(nameB)) {
+    if (!ElementLabelProvider_NEW.areEqual(elementA, elementB)) {
       return false;
     }
     // compare children

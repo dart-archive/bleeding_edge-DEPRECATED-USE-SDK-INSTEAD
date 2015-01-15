@@ -1620,6 +1620,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
     IDocumentProvider p = getDocumentProvider();
     try {
+      if (dartReconcilingStrategy != null) {
+        dartReconcilingStrategy.reconcile();
+      }
       super.performSave(overwrite, progressMonitor);
     } finally {
       if (p instanceof ICompilationUnitDocumentProvider) {
