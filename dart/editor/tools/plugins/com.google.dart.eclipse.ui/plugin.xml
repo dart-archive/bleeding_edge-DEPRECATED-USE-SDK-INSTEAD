@@ -626,5 +626,16 @@
             type="org.eclipse.core.resources.IProject">
       </propertyTester>
    </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            class="com.google.dart.tools.ui.ProblemsLabelDecorator"
+            id="com.google.dart.eclipse.ui.dart.decorator"
+            label="Dart Problems Decorator"
+            objectClass="org.eclipse.core.resources.IResource"
+            state="true">
+      </decorator>
+   </extension>
 
 </plugin>
