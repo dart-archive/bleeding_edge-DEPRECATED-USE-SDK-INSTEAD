@@ -52,7 +52,7 @@ public class DartEditorContentAssistant extends ContentAssistant {
 
     @Override
     protected void showAssist(int showStyle) {
-      // Not on the UI thread, so block up to 8 seconds waiting for analysis
+      // Not on the UI thread, so block for a while waiting for analysis
       if (waitUntilProcessorReady(true, caretOffset)) {
         StyledText control = sourceViewer.getTextWidget();
         if (control.isDisposed()) {

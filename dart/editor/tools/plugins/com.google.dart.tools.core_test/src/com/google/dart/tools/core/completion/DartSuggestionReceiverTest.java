@@ -78,6 +78,7 @@ public class DartSuggestionReceiverTest extends TestCase {
     receiver = new DartSuggestionReceiver(server);
     List<CompletionSuggestion> result = receiver.requestSuggestions(testFile, testOffset, 1);
     assertNull(result);
+    assertFalse(receiver.isComplete());
   }
 
   public void test_no_suggestions() {
@@ -90,11 +91,13 @@ public class DartSuggestionReceiverTest extends TestCase {
     receiver = new DartSuggestionReceiver(server);
     List<CompletionSuggestion> result = receiver.requestSuggestions(testFile, testOffset, 1);
     assertNull(result);
+    assertFalse(receiver.isComplete());
   }
 
   public void test_some_suggestions() {
     final List<CompletionSuggestion> completions0 = new ArrayList<CompletionSuggestion>();
     final List<CompletionSuggestion> completions1 = new ArrayList<CompletionSuggestion>();
+    @SuppressWarnings("unchecked")
     final List<CompletionSuggestion>[] partialResults = new List[3];
 
     completions0.add(new CompletionSuggestion(
@@ -163,12 +166,14 @@ public class DartSuggestionReceiverTest extends TestCase {
     assertTrue(delta >= millisToWait);
     assertEquals(testOffset, receiver.getReplacementOffset());
     assertEquals(0, receiver.getReplacementLength());
+    assertFalse(receiver.isComplete());
   }
 
   public void test_suggestions() {
     final List<CompletionSuggestion> completions0 = new ArrayList<CompletionSuggestion>();
     final List<CompletionSuggestion> completions1 = new ArrayList<CompletionSuggestion>();
     final List<CompletionSuggestion> completions2 = new ArrayList<CompletionSuggestion>();
+    @SuppressWarnings("unchecked")
     final List<CompletionSuggestion>[] partialResults = new List[3];
 
     completions0.add(new CompletionSuggestion(
@@ -258,5 +263,6 @@ public class DartSuggestionReceiverTest extends TestCase {
     assertEquals(testOffset, receiver.getReplacementOffset());
     assertEquals(8, receiver.getReplacementLength());
     assertTrue(delta < millisToWait);
+    assertTrue(receiver.isComplete());
   }
 }

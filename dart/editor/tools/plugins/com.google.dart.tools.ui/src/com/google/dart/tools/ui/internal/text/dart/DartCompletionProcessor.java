@@ -148,11 +148,10 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     // Request suggestions from server
     DartSuggestionReceiver receiver = new DartSuggestionReceiver(DartCore.getAnalysisServer());
 //    long start = System.currentTimeMillis();
-    receiver.requestSuggestions(dartEditor.getInputFilePath(), offset,
-    // TODO (danrubel) reduce to 1/4 second
-        8000); // wait up to 8 seconds for suggestions
+    // TODO (danrubel) how long should we wait for completions?
+    receiver.requestSuggestions(dartEditor.getInputFilePath(), offset, auto ? 150 : 1500);
     // Translate server suggestions into Eclipse proposals
-    collector = new DartServerProposalCollector(receiver);
+    collector = new DartServerProposalCollector(auto, receiver);
     final boolean sortedProposals = collector.computeAndSortProposals();
 //    long delta = System.currentTimeMillis() - start;
 //    List<ICompletionProposal> proposals = collector.getProposals();

@@ -102,6 +102,12 @@ public class DartSuggestionReceiver {
    */
   private CountDownLatch latch;
 
+  /**
+   * {@code true} if the final code completion notification has been received by
+   * {@link #requestSuggestions(String, int, long)} in the allotted time.
+   */
+  private boolean complete;
+
   public DartSuggestionReceiver(AnalysisServer server) {
     this.server = server;
   }
@@ -128,6 +134,14 @@ public class DartSuggestionReceiver {
   }
 
   /**
+   * Answer {@code true} if the final code completion notification has been received by
+   * {@link #requestSuggestions(String, int, long)} in the allotted time.
+   */
+  public boolean isComplete() {
+    return complete;
+  }
+
+  /**
    * Send a completion request to the server. Since the server sends multiple notifications
    * containing suggestions, each superseding the prior notification, this method returns either the
    * final suggestions when they are received or the best available suggestions if the final
@@ -141,7 +155,7 @@ public class DartSuggestionReceiver {
   public List<CompletionSuggestion> requestSuggestions(String file, int offset, long millisToWait) {
     latch = new CountDownLatch(1);
     server.completion_getSuggestions(file, offset, consumer);
-    Uninterruptibles.awaitUninterruptibly(latch, millisToWait, TimeUnit.MILLISECONDS);
+    complete = Uninterruptibles.awaitUninterruptibly(latch, millisToWait, TimeUnit.MILLISECONDS);
     latch = null;
     server.removeAnalysisServerListener(listener);
     return suggestions;

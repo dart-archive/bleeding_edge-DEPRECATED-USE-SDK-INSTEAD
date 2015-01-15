@@ -14,7 +14,9 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.server.generated.types.CompletionSuggestion;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.DartSuggestionReceiver;
+import com.google.dart.tools.ui.internal.text.dart.DartServerInformationalProposal;
 import com.google.dart.tools.ui.internal.text.dart.DartServerProposal;
 import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
 
@@ -31,40 +33,59 @@ import java.util.List;
  */
 public class DartServerProposalCollector {
 
+  private final boolean auto;
   private final int replacementOffset;
   private final int replacementLength;
   private final List<CompletionSuggestion> suggestions;
+  private final boolean isComplete;
   private ArrayList<ICompletionProposal> proposals;
 
-  public DartServerProposalCollector(DartSuggestionReceiver receiver) {
+  public DartServerProposalCollector(boolean auto, DartSuggestionReceiver receiver) {
     this(
+        auto,
         receiver.getReplacementOffset(),
         receiver.getReplacementLength(),
-        receiver.getSuggestions());
+        receiver.getSuggestions(),
+        receiver.isComplete());
   }
 
-  public DartServerProposalCollector(int replacementOffset, int replacementLength,
-      List<CompletionSuggestion> suggestions) {
+  public DartServerProposalCollector(boolean auto, int replacementOffset, int replacementLength,
+      List<CompletionSuggestion> suggestions, boolean isComplete) {
+    this.auto = auto;
     this.replacementOffset = replacementOffset;
     this.replacementLength = replacementLength;
     this.suggestions = suggestions;
+    this.isComplete = isComplete;
   }
 
   /**
    * Build the list of proposals from the supplied suggestions. This can be called on a background
    * thread so that code completion initialization does not block the UI.
    * 
-   * @return {@code true} if proposals were computed, else {@code false}
+   * @return {@code true} if proposals should be displayed, else {@code false}
    */
   public boolean computeAndSortProposals() {
-    if (suggestions == null || suggestions.size() == 0) {
-      return false;
-    }
     proposals = new ArrayList<ICompletionProposal>();
+    if (!DartCore.getAnalysisServer().isSocketOpen()) {
+      proposals.add(DartServerInformationalProposal.SERVER_DEAD);
+      return !auto; // Do not display message if auto '.' triggered the completion request
+    }
+    if (suggestions == null) {
+      proposals.add(DartServerInformationalProposal.NO_RESPONSE);
+      return !auto;
+    }
+    if (suggestions.size() == 0) {
+      proposals.add(isComplete ? DartServerInformationalProposal.NO_RESULTS_COMPLETE
+          : DartServerInformationalProposal.NO_RESULTS_TIMED_OUT);
+      return !auto;
+    }
     for (CompletionSuggestion suggestion : suggestions) {
       proposals.add(new DartServerProposal(this, suggestion));
     }
     Collections.sort(proposals, new CompletionProposalComparator());
+    if (!isComplete) {
+      proposals.add(Math.min(proposals.size(), 9), DartServerInformationalProposal.PARTIAL_RESULTS);
+    }
     return true;
   }
 
@@ -73,10 +94,15 @@ public class DartServerProposalCollector {
    */
   public void filterProposals(IDocument document, int offset) {
     ArrayList<ICompletionProposal> filtered = new ArrayList<ICompletionProposal>();
+    ArrayList<ICompletionProposal> informational = new ArrayList<ICompletionProposal>();
     for (ICompletionProposal p : proposals) {
-      if (((DartServerProposal) p).validate(document, offset, null)) {
+      if (p instanceof DartServerProposal
+          && ((DartServerProposal) p).validate(document, offset, null)) {
         filtered.add(p);
+      } else if (p instanceof DartServerInformationalProposal) {
+        informational.add(p);
       }
+      filtered.addAll(Math.min(filtered.size(), 9), informational);
     }
     proposals = filtered;
   }

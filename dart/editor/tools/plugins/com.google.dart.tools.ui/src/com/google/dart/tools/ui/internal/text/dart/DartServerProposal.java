@@ -104,6 +104,7 @@ import java.util.concurrent.TimeUnit;
 public class DartServerProposal implements ICompletionProposal, ICompletionProposalExtension,
     ICompletionProposalExtension2, ICompletionProposalExtension3, ICompletionProposalExtension4,
     ICompletionProposalExtension5, ICompletionProposalExtension6, IDartCompletionProposal {
+
   /**
    * The control creator.
    */
