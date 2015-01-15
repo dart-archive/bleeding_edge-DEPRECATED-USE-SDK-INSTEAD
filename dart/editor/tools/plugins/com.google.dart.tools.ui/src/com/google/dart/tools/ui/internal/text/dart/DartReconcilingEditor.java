@@ -75,6 +75,11 @@ public interface DartReconcilingEditor {
   String getTitle();
 
   /**
+   * Returns whether the contents of this editor is dirty.
+   */
+  boolean isDirty();
+
+  /**
    * Set the reconciling strategy associated with this editor
    * 
    * @param dartReconcilingStrategy the strategy or {@code null} if none

@@ -1444,6 +1444,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   @Override
+  protected void firePropertyChange(int property) {
+    if (property == PROP_DIRTY && !isDirty()) {
+      if (dartReconcilingStrategy != null) {
+        dartReconcilingStrategy.saved();
+      }
+    }
+    super.firePropertyChange(property);
+  }
+
+  @Override
   protected Object getElementAt(int offset) {
     return getElementAt(offset, true);
   }
@@ -1615,9 +1625,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       if (p instanceof ICompilationUnitDocumentProvider) {
         checkEditableState();
       }
-    }
-    if (dartReconcilingStrategy != null) {
-      dartReconcilingStrategy.saved();
     }
   }
 

@@ -448,14 +448,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      if (!isOverlayAdded) {
-        addOverlay();
+      if (editor.isDirty()) {
+        if (!isOverlayAdded) {
+          addOverlay();
+        } else {
+          List<SourceEdit> sourceEdits = Lists.newArrayList();
+          String replacement = code.substring(offset, offset + newLength);
+          sourceEdits.add(new SourceEdit(offset, oldLength, replacement, null));
+          ChangeContentOverlay change = new ChangeContentOverlay(sourceEdits);
+          updateFileContent(change);
+        }
       } else {
-        List<SourceEdit> sourceEdits = Lists.newArrayList();
-        String replacement = code.substring(offset, offset + newLength);
-        sourceEdits.add(new SourceEdit(offset, oldLength, replacement, null));
-        ChangeContentOverlay change = new ChangeContentOverlay(sourceEdits);
-        updateFileContent(change);
+        removeOverlay();
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();

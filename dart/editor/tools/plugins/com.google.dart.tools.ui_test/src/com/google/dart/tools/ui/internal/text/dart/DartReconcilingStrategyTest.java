@@ -180,6 +180,11 @@ public class DartReconcilingStrategyTest extends TestCase {
     }
 
     @Override
+    public boolean isDirty() {
+      return false;
+    }
+
+    @Override
     public void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy) {
       // ignored
     }
