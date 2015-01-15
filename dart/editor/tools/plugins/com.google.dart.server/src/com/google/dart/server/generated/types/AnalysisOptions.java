@@ -82,15 +82,21 @@ public class AnalysisOptions {
   private final Boolean generateLints;
 
   /**
+   * The mode to read files from disk, by default this value is AS_IS.
+   */
+  private final String fileReadMode;
+
+  /**
    * Constructor for {@link AnalysisOptions}.
    */
-  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints) {
+  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints, String fileReadMode) {
     this.enableAsync = enableAsync;
     this.enableDeferredLoading = enableDeferredLoading;
     this.enableEnums = enableEnums;
     this.generateDart2jsHints = generateDart2jsHints;
     this.generateHints = generateHints;
     this.generateLints = generateLints;
+    this.fileReadMode = fileReadMode;
   }
 
   @Override
@@ -103,7 +109,8 @@ public class AnalysisOptions {
         ObjectUtilities.equals(other.enableEnums, enableEnums) &&
         ObjectUtilities.equals(other.generateDart2jsHints, generateDart2jsHints) &&
         ObjectUtilities.equals(other.generateHints, generateHints) &&
-        ObjectUtilities.equals(other.generateLints, generateLints);
+        ObjectUtilities.equals(other.generateLints, generateLints) &&
+        ObjectUtilities.equals(other.fileReadMode, fileReadMode);
     }
     return false;
   }
@@ -115,7 +122,8 @@ public class AnalysisOptions {
     Boolean generateDart2jsHints = jsonObject.get("generateDart2jsHints") == null ? null : jsonObject.get("generateDart2jsHints").getAsBoolean();
     Boolean generateHints = jsonObject.get("generateHints") == null ? null : jsonObject.get("generateHints").getAsBoolean();
     Boolean generateLints = jsonObject.get("generateLints") == null ? null : jsonObject.get("generateLints").getAsBoolean();
-    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, generateDart2jsHints, generateHints, generateLints);
+    String fileReadMode = jsonObject.get("fileReadMode") == null ? null : jsonObject.get("fileReadMode").getAsString();
+    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, generateDart2jsHints, generateHints, generateLints, fileReadMode);
   }
 
   public static List<AnalysisOptions> fromJsonArray(JsonArray jsonArray) {
@@ -158,6 +166,13 @@ public class AnalysisOptions {
   }
 
   /**
+   * The mode to read files from disk, by default this value is AS_IS.
+   */
+  public String getFileReadMode() {
+    return fileReadMode;
+  }
+
+  /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
@@ -188,6 +203,7 @@ public class AnalysisOptions {
     builder.append(generateDart2jsHints);
     builder.append(generateHints);
     builder.append(generateLints);
+    builder.append(fileReadMode);
     return builder.toHashCode();
   }
 
@@ -211,6 +227,9 @@ public class AnalysisOptions {
     if (generateLints != null) {
       jsonObject.addProperty("generateLints", generateLints);
     }
+    if (fileReadMode != null) {
+      jsonObject.addProperty("fileReadMode", fileReadMode);
+    }
     return jsonObject;
   }
 
@@ -229,7 +248,9 @@ public class AnalysisOptions {
     builder.append("generateHints=");
     builder.append(generateHints + ", ");
     builder.append("generateLints=");
-    builder.append(generateLints);
+    builder.append(generateLints + ", ");
+    builder.append("fileReadMode=");
+    builder.append(fileReadMode);
     builder.append("]");
     return builder.toString();
   }
