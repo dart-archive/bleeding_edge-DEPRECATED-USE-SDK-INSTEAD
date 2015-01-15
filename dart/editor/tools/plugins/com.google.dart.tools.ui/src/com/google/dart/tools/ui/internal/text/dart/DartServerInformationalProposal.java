@@ -50,7 +50,7 @@ public class DartServerInformationalProposal implements ICompletionProposal,
    * no code completion results are available.
    */
   public static final ICompletionProposal SERVER_DEAD = new DartServerInformationalProposal(
-      "-- Aw snap, Analysis Server is dead --");
+      "-- Analysis Server has crashed, sorry --");
 
   /**
    * Internal {@link Styler} for creating the {@link #getStyledDisplayString()}.
