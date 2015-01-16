@@ -2286,6 +2286,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     selectAndReveal(offset, length);
   }
 
+  public void setPreferences(IPreferenceStore store) {
+    uninstallSemanticHighlighting();
+    super.setPreferenceStore(store);
+    installSemanticHighlighting();
+  }
+
   public void setSelection_NEW(Outline outline, boolean moveCursor) {
     // validate Outline
     if (outline == null) {
