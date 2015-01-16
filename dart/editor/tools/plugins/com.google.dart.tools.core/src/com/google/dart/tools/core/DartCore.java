@@ -881,26 +881,25 @@ public class DartCore extends Plugin implements DartSdkListener {
     String packageName = null;
 
     try {
-      PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
       IContainer appFolder = getApplicationDirectory(resource);
-      if (appFolder != null && folder != null && !appFolder.equals(folder.getResource())) {
-        // this is a case of nested pubspecs
+
+      if (appFolder != null) {
         IResource pubspec = appFolder.findMember(DartCore.PUBSPEC_FILE_NAME);
+
         if (pubspec != null) {
           String contents = FileUtilities.getContents(pubspec.getLocation().toFile(), "UTF-8");
+
           if (contents != null) {
             String name = PubYamlUtils.getPubspecName(contents);
+
             if (name != null) {
               return name;
             }
           }
         }
       }
-      if (folder != null) {
-        packageName = folder.getPubspec().getName();
-      }
     } catch (Exception e) {
-      DartCore.logError(e);
+
     }
 
     return packageName;

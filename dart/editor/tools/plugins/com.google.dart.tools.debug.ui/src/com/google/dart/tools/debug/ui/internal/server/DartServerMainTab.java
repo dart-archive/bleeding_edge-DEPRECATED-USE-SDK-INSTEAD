@@ -209,6 +209,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     argsLabel.setText("VM arguments:");
 
     vmArgumentsText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    vmArgumentsText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
         vmArgumentsText);
 
