@@ -24,6 +24,7 @@ import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.coverage.CoverageManager;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
 
@@ -228,7 +229,9 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     try {
       runtimeProcess = processBuilder.start();
       if (coverageTempDir != null) {
+        UriToFileResolver uriToFileResolver = new UriToFileResolver(launch);
         CoverageManager.registerProcess(
+            uriToFileResolver,
             coverageTempDir,
             launchConfig.getApplicationName(),
             runtimeProcess);

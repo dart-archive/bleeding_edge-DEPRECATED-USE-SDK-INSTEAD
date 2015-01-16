@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -33,9 +34,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -71,8 +70,8 @@ public class CoverageManager {
     return hitMap;
   }
 
-  public static void registerProcess(final String tempDir, final String scriptPath,
-      final Process process) {
+  public static void registerProcess(final UriToFileResolver uriToFileResolver,
+      final String tempDir, final String scriptPath, final Process process) {
     Thread thread = new Thread("Coverage process handler") {
       @Override
       public void run() {
@@ -83,7 +82,11 @@ public class CoverageManager {
           } catch (InterruptedException e) {
           }
         }
-        parseCoverageDirectory(tempDir, scriptPath);
+        try {
+          parseCoverageDirectory(uriToFileResolver, tempDir, scriptPath);
+        } finally {
+          uriToFileResolver.dispose();
+        }
       }
     };
     thread.setDaemon(true);
@@ -148,27 +151,16 @@ public class CoverageManager {
     workspace.run(runnable, null, IWorkspace.AVOID_UPDATE, null);
   }
 
-  private static IFile getFile(IContainer container, JSONObject coverageEntry) throws Exception {
-    String sourcePath = coverageEntry.getString("source");
-    if (sourcePath.startsWith("package:")) {
-      File containerFile = container.getLocation().toFile();
-      int packagePrefixLength = "package:".length();
-      String packageFile = "packages/" + sourcePath.substring(packagePrefixLength);
-      File file = new File(containerFile, packageFile);
-      {
-        File canonicalFile = file.getCanonicalFile();
-        if (isInWorkspace(canonicalFile)) {
-          file = canonicalFile;
-        }
-      }
-      return getResourceFile(file);
+  private static IFile getFile(UriToFileResolver uriToFileResolver, IContainer container,
+      JSONObject coverageEntry) throws Exception {
+    String uri = coverageEntry.getString("source");
+    String path = uriToFileResolver.getFileForUri(uri);
+    if (path == null) {
+      return null;
     }
-    if (sourcePath.startsWith("file://")) {
-      String filePath = sourcePath.substring("file://".length());
-      File file = new File(filePath);
-      return getResourceFile(file);
-    }
-    return null;
+    File file = new File(path);
+    IFile resource = getResourceFile(file);
+    return resource;
   }
 
   private static IFile getResourceFile(File file) {
@@ -192,20 +184,15 @@ public class CoverageManager {
     return scriptResource.getProject();
   }
 
-  private static boolean isInWorkspace(File file) {
-    IPath rootLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-    String fileStringPath = file.getAbsolutePath();
-    Path filePath = new Path(fileStringPath);
-    return rootLocation.isPrefixOf(filePath);
-  }
-
-  private static void parseCoverageDirectory(String tempPath, String scriptPath) {
+  private static void parseCoverageDirectory(UriToFileResolver uriToFileResolver, String tempPath,
+      String scriptPath) {
     IContainer contextContainer = getScriptContextContainer(scriptPath);
     if (contextContainer == null) {
       return;
     }
     // parse coverage output
     final Map<IFile, List<SourceRange>> filesMarkerRanges = parseCoverageFileInTempDirectory(
+        uriToFileResolver,
         contextContainer,
         tempPath);
     if (filesMarkerRanges == null) {
@@ -241,8 +228,8 @@ public class CoverageManager {
     }
   }
 
-  private static Map<IFile, List<SourceRange>> parseCoverageFile(IContainer container, File jsonFile)
-      throws Exception {
+  private static Map<IFile, List<SourceRange>> parseCoverageFile(
+      UriToFileResolver uriToFileResolver, IContainer container, File jsonFile) throws Exception {
     Map<IFile, TreeMap<Integer, Integer>> filesHitMaps = Maps.newHashMap();
     Map<IFile, List<SourceRange>> filesMarkerRanges = Maps.newHashMap();
     String fileString = Files.toString(jsonFile, Charsets.UTF_8);
@@ -251,7 +238,7 @@ public class CoverageManager {
     for (int i = 0; i < coverageArray.length(); i++) {
       JSONObject coverageEntry = coverageArray.getJSONObject(i);
       // prepare IFile
-      IFile file = getFile(container, coverageEntry);
+      IFile file = getFile(uriToFileResolver, container, coverageEntry);
       if (file == null) {
         continue;
       }
@@ -288,14 +275,14 @@ public class CoverageManager {
   }
 
   private static Map<IFile, List<SourceRange>> parseCoverageFileInTempDirectory(
-      IContainer container, String tempPath) {
+      UriToFileResolver uriToFileResolver, IContainer container, String tempPath) {
     File tempFile = new File(tempPath);
     File[] outputFiles = tempFile.listFiles();
     for (File file : outputFiles) {
       String fileName = file.getName().toLowerCase();
       if (fileName.startsWith("dart-cov-") && fileName.endsWith(".json")) {
         try {
-          return parseCoverageFile(container, file);
+          return parseCoverageFile(uriToFileResolver, container, file);
         } catch (Exception e) {
         } finally {
           FileUtilities.delete(tempFile);
