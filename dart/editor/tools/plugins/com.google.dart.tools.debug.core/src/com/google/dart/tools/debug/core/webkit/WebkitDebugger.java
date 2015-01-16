@@ -717,9 +717,27 @@ public class WebkitDebugger extends WebkitDomain {
         restep = false;
       }
 
+      boolean ignoreBreak = false;
+
+      // Check if we should ignore this exception, i.e., if it matches something like
+      // chrome-search://most-visited/title.js.
+      if (reason == PausedReasonType.exception && newLocation != null) {
+        WebkitScript script = getScript(newLocation.getScriptId());
+
+        if (script != null && matchesChromeIgnore(script.getUrl())) {
+          ignoreBreak = true;
+        }
+      }
+
       currentLocation = newLocation;
 
-      if (restep) {
+      if (ignoreBreak) {
+        try {
+          resume();
+        } catch (IOException e) {
+          throw new JSONException(e);
+        }
+      } else if (restep) {
         try {
           sendSimpleCommand(stepCommand);
         } catch (IOException e) {
@@ -881,4 +899,14 @@ public class WebkitDebugger extends WebkitDomain {
     clearRemoteObjects();
   }
 
+  private boolean matchesChromeIgnore(String url) {
+    // "ReferenceError: fillMostVisited is not defined"
+    // chrome-search://most-visited/title.js, line 12, col 2
+
+    if (url == null) {
+      return false;
+    }
+
+    return url.startsWith("chrome-search://");
+  }
 }
