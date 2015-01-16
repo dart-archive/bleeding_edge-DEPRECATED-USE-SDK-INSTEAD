@@ -58,6 +58,14 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       int eventOffset = event.getOffset();
       int eventOldLength = event.getLength();
       int eventEnd = eventOffset + eventOldLength;
+      // check is the whole document was replaced (e.g. GIT branch was switched)
+      {
+        String documentText = document.get();
+        String eventText = event.getText();
+        if (eventOffset == 0 && documentText.length() == eventText.length()) {
+          return;
+        }
+      }
       // update positions
       for (HighlightPosition position : positions) {
         int offset = position.getOffset();
