@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetVersionConsumer;
+import com.google.dart.server.generated.types.RequestError;
 import com.google.gson.JsonObject;
 
 /**
@@ -30,7 +31,12 @@ public class VersionProcessor extends ResultProcessor {
     this.consumer = consumer;
   }
 
-  public void process(JsonObject resultObject) {
-    consumer.computedVersion(resultObject.get("version").getAsString());
+  public void process(JsonObject resultObject, RequestError requestError) {
+    if (resultObject != null) {
+      consumer.computedVersion(resultObject.get("version").getAsString());
+    }
+    if (requestError != null) {
+      consumer.onError(requestError);
+    }
   }
 }

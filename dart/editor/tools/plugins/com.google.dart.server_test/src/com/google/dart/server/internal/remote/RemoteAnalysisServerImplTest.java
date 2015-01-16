@@ -3875,10 +3875,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
+    final RequestError[] requestErrorArray = {null};
     server.server_getVersion(new GetVersionConsumer() {
       @Override
       public void computedVersion(String version) {
         versionPtr[0] = version;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
       }
     });
     List<JsonObject> requests = requestSink.getRequests();
@@ -3898,7 +3904,51 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
+
     assertEquals("0.0.1", versionPtr[0]);
+    assertNull(requestErrorArray[0]);
+  }
+
+  public void test_server_getVersion_error() throws Exception {
+    final String[] versionPtr = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.server_getVersion(new GetVersionConsumer() {
+      @Override
+      public void computedVersion(String version) {
+        versionPtr[0] = version;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.getVersion'",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    'code': 'CODE',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(versionPtr[0]);
+    RequestError requestError = requestErrorArray[0];
+    assertNotNull(requestError);
+    assertEquals("CODE", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
   }
 
   public void test_server_notification_connected() throws Exception {

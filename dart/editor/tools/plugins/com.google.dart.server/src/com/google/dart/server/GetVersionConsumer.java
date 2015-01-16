@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.RequestError;
+
 /**
  * The interface {@code VersionConsumer} defines the behavior of objects that consume the
  * {@link String} version.
@@ -26,4 +28,12 @@ public interface GetVersionConsumer extends Consumer {
    * @param version the {@link String} version that has been retrieved
    */
   public void computedVersion(String version);
+
+  /**
+   * If a version {@link String} cannot be passed back, some {@link RequestError} is passed back
+   * instead.
+   * 
+   * @param requestError the reason why a result was not passed back
+   */
+  public void onError(RequestError requestError);
 }
