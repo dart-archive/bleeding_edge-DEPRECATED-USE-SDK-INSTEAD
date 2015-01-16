@@ -24,7 +24,6 @@ import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.ExecutionService;
-import com.google.dart.server.generated.types.FileReadMode;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.NavigationRegion;
 import com.google.dart.server.generated.types.Occurrences;
@@ -271,8 +270,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
         true /* enums */,
         DartCore.getPlugin().isHintsDart2JSEnabled(),
         DartCore.getPlugin().isHintsEnabled(),
-        DartCore.getPlugin().isLintsEnabled(),
-        FileReadMode.AS_IS));
+        DartCore.getPlugin().isLintsEnabled()));
   }
 
   void internalComputedErrors(String file, AnalysisError[] errors) {

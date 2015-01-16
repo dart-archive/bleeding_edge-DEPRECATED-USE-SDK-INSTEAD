@@ -51,7 +51,6 @@ import com.google.dart.server.generated.types.ExtractLocalVariableFeedback;
 import com.google.dart.server.generated.types.ExtractLocalVariableOptions;
 import com.google.dart.server.generated.types.ExtractMethodFeedback;
 import com.google.dart.server.generated.types.ExtractMethodOptions;
-import com.google.dart.server.generated.types.FileReadMode;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.server.generated.types.HoverInformation;
@@ -1089,14 +1088,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_all_false() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        FileReadMode.AS_IS);
+    AnalysisOptions options = new AnalysisOptions(false, false, false, false, false, false);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1110,8 +1102,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'enableEnums': false,",
         "      'generateDart2jsHints': false,",
         "      'generateHints': false,",
-        "      'generateLints': false,",
-        "      'fileReadMode': AS_IS",
+        "      'generateLints': false",
         "    }",
         "  }",
         "}");
@@ -1119,14 +1110,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_all_true() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        FileReadMode.NORMALIZE_EOL);
+    AnalysisOptions options = new AnalysisOptions(true, true, true, true, true, true);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1140,8 +1124,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'enableEnums': true,",
         "      'generateDart2jsHints': true,",
         "      'generateHints': true,",
-        "      'generateLints': true,",
-        "      'fileReadMode': NORMALIZE_EOL",
+        "      'generateLints': true",
         "    }",
         "  }",
         "}");
@@ -1149,7 +1132,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_subset1() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(true, null, null, null, null, null, null);
+    AnalysisOptions options = new AnalysisOptions(true, null, null, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
@@ -1166,7 +1149,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateOptions_subset2() throws Exception {
-    AnalysisOptions options = new AnalysisOptions(false, true, null, null, null, null, null);
+    AnalysisOptions options = new AnalysisOptions(false, true, null, null, null, null);
     server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
