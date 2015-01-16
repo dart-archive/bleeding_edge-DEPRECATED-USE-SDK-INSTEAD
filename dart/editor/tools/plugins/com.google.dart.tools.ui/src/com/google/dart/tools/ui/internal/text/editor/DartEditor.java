@@ -1716,9 +1716,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fEditorSelectionChangedListener = new EditorSelectionChangedListener();
     fEditorSelectionChangedListener.install(getSelectionProvider());
 
-    if (isSemanticHighlightingEnabled()) {
-      installSemanticHighlighting();
-    }
+    installSemanticHighlighting();
   }
 
   @Override
@@ -2286,12 +2284,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     int offset = element.getNameOffset();
     int length = element.getDisplayName().length();
     selectAndReveal(offset, length);
-  }
-
-  public void setPreferences(IPreferenceStore store) {
-    uninstallSemanticHighlighting();
-    super.setPreferenceStore(store);
-    installSemanticHighlighting();
   }
 
   public void setSelection_NEW(Outline outline, boolean moveCursor) {
@@ -2957,8 +2949,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     {
       setPreferenceStore(createCombinedPreferenceStore(input));
       internalDoSetInput(input);
-      return;
     }
+
+    uninstallSemanticHighlighting();
+    installSemanticHighlighting();
 
 //    ISourceViewer sourceViewer = getSourceViewer();
 //    if (!(sourceViewer instanceof ISourceViewerExtension2)) {
@@ -3277,14 +3271,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           uninstallOccurrencesFinder();
         } else {
           installOccurrencesFinder(true);
-        }
-        return;
-      }
-      if (SemanticHighlightings.affectsEnablement(getPreferenceStore(), event)) {
-        if (isSemanticHighlightingEnabled()) {
-          installSemanticHighlighting();
-        } else {
-          uninstallSemanticHighlighting();
         }
         return;
       }
@@ -4011,14 +3997,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Install Semantic Highlighting.
    */
   private void installSemanticHighlighting() {
+    DartSourceViewer viewer = (DartSourceViewer) getSourceViewer();
+    if (viewer == null) {
+      return;
+    }
     // TODO(scheglov) Analysis Server: remove this old method
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerHighlightManager = new SemanticHighlightingManager_NEW(
-            (DartSourceViewer) getSourceViewer(),
-            file);
+        analysisServerHighlightManager = new SemanticHighlightingManager_NEW(viewer, file);
       }
       return;
     }
@@ -4026,7 +4014,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fSemanticManager = new SemanticHighlightingManager();
       fSemanticManager.install(
           this,
-          (DartSourceViewer) getSourceViewer(),
+          viewer,
           DartToolsPlugin.getDefault().getDartTextTools().getColorManager(),
           getPreferenceStore());
     }
@@ -4123,14 +4111,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private boolean isRemoveTrailingWhitespaceEnabled() {
     return PreferenceConstants.getPreferenceStore().getBoolean(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS);
-  }
-
-  /**
-   * @return <code>true</code> if Semantic Highlighting is enabled.
-   */
-  private boolean isSemanticHighlightingEnabled() {
-    return true;
-//    return SemanticHighlightings.isEnabled(getPreferenceStore());
   }
 
   private void patchSelectionChangeParticipation() {

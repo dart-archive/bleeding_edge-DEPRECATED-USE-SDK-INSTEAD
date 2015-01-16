@@ -537,14 +537,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       fConfiguration.handlePropertyChangeEvent(event);
     }
 
-    if (SemanticHighlightings.affectsEnablement(fPreferenceStore, event)) {
-      if (isEnabled()) {
-        enable();
-      } else {
-        disable();
-      }
-    }
-
     if (!isEnabled()) {
       return;
     }

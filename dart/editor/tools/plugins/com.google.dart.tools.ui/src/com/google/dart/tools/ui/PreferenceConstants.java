@@ -2207,19 +2207,6 @@ public class PreferenceConstants {
   public static final String EDITOR_SEMANTIC_HIGHLIGHTING_PREFIX = "semanticHighlighting."; //$NON-NLS-1$
 
   /**
-   * A named preference that controls if semantic highlighting is enabled.
-   * <p>
-   * Value is of type <code>Boolean</code>:<code>true</code> if enabled.
-   * </p>
-   * 
-   * @deprecated As of 3.1, this preference is not used or set any longer; see
-   *             {@link SemanticHighlightings#affectsEnablement(IPreferenceStore, org.eclipse.jface.util.PropertyChangeEvent)}
-   */
-  @Deprecated
-  public static final String EDITOR_SEMANTIC_HIGHLIGHTING_ENABLED = EDITOR_SEMANTIC_HIGHLIGHTING_PREFIX
-      + "enabled"; //$NON-NLS-1$
-
-  /**
    * A named preference suffix that controls a semantic highlighting's color.
    * <p>
    * Value is of type <code>String</code>. A RGB color value encoded as a string using class
@@ -3673,8 +3660,6 @@ public class PreferenceConstants {
     store.setToDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR); // global
 
     store.setToDefault(PreferenceConstants.EDITOR_DISABLE_OVERWRITE_MODE); // global
-
-    store.setToDefault(PreferenceConstants.EDITOR_SEMANTIC_HIGHLIGHTING_ENABLED); // removed
 
     store.setToDefault(PreferenceConstants.EDITOR_SHOW_TEXT_HOVER_AFFORDANCE); // global
 

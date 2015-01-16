@@ -78,7 +78,6 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeTo
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.RGB;
 
 import java.util.List;
@@ -1374,43 +1373,6 @@ public class SemanticHighlightings {
    * Semantic highlightings
    */
   private static SemanticHighlighting[] SEMANTIC_HIGHTLIGHTINGS;
-
-  /**
-   * Tests whether <code>event</code> in <code>store</code> affects the enablement of semantic
-   * highlighting.
-   * 
-   * @param store the preference store where <code>event</code> was observed
-   * @param event the property change under examination
-   * @return <code>true</code> if <code>event</code> changed semantic highlighting enablement,
-   *         <code>false</code> if it did not
-   */
-  public static boolean affectsEnablement(IPreferenceStore store, PropertyChangeEvent event) {
-    return false;
-//    String relevantKey = null;
-//    SemanticHighlighting[] highlightings = getSemanticHighlightings();
-//    for (int i = 0; i < highlightings.length; i++) {
-//      if (event.getProperty().equals(getEnabledPreferenceKey(highlightings[i]))) {
-//        relevantKey = event.getProperty();
-//        break;
-//      }
-//    }
-//    if (relevantKey == null) {
-//      return false;
-//    }
-//
-//    for (int i = 0; i < highlightings.length; i++) {
-//      String key = getEnabledPreferenceKey(highlightings[i]);
-//      if (key.equals(relevantKey)) {
-//        continue;
-//      }
-//      if (store.getBoolean(key)) {
-//        return false; // another is still enabled or was enabled before
-//      }
-//    }
-//
-//    // all others are disabled, so toggling relevantKey affects the enablement
-//    return true;
-  }
 
   /**
    * A named preference that controls if the given semantic highlighting has the text attribute
