@@ -238,12 +238,6 @@ public class StdioServerSocket implements AnalysisServerSocket {
       args.add("--observe");
       args.add("--pause-isolates-on-exit");
     }
-    if (noErrorNotification) {
-      args.add("--no-error-notification");
-    }
-    if (fileReadMode == FileReadMode.NORMALIZE_EOL_ALWAYS) {
-      args.add("--file-read-mode=normalize-eol-always");
-    }
     //
     // The analysis server path.
     //
@@ -256,6 +250,12 @@ public class StdioServerSocket implements AnalysisServerSocket {
     }
     if (httpPort != 0) {
       args.add("--port=" + httpPort);
+    }
+    if (noErrorNotification) {
+      args.add("--no-error-notification");
+    }
+    if (fileReadMode == FileReadMode.NORMALIZE_EOL_ALWAYS) {
+      args.add("--file-read-mode=normalize-eol-always");
     }
     for (String arg : additionalProgramArguments) {
       args.add(arg);
