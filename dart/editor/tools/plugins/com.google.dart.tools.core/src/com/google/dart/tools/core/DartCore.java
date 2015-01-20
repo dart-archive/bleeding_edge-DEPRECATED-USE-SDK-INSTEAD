@@ -27,6 +27,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.internal.remote.DebugPrintStream;
+import com.google.dart.server.internal.remote.FileReadMode;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 import com.google.dart.server.utilities.logging.Logging;
@@ -570,7 +571,8 @@ public class DartCore extends Plugin implements DartSdkListener {
               DartCoreDebug.ANALYSIS_SERVER_DEBUG,
               DartCoreDebug.ANALYSIS_SERVER_PROFILE,
               httpPort,
-              false);
+              false,
+              FileReadMode.AS_IS);
           socket.setClientId("org.dartlang.darteditor");
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);

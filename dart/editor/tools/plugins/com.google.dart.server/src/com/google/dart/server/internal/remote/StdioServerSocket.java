@@ -69,6 +69,12 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private final boolean noErrorNotification;
 
   /**
+   * An option of the ways files can be read from disk, some clients normalize end of line
+   * characters which would make the file offset and range information incorrect.
+   */
+  private final FileReadMode fileReadMode;
+
+  /**
    * The identifier used to identify this client to the server, or {@code null} if the client does
    * not choose to identify itself.
    */
@@ -86,13 +92,14 @@ public class StdioServerSocket implements AnalysisServerSocket {
         debugRemoteProcess,
         profileRemoteProcess,
         httpPort,
-        false);
+        false,
+        FileReadMode.AS_IS);
   }
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, String packageRoot,
       DebugPrintStream debugStream, String[] additionalProgramArguments,
       boolean debugRemoteProcess, boolean profileRemoteProcess, int httpPort,
-      boolean noErrorNotification) {
+      boolean noErrorNotification, FileReadMode fileReadMode) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.packageRoot = packageRoot;
@@ -102,6 +109,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
     this.profileRemoteProcess = profileRemoteProcess;
     this.httpPort = httpPort;
     this.noErrorNotification = noErrorNotification;
+    this.fileReadMode = fileReadMode;
   }
 
   @Override
@@ -232,6 +240,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
     }
     if (noErrorNotification) {
       args.add("--no-error-notification");
+    }
+    if (fileReadMode == FileReadMode.NORMALIZE_EOL_ALWAYS) {
+      args.add("--file-read-mode=normalize-eol-always");
     }
     //
     // The analysis server path.
