@@ -18,6 +18,7 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
@@ -65,6 +66,9 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
 
   @Override
   public void connect(IDocument document) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return;
+    }
     this.document = document;
     this.documentInfo = StructuredDocumentDartInfo.create(document);
     // we need it
