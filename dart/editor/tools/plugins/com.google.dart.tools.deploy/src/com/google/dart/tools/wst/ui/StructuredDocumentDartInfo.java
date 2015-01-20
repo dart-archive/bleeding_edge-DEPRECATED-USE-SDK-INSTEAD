@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
@@ -36,6 +37,9 @@ import java.io.File;
  */
 public class StructuredDocumentDartInfo {
   public static StructuredDocumentDartInfo create(IDocument document) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return null;
+    }
     // prepare File
     ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
     ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
