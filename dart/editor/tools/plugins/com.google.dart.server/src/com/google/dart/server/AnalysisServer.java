@@ -36,7 +36,7 @@ public interface AnalysisServer {
    * @param listener the listener to be added
    */
   public void addAnalysisServerListener(AnalysisServerListener listener);
-  
+
   /**
    * Add the given listener to the list of listeners that will receive notification when the server
    * is not active
