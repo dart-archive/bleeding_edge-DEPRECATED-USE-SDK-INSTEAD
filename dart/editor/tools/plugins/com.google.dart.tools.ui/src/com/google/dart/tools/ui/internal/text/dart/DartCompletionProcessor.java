@@ -155,7 +155,7 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     final boolean sortedProposals = collector.computeAndSortProposals();
 //    long delta = System.currentTimeMillis() - start;
 //    List<ICompletionProposal> proposals = collector.getProposals();
-//    System.out.println(">>> completion in ms: " + delta + " - "
+//    System.out.println(">>> completion " + start + " in ms: " + delta + " - "
 //        + (proposals != null ? proposals.size() : "no") + " suggestions" + (auto ? " [auto]" : ""));
     return sortedProposals;
   }
