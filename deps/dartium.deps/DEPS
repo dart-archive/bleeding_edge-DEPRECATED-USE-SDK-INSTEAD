@@ -14,7 +14,7 @@ vars.update({
   "chromium_base_revision": "290040",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/2125",
-  "dartium_webkit_revision": "187937",
+  "dartium_webkit_revision": "188698",
 
   "args_rev": "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
