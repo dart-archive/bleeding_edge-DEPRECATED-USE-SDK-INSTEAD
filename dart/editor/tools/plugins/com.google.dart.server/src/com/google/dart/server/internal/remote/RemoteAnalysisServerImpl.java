@@ -744,7 +744,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
   }
 
-  @SuppressWarnings("unused")
   private void startWatcher(final long millisToRestart) {
     if (millisToRestart <= 0 || watcher != null) {
       return;
@@ -781,17 +780,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private void watch(long millisToRestart) {
 //    long restartTime = System.currentTimeMillis();
 //    int restartCount = 0;
-    boolean sentRequest = false;
     while (watch) {
-      long millisToSleep = lastResponseTime.get() + millisToRestart - System.currentTimeMillis();
-      if (millisToSleep > 0) {
-        // If there has been a response from the server within the desired period, then sleep
-        sentRequest = false;
-        sleep(millisToSleep);
-      } else if (!sentRequest) {
-        // If no response from the server then send a request and wait for the response
-        server_getVersion(null);
-        sentRequest = true;
+      if (isSocketOpen()) {
         sleep(millisToRestart / 2);
       } else {
         // If still no response from server then restart the server
