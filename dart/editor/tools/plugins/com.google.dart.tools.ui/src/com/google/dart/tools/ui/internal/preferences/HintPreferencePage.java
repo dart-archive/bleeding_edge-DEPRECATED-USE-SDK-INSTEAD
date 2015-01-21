@@ -52,7 +52,6 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
   private Group hintGroup;
   private Button enableHintsButton;
 
-  private Button enableAngularAnalysisButton;
   private Button enableDart2jsHintsButton;
 
   public HintPreferencePage() {
@@ -72,16 +71,11 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
     if (prefs != null) {
       boolean hintsEnabled = DartCore.getPlugin().isHintsEnabled();
       boolean hintsDart2JSEnabled = DartCore.getPlugin().isHintsDart2JSEnabled();
-      boolean angularAnalysisEnabled = DartCore.getPlugin().isAngularAnalysisEnabled();
       prefs.putBoolean(DartCore.ENABLE_HINTS_PREFERENCE, enableHintsButton.getSelection());
       prefs.putBoolean(
           DartCore.ENABLE_HINTS_DART2JS_PREFERENCE,
           enableDart2jsHintsButton.getSelection());
-      prefs.putBoolean(
-          DartCore.ENABLE_ANGULAR_ANALYSIS_PREFERENCE,
-          enableAngularAnalysisButton.getSelection());
       if (hintsEnabled != enableHintsButton.getSelection()
-          || angularAnalysisEnabled != enableAngularAnalysisButton.getSelection()
           || hintsDart2JSEnabled != enableDart2jsHintsButton.getSelection()) {
         // trigger processing for hints
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
@@ -90,8 +84,6 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
         } else {
           DartCore.getProjectManager().setHintOption(enableHintsButton.getSelection());
           DartCore.getProjectManager().setDart2JSHintOption(enableDart2jsHintsButton.getSelection());
-          DartCore.getProjectManager().setAngularAnalysisOption(
-              enableAngularAnalysisButton.getSelection());
         }
         hasChanges = true;
       }
@@ -152,19 +144,6 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
         PreferencesMessages.HintPreferencePage_enable_dart2js_hints_tooltip);
     GridDataFactory.fillDefaults().applyTo(enableDart2jsHintsButton);
 
-    // Separator
-    {
-      Label separatorLabel = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
-      GridDataFactory.fillDefaults().grab(true, false).applyTo(separatorLabel);
-    }
-
-    // Enable Angular analysis checkbox
-    enableAngularAnalysisButton = createCheckBox(
-        composite,
-        PreferencesMessages.HintPreferencePage_enable_angular_analysis,
-        PreferencesMessages.HintPreferencePage_enable_angular_analysis_tooltip);
-    GridDataFactory.fillDefaults().applyTo(enableAngularAnalysisButton);
-
     // init
     initFromPrefs();
 
@@ -178,9 +157,6 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
       enableHintsButton.setSelection(enableHintsButtonSelection);
       enableDart2jsHintsButton.setSelection(prefs.getBoolean(
           DartCore.ENABLE_HINTS_DART2JS_PREFERENCE,
-          true));
-      enableAngularAnalysisButton.setSelection(prefs.getBoolean(
-          DartCore.ENABLE_ANGULAR_ANALYSIS_PREFERENCE,
           true));
       enableDart2jsHintsButton.setEnabled(enableHintsButtonSelection);
       hintGroup.setEnabled(enableHintsButtonSelection);
