@@ -305,6 +305,16 @@
    </extension>
 
   <extension point="org.eclipse.ui.menus">
+   <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="com.google.dart.tools.server.toolbar"
+               label="Analysis Server Status Toolbar Addition">
+            <control
+               class="com.google.dart.tools.ui.server.AnalysisServerToolbarControlContribution">
+            </control>
+         </toolbar>
+    </menuContribution>
     <menuContribution
           locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.generate">
        <menu

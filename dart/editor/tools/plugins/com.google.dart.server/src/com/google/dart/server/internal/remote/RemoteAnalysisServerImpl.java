@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
+import com.google.dart.server.AnalysisServerStatusListener;
 import com.google.dart.server.BasicConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.CreateContextConsumer;
@@ -195,6 +196,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private final BroadcastAnalysisServerListener listener = new BroadcastAnalysisServerListener();
 
+  private final List<AnalysisServerStatusListener> statusListenerList = new ArrayList<AnalysisServerStatusListener>();
+
   /**
    * A mapping between {@link String} ids' and the associated {@link Consumer} that was passed when
    * the request was made.
@@ -238,6 +241,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void addAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.addListener(listener);
+  }
+
+  @Override
+  public void addStatusListener(AnalysisServerStatusListener listener) {
+    statusListenerList.add(listener);
   }
 
   @Override
@@ -502,7 +510,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void start() throws Exception {
     startServer();
-    //startWatcher(millisToRestart);
+    startWatcher(5000);
   }
 
   @VisibleForTesting
@@ -771,8 +779,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   private void watch(long millisToRestart) {
-    long restartTime = System.currentTimeMillis();
-    int restartCount = 0;
+//    long restartTime = System.currentTimeMillis();
+//    int restartCount = 0;
     boolean sentRequest = false;
     while (watch) {
       long millisToSleep = lastResponseTime.get() + millisToRestart - System.currentTimeMillis();
@@ -787,35 +795,40 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         sleep(millisToRestart / 2);
       } else {
         // If still no response from server then restart the server
-        InstrumentationBuilder instrumentation = Instrumentation.builder("RemoteAnalysisServerImpl.restartServer");
-        try {
-          stopServer();
-
-          // If the analysis server has been restarted several times in a 5 minute period, then give up
-          long now = System.currentTimeMillis();
-          if (now - restartTime < 5 * 60 * 1000) {
-            if (++restartCount > 3) {
-              Logging.getLogger().logError(
-                  "Restarted analysis server several times in a short period of time. Giving up.");
-              instrumentation.metric("restartedAnalysisServer", false);
-              break;
-            }
-          } else {
-            restartTime = now;
-            restartCount = 0;
-          }
-
-          startServer();
-        } catch (Exception e) {
-          // Bail out if cannot restart the server
-          Logging.getLogger().logError("Failed to restart analysis server", e);
-          instrumentation.record(e);
-          break;
-        } finally {
-          instrumentation.log();
+        InstrumentationBuilder instrumentation = Instrumentation.builder("RemoteAnalysisServerImpl.serverNotRunning");
+        for (AnalysisServerStatusListener listener : statusListenerList) {
+          listener.isAliveServer(false);
         }
-        sentRequest = false;
-        sleep(millisToRestart);
+        instrumentation.log();
+        watch = false;
+//        try {
+//          stopServer();
+//
+//          // If the analysis server has been restarted several times in a 5 minute period, then give up
+//          long now = System.currentTimeMillis();
+//          if (now - restartTime < 5 * 60 * 1000) {
+//            if (++restartCount > 3) {
+//              Logging.getLogger().logError(
+//                  "Restarted analysis server several times in a short period of time. Giving up.");
+//              instrumentation.metric("restartedAnalysisServer", false);
+//              break;
+//            }
+//          } else {
+//            restartTime = now;
+//            restartCount = 0;
+//          }
+//
+//          startServer();
+//        } catch (Exception e) {
+//          // Bail out if cannot restart the server
+//          Logging.getLogger().logError("Failed to restart analysis server", e);
+//          instrumentation.record(e);
+//          break;
+//        } finally {
+//          instrumentation.log();
+//        }
+//        sentRequest = false;
+//        sleep(millisToRestart);
       }
     }
   }

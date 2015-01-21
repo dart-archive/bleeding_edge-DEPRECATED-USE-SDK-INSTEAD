@@ -70,6 +70,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="co
  com.google.dart.tools.ui.internal.typehierarchy;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.util,
  com.google.dart.tools.ui.internal.viewsupport,
+ com.google.dart.tools.ui.server,
  com.google.dart.tools.ui.text,
  com.google.dart.tools.ui.text.dart,
  com.google.dart.tools.ui.text.folding,

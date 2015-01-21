@@ -30,6 +30,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void addStatusListener(AnalysisServerStatusListener listener) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void analysis_getErrors(String file, GetErrorsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
