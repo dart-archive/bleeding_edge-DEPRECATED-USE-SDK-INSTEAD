@@ -322,6 +322,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   public void saved() {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      hasPendingDocumentChanges = false;
       reconcile();
       removeOverlay();
     } else {
