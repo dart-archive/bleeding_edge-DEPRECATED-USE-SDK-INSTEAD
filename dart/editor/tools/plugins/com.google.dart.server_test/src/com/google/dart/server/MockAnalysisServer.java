@@ -45,6 +45,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void analysis_getLibraryDependencies(GetLibraryDependenciesConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void analysis_getNavigation(String file, int offset, int length,
       GetNavigationConsumer consumer) {
     throw new UnsupportedOperationException();

@@ -56,6 +56,7 @@ public class RequestUtilities {
   // Analysis domain
   private static final String METHOD_ANALYSIS_GET_ERRORS = "analysis.getErrors";
   private static final String METHOD_ANALYSIS_GET_HOVER = "analysis.getHover";
+  private static final String METHOD_ANALYSIS_GET_LIBRARY_DEPENDENCIES = "analysis.getLibraryDependencies";
   private static final String METHOD_ANALYSIS_GET_NAVIGATION = "analysis.getNavigation";
   private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
@@ -179,6 +180,20 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_HOVER, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_LIBRARY_DEPENDENCIES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getLibraryDependencies"
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisGetLibraryDependencies(String id) {
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_GET_LIBRARY_DEPENDENCIES);
   }
 
   /**

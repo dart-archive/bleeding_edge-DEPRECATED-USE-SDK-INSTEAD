@@ -28,6 +28,7 @@ import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetLibraryDependenciesConsumer;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.server.GetTypeHierarchyConsumer;
@@ -403,6 +404,91 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertNotNull(requestErrorArray[0]);
     RequestError requestError = requestErrorArray[0];
     assertNotNull(requestError);
+    assertEquals("CONTENT_MODIFIED", requestError.getCode());
+    assertEquals("message0", requestError.getMessage());
+    assertEquals("stackTrace0", requestError.getStackTrace());
+  }
+
+  public void test_analysis_getLibraryDependencies() throws Exception {
+    final String[][] libraries = {{null}};
+    final RequestError[] requestErrorArray = {null};
+    server.analysis_getLibraryDependencies(new GetLibraryDependenciesConsumer() {
+      @Override
+      public void computedDependencies(String[] libs) {
+        libraries[0] = libs;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getLibraryDependencies'",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'libraries': [",
+        "      '/a/b/c.dart',",
+        "      '/d/e/f.dart',",
+        "      '/g/h/i.dart'",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(requestErrorArray[0]);
+    assertThat(libraries[0]).hasSize(3);
+  }
+
+  public void test_analysis_getLibraryDependenciess_error() throws Exception {
+    final String[][] directories = {null};
+    final RequestError[] requestErrorArray = {null};
+    server.analysis_getLibraryDependencies(new GetLibraryDependenciesConsumer() {
+      @Override
+      public void computedDependencies(String[] dirs) {
+        directories[0] = dirs;
+      }
+
+      @Override
+      public void onError(RequestError requestError) {
+        requestErrorArray[0] = requestError;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getLibraryDependencies'",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getLibraryDependencies',",
+        "  'error': {",
+        "    'code': 'CONTENT_MODIFIED',",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertNull(directories[0]);
+    assertNotNull(requestErrorArray[0]);
+    RequestError requestError = requestErrorArray[0];
     assertEquals("CONTENT_MODIFIED", requestError.getCode());
     assertEquals("message0", requestError.getMessage());
     assertEquals("stackTrace0", requestError.getStackTrace());

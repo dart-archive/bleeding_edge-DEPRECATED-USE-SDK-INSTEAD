@@ -81,6 +81,13 @@ public interface AnalysisServer {
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer);
 
   /**
+   * {@code analysis.getLibraryDependencies}
+   *
+   * Return a list of all of the libraries referenced by any files in existing analysis roots.
+   */
+  public void analysis_getLibraryDependencies(GetLibraryDependenciesConsumer consumer);
+
+  /**
    * {@code analysis.getNavigation}
    *
    * Return the navigation information associated with the given region of the given file. If the

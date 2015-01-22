@@ -33,6 +33,7 @@ import com.google.dart.server.GetAvailableRefactoringsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
 import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetLibraryDependenciesConsumer;
 import com.google.dart.server.GetNavigationConsumer;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.GetSuggestionsConsumer;
@@ -56,6 +57,7 @@ import com.google.dart.server.internal.remote.processor.FixesProcessor;
 import com.google.dart.server.internal.remote.processor.FormatProcessor;
 import com.google.dart.server.internal.remote.processor.GetRefactoringProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
+import com.google.dart.server.internal.remote.processor.LibraryDependenciesProcessor;
 import com.google.dart.server.internal.remote.processor.MapUriProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisFlushResultsProcessor;
@@ -258,6 +260,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateAnalysisGetHover(id, file, offset), consumer);
+  }
+
+  @Override
+  public void analysis_getLibraryDependencies(GetLibraryDependenciesConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisGetLibraryDependencies(id), consumer);
   }
 
   @Override
@@ -667,6 +675,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject, requestError);
     } else if (consumer instanceof GetFixesConsumer) {
       new FixesProcessor((GetFixesConsumer) consumer).process(resultObject, requestError);
+    } else if (consumer instanceof GetLibraryDependenciesConsumer) {
+      new LibraryDependenciesProcessor((GetLibraryDependenciesConsumer) consumer).process(
+          resultObject,
+          requestError);
     } else if (consumer instanceof GetAvailableRefactoringsConsumer) {
       new RefactoringGetAvailableProcessor((GetAvailableRefactoringsConsumer) consumer).process(
           resultObject,
