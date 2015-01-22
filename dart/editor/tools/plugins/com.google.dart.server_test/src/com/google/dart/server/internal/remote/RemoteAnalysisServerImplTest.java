@@ -35,6 +35,7 @@ import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.SortMembersConsumer;
+import com.google.dart.server.UpdateContentConsumer;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorFixes;
@@ -1053,7 +1054,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     Map<String, Object> files = new HashMap<String, Object>(2);
     files.put("/fileA.dart", new AddContentOverlay("content for A"));
     files.put("/fileB.dart", new AddContentOverlay("content for B"));
-    server.analysis_updateContent(files);
+    server.analysis_updateContent(files, new UpdateContentConsumer() {
+      @Override
+      public void onResponse() {
+      }
+    });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -1083,7 +1088,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     sourceEdit2.add(new SourceEdit(2, 3, "replacement2", "sourceEditId2"));
     files.put("/fileA.dart", new ChangeContentOverlay(sourceEdit1));
     files.put("/fileB.dart", new ChangeContentOverlay(sourceEdit2));
-    server.analysis_updateContent(files);
+    server.analysis_updateContent(files, new UpdateContentConsumer() {
+      @Override
+      public void onResponse() {
+      }
+    });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -1120,7 +1129,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_updateContent_emptyList() throws Exception {
     Map<String, Object> files = new HashMap<String, Object>(0);
-    server.analysis_updateContent(files);
+    server.analysis_updateContent(files, new UpdateContentConsumer() {
+      @Override
+      public void onResponse() {
+      }
+    });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -1135,7 +1148,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_updateContent_nullList() throws Exception {
-    server.analysis_updateContent(null);
+    server.analysis_updateContent(null, new UpdateContentConsumer() {
+      @Override
+      public void onResponse() {
+      }
+    });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -1153,7 +1170,11 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     Map<String, Object> files = new HashMap<String, Object>(2);
     files.put("/fileA.dart", new RemoveContentOverlay());
     files.put("/fileB.dart", new RemoveContentOverlay());
-    server.analysis_updateContent(files);
+    server.analysis_updateContent(files, new UpdateContentConsumer() {
+      @Override
+      public void onResponse() {
+      }
+    });
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",

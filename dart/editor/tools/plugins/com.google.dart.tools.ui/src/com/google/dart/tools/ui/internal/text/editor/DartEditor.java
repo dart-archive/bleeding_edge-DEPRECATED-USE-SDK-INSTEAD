@@ -4012,7 +4012,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
       String file = getInputFilePath();
       if (file != null) {
-        analysisServerHighlightManager = new SemanticHighlightingManager_NEW(viewer, file);
+        analysisServerHighlightManager = new SemanticHighlightingManager_NEW(
+            viewer,
+            file,
+            getDartReconcilingStrategy());
       }
       return;
     }

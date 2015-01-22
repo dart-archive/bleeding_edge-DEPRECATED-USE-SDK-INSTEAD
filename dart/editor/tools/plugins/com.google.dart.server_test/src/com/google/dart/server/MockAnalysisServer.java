@@ -77,7 +77,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void analysis_updateContent(Map<String, Object> files) {
+  public void analysis_updateContent(Map<String, Object> files, UpdateContentConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

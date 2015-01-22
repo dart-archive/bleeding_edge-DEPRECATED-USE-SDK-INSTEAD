@@ -41,6 +41,7 @@ import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.SortMembersConsumer;
+import com.google.dart.server.UpdateContentConsumer;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.RefactoringOptions;
 import com.google.dart.server.generated.types.RequestError;
@@ -319,12 +320,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void analysis_updateContent(Map<String, Object> files) {
+  public void analysis_updateContent(Map<String, Object> files, UpdateContentConsumer consumer) {
     String id = generateUniqueId();
     if (files == null) {
       files = Maps.newHashMap();
     }
-    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
+    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files), consumer);
   }
 
   @Override
@@ -627,6 +628,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
+    //
+    // Analysis Domain
+    //
+    if (consumer instanceof UpdateContentConsumer) {
+      ((UpdateContentConsumer) consumer).onResponse();
+    }
     //
     // Completion Domain
     //

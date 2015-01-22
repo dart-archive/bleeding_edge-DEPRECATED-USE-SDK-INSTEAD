@@ -22,6 +22,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -206,13 +207,16 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   private final DartSourceViewer viewer;
   private final String file;
+  private final DartReconcilingStrategy reconcilingStrategy;
   private final IDocument document;
   private final IPositionUpdater positionUpdater = new HighlightingPositionUpdater();
   private HighlightPosition[] positions;
 
-  public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file) {
+  public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file,
+      DartReconcilingStrategy reconcilingStrategy) {
     this.viewer = viewer;
     this.file = file;
+    this.reconcilingStrategy = reconcilingStrategy;
     this.document = viewer.getDocument();
     document.addPositionUpdater(positionUpdater);
     // subscribe
@@ -280,6 +284,9 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   @Override
   public void computedHighlights(String file, HighlightRegion[] highlights) {
+    if (reconcilingStrategy != null && reconcilingStrategy.hasPendingContentChanges()) {
+      return;
+    }
     // create HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
     for (int i = 0; i < highlights.length; i++) {

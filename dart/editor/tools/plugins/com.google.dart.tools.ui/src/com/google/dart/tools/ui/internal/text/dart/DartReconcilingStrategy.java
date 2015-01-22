@@ -20,6 +20,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.server.UpdateContentConsumer;
 import com.google.dart.server.generated.types.AddContentOverlay;
 import com.google.dart.server.generated.types.ChangeContentOverlay;
 import com.google.dart.server.generated.types.RemoveContentOverlay;
@@ -54,6 +55,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 
@@ -96,6 +98,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private boolean isOverlayAdded = false;
 
   /**
+   * A flag indicating whether there are changes in {@link #document} that have not yet been sent to
+   * the analysis.
+   */
+  private boolean hasPendingDocumentChanges = false;
+
+  /**
+   * A counter of requests and responses to 'analysis.updateContent'. When it is {@code 0}, then
+   * every request had a response so far.
+   */
+  private final AtomicInteger updateContentBalance = new AtomicInteger();
+
+  /**
    * Listen for analysis results for the source being edited and update the editor.
    */
   private final AnalysisListener analysisListener = new AnalysisListener() {
@@ -133,6 +147,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
     @Override
     public void documentChanged(DocumentEvent event) {
+      hasPendingDocumentChanges = true;
 
       // Record the source region that has changed
       String newText = event.getText();
@@ -228,6 +243,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     } else {
       sourceChanged(null);
     }
+  }
+
+  /**
+   * Return {@code true} if there are pending document changes that have not been sent to the server
+   * yet or if there is a request to which the server has not responded yet.
+   */
+  public boolean hasPendingContentChanges() {
+    return hasPendingDocumentChanges || updateContentBalance.get() != 0;
   }
 
   @Override
@@ -482,9 +505,16 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void updateFileContent(Object change) {
     String file = editor.getInputFilePath();
     if (file != null) {
+      updateContentBalance.incrementAndGet();
+      hasPendingDocumentChanges = false;
       Map<String, Object> files = new HashMap<String, Object>();
       files.put(file, change);
-      DartCore.getAnalysisServer().analysis_updateContent(files);
+      DartCore.getAnalysisServer().analysis_updateContent(files, new UpdateContentConsumer() {
+        @Override
+        public void onResponse() {
+          updateContentBalance.decrementAndGet();
+        }
+      });
     }
   }
 }
