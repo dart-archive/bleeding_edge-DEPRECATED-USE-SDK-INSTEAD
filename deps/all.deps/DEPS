@@ -77,7 +77,7 @@ vars = {
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
-  "watcher_rev": "@f1015e987b4e5a3b7fb65d8716ae9b5ee372b470",
+  "watcher_tag": "@0.9.4",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@40446",
@@ -242,7 +242,7 @@ deps = {
   "dart/third_party/pkg/unittest":
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
   "dart/third_party/pkg/watcher":
-      "https://github.com/dart-lang/watcher.git" + Var("watcher_rev"),
+      "https://github.com/dart-lang/watcher.git" + Var("watcher_tag"),
   "dart/third_party/pkg/web_components":
       "https://github.com/dart-lang/web-components.git" +
       Var("web_components_rev"),
