@@ -85,6 +85,7 @@ import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.dart.server.generated.types.TypeHierarchyItem;
 import com.google.dart.server.internal.AnalysisServerError;
+import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -4199,6 +4200,18 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     assertTrue(socket.isStarted());
     server.server_shutdown();
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RequestUtilities.setIncludeRequestTime(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    RequestUtilities.setIncludeRequestTime(true);
+    super.tearDown();
   }
 
   private void assertLocation(Location location, String file, int offset, int length,

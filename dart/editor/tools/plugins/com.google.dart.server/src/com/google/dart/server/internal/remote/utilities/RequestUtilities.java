@@ -43,6 +43,7 @@ public class RequestUtilities {
   private static final String METHOD = "method";
   private static final String OFFSET = "offset";
   private static final String PARAMS = "params";
+  private static final String CLIENT_REQUEST_TIME = "clientRequestTime";
   private static final String SELECTION_LENGTH = "selectionLength";
   private static final String SELECTION_OFFSET = "selectionOffset";
   private static final String SUBSCRIPTIONS = "subscriptions";
@@ -88,6 +89,11 @@ public class RequestUtilities {
   private static final String METHOD_EXECUTION_DELETE_CONTEXT = "execution.deleteContext";
   private static final String METHOD_EXECUTION_MAP_URI = "execution.mapUri";
   private static final String METHOD_EXECUTION_SET_SUBSCRIPTIONS = "execution.setSubscriptions";
+
+  /**
+   * Flag indicating whether requests should include the time at which the request is made.
+   */
+  private static boolean includeRequestTime = true;
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -741,6 +747,13 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SHUTDOWN);
   }
 
+  /**
+   * Set whether the request time is included in the request itself.
+   */
+  public static void setIncludeRequestTime(boolean includeRequestTime) {
+    RequestUtilities.includeRequestTime = includeRequestTime;
+  }
+
   private static JsonObject buildJsonObjectAnalysisError(AnalysisError error) {
     JsonObject errorJsonObject = new JsonObject();
     errorJsonObject.addProperty("severity", error.getSeverity());
@@ -775,6 +788,9 @@ public class RequestUtilities {
     jsonObject.addProperty(METHOD, methodValue);
     if (params != null) {
       jsonObject.add(PARAMS, params);
+    }
+    if (includeRequestTime) {
+      jsonObject.addProperty(CLIENT_REQUEST_TIME, System.currentTimeMillis());
     }
     return jsonObject;
   }
