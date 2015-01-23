@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Preconditions;
 import com.google.dart.server.AnalysisServerSocket;
 import com.google.dart.server.utilities.general.StringUtilities;
+import com.google.dart.server.utilities.logging.Logging;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -173,10 +174,10 @@ public class StdioServerSocket implements AnalysisServerSocket {
     responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
     errorStream = new ByteLineReaderStream(process.getErrorStream());
     if (debugRemoteProcess) {
-      System.out.println("Analysis server debug port " + debugPort);
+      Logging.getLogger().logInformation("Analysis server debug port " + debugPort);
     }
     if (httpPort != 0) {
-      System.out.println("Analysis server http port " + httpPort);
+      Logging.getLogger().logInformation("Analysis server http port " + httpPort);
     }
   }
 
@@ -196,7 +197,8 @@ public class StdioServerSocket implements AnalysisServerSocket {
       try {
         int exit = processToStop.exitValue();
         if (exit != 0) {
-          System.out.println("Non-zero exit code: " + exit + " for\n   " + analysisServerPath);
+          Logging.getLogger().logInformation(
+              "Non-zero exit code: " + exit + " for\n   " + analysisServerPath);
         }
         return;
       } catch (IllegalThreadStateException e) {
@@ -209,7 +211,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
       }
     }
     processToStop.destroy();
-    System.out.println("Terminated " + analysisServerPath);
+    Logging.getLogger().logInformation("Terminated " + analysisServerPath);
   }
 
   /**
