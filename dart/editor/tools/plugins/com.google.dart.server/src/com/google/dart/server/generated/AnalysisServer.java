@@ -14,8 +14,9 @@
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
-package com.google.dart.server;
+package com.google.dart.server.generated;
 
+import com.google.dart.server.*;
 import com.google.dart.server.generated.types.*;
 
 import java.util.List;

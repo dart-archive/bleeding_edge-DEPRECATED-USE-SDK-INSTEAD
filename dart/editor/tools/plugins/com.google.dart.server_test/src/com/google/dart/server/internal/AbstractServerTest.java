@@ -15,7 +15,7 @@
 package com.google.dart.server.internal;
 
 import com.google.common.base.Joiner;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 
 import junit.framework.TestCase;
 

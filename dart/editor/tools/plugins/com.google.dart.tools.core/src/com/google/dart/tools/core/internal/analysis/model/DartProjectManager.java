@@ -1,7 +1,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.model.DartIgnoreEvent;

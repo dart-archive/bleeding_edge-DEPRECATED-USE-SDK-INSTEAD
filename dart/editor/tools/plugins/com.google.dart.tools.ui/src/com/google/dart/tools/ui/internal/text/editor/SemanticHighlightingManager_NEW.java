@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.tools.core.DartCore;

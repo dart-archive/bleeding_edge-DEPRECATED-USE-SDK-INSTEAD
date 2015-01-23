@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisOptions;
 import com.google.dart.server.generated.types.AnalysisStatus;

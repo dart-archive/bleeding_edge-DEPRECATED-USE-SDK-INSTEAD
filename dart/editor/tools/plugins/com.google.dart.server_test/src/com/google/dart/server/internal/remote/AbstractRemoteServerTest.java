@@ -13,7 +13,7 @@
  */
 package com.google.dart.server.internal.remote;
 
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.internal.AbstractServerTest;
 import com.google.dart.server.internal.TestAnalysisServerListener;
 

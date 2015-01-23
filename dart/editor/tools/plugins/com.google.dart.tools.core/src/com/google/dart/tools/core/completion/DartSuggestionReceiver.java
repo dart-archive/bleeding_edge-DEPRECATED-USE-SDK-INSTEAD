@@ -14,10 +14,10 @@
 package com.google.dart.tools.core.completion;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerListenerAdapter;
 import com.google.dart.server.GetSuggestionsConsumer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.CompletionSuggestion;
 import com.google.dart.server.generated.types.RequestError;
 

@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 
 import junit.framework.TestCase;
 

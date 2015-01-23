@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 
 /**
  * An "element" to return from {@link DartElementProvider} when {@link AnalysisServer} is used.

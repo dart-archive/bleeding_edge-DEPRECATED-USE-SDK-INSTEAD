@@ -23,7 +23,7 @@ import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.internal.remote.DebugPrintStream;
