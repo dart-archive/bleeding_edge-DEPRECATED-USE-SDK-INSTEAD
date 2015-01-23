@@ -18,9 +18,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * An {@link InputStream} based implementation of {@link ResponseStream}. Each line must contain
@@ -29,6 +32,42 @@ import java.io.PrintStream;
  * @coverage dart.server.remote
  */
 public class ByteResponseStream implements ResponseStream {
+  private class LinesReaderThread extends Thread {
+    public LinesReaderThread() {
+      setName("ByteResponseStream.LinesReaderThread");
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        String line;
+        try {
+          line = reader.readLine();
+        } catch (IOException e) {
+          line = null;
+        }
+        // check for EOF
+        if (line == null) {
+          lineQueue.add(EOF_LINE);
+          return;
+        }
+        // debug output
+        if (debugStream != null) {
+          debugStream.println(System.currentTimeMillis() + " <= " + line);
+        }
+        // ignore non-JSON (debug) lines
+        if (!line.startsWith("{")) {
+          continue;
+        }
+        // add a JSON line
+        lineQueue.add(line);
+      }
+    }
+  }
+
+  private static String EOF_LINE = "EOF line";
+
   /**
    * The {@link BufferedReader} to read JSON strings from.
    */
@@ -37,7 +76,12 @@ public class ByteResponseStream implements ResponseStream {
   /**
    * The {@link DebugPrintStream} to print all lines to.
    */
-  private DebugPrintStream debugStream;
+  private final DebugPrintStream debugStream;
+
+  /**
+   * The queue of lines.
+   */
+  private final BlockingQueue<String> lineQueue = new LinkedBlockingQueue<String>();
 
   /**
    * Initializes a newly created response stream.
@@ -48,6 +92,7 @@ public class ByteResponseStream implements ResponseStream {
   public ByteResponseStream(InputStream stream, DebugPrintStream debugStream) {
     reader = new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
     this.debugStream = debugStream;
+    new LinesReaderThread().start();
   }
 
   @Override
@@ -56,24 +101,10 @@ public class ByteResponseStream implements ResponseStream {
 
   @Override
   public JsonObject take() throws Exception {
-    while (true) {
-      String line = reader.readLine();
-      // check for EOF
-      if (line == null) {
-        return null;
-      }
-      // debug output
-      if (debugStream != null) {
-        if (!line.contains("\"result\":{\"version\":\"0.0.1\"}")) {
-          debugStream.println(System.currentTimeMillis() + " <= " + line);
-        }
-      }
-      // ignore non-JSON (debug) lines
-      if (!line.startsWith("{")) {
-        continue;
-      }
-      // return as JSON
-      return (JsonObject) new JsonParser().parse(line);
+    if (lineQueue.peek() == EOF_LINE) {
+      return null;
     }
+    String line = lineQueue.take();
+    return (JsonObject) new JsonParser().parse(line);
   }
 }
