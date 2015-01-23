@@ -18,6 +18,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.generated.types.HighlightRegion;
 import com.google.dart.server.generated.types.HighlightRegionType;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -285,7 +286,9 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   @Override
   public void computedHighlights(String file, HighlightRegion[] highlights) {
     if (reconcilingStrategy != null && reconcilingStrategy.hasPendingContentChanges()) {
-      return;
+      if (!DartCoreDebug.DISABLE_SEMANTIC_HIGHLIGHT_FILTERING) {
+        return;
+      }
     }
     // create HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];

@@ -97,6 +97,12 @@ public class DartCoreDebug {
   public static final boolean DISABLE_CLI_DEBUGGER = isOptionTrue("user/disableCommandLineDebugger");
 
   /**
+   * Flag to disable the semantic highlighting optimization so that an underlying semantic
+   * highlighting bug can be better investigated.
+   */
+  public static final boolean DISABLE_SEMANTIC_HIGHLIGHT_FILTERING = isOptionTrue("experimental/analysisServer/disableSemanticHighlightFiltering");
+
+  /**
    * Report each of these parameters to the provided instrumentation builder
    */
   public static void record(InstrumentationBuilder instrumentation) {
@@ -130,6 +136,10 @@ public class DartCoreDebug {
 
     instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", DISABLE_DARTIUM_DEBUGGER);
     instrumentation.metric("DISABLE_CLI_DEBUGGER", DISABLE_CLI_DEBUGGER);
+
+    instrumentation.metric(
+        "DISABLE_SEMANTIC_HIGHLIGHT_FILTERING",
+        DISABLE_SEMANTIC_HIGHLIGHT_FILTERING);
   }
 
   /**
