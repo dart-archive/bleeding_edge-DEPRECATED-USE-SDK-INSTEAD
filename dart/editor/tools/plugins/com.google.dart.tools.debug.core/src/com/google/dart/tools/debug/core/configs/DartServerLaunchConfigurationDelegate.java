@@ -196,9 +196,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     // This lets us debug isolates.
     commandsList.add("--break-at-isolate-spawn");
 
-    //TODO(pquitslund): remove when no longer required
-    commandsList.add("--enable_async");
-
     String coverageTempDir = null;
     if (DartCoreDebug.ENABLE_COVERAGE) {
       coverageTempDir = CoverageManager.createTempDir();
