@@ -40,6 +40,7 @@ vars.update({
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
   "watcher_rev": "@f1015e987b4e5a3b7fb65d8716ae9b5ee372b470",
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
+  "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
   "co19_rev": "@801",
@@ -142,6 +143,10 @@ deps.update({
   "src/dart/third_party/observatory_pub_packages":
       "/third_party/observatory_pub_packages" +
       Var("observatory_pub_packages_rev"),
+
+  "src/dart/third_party/zlib":
+      Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
+      Var("zlib_rev"),
 })
 
 deps_os['win'].update({
