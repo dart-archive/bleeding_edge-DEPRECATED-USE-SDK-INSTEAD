@@ -266,7 +266,7 @@ deps_os = {
   "android": {
     "dart/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@31869996507de16812bb53a3d0aaa15cd6194c16",
+      "@aaeda3d69df4b4352e3cac7c16bea7f16bd1ec12",
   },
   "win": {
     "dart/third_party/cygwin":
