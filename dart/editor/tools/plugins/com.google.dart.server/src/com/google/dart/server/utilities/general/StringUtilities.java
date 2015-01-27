@@ -22,6 +22,7 @@ import com.google.common.collect.Interners;
  * @coverage dart.server.utilities
  */
 public final class StringUtilities {
+
   /**
    * The empty String {@code ""}.
    */
@@ -303,6 +304,16 @@ public final class StringUtilities {
       }
     }
     return true;
+  }
+
+  /**
+   * Compare a version {@link String} of Semantic Versioning form (http://semver.org/) to some major
+   * int version. {@code true} is returned if the version is less than the major version,
+   * {@code false} is returned otherwise.
+   */
+  public static boolean isVersionLessThanMajorVersion(String strVersion, int majorVersion) {
+    String strMajorVersion = strVersion.substring(0, strVersion.indexOf('.'));
+    return Integer.parseInt(strMajorVersion) < majorVersion;
   }
 
   /**

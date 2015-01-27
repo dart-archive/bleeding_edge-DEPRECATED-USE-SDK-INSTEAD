@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
 import com.google.dart.server.AnalysisServerStatusListener;
@@ -78,6 +79,7 @@ import com.google.dart.server.internal.remote.processor.SortMembersProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
+import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
 import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.server.utilities.logging.Logging;
@@ -89,6 +91,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -162,6 +166,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       }
     }
   }
+
+  // Max analysis server version that this project (com.google.dart.server) currently works up to
+  // (but not including). That is, if the MAX_SERVER_VERSION is 2, any 1.y.z version is
+  // sufficient, but this project would not work with 2.0.0
+  private final static int MAX_MAJOR_SERVER_VERSION = 2;
 
   // Server domain
   private static final String SERVER_NOTIFICATION_CONNECTED = "server.connected";
@@ -237,8 +246,19 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private boolean shutdownRequested;
 
+  /**
+   * Check server version is {@code true} by default, but can be set to {@code false} to disable the
+   * check that the server that has been started is less than {@link #MAX_SERVER_VERSION}.
+   */
+  private final boolean checkServerVersion;
+
   public RemoteAnalysisServerImpl(AnalysisServerSocket socket) {
+    this(socket, true);
+  }
+
+  public RemoteAnalysisServerImpl(AnalysisServerSocket socket, boolean checkServerVersion) {
     this.socket = socket;
+    this.checkServerVersion = checkServerVersion;
   }
 
   @Override
@@ -760,6 +780,35 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     new ServerResponseReaderThread(responseStream).start();
     if (errorStream != null) {
       new ServerErrorReaderThread(errorStream, listener).start();
+    }
+    if (checkServerVersion) {
+      final CountDownLatch latch = new CountDownLatch(1);
+      final String[] versionInfo = new String[] {null};
+      server_getVersion(new GetVersionConsumer() {
+        @Override
+        public void computedVersion(String version) {
+          versionInfo[0] = version;
+          latch.countDown();
+        }
+
+        @Override
+        public void onError(RequestError requestError) {
+          latch.countDown();
+        }
+      });
+      Uninterruptibles.awaitUninterruptibly(
+          latch,
+          TimeUnit.SECONDS.toMillis(1),
+          TimeUnit.MILLISECONDS);
+      if (versionInfo[0] != null
+          && !StringUtilities.isVersionLessThanMajorVersion(
+              versionInfo[0],
+              MAX_MAJOR_SERVER_VERSION)) {
+        throw new Exception(
+            "This version of the com.google.dart.server project can communicate only with server "
+                + "versions up to " + Integer.toString(MAX_MAJOR_SERVER_VERSION)
+                + ".0.0, the version read from the server is " + versionInfo[0]);
+      }
     }
   }
 

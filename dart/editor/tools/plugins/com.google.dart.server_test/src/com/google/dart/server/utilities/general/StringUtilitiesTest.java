@@ -121,6 +121,18 @@ public class StringUtilitiesTest extends TestCase {
     assertTrue(StringUtilities.isTagName("a-b"));
   }
 
+  public void test_isVersionLessThanMajorVersion() throws Exception {
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.0.2", 1));
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.2.0", 1));
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.2.2", 1));
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.0.2-dev", 1));
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.2.0+dev", 1));
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.2.2-dev1.0.0", 1));
+
+    assertTrue(StringUtilities.isVersionLessThanMajorVersion("0.0.2", 5));
+    assertFalse(StringUtilities.isVersionLessThanMajorVersion("1.0.2", 1));
+  }
+
   public void test_printListOfQuotedNames_empty() {
     try {
       StringUtilities.printListOfQuotedNames(new String[0]);

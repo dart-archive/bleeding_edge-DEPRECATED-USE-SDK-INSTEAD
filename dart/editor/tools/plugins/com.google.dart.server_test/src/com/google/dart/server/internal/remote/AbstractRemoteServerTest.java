@@ -19,7 +19,7 @@ import com.google.dart.server.internal.TestAnalysisServerListener;
 
 public abstract class AbstractRemoteServerTest extends AbstractServerTest {
   protected TestServerSocket socket = new TestServerSocket();
-  protected RemoteAnalysisServerImpl server = new RemoteAnalysisServerImpl(socket);
+  protected RemoteAnalysisServerImpl server = new RemoteAnalysisServerImpl(socket, false);
   protected TestAnalysisServerListener listener;
   protected TestRequestSink requestSink;
   protected TestResponseStream responseStream;
