@@ -39,6 +39,8 @@ import com.google.dart.tools.ui.internal.viewsupport.ColoredDartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
 import com.google.dart.tools.ui.internal.viewsupport.OwnerDrawSupport;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -116,11 +118,11 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
   private class TopLevelElement {
 
     private Element element;
-    private List<Element> path;
+    private SearchResult searchResult;
 
     public TopLevelElement(SearchResult result) {
       this.element = result.getPath().get(0);
-      this.path = result.getPath();
+      this.searchResult = result;
     }
 
     public Element getElement() {
@@ -152,8 +154,12 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
       return element.getName();
     }
 
+    public void saveState(IMemento memento) {
+      memento.putString("SEARCHRESULT", searchResult.toJson().toString());
+    }
+
     private Element getLibraryElement() {
-      for (Element element : path) {
+      for (Element element : searchResult.getPath()) {
         if (element.getKind().equals(ElementKind.LIBRARY)) {
           return element;
         }
@@ -487,7 +493,7 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
         return false;
       }
       //TODO(pquitslund): this forces a full refresh which works-around filter application refresh issues
-      return false;
+      return true;
     }
 
     public boolean matchesCachedResult(SearchResult result) {
@@ -651,19 +657,31 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
 
     @Override
     public void computedSearchResults(List<SearchResult> searchResults, boolean last) {
-
       for (SearchResult searchResult : searchResults) {
-        results.add(new TopLevelElement(searchResult));
-      }
+        TopLevelElement result = new TopLevelElement(searchResult);
+        results.add(result);
 
-      for (TopLevelElement element : results) {
-        if (fTypeItemsFilter.matchesFilterExtension(element)) {
-          fContentProvider.add(element, fTypeItemsFilter);
-        }
+        //      if (fTypeItemsFilter.matchesFilterExtension(result)) {
+        fContentProvider.add(result, fTypeItemsFilter);
+        //    }
       }
-      System.out.println("");
       //TODO(pquitslund): this shouldn't be necessary (possibly remove once history is working)
-      //   scheduleRefresh();
+      scheduleRefresh();
+    }
+  }
+
+  private class TypeSelectionHistory extends SelectionHistory {
+
+    @Override
+    protected Object restoreItemFromMemento(IMemento memento) {
+      SearchResult result = SearchResult.fromJson((JsonObject) new JsonParser().parse(memento.getString("SEARCHRESULT")));
+      return new TopLevelElement(result);
+    }
+
+    @Override
+    protected void storeItemToMemento(Object item, IMemento memento) {
+      TopLevelElement element = (TopLevelElement) item;
+      element.saveState(memento);
     }
 
   }
@@ -758,8 +776,7 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
       int elementKinds, TypeSelectionExtension extension) {
     super(shell, multi);
 
-//TODO: implement selection history
-//    setSelectionHistory(new TypeSelectionHistory());
+    setSelectionHistory(new TypeSelectionHistory());
 
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         shell,
@@ -942,7 +959,7 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
     final String pattern = "^" + CamelUtil.getCamelCaseRegExp(typePattern) + ".*";
 
     try {
-      boolean searchComplete = false;
+      //     boolean searchComplete = false;
       results.clear();
       final CountDownLatch latch = new CountDownLatch(1);
       DartCore.getAnalysisServer().search_findTopLevelDeclarations(
@@ -958,7 +975,7 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
             }
           });
       Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);
-      searchComplete = true;
+      //     searchComplete = true;
     } finally {
       //  typeSearchFilter.setMatchEverythingMode(false);
     }
@@ -1019,6 +1036,12 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
           DartToolsPlugin.log(e);
         }
       }
+
+      Object[] items = getSelectionHistory().getHistoryItems();
+      for (Object o : items) {
+        accessedHistoryItem(o);
+      }
+
       //TODO: adding workingset scope support
 //      IWorkingSet ws = fFilterActionGroup.getWorkingSet();
 //      if (ws == null || (ws.isAggregateWorkingSet() && ws.isEmpty())) {
