@@ -571,7 +571,6 @@ public class DartCore extends Plugin implements DartSdkListener {
           socket.setClientId("org.dartlang.darteditor");
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
-          analysisServer.start();
           analysisServerDataImpl.setServer(analysisServer);
           analysisServerListener = new WorkspaceAnalysisServerListener(
               analysisServerDataImpl,
@@ -580,6 +579,7 @@ public class DartCore extends Plugin implements DartSdkListener {
                   analysisServer,
                   DartIgnoreManager.getInstance()));
           analysisServer.addAnalysisServerListener(analysisServerListener);
+          analysisServer.start();
           analysisServer.server_setSubscriptions(ImmutableList.of(ServerService.STATUS));
           analysisServerDataImpl.updateOptions();
         } catch (Throwable e) {
