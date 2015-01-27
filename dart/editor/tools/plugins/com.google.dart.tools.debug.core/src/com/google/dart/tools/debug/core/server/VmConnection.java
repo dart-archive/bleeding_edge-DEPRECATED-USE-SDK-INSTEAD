@@ -85,7 +85,7 @@ public class VmConnection {
 
   private Map<String, VmLineNumberTable> lineNumberTableCache = new HashMap<String, VmLineNumberTable>();
 
-  private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
+  private Map<String, VmIsolate> isolateMap = new HashMap<String, VmIsolate>();
 
   private VmLocation currentLocation;
   private boolean isStepping;
@@ -383,7 +383,7 @@ public class VmConnection {
   }
 
   public void getIsolateIds(final VmCallback<List<Integer>> callback) throws IOException {
-    sendSimpleCommand("getIsolateIds", -1, new Callback() {
+    sendSimpleCommand("getIsolateIds", null, new Callback() {
       @Override
       public void handleResult(JSONObject result) throws JSONException {
         callback.handleResult(convertGetIsolateIdsResult(result));
@@ -973,11 +973,11 @@ public class VmConnection {
     });
   }
 
-  protected void sendSimpleCommand(String command, int isolateId) throws IOException {
+  protected void sendSimpleCommand(String command, String isolateId) throws IOException {
     sendSimpleCommand(command, isolateId, null);
   }
 
-  protected void sendSimpleCommand(String command, int isolateId, Callback callback)
+  protected void sendSimpleCommand(String command, String isolateId, Callback callback)
       throws IOException {
     try {
       JSONObject request = new JSONObject();
@@ -990,7 +990,7 @@ public class VmConnection {
     }
   }
 
-  void sendRequest(JSONObject request, int isolateId, Callback callback) throws IOException {
+  void sendRequest(JSONObject request, String isolateId, Callback callback) throws IOException {
     int id = 0;
 
     try {
@@ -1008,7 +1008,7 @@ public class VmConnection {
 
       JSONObject params = request.getJSONObject("params");
 
-      if (!params.has("isolateId") && isolateId != -1) {
+      if (!params.has("isolateId") && isolateId != null) {
         params.put("isolateId", isolateId);
       }
     } catch (JSONException jse) {
@@ -1201,12 +1201,12 @@ public class VmConnection {
     return result;
   }
 
-  private VmIsolate getCreateIsolate(int isolateId) {
+  private VmIsolate getCreateIsolate(String isolateId) {
     return getCreateIsolate(isolateId, false);
   }
 
-  private VmIsolate getCreateIsolate(int isolateId, boolean paused) {
-    if (isolateId == -1) {
+  private VmIsolate getCreateIsolate(String isolateId, boolean paused) {
+    if (isolateId == null) {
       return null;
     }
 
@@ -1306,7 +1306,7 @@ public class VmConnection {
       JSONObject params = result.optJSONObject("params");
 
       if (eventName.equals(EVENT_PAUSED)) {
-        int isolateId = params.optInt("isolateId", -1);
+        String isolateId = params.optString("isolateId");
         String reason = params.optString("reason", null);
         VmIsolate isolate = getCreateIsolate(isolateId);
         VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
@@ -1319,7 +1319,7 @@ public class VmConnection {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
 
         int breakpointId = params.optInt("breakpointId");
-        int isolateId = params.optInt("isolateId");
+        String isolateId = params.optString("isolateId");
         VmIsolate isolate = getCreateIsolate(isolateId);
         VmLocation location = VmLocation.createFrom(isolate, params.getJSONObject("location"));
 
@@ -1329,7 +1329,7 @@ public class VmConnection {
         // { "event": "isolate", "params": { "reason": "shutdown", "id": 7114 }}]
 
         String reason = params.optString("reason", null);
-        int isolateId = params.optInt("id", -1);
+        String isolateId = params.optString("id");
 
         final VmIsolate isolate = getCreateIsolate(isolateId, "created".equals(reason));
 

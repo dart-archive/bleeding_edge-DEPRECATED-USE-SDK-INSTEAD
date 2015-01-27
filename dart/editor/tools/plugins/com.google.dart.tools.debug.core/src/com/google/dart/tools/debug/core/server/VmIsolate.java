@@ -21,14 +21,14 @@ import java.util.Map;
  * The representation of a VM isolate.
  */
 public class VmIsolate {
-  private int id;
+  private String id;
   private boolean paused = false;
   private boolean firstBreak = true;
 
   private Map<Integer, VmClass> classInfoMap = new HashMap<Integer, VmClass>();
   private Map<Integer, VmLibrary> libraryInfoMap = new HashMap<Integer, VmLibrary>();
 
-  protected VmIsolate(int isolateId, boolean paused) {
+  protected VmIsolate(String isolateId, boolean paused) {
     this.id = isolateId;
     this.paused = paused;
   }
@@ -54,7 +54,7 @@ public class VmIsolate {
     return vmClass == null ? null : vmClass.getName();
   }
 
-  public int getId() {
+  public String getId() {
     return id;
   }
 
@@ -72,7 +72,7 @@ public class VmIsolate {
 
   @Override
   public int hashCode() {
-    return getId();
+    return getId().hashCode();
   }
 
   public boolean hasLibraryInfo(int libraryId) {
