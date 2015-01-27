@@ -51,15 +51,27 @@ public class DartEditorContentAssistant extends ContentAssistant {
     }
 
     @Override
-    protected void showAssist(int showStyle) {
+    protected void showAssist(final int showStyle) {
       // Not on the UI thread, so block for a while waiting for analysis
       if (waitUntilProcessorReady(true, caretOffset)) {
         StyledText control = sourceViewer.getTextWidget();
         if (control.isDisposed()) {
           return;
         }
-        filterProposals();
-        super.showAssist(showStyle);
+        Display display = control.getDisplay();
+        if (display == null) {
+          return;
+        }
+        // Filter proposals on the UI thread so that there is no race condition
+        // between filtering and fast typing.
+        // https://code.google.com/p/dart/issues/detail?id=21563
+        display.syncExec(new Runnable() {
+          @Override
+          public void run() {
+            filterProposals();
+            DartEditorAutoAssistListener.super.showAssist(showStyle);
+          }
+        });
       }
     }
 
