@@ -58,6 +58,11 @@ public class RequestErrorCode {
   public static final String INVALID_REQUEST = "INVALID_REQUEST";
 
   /**
+   * Another refactoring request was received during processing of this one.
+   */
+  public static final String REFACTORING_REQUEST_CANCELLED = "REFACTORING_REQUEST_CANCELLED";
+
+  /**
    * The analysis server has already been started (and hence won't accept new connections).
    *
    * This error is included for future expansion; at present the analysis server can only speak to

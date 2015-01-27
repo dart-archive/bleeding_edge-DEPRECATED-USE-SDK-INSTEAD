@@ -300,6 +300,9 @@ public interface AnalysisServer {
    *
    * Get the changes required to perform a refactoring.
    *
+   * If another refactoring request is received during the processing of this one, an error of type
+   * REFACTORING_REQUEST_CANCELLED will be generated.
+   *
    * @param kind The kind of refactoring to be performed.
    * @param file The file containing the code involved in the refactoring.
    * @param offset The offset of the region involved in the refactoring.
