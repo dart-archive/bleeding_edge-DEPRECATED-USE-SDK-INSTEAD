@@ -13,9 +13,16 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.common.reflect.TypeToken;
 import com.google.dart.server.GetLibraryDependenciesConsumer;
 import com.google.dart.server.generated.types.RequestError;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Instances of {@code LibraryDependenciesProcessor} translate JSON result objects for a given
@@ -24,6 +31,17 @@ import com.google.gson.JsonObject;
  * @coverage dart.server.remote
  */
 public class LibraryDependenciesProcessor extends ResultProcessor {
+
+  private static final Map<String, Map<String, List<String>>> EMPTY_MAP = Collections.<String, Map<String, List<String>>> emptyMap();
+
+  private static Map<String, Map<String, List<String>>> constructPackageMap(JsonElement jsonMap) {
+    if (jsonMap == null) {
+      return EMPTY_MAP;
+    }
+    return new Gson().fromJson(jsonMap, new TypeToken<Map<String, Map<String, List<String>>>>() {
+    }.getType());
+  }
+
   private final GetLibraryDependenciesConsumer consumer;
 
   public LibraryDependenciesProcessor(GetLibraryDependenciesConsumer consumer) {
@@ -34,7 +52,8 @@ public class LibraryDependenciesProcessor extends ResultProcessor {
     if (resultObject != null) {
       try {
         String[] libraries = constructStringArray(resultObject.get("libraries").getAsJsonArray());
-        consumer.computedDependencies(libraries);
+        Map<String, Map<String, List<String>>> packageMap = constructPackageMap(resultObject.get("packageMap"));
+        consumer.computedDependencies(libraries, packageMap);
       } catch (Exception exception) {
         // catch any exceptions in the formatting of this response
         requestError = generateRequestError(exception);
@@ -44,4 +63,5 @@ public class LibraryDependenciesProcessor extends ResultProcessor {
       consumer.onError(requestError);
     }
   }
+
 }

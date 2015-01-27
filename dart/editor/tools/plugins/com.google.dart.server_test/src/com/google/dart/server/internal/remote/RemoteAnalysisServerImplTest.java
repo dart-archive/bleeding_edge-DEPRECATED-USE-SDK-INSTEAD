@@ -91,8 +91,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.MapAssert.entry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -413,11 +415,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_getLibraryDependencies() throws Exception {
     final String[][] libraries = {{null}};
+    final List<Map<String, Map<String, List<String>>>> packageMap = Lists.newArrayList();
     final RequestError[] requestErrorArray = {null};
     server.analysis_getLibraryDependencies(new GetLibraryDependenciesConsumer() {
       @Override
-      public void computedDependencies(String[] libs) {
+      public void computedDependencies(String[] libs,
+          Map<String, Map<String, List<String>>> packages) {
         libraries[0] = libs;
+        packageMap.add(packages);
       }
 
       @Override
@@ -438,27 +443,43 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
+        "    'packageMap': {",
+        "      '/context1/' : {",
+        "        'a' : ['/a/', '/a1/'],",
+        "        'b' : ['/b/', '/b1/']",
+        "       },",
+        "      '/context2/' : {",
+        "        'c' : ['/c/', '/c1/']",
+        "       }",
+        "     },",
         "    'libraries': [",
         "      '/a/b/c.dart',",
         "      '/d/e/f.dart',",
         "      '/g/h/i.dart'",
-        "    ]",
-        "  }",
+        "     ]",
+        "   }",
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
     assertNull(requestErrorArray[0]);
     assertThat(libraries[0]).hasSize(3);
+    assertThat(packageMap).hasSize(1);
+    assertThat(packageMap.get(0).get("/context1/")).includes(
+        entry("a", Arrays.asList("/a/", "/a1/")));
+
   }
 
   public void test_analysis_getLibraryDependenciess_error() throws Exception {
-    final String[][] directories = {null};
+    final String[][] libraries = {null};
+    final List<Map<String, Map<String, List<String>>>> packageMap = Lists.newArrayList();
     final RequestError[] requestErrorArray = {null};
     server.analysis_getLibraryDependencies(new GetLibraryDependenciesConsumer() {
       @Override
-      public void computedDependencies(String[] dirs) {
-        directories[0] = dirs;
+      public void computedDependencies(String[] libs,
+          Map<String, Map<String, List<String>>> packages) {
+        libraries[0] = libs;
+        packageMap.add(packages);
       }
 
       @Override
@@ -488,7 +509,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
 
-    assertNull(directories[0]);
+    assertNull(libraries[0]);
+    assertThat(packageMap).isEmpty();
     assertNotNull(requestErrorArray[0]);
     RequestError requestError = requestErrorArray[0];
     assertEquals("CONTENT_MODIFIED", requestError.getCode());

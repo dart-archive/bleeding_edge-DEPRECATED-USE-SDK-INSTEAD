@@ -15,6 +15,9 @@ package com.google.dart.server;
 
 import com.google.dart.server.generated.types.RequestError;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * The interface {@code GetLibraryDependenciesConsumer} defines the behavior of objects that consume
  * library dependency responses.
@@ -27,8 +30,11 @@ public interface GetLibraryDependenciesConsumer extends Consumer {
    * A list of computed dependent library paths.
    * 
    * @param libraries an array of computed library paths
+   * @param packageMap a map of context source roots to maps of package names to lists of associated
+   *          source directories
    */
-  public void computedDependencies(String[] libraries);
+  public void computedDependencies(String[] libraries,
+      Map<String, Map<String, List<String>>> packageMap);
 
   /**
    * If a result cannot be passed back, some {@link RequestError} is passed back instead.

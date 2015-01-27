@@ -84,7 +84,8 @@ public interface AnalysisServer {
   /**
    * {@code analysis.getLibraryDependencies}
    *
-   * Return a list of all of the libraries referenced by any files in existing analysis roots.
+   * Return library dependency information for use in client-side indexing and package URI
+   * resolution.
    */
   public void analysis_getLibraryDependencies(GetLibraryDependenciesConsumer consumer);
 
