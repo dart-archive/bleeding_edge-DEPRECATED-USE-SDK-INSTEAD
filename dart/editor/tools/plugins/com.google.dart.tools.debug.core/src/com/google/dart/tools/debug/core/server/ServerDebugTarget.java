@@ -348,7 +348,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     addThread(new ServerDebugThread(this, isolate));
 
     try {
-      connection.enableAllSteppingSync(isolate);
+      connection.enableAllStepping(isolate);
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }

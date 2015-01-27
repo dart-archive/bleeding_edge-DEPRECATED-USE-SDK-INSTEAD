@@ -321,7 +321,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     try {
       VmInterruptResult interruptResult = connection.interruptConditionally(isolate);
 
-      connection.enableAllSteppingSync(isolate);
+      connection.enableAllStepping(isolate);
 
       // Set all existing breakpoints on the new isolate.
       addBreakpoints(isolate, getSupportedBreakpoints(), false);

@@ -162,35 +162,23 @@ public class VmConnection {
    * 
    * @throws IOException
    */
-  public void enableAllSteppingSync(final VmIsolate isolate) throws IOException {
-    final CountDownLatch latch = new CountDownLatch(1);
-
+  public void enableAllStepping(final VmIsolate isolate) throws IOException {
     getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
       @Override
       public void handleResult(VmResult<List<VmLibraryRef>> result) {
-        try {
-          if (!result.isError()) {
-            for (VmLibraryRef ref : result.getResult()) {
-              if (!ref.isInternal() && !ref.isAsync()) {
-                try {
-                  setLibraryProperties(isolate, ref.getId(), true);
-                } catch (IOException e) {
+        if (!result.isError()) {
+          for (VmLibraryRef ref : result.getResult()) {
+            if (!ref.isInternal() && !ref.isAsync()) {
+              try {
+                setLibraryProperties(isolate, ref.getId(), true);
+              } catch (IOException e) {
 
-                }
               }
             }
           }
-        } finally {
-          latch.countDown();
         }
       }
     });
-
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-
-    }
   }
 
   public void evaluateLibrary(final VmIsolate isolate, VmLibrary vmLibrary, String expression,
