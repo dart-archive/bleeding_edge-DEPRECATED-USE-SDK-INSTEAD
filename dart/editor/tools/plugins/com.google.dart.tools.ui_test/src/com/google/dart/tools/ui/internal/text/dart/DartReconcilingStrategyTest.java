@@ -181,7 +181,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     @Override
     public boolean isDirty() {
-      return false;
+      return true;
     }
 
     @Override

@@ -147,6 +147,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
     @Override
     public void documentChanged(DocumentEvent event) {
+      if (!editor.isDirty()) {
+        return;
+      }
       hasPendingDocumentChanges = true;
 
       // Record the source region that has changed

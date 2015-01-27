@@ -53,38 +53,46 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private class HighlightingPositionUpdater implements IPositionUpdater {
     @Override
     public void update(DocumentEvent event) {
-      if (positions == null) {
-        return;
-      }
-      // prepare event values
-      int eventOffset = event.getOffset();
-      int eventOldLength = event.getLength();
-      int eventEnd = eventOffset + eventOldLength;
-      // check is the whole document was replaced (e.g. GIT branch was switched)
-      {
-        String documentText = document.get();
-        String eventText = event.getText();
-        if (eventOffset == 0 && documentText.length() == eventText.length()) {
+      synchronized (positionsLock) {
+        if (positions == null) {
           return;
         }
-      }
-      // update positions
-      for (HighlightPosition position : positions) {
-        int offset = position.getOffset();
-        int length = position.getLength();
-        int end = offset + length;
-        if (offset > eventEnd) {
-          updateWithPrecedingEvent(position, event);
-        } else if (end < eventOffset) {
-          updateWithSucceedingEvent(position, event);
-        } else if (offset <= eventOffset && end >= eventEnd) {
-          updateWithIncludedEvent(position, event);
-        } else if (offset <= eventOffset) {
-          updateWithOverEndEvent(position, event);
-        } else if (end >= eventEnd) {
-          updateWithOverStartEvent(position, event);
-        } else {
-          updateWithIncludingEvent(position, event);
+        // prepare event values
+        int eventOffset = event.getOffset();
+        int eventOldLength = event.getLength();
+        int eventEnd = eventOffset + eventOldLength;
+        // special states
+        {
+          String documentText = document.get();
+          // check if the same text as for the last highlight regions
+          if (lastText != null && lastText.equals(documentText)) {
+            createPositions(lastRegions);
+            return;
+          }
+          // check if the whole document was replaced (e.g. GIT branch was switched)
+          String eventText = event.getText();
+          if (eventOffset == 0 && documentText.length() == eventText.length()) {
+            return;
+          }
+        }
+        // update positions
+        for (HighlightPosition position : positions) {
+          int offset = position.getOffset();
+          int length = position.getLength();
+          int end = offset + length;
+          if (offset > eventEnd) {
+            updateWithPrecedingEvent(position, event);
+          } else if (end < eventOffset) {
+            updateWithSucceedingEvent(position, event);
+          } else if (offset <= eventOffset && end >= eventEnd) {
+            updateWithIncludedEvent(position, event);
+          } else if (offset <= eventOffset) {
+            updateWithOverEndEvent(position, event);
+          } else if (end >= eventEnd) {
+            updateWithOverStartEvent(position, event);
+          } else {
+            updateWithIncludingEvent(position, event);
+          }
         }
       }
     }
@@ -211,7 +219,11 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private final DartReconcilingStrategy reconcilingStrategy;
   private final IDocument document;
   private final IPositionUpdater positionUpdater = new HighlightingPositionUpdater();
+
+  private final Object positionsLock = new Object();
   private HighlightPosition[] positions;
+  private String lastText;
+  private HighlightRegion[] lastRegions;
 
   public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file,
       DartReconcilingStrategy reconcilingStrategy) {
@@ -228,58 +240,60 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   @Override
   public void applyTextPresentation(TextPresentation textPresentation) {
-    if (positions == null) {
-      return;
-    }
-    // prepare damaged region
-    IRegion damagedRegion = textPresentation.getExtent();
-    int daOffset = damagedRegion.getOffset();
-    int daEnd = daOffset + damagedRegion.getLength();
-    // prepare theme access
-    IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
-    IColorManager colorManager = DartUI.getColorManager();
-    // add style ranges
-    for (HighlightPosition position : positions) {
-      // skip if outside of the damaged region
-      int hiOffset = position.getOffset();
-      int hiLength = position.getLength();
-      int hiEnd = hiOffset + hiLength;
-      if (hiEnd < daOffset || hiOffset >= daEnd) {
-        continue;
+    synchronized (positionsLock) {
+      if (positions == null) {
+        return;
       }
-      if (hiEnd > daEnd) {
-        continue;
+      // prepare damaged region
+      IRegion damagedRegion = textPresentation.getExtent();
+      int daOffset = damagedRegion.getOffset();
+      int daEnd = daOffset + damagedRegion.getLength();
+      // prepare theme access
+      IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
+      IColorManager colorManager = DartUI.getColorManager();
+      // add style ranges
+      for (HighlightPosition position : positions) {
+        // skip if outside of the damaged region
+        int hiOffset = position.getOffset();
+        int hiLength = position.getLength();
+        int hiEnd = hiOffset + hiLength;
+        if (hiEnd < daOffset || hiOffset >= daEnd) {
+          continue;
+        }
+        if (hiEnd > daEnd) {
+          continue;
+        }
+        // prepare highlight key
+        String highlightType = position.highlight.getType();
+        String themeKey = getThemeKey(highlightType);
+        if (themeKey == null) {
+          continue;
+        }
+        themeKey = "semanticHighlighting." + themeKey;
+        // prepare color
+        RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
+        if (foregroundRGB == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
+          continue;
+        }
+        Color foregroundColor = colorManager.getColor(foregroundRGB);
+        // prepare font style
+        boolean fontBold = store.getBoolean(themeKey + ".bold");
+        boolean fontItalic = store.getBoolean(themeKey + ".italic");
+        int fontStyle = 0;
+        if (fontBold) {
+          fontStyle |= SWT.BOLD;
+        }
+        if (fontItalic) {
+          fontStyle |= SWT.ITALIC;
+        }
+        // merge style range
+        textPresentation.replaceStyleRange(new StyleRange(
+            hiOffset,
+            hiLength,
+            foregroundColor,
+            null,
+            fontStyle));
       }
-      // prepare highlight key
-      String highlightType = position.highlight.getType();
-      String themeKey = getThemeKey(highlightType);
-      if (themeKey == null) {
-        continue;
-      }
-      themeKey = "semanticHighlighting." + themeKey;
-      // prepare color
-      RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
-      if (foregroundRGB == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
-        continue;
-      }
-      Color foregroundColor = colorManager.getColor(foregroundRGB);
-      // prepare font style
-      boolean fontBold = store.getBoolean(themeKey + ".bold");
-      boolean fontItalic = store.getBoolean(themeKey + ".italic");
-      int fontStyle = 0;
-      if (fontBold) {
-        fontStyle |= SWT.BOLD;
-      }
-      if (fontItalic) {
-        fontStyle |= SWT.ITALIC;
-      }
-      // merge style range
-      textPresentation.replaceStyleRange(new StyleRange(
-          hiOffset,
-          hiLength,
-          foregroundColor,
-          null,
-          fontStyle));
     }
   }
 
@@ -291,12 +305,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       }
     }
     // create HighlightPosition(s)
-    HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
-    for (int i = 0; i < highlights.length; i++) {
-      HighlightRegion highlight = highlights[i];
-      newPositions[i] = new HighlightPosition(highlight);
-    }
-    positions = newPositions;
+    createPositions(highlights);
     // Invalidate presentation.
     // Delay it, so that in case of the code completion activation, we can display completions
     // before the semantic highlighting and catch up while user stares at the completion list.
@@ -318,6 +327,19 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     analysisServerData.removeHighlightsListener(file, this);
     viewer.removeTextPresentationListener(this);
     document.removePositionUpdater(positionUpdater);
+  }
+
+  private void createPositions(HighlightRegion[] highlights) {
+    HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
+    for (int i = 0; i < highlights.length; i++) {
+      HighlightRegion highlight = highlights[i];
+      newPositions[i] = new HighlightPosition(highlight);
+    }
+    synchronized (positionsLock) {
+      lastText = document.get();
+      lastRegions = highlights;
+      positions = newPositions;
+    }
   }
 
   /**
