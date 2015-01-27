@@ -1,7 +1,9 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
@@ -15,7 +17,17 @@ import org.eclipse.swt.graphics.TextStyle;
  * of completions sorted towards the bottom of the visible list.
  */
 public class DartServerInformationalProposal implements ICompletionProposal,
-    ICompletionProposalExtension6 {
+    ICompletionProposalExtension, ICompletionProposalExtension6 {
+
+  private final static char FIRST_TRIGGER = 0x20;
+  private final static char LAST_TRIGGER = 0x7E;
+  private final static char[] TRIGGERS = new char[LAST_TRIGGER - FIRST_TRIGGER + 1];
+  static {
+    int index = 0;
+    for (char ch = FIRST_TRIGGER; ch <= LAST_TRIGGER; ++ch, ++index) {
+      TRIGGERS[index] = ch;
+    }
+  }
 
   /**
    * An informational message indicating that no completion results were received from the analysis
@@ -69,6 +81,11 @@ public class DartServerInformationalProposal implements ICompletionProposal,
 
   private StyledString styledMessage;
 
+  /**
+   * The selection offset. This is set if the trigger character was inserted.
+   */
+  private int selectionOffset = 0;
+
   private DartServerInformationalProposal(String message) {
     this.message = message;
   }
@@ -79,6 +96,19 @@ public class DartServerInformationalProposal implements ICompletionProposal,
   }
 
   @Override
+  public void apply(IDocument document, char trigger, int offset) {
+    // Informational only... only insert the trigger character if there was one
+    if (trigger != '\0') {
+      try {
+        document.replace(offset, 0, Character.toString(trigger));
+        selectionOffset = offset + 1;
+      } catch (BadLocationException e) {
+        // ignored
+      }
+    }
+  }
+
+  @Override
   public String getAdditionalProposalInfo() {
     return null;
   }
@@ -86,6 +116,11 @@ public class DartServerInformationalProposal implements ICompletionProposal,
   @Override
   public IContextInformation getContextInformation() {
     return null;
+  }
+
+  @Override
+  public int getContextInformationPosition() {
+    return -1;
   }
 
   @Override
@@ -100,6 +135,9 @@ public class DartServerInformationalProposal implements ICompletionProposal,
 
   @Override
   public Point getSelection(IDocument document) {
+    if (selectionOffset != 0) {
+      return new Point(selectionOffset, 0);
+    }
     return null;
   }
 
@@ -110,5 +148,15 @@ public class DartServerInformationalProposal implements ICompletionProposal,
       styledMessage.setStyle(0, getDisplayString().length(), informationStyle);
     }
     return styledMessage;
+  }
+
+  @Override
+  public char[] getTriggerCharacters() {
+    return TRIGGERS;
+  }
+
+  @Override
+  public boolean isValidFor(IDocument document, int offset) {
+    return false;
   }
 }
