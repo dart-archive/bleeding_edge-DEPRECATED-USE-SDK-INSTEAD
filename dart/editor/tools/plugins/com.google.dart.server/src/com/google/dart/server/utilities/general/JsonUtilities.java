@@ -13,7 +13,6 @@
  */
 package com.google.dart.server.utilities.general;
 
-import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -73,7 +72,7 @@ public class JsonUtilities {
 
   public static List<String> decodeStringList(JsonArray jsonArray) {
     if (jsonArray == null) {
-      return Lists.newArrayList();
+      return StringUtilities.EMPTY_LIST;
     }
     List<String> stringList = new ArrayList<String>(jsonArray.size());
     Iterator<JsonElement> iterator = jsonArray.iterator();

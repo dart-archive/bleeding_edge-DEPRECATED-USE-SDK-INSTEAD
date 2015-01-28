@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.AnalysisServerListener;
@@ -195,8 +194,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   // Execution domain
   private static final String LAUNCH_DATA_NOTIFICATION_RESULTS = "execution.launchData";
 
-  private final static List<String> EMPTY_STR_LIST = Lists.newArrayList();
-
   private final AnalysisServerSocket socket;
   private RequestSink requestSink;
   private ResponseStream responseStream;
@@ -309,10 +306,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       Map<String, String> packageRoots) {
     String id = generateUniqueId();
     if (includedPaths == null) {
-      includedPaths = EMPTY_STR_LIST;
+      includedPaths = StringUtilities.EMPTY_LIST;
     }
     if (excludedPaths == null) {
-      excludedPaths = EMPTY_STR_LIST;
+      excludedPaths = StringUtilities.EMPTY_LIST;
     }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetAnalysisRoots(
         id,
@@ -325,7 +322,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void analysis_setPriorityFiles(List<String> files) {
     String id = generateUniqueId();
     if (files == null) {
-      files = EMPTY_STR_LIST;
+      files = StringUtilities.EMPTY_LIST;
     }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
   }
@@ -447,7 +444,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void execution_setSubscriptions(List<String> subscriptions) {
     String id = generateUniqueId();
     if (subscriptions == null) {
-      subscriptions = new ArrayList<String>();
+      subscriptions = StringUtilities.EMPTY_LIST;
     }
     sendRequestToServer(id, RequestUtilities.generateExecutionSetSubscriptions(id, subscriptions));
   }
@@ -516,7 +513,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void server_setSubscriptions(List<String> subscriptions) {
     String id = generateUniqueId();
     if (subscriptions == null) {
-      subscriptions = Lists.newArrayList();
+      subscriptions = StringUtilities.EMPTY_LIST;
     }
     sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
   }

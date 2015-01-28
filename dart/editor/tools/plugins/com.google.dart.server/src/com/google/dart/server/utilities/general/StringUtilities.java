@@ -15,6 +15,9 @@ package com.google.dart.server.utilities.general;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Lists;
+
+import java.util.List;
 
 /**
  * The class {@code StringUtilities} defines utility methods for strings.
@@ -29,9 +32,14 @@ public final class StringUtilities {
   public static final String EMPTY = "";
 
   /**
-   * An empty array of strings.
+   * An empty array of {@link String}s.
    */
   public static final String[] EMPTY_ARRAY = new String[0];
+
+  /**
+   * An empty list of {@link String}s.
+   */
+  public static final List<String> EMPTY_LIST = Lists.newArrayList();
 
   /**
    * The {@link Interner} instance to use for {@link #intern(String)}.

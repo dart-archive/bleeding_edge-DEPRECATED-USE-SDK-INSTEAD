@@ -41,6 +41,10 @@ public class StringUtilitiesTest extends TestCase {
     assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
   }
 
+  public void test_EMPTY_LIST() {
+    assertTrue(StringUtilities.EMPTY_LIST.isEmpty());
+  }
+
   public void test_endsWith3() {
     assertTrue(StringUtilities.endsWith3("abc", 'a', 'b', 'c')); // all
     assertTrue(StringUtilities.endsWith3("abcdefghi", 'g', 'h', 'i')); // end
