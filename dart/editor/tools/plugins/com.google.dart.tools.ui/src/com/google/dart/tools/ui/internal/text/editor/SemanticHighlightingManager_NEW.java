@@ -33,6 +33,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ISynchronizable;
 import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.TextPresentation;
@@ -335,11 +336,28 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       HighlightRegion highlight = highlights[i];
       newPositions[i] = new HighlightPosition(highlight);
     }
-    synchronized (positionsLock) {
-      lastText = document.get();
-      lastRegions = highlights;
-      positions = newPositions;
+    // HighlightingPositionUpdater works owns the document lock and the grabs positionsLock.
+    // To avoid dead lock, we must grab lock in the same order - document, then positionsLock.
+    synchronized (getDocumentLockObject()) {
+      synchronized (positionsLock) {
+        lastText = document.get();
+        lastRegions = highlights;
+        positions = newPositions;
+      }
     }
+  }
+
+  /**
+   * Returns the lock to use to synchronize {@link #document} access.
+   */
+  private Object getDocumentLockObject() {
+    if (document instanceof ISynchronizable) {
+      Object lock = ((ISynchronizable) document).getLockObject();
+      if (lock != null) {
+        return lock;
+      }
+    }
+    return document;
   }
 
   /**
