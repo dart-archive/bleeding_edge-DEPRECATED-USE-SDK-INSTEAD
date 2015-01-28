@@ -2933,6 +2933,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
+    inputResourceFile = null;
+    inputJavaFile = null;
     if (input instanceof IFileEditorInput) {
       IFileEditorInput fileInput = (IFileEditorInput) input;
       inputResourceFile = fileInput.getFile();
@@ -2947,6 +2949,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
+    uninstallSemanticHighlighting();
+
     // TODO(scheglov) This code is intentionally left commented.
     // If we don't follow the "!(sourceViewer instanceof ISourceViewerExtension2)",
     // it causes https://code.google.com/p/dart/issues/detail?id=18297
@@ -2957,7 +2961,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       internalDoSetInput(input);
     }
 
-    uninstallSemanticHighlighting();
     installSemanticHighlighting();
 
 //    ISourceViewer sourceViewer = getSourceViewer();
