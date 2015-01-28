@@ -536,6 +536,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     stopServer();
   }
 
+  /**
+   * Starts the analysis server.
+   * 
+   * @throws ServerVersionMismatchException if the underlying analysis server doesn't match to a
+   *           server version that this Java API can communicate with.
+   */
   @Override
   public void start() throws Exception {
     startServer();
@@ -804,7 +810,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           && !StringUtilities.isVersionLessThanMajorVersion(
               versionInfo[0],
               MAX_MAJOR_SERVER_VERSION)) {
-        throw new Exception(
+        throw new ServerVersionMismatchException(
+            versionInfo[0],
+            Integer.toString(MAX_MAJOR_SERVER_VERSION) + ".0.0",
             "This version of the com.google.dart.server project can communicate only with server "
                 + "versions up to " + Integer.toString(MAX_MAJOR_SERVER_VERSION)
                 + ".0.0, the version read from the server is " + versionInfo[0]);
