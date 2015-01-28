@@ -72,6 +72,8 @@ public class DartSuggestionReceiver {
         DartSuggestionReceiver.this.replacementOffset = replacementOffset;
         DartSuggestionReceiver.this.replacementLength = replacementLength;
         DartSuggestionReceiver.this.suggestions = completions;
+//        System.out.println(System.currentTimeMillis() + " >>> notification received for "
+//            + completionId);
         if (isLast) {
           server.removeAnalysisServerListener(this);
           latch.countDown();
