@@ -14,8 +14,8 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
 import com.google.dart.server.AnalysisServerStatusListener;
@@ -90,8 +90,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -785,35 +784,61 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new ServerErrorReaderThread(errorStream, listener).start();
     }
     if (checkServerVersion) {
-      final CountDownLatch latch = new CountDownLatch(1);
-      final String[] versionInfo = new String[] {null};
+      BlockRequestSink blockRequestSink = new BlockRequestSink(requestSink);
+      requestSink = blockRequestSink;
       server_getVersion(new GetVersionConsumer() {
         @Override
         public void computedVersion(String version) {
-          versionInfo[0] = version;
-          latch.countDown();
+          // check if a valid version
+          if (StringUtilities.isVersionLessThanMajorVersion(version, MAX_MAJOR_SERVER_VERSION)) {
+            ((BlockRequestSink) requestSink).unblock();
+            return;
+          }
+          // version mismatch
+          String message = "This version of the com.google.dart.server project can communicate "
+              + "only with server versions up to " + Integer.toString(MAX_MAJOR_SERVER_VERSION)
+              + ".0.0, the version read from the server is " + version;
+          Logging.getLogger().logError(message);
+          sendErrorForEveryRequest(version);
         }
 
         @Override
         public void onError(RequestError requestError) {
-          latch.countDown();
+          Logging.getLogger().logError("No version received from the server.");
+          sendErrorForEveryRequest(null);
+        }
+
+        private void sendErrorForEveryRequest(String version) {
+          // TODO(scheglov) extract into ResponseUtilities
+          synchronized (consumerMapLock) {
+            JsonObject error = new JsonObject();
+            error.addProperty("code", "INCOMPATIBLE_SERVER_VERSION");
+            error.addProperty("message", "Incompatible server version: " + version);
+            JsonObject response = new JsonObject();
+            response.add("error", error);
+            // prepare IDs of requests to response with an error
+            List<String> ids = Lists.newArrayList();
+            for (Entry<String, Consumer> entry : consumerMap.entrySet()) {
+              Consumer consumer = entry.getValue();
+              if (consumer != this) {
+                String key = entry.getKey();
+                ids.add(key);
+              }
+            }
+            // response with an error
+            for (String id : ids) {
+              try {
+                response.addProperty("id", id);
+                processResponse(response);
+              } catch (Throwable e) {
+                Logging.getLogger().logError(e.getMessage(), e);
+              }
+            }
+          }
+          server_shutdown();
         }
       });
-      Uninterruptibles.awaitUninterruptibly(
-          latch,
-          TimeUnit.SECONDS.toMillis(1),
-          TimeUnit.MILLISECONDS);
-      if (versionInfo[0] != null
-          && !StringUtilities.isVersionLessThanMajorVersion(
-              versionInfo[0],
-              MAX_MAJOR_SERVER_VERSION)) {
-        throw new ServerVersionMismatchException(
-            versionInfo[0],
-            Integer.toString(MAX_MAJOR_SERVER_VERSION) + ".0.0",
-            "This version of the com.google.dart.server project can communicate only with server "
-                + "versions up to " + Integer.toString(MAX_MAJOR_SERVER_VERSION)
-                + ".0.0, the version read from the server is " + versionInfo[0]);
-      }
+      blockRequestSink.block();
     }
   }
 
