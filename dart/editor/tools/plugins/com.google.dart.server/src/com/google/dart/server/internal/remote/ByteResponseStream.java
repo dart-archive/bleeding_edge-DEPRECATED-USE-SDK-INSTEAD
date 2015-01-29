@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Charsets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -105,6 +106,11 @@ public class ByteResponseStream implements ResponseStream {
       return null;
     }
     String line = lineQueue.take();
-    return (JsonObject) new JsonParser().parse(line);
+    try {
+      return (JsonObject) new JsonParser().parse(line);
+    } catch (JsonSyntaxException e) {
+      // Include the line in the message so that we can better diagnose the problem
+      throw new JsonSyntaxException("Parse server message failed: " + line, e);
+    }
   }
 }
