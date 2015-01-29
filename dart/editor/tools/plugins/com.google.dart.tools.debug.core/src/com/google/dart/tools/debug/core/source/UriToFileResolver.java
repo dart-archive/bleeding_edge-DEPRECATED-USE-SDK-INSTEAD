@@ -297,6 +297,9 @@ public class UriToFileResolver {
   private String resolveRelativePath(String url) {
     if (container != null) {
       IResource file = container.findMember(url);
+      if (file == null) {
+        file = container.getProject().findMember(url);
+      }
       if (file != null) {
         return file.getLocation().toOSString();
       }
