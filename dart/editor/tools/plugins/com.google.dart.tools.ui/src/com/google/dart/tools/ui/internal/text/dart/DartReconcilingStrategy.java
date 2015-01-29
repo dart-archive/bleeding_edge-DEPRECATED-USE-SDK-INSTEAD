@@ -93,6 +93,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private DartReconcilingRegion dirtyRegion = DartReconcilingRegion.EMPTY;
 
   /**
+   * The contents of the document the last time it was updated, or null if this file is up to date.
+   * Synchronize against {@link #lock} before accessing this field.
+   */
+  private String codeAsOfLastUpdate = null;
+
+  /**
    * A flag indicating whether an "overlay" has been already added for this file.
    */
   private boolean isOverlayAdded = false;
@@ -159,6 +165,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         if (dirtyRegion != null) {
           dirtyRegion = dirtyRegion.add(event.getOffset(), event.getLength(), newLength);
         }
+        codeAsOfLastUpdate = document.get();
       }
       editor.applyResolvedUnit(null);
 
@@ -290,23 +297,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     try {
       instrumentation.data("Name", editor.getTitle());
       DartReconcilingRegion region;
+      String code;
       synchronized (lock) {
         region = dirtyRegion;
+        code = codeAsOfLastUpdate;
         dirtyRegion = DartReconcilingRegion.EMPTY;
+        codeAsOfLastUpdate = null;
       }
       if (region == null) {
-        String code = document.get();
         instrumentation.data("Length", code.length());
         sourceChanged(code);
       } else if (!region.isEmpty()) {
         instrumentation.data("Offset", region.getOffset());
         instrumentation.data("OldLength", region.getOldLength());
         instrumentation.data("NewLength", region.getNewLength());
-        sourceChanged(
-            document.get(),
-            region.getOffset(),
-            region.getOldLength(),
-            region.getNewLength());
+        sourceChanged(code, region.getOffset(), region.getOldLength(), region.getNewLength());
       }
     } finally {
       instrumentation.log();
@@ -363,8 +368,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   /**
    * Adds overlay for this file.
    */
-  private void addOverlay() {
-    String code = document.get();
+  private void addOverlay(String code) {
     AddContentOverlay change = new AddContentOverlay(code);
     updateFileContent(change);
     isOverlayAdded = true;
@@ -440,12 +444,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   /**
    * Schedules the source change notification and analysis.
    * 
-   * @param code the new source code or {@code null} if the source should be pulled from disk
+   * @param code the new source code or {@code null} if the source should be pulled from disk. Will
+   *          never be {@code null} when analysis server is in use.
    */
   private void sourceChanged(String code) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       if (!isOverlayAdded) {
-        addOverlay();
+        addOverlay(code);
       } else {
         AddContentOverlay change = new AddContentOverlay(code);
         updateFileContent(change);
@@ -477,7 +482,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       if (editor.isDirty()) {
         if (!isOverlayAdded) {
-          addOverlay();
+          addOverlay(code);
         } else {
           List<SourceEdit> sourceEdits = Lists.newArrayList();
           String replacement = code.substring(offset, offset + newLength);
