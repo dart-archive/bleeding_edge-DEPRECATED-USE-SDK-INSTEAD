@@ -29,7 +29,7 @@ public class StopPubServeHandler extends AbstractHandler implements IPubServeLis
 
   public StopPubServeHandler() {
     manager.addListener(this);
-    setBaseEnabled(false);
+    setBaseEnabled(manager.isServing());
   }
 
   @Override
