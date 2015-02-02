@@ -255,8 +255,12 @@ public interface AnalysisServer {
    * analysis.setAnalysisRoots), an error of type FORMAT_INVALID_FILE will be generated.
    *
    * @param file The file containing the code to be formatted.
-   * @param selectionOffset The offset of the current selection in the file.
-   * @param selectionLength The length of the current selection in the file.
+   * @param selectionOffset The offset of the current selection in the file. In case preserving,
+   *         selection information is not required, 0 can be specified for both selection offset and
+   *         length.
+   * @param selectionLength The length of the current selection in the file. In case preserving,
+   *         selection information is not required, 0 can be specified for both selection offset and
+   *         length.
    */
   public void edit_format(String file, int selectionOffset, int selectionLength, FormatConsumer consumer);
 
