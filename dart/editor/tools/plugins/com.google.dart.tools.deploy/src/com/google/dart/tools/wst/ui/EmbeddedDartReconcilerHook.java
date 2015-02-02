@@ -24,6 +24,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -128,7 +129,9 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
       return;
     }
     IProject project = resource.getProject();
-    dartProject = DartCore.getProjectManager().getProject(project);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      dartProject = DartCore.getProjectManager().getProject(project);
+    }
     DartReconcilerManager.getInstance().reconcileWith(document, this);
     document.addPrenotifiedDocumentListener(documentListener);
     this.resource = resource;
