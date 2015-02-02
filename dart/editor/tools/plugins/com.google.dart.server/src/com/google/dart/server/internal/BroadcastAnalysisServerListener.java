@@ -164,6 +164,13 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public void serverIncompatibleVersion(String version) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.serverIncompatibleVersion(version);
+    }
+  }
+
+  @Override
   public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.serverStatus(analysisStatus, pubStatus);

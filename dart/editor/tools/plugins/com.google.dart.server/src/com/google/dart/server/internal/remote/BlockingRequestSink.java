@@ -14,16 +14,18 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.collect.Lists;
+import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonObject;
 
 import java.util.LinkedList;
 
 /**
- * A {@link RequestSink} that enqueues requests only it is open.
+ * A {@link RequestSink} that enqueues all but "get version" requests and can be later converted
+ * into a "passthrough" or an "error" {@link RequestSink}.
  * 
  * @coverage dart.server.remote
  */
-public class BlockRequestSink implements RequestSink {
+public class BlockingRequestSink implements RequestSink {
   /**
    * The base {@link RequestSink}
    */
@@ -34,32 +36,18 @@ public class BlockRequestSink implements RequestSink {
    */
   private final LinkedList<JsonObject> queue = Lists.newLinkedList();
 
-  private boolean blocked = false;
-
-  public BlockRequestSink(RequestSink base) {
+  public BlockingRequestSink(RequestSink base) {
     this.base = base;
   }
 
   @Override
   public void add(JsonObject request) {
     synchronized (queue) {
-      if (blocked) {
-        queue.add(request);
-      } else {
+      if (RequestUtilities.isVersionRequest(request)) {
         base.add(request);
+      } else {
+        queue.add(request);
       }
-    }
-  }
-
-  /**
-   * Block this sink and starts queuing requests.
-   */
-  public void block() {
-    if (blocked) {
-      throw new IllegalStateException("The lock is already blocked.");
-    }
-    synchronized (queue) {
-      blocked = true;
     }
   }
 
@@ -69,18 +57,34 @@ public class BlockRequestSink implements RequestSink {
   }
 
   /**
-   * Unblock this sink and send all the queued requests.
+   * Responds with an error to all the currently queued requests and return a {@link RequestSink} to
+   * do the same for all the future requests.
+   * 
+   * @param errorResponseSink the sink to send error responses to, not {@code null}
    */
-  public void unblock() {
-    if (!blocked) {
-      throw new IllegalStateException("The lock is already unblocked.");
-    }
+  public RequestSink toErrorSink(ResponseSink errorResponseSink, String errorResponseCode,
+      String errorResponseMessage) {
+    ErrorRequestSink errorRequestSink = new ErrorRequestSink(
+        errorResponseSink,
+        errorResponseCode,
+        errorResponseMessage);
     synchronized (queue) {
-      blocked = false;
       for (JsonObject request : queue) {
-        add(request);
+        errorRequestSink.add(request);
       }
-      queue.clear();
     }
+    return errorRequestSink;
+  }
+
+  /**
+   * Returns the passthrough {@link RequestSink}.
+   */
+  public RequestSink toPassthroughSink() {
+    synchronized (queue) {
+      for (JsonObject request : queue) {
+        base.add(request);
+      }
+    }
+    return base;
   }
 }

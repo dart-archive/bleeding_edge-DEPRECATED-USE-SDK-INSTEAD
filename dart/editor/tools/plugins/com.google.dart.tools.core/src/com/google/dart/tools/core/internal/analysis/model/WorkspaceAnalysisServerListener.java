@@ -144,6 +144,11 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public void serverIncompatibleVersion(String version) {
+    // TODO(scheglov) not yet implemented
+  }
+
+  @Override
   public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     dataImpl.internalServerStatus(analysisStatus);
     String statusMessage = getStatus(analysisStatus, pubStatus);

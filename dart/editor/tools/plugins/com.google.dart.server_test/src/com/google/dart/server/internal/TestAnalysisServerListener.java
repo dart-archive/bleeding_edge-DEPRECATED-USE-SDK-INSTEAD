@@ -323,6 +323,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public void serverIncompatibleVersion(String version) {
+  }
+
+  @Override
   public synchronized void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     this.analysisStatus = analysisStatus;
   }

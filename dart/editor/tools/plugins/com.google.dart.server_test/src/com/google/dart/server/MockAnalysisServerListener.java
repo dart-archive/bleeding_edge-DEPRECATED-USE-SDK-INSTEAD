@@ -96,6 +96,11 @@ public class MockAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public void serverIncompatibleVersion(String version) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
     throw new UnsupportedOperationException();
   }

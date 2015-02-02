@@ -748,6 +748,21 @@ public class RequestUtilities {
   }
 
   /**
+   * Return the ID of the given request.
+   */
+  public static String getId(JsonObject request) {
+    return request.getAsJsonPrimitive(ID).getAsString();
+  }
+
+  /**
+   * Return {@code true} if the given request is a version request.
+   */
+  public static boolean isVersionRequest(JsonObject request) {
+    String method = getRequestMethod(request);
+    return METHOD_SERVER_GET_VERSION.equals(method);
+  }
+
+  /**
    * Set whether the request time is included in the request itself.
    */
   public static void setIncludeRequestTime(boolean includeRequestTime) {
@@ -800,6 +815,17 @@ public class RequestUtilities {
    */
   private static String getClassName(Object object) {
     return object != null ? object.getClass().getName() : "null";
+  }
+
+  /**
+   * Returns the request method, or {@code null}.
+   */
+  private static String getRequestMethod(JsonObject request) {
+    JsonElement child = request.get(METHOD);
+    if (child instanceof JsonPrimitive) {
+      return child.getAsString();
+    }
+    return null;
   }
 
   private RequestUtilities() {

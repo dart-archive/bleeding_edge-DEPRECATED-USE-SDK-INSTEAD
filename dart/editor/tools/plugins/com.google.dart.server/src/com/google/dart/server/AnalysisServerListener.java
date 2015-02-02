@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.CompletionSuggestion;
@@ -24,6 +25,7 @@ import com.google.dart.server.generated.types.OverrideMember;
 import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.server.internal.remote.utilities.ResponseUtilities;
 
 import java.util.List;
 
@@ -164,6 +166,15 @@ public interface AnalysisServerListener {
    *          debugging the server
    */
   public void serverError(boolean isFatal, String message, String stackTrace);
+
+  /**
+   * Reports that the server version is not compatible with the client version. All the requests
+   * will fail with {@link ResponseUtilities#INCOMPATIBLE_SERVER_VERSION} error.
+   * 
+   * @param version is the actual version of the server if not {@code null}, or {@code null} if an
+   *          error received as a version.
+   */
+  public void serverIncompatibleVersion(String version);
 
   /**
    * Reports the current status of the server.

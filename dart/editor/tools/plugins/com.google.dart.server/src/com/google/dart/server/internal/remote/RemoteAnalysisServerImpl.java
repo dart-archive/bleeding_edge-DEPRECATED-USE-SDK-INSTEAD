@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
@@ -78,6 +77,7 @@ import com.google.dart.server.internal.remote.processor.SortMembersProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
+import com.google.dart.server.internal.remote.utilities.ResponseUtilities;
 import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
 import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
@@ -90,7 +90,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -194,6 +193,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private static final String LAUNCH_DATA_NOTIFICATION_RESULTS = "execution.launchData";
 
   private final AnalysisServerSocket socket;
+  private final Object requestSinkLock = new Object();
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private LineReaderStream errorStream;
@@ -762,7 +762,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     synchronized (consumerMapLock) {
       consumerMap.put(id, consumer);
     }
-    requestSink.add(request);
+    synchronized (requestSinkLock) {
+      requestSink.add(request);
+    }
   }
 
   private void sleep(long millisToSleep) {
@@ -784,14 +786,16 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new ServerErrorReaderThread(errorStream, listener).start();
     }
     if (checkServerVersion) {
-      BlockRequestSink blockRequestSink = new BlockRequestSink(requestSink);
+      final BlockingRequestSink blockRequestSink = new BlockingRequestSink(requestSink);
       requestSink = blockRequestSink;
       server_getVersion(new GetVersionConsumer() {
         @Override
         public void computedVersion(String version) {
           // check if a valid version
           if (StringUtilities.isVersionLessThanMajorVersion(version, MAX_MAJOR_SERVER_VERSION)) {
-            ((BlockRequestSink) requestSink).unblock();
+            synchronized (requestSinkLock) {
+              requestSink = blockRequestSink.toPassthroughSink();
+            }
             return;
           }
           // version mismatch
@@ -799,46 +803,30 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
               + "only with server versions up to " + Integer.toString(MAX_MAJOR_SERVER_VERSION)
               + ".0.0, the version read from the server is " + version;
           Logging.getLogger().logError(message);
+          listener.serverIncompatibleVersion(version);
           sendErrorForEveryRequest(version);
         }
 
         @Override
         public void onError(RequestError requestError) {
           Logging.getLogger().logError("No version received from the server.");
+          listener.serverIncompatibleVersion(null);
           sendErrorForEveryRequest(null);
         }
 
         private void sendErrorForEveryRequest(String version) {
-          // TODO(scheglov) extract into ResponseUtilities
-          synchronized (consumerMapLock) {
-            JsonObject error = new JsonObject();
-            error.addProperty("code", "INCOMPATIBLE_SERVER_VERSION");
-            error.addProperty("message", "Incompatible server version: " + version);
-            JsonObject response = new JsonObject();
-            response.add("error", error);
-            // prepare IDs of requests to response with an error
-            List<String> ids = Lists.newArrayList();
-            for (Entry<String, Consumer> entry : consumerMap.entrySet()) {
-              Consumer consumer = entry.getValue();
-              if (consumer != this) {
-                String key = entry.getKey();
-                ids.add(key);
-              }
-            }
-            // response with an error
-            for (String id : ids) {
-              try {
-                response.addProperty("id", id);
+          String message = "Incompatible server version: " + version;
+          synchronized (requestSinkLock) {
+            requestSink = blockRequestSink.toErrorSink(new ResponseSink() {
+              @Override
+              public void add(JsonObject response) throws Exception {
                 processResponse(response);
-              } catch (Throwable e) {
-                Logging.getLogger().logError(e.getMessage(), e);
               }
-            }
+            }, ResponseUtilities.INCOMPATIBLE_SERVER_VERSION, message);
           }
           server_shutdown();
         }
       });
-      blockRequestSink.block();
     }
   }
 

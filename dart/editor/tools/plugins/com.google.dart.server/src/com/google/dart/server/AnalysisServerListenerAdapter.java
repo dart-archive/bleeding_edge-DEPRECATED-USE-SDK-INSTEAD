@@ -87,6 +87,10 @@ public class AnalysisServerListenerAdapter implements AnalysisServerListener {
   }
 
   @Override
+  public void serverIncompatibleVersion(String version) {
+  }
+
+  @Override
   public void serverStatus(AnalysisStatus analysisStatus, PubStatus pubStatus) {
   }
 }
