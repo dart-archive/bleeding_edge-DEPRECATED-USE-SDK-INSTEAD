@@ -123,8 +123,7 @@ public class TypeHierarchyViewPart extends ViewPart {
         restoreState(fMemento);
       }
 
-      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      } else {
+      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         fOpenAction_OLD = new OpenAction_OLD(getSite());
       }
     }
@@ -254,8 +253,7 @@ public class TypeHierarchyViewPart extends ViewPart {
     contextMenu = manager.createContextMenu(tree);
     tree.setMenu(contextMenu);
 
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-    } else {
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
         @Override
         public void selectionChanged(SelectionChangedEvent event) {
@@ -301,8 +299,7 @@ public class TypeHierarchyViewPart extends ViewPart {
    * Restores the type hierarchy settings from a memento.
    */
   private void restoreState(IMemento memento) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-    } else {
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       {
         Integer ratio = memento.getInteger(TAG_RATIO);
         if (ratio != null) {
