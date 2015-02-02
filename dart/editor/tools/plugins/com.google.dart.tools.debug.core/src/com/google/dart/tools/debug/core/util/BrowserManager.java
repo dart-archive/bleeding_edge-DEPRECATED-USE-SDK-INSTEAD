@@ -659,9 +659,6 @@ public class BrowserManager {
     if (launchConfig.getCheckedMode()) {
       dartFlags += " --enable-checked-mode";
     }
-    // Enable async/await.
-    //TODO(pquitslund): remove when no longer required
-    dartFlags += " --enable-async";
 
     env.put("DART_FLAGS", dartFlags);
 
