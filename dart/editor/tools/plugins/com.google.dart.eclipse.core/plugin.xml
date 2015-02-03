@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <extension
+          point="com.google.dart.tools.core.buildParticipants">
+    <buildParticipant
+        class="com.google.dart.eclipse.core.build.DartBuildParticipant"
+        id="com.google.dart.eclipse.core.buildParticipant.dart"
+        priority="90">
+    </buildParticipant>
+  </extension>
+</plugin>
