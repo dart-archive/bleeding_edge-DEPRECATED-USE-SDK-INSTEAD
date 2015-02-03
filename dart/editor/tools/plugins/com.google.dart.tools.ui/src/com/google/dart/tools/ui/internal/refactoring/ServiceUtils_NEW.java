@@ -91,6 +91,15 @@ public class ServiceUtils_NEW {
     return change;
   }
 
+  public static TextEdit[] toLTK(List<SourceEdit> edits) {
+    List<TextEdit> ltkEdits = Lists.newArrayList();
+    for (SourceEdit edit : edits) {
+      TextEdit ltkEdit = toLTK(edit);
+      ltkEdits.add(ltkEdit);
+    }
+    return ltkEdits.toArray(new TextEdit[ltkEdits.size()]);
+  }
+
   /**
    * @return the LTK change for the given Services {@link CompositeChange}.
    */
@@ -262,15 +271,6 @@ public class ServiceUtils_NEW {
       return null;
     }
     return DartToolsPlugin.getImageDescriptorRegistry().get(imageDescriptor);
-  }
-
-  private static TextEdit[] toLTK(List<SourceEdit> edits) {
-    List<TextEdit> ltkEdits = Lists.newArrayList();
-    for (SourceEdit edit : edits) {
-      TextEdit ltkEdit = toLTK(edit);
-      ltkEdits.add(ltkEdit);
-    }
-    return ltkEdits.toArray(new TextEdit[ltkEdits.size()]);
   }
 
   private static TextEdit toLTK(SourceEdit edit) {

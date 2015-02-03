@@ -77,7 +77,7 @@ public class DartCoreDebug {
   public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionOrPrefValue(
       "experimental/analysisServer/http_port",
       ANALYSIS_SERVER_HTTP_PORT_PREF);
-
+  public static final String ENABLE_NEW_FORMATTER_PREF = "experimental/newFormatter";
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
   public static final boolean ANALYSIS_SERVER_PRINT_TO_CONSOLE = isOptionTrue("experimental/analysisServer/printToConsole");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
@@ -86,21 +86,27 @@ public class DartCoreDebug {
   // editor/tools/plugins/com.google.dart.engine_test/src/com/google/dart/engine/resolver/ResolverTestCase.java
   public static final boolean ENABLE_UNION_TYPES = isOptionTrue("experimental/enableUnionTypes");
   public static final boolean STRICT_UNION_TYPES = isOptionTrue("experimental/strictUnionTypes");
+  public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");
 
   // Persistent developer settings
 
-  public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");
+  public static final boolean DISABLE_DARTIUM_DEBUGGER = isOptionTrue("user/disableDartiumDebugger");
 
   // User settings
 
-  public static final boolean DISABLE_DARTIUM_DEBUGGER = isOptionTrue("user/disableDartiumDebugger");
   public static final boolean DISABLE_CLI_DEBUGGER = isOptionTrue("user/disableCommandLineDebugger");
-
   /**
    * Flag to disable the semantic highlighting optimization so that an underlying semantic
    * highlighting bug can be better investigated.
    */
   public static final boolean DISABLE_SEMANTIC_HIGHLIGHT_FILTERING = isOptionTrue("experimental/analysisServer/disableSemanticHighlightFiltering");
+
+  /**
+   * Check to see if the new formatter is enabled.
+   */
+  public static boolean isNewFormatterEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_NEW_FORMATTER_PREF, false);
+  }
 
   /**
    * Report each of these parameters to the provided instrumentation builder

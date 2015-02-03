@@ -763,11 +763,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             }
           });
 
+          if (DartFormatter.isDartStyleEnabled()) {
+            DartFormatter.DartStyleRunner.formatFile(file, selection[0], monitor);
+            return Status.OK_STATUS;
+          }
+
           final String unformattedSource = document.get();
+
           final FormattedSource formatResult = DartFormatter.format(
               unformattedSource,
               selection[0],
               monitor);
+
           Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {

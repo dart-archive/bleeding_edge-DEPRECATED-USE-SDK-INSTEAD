@@ -13,16 +13,26 @@
  */
 package com.google.dart.tools.ui.internal.formatter;
 
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.server.FormatConsumer;
+import com.google.dart.server.generated.types.RequestError;
+import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.internal.refactoring.ServiceUtils_NEW;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -30,8 +40,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
+import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.MultiTextEdit;
+import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -55,12 +70,173 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Launches the <code>dartfmt</code> process collecting stdout, stderr, and exit code information.
  */
 @SuppressWarnings("restriction")
 public class DartFormatter {
+
+  public static class DartFmtRunner {
+
+    public static FormattedSource format(final String source, final Point selection,
+        IProgressMonitor monitor) throws IOException, CoreException {
+
+      File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
+      if (!dartfmt.canExecute()) {
+        return null;
+      }
+
+      if (source.length() == 0) {
+        FormattedSource result = new FormattedSource();
+        result.source = source;
+        return result;
+      }
+
+      ProcessBuilder builder = new ProcessBuilder();
+
+      List<String> args = new ArrayList<String>();
+      args.add(dartfmt.getPath());
+      if (selection != null) {
+        args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
+      }
+      args.add(ARGS_MAX_LINE_LEN_FLAG);
+      if (getMaxLineLengthEnabled() && getMaxLineLength().length() > 0) {
+        args.add(getMaxLineLength());
+      } else {
+        args.add("Infinity");
+      }
+      args.add(ARGS_INDENT_FLAG);
+      args.add(getInsertSpacesForTabs() ? getSpacesPerIndent() : "tab");
+      if (getPerformTransforms()) {
+        args.add(ARGS_TRANSFORMS_FLAG);
+      }
+      args.add(ARGS_MACHINE_FORMAT_FLAG);
+
+      builder.command(args);
+      builder.redirectErrorStream(true);
+
+      ProcessRunner runner = new ProcessRunner(builder) {
+        @Override
+        protected void processStarted(Process process) throws IOException {
+          BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+              process.getOutputStream(),
+              "UTF-8"), source.length());
+          writer.append(source);
+          writer.close();
+        }
+      };
+
+      runner.runSync(monitor);
+
+      StringBuilder sb = new StringBuilder();
+
+      if (!runner.getStdOut().isEmpty()) {
+        sb.append(runner.getStdOut());
+      }
+
+      //TODO (pquitslund): better error handling
+      if (runner.getExitCode() != 0) {
+        sb.append(runner.getStdErr());
+        throw new IOException(sb.toString());
+      }
+
+      String formattedSource = sb.toString();
+      try {
+        JSONObject json = new JSONObject(formattedSource);
+        String sourceString = (String) json.get(JSON_SOURCE_KEY);
+        JSONObject selectionJson = (JSONObject) json.get(JSON_SELECTION_KEY);
+        //TODO (pquitslund): figure out why we (occasionally) need to remove an extra trailing NEWLINE
+        if (sourceString.endsWith("\n\n")) {
+          sourceString = sourceString.substring(0, sourceString.length() - 1);
+        }
+        // prepare FormattedSource
+        FormattedSource result = new FormattedSource();
+        result.source = sourceString;
+        result.selectionOffset = selectionJson.getInt(JSON_OFFSET_KEY);
+        result.selectionLength = selectionJson.getInt(JSON_LENGTH_KEY);
+        // compute change
+        if (!sourceString.equals(source)) {
+          int prefixLength = StringUtilities.findCommonPrefix(source, sourceString);
+          int suffixLength = StringUtilities.findCommonSuffix(source, sourceString);
+          String prefix = source.substring(0, prefixLength);
+          String suffix = source.substring(source.length() - suffixLength, source.length());
+          int commonLength = StringUtilities.findCommonOverlap(prefix, suffix);
+          suffixLength -= commonLength;
+          result.changeOffset = prefixLength;
+          result.changeLength = source.length() - prefixLength - suffixLength;
+          int replacementEnd = sourceString.length() - suffixLength;
+          result.changeReplacement = sourceString.substring(prefixLength, replacementEnd);
+        }
+        // done
+        return result;
+      } catch (JSONException e) {
+        DartToolsPlugin.log(e);
+        throw new IOException(e);
+      }
+
+    }
+  }
+
+  public static class DartStyleRunner {
+
+    public static void formatFile(final IFile file, final Point selection,
+        final IProgressMonitor monitor) throws IOException, CoreException {
+
+      final String sourcePath = file.getRawLocation().makeAbsolute().toOSString();
+      final CompilationUnitChange[] change = new CompilationUnitChange[1];
+
+      ExecutionUtils.runLog(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+
+          int selectionStart = selection != null ? selection.x : -1;
+          int selectionLength = selection != null ? selection.y : -1;
+
+          final CountDownLatch latch = new CountDownLatch(1);
+
+          DartCore.getAnalysisServer().edit_format(
+              sourcePath,
+              selectionStart,
+              selectionLength,
+              new FormatConsumer() {
+
+                @Override
+                public void computedFormat(List<SourceEdit> edits, int selectionOffset,
+                    int selectionLength) {
+                  TextEdit[] textEdits = ServiceUtils_NEW.toLTK(edits);
+                  change[0] = new CompilationUnitChange(file.getName(), file);
+                  change[0].setEdit(new MultiTextEdit());
+                  change[0].initializeValidationData(monitor);
+                  change[0].setSaveMode(TextFileChange.LEAVE_DIRTY);
+                  try {
+                    for (TextEdit ltkEdit : textEdits) {
+                      change[0].addEdit(ltkEdit);
+                    }
+                  } catch (MalformedTreeException e) {
+                    throw new Error(file.getName() + " " + StringUtils.join(textEdits, " "), e);
+                  } finally {
+                    latch.countDown();
+                  }
+                }
+
+                @Override
+                public void onError(RequestError requestError) {
+                  latch.countDown();
+                }
+              });
+          Uninterruptibles.awaitUninterruptibly(latch, 5000, TimeUnit.MILLISECONDS);
+
+          if (change[0] != null) {
+            new PerformChangeOperation(change[0]).run(monitor);
+          }
+        }
+      });
+
+    }
+  }
 
   public static class FormatFileAction extends WorkspaceAction {
 
@@ -168,100 +344,7 @@ public class DartFormatter {
    */
   public static FormattedSource format(final String source, final Point selection,
       IProgressMonitor monitor) throws IOException, CoreException {
-
-    File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
-    if (!dartfmt.canExecute()) {
-      return null;
-    }
-
-    if (source.length() == 0) {
-      FormattedSource result = new FormattedSource();
-      result.source = source;
-      return result;
-    }
-
-    ProcessBuilder builder = new ProcessBuilder();
-
-    List<String> args = new ArrayList<String>();
-    args.add(dartfmt.getPath());
-    if (selection != null) {
-      args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
-    }
-    args.add(ARGS_MAX_LINE_LEN_FLAG);
-    if (getMaxLineLengthEnabled() && getMaxLineLength().length() > 0) {
-      args.add(getMaxLineLength());
-    } else {
-      args.add("Infinity");
-    }
-    args.add(ARGS_INDENT_FLAG);
-    args.add(getInsertSpacesForTabs() ? getSpacesPerIndent() : "tab");
-    if (getPerformTransforms()) {
-      args.add(ARGS_TRANSFORMS_FLAG);
-    }
-    args.add(ARGS_MACHINE_FORMAT_FLAG);
-
-    builder.command(args);
-    builder.redirectErrorStream(true);
-
-    ProcessRunner runner = new ProcessRunner(builder) {
-      @Override
-      protected void processStarted(Process process) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-            process.getOutputStream(),
-            "UTF-8"), source.length());
-        writer.append(source);
-        writer.close();
-      }
-    };
-
-    runner.runSync(monitor);
-
-    StringBuilder sb = new StringBuilder();
-
-    if (!runner.getStdOut().isEmpty()) {
-      sb.append(runner.getStdOut());
-    }
-
-    //TODO (pquitslund): better error handling
-    if (runner.getExitCode() != 0) {
-      sb.append(runner.getStdErr());
-      throw new IOException(sb.toString());
-    }
-
-    String formattedSource = sb.toString();
-    try {
-      JSONObject json = new JSONObject(formattedSource);
-      String sourceString = (String) json.get(JSON_SOURCE_KEY);
-      JSONObject selectionJson = (JSONObject) json.get(JSON_SELECTION_KEY);
-      //TODO (pquitslund): figure out why we (occasionally) need to remove an extra trailing NEWLINE
-      if (sourceString.endsWith("\n\n")) {
-        sourceString = sourceString.substring(0, sourceString.length() - 1);
-      }
-      // prepare FormattedSource
-      FormattedSource result = new FormattedSource();
-      result.source = sourceString;
-      result.selectionOffset = selectionJson.getInt(JSON_OFFSET_KEY);
-      result.selectionLength = selectionJson.getInt(JSON_LENGTH_KEY);
-      // compute change
-      if (!sourceString.equals(source)) {
-        int prefixLength = StringUtilities.findCommonPrefix(source, sourceString);
-        int suffixLength = StringUtilities.findCommonSuffix(source, sourceString);
-        String prefix = source.substring(0, prefixLength);
-        String suffix = source.substring(source.length() - suffixLength, source.length());
-        int commonLength = StringUtilities.findCommonOverlap(prefix, suffix);
-        suffixLength -= commonLength;
-        result.changeOffset = prefixLength;
-        result.changeLength = source.length() - prefixLength - suffixLength;
-        int replacementEnd = sourceString.length() - suffixLength;
-        result.changeReplacement = sourceString.substring(prefixLength, replacementEnd);
-      }
-      // done
-      return result;
-    } catch (JSONException e) {
-      DartToolsPlugin.log(e);
-      throw new IOException(e);
-    }
-
+    return DartFmtRunner.format(source, selection, monitor);
   }
 
   public static boolean getInsertSpacesForTabs() {
@@ -291,6 +374,10 @@ public class DartFormatter {
 
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
+  }
+
+  public static boolean isDartStyleEnabled() {
+    return DartCoreDebug.ENABLE_ANALYSIS_SERVER && DartCoreDebug.isNewFormatterEnabled();
   }
 
   public static void setInsertSpacesForTabs(boolean useSpaces) {
@@ -345,6 +432,11 @@ public class DartFormatter {
 
   private static void formatFile(IFile file, IProgressMonitor monitor)
       throws UnsupportedEncodingException, CoreException, IOException {
+
+    if (isDartStyleEnabled()) {
+      DartStyleRunner.formatFile(file, null, monitor);
+      return;
+    }
 
     Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
     String contents = FileUtilities.getContents(reader);
