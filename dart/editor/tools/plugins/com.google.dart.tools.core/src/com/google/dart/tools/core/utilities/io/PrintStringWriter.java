@@ -19,6 +19,8 @@ import java.io.StringWriter;
 /**
  * Instances of the class {@code PrintStringWriter} are a {@link PrintWriter} that stores the text
  * written to it in such a way that it can be returned as a {@link String}.
+ * <p>
+ * Copied from engine project, {@code com.google.dart.engine.utilities.io}
  * 
  * @coverage dart.tools.core.utilities
  */
