@@ -282,6 +282,12 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         return;
       }
       /*
+       * If completion already includes '()' then don't insert extra '(' or ')'
+       */
+      if (completion.endsWith(")") && (trigger == '(' || trigger == ')')) {
+        return;
+      }
+      /*
        * Insert the trigger character typed if it is not enter or null
        */
       if (trigger != '\0' && trigger != '\n') {
