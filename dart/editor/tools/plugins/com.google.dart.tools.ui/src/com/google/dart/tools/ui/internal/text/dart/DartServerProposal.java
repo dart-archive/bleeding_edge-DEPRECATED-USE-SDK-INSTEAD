@@ -355,7 +355,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   @Override
   public IContextInformation getContextInformation() {
     String s = getParamString();
-    if (s != null) {
+    if (s != null && !s.equals("()")) {
       return new ProposalContextInformation(s);
     } else {
       return null;
