@@ -19,6 +19,14 @@ import org.junit.Assert;
 
 public class StringUtilitiesTest extends TestCase {
 
+  public void test_EMPTY() {
+    assertEquals("", StringUtilities.EMPTY);
+  }
+
+  public void test_EMPTY_ARRAY() {
+    assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
+  }
+
   public void test_findCommonOverlap() {
     assertEquals(0, StringUtilities.findCommonOverlap("", "abcd"));
     assertEquals(3, StringUtilities.findCommonOverlap("abc", "abcd"));

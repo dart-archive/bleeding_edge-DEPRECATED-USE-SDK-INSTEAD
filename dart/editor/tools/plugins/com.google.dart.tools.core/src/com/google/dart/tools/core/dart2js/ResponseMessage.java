@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.core.dart2js;
 
+import com.google.dart.server.utilities.general.StringUtilities;
+
 import org.eclipse.core.resources.IMarker;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,7 +57,7 @@ public class ResponseMessage {
         severityText = severityText.substring(0, severityText.length() - 1);
       }
     } else {
-      severityText = "";
+      severityText = StringUtilities.EMPTY;
     }
 
     // message

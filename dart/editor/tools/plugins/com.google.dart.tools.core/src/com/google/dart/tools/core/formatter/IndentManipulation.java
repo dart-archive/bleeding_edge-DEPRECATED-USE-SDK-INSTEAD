@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.formatter;
 
+import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.dart.tools.core.internal.util.ScannerHelper;
 import com.google.dart.tools.core.internal.util.Util;
 
@@ -210,7 +211,7 @@ public final class IndentManipulation {
           result.add(new ReplaceEdit(offset, length, newIndentString));
         } else {
           length = measureIndentUnits(line, tabWidth, indentWidth);
-          result.add(new ReplaceEdit(offset, length, "")); //$NON-NLS-1$
+          result.add(new ReplaceEdit(offset, length, StringUtilities.EMPTY));
         }
       }
     } catch (BadLocationException cannotHappen) {

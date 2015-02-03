@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
