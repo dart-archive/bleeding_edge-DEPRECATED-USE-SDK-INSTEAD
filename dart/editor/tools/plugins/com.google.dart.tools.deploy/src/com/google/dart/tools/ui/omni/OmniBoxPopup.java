@@ -277,6 +277,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   public void sendKeyPress(KeyEvent e) {
+    int itemCount = table.getItemCount();
     switch (e.keyCode) {
       case SWT.CR:
       case SWT.KEYPAD_CR:
@@ -288,12 +289,15 @@ public class OmniBoxPopup extends BasePopupDialog {
         int numCycles = 0;
         while (true) {
           index++;
-          if (index >= table.getItemCount()) {
+          if (index >= itemCount) {
             index = 0;
             numCycles++;
             if (numCycles >= 2) {
               return;
             }
+          }
+          if (index < 0 || index >= itemCount) {
+            return;
           }
           if (!isHeader(table.getItem(index))) {
             break;
@@ -310,11 +314,14 @@ public class OmniBoxPopup extends BasePopupDialog {
         while (true) {
           index--;
           if (index < 0) {
-            index = table.getItemCount() - 1;
+            index = itemCount - 1;
             numCycles++;
             if (numCycles >= 2) {
               return;
             }
+          }
+          if (index < 0 || index >= itemCount) {
+            return;
           }
           if (!isHeader(table.getItem(index))) {
             break;
