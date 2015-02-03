@@ -22,7 +22,6 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -34,6 +33,7 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;

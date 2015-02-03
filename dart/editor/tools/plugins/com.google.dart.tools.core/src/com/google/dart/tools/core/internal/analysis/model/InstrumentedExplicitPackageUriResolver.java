@@ -17,10 +17,10 @@ import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.ExplicitPackageUriResolver;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.io.ProcessRunner;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import java.io.File;
 import java.io.IOException;

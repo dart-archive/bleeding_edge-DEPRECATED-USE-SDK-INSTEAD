@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.mobile;
 
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;

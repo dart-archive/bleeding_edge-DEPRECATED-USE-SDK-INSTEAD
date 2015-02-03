@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisStatus;
@@ -31,6 +30,7 @@ import com.google.dart.server.generated.types.SearchResult;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
