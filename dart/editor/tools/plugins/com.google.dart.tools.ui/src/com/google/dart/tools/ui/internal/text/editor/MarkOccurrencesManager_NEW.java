@@ -189,6 +189,10 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
         }
       }
       fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, selectionOffset);
+      if (fMarkOccurrenceTargetRegion == null) {
+        removeOccurrenceAnnotations();
+        return;
+      }
       if (selectionLength > 0 && selectionLength != fMarkOccurrenceTargetRegion.getLength()) {
         removeOccurrenceAnnotations();
         return;
