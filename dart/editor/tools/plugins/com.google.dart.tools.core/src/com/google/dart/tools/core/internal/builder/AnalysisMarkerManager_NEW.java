@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.generated.types.AnalysisErrorSeverity;
+import com.google.dart.server.generated.types.AnalysisErrorType;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceAnalysisServerListener;
@@ -40,7 +40,7 @@ import java.util.ArrayList;
  * but other instances can be created for testing purposes.
  * <p>
  * Typically the {@link WorkspaceAnalysisServerListener} repeatedly calls
- * {@link #queueErrors(IResource, LineInfo, AnalysisError[])} until all errors have been queued.
+ * {@link #queueErrors(IResource, AnalysisError[])} until all errors have been queued.
  * <p>
  * When the workspace is shutdown, {@link #stop()} should be called to gracefully exit the
  * background process if it is running.
@@ -105,8 +105,8 @@ public class AnalysisMarkerManager_NEW {
           continue;
         }
         Location location = error.getLocation();
-
-        boolean isHint = error.getType().equals(com.google.dart.engine.error.ErrorType.HINT.name());// == ErrorType.HINT;
+        String errorType = error.getType();
+        boolean isHint = errorType.equals(AnalysisErrorType.HINT);
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
         // Server doesn't have the angular error type
@@ -114,7 +114,7 @@ public class AnalysisMarkerManager_NEW {
 //          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
 //          markerSeverity = IMarker.SEVERITY_WARNING;
 //        } else
-        if (error.getType().equals(com.google.dart.engine.error.ErrorType.TODO.name())) {
+        if (errorType.equals(AnalysisErrorType.TODO)) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
           markerType = DartCore.DART_HINT_MARKER_TYPE;
