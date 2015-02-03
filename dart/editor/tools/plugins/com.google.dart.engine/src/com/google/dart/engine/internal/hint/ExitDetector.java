@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AwaitExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -109,6 +110,11 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
   @Override
   public Boolean visitAssignmentExpression(AssignmentExpression node) {
     return nodeExits(node.getLeftHandSide()) || nodeExits(node.getRightHandSide());
+  }
+
+  @Override
+  public Boolean visitAwaitExpression(AwaitExpression node) {
+    return nodeExits(node.getExpression());
   }
 
   @Override

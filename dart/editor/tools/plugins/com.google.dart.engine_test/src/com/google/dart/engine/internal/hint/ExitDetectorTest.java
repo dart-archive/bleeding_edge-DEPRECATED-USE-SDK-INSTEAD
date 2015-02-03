@@ -58,6 +58,14 @@ public class ExitDetectorTest extends ParserTestCase {
     assertTrue("v = throw '';");
   }
 
+  public void test_await_false() throws Exception {
+    assertFalse("int i = await x;");
+  }
+
+  public void test_await_throw_true() throws Exception {
+    assertTrue("bool b = await (throw '' || true);");
+  }
+
   public void test_binaryExpression_and() throws Exception {
     assertFalse("a && b;");
   }
