@@ -14,7 +14,6 @@
 package com.google.dart.tools.search.ui;
 
 import org.eclipse.jface.action.IMenuManager;
-
 import org.eclipse.ui.IViewPart;
 
 /**

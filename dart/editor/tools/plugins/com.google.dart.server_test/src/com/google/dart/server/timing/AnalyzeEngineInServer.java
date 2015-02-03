@@ -14,8 +14,8 @@
 package com.google.dart.server.timing;
 
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.AnalysisServerListenerAdapter;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.server.generated.types.AnalysisStatus;
 import com.google.dart.server.generated.types.PubStatus;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;

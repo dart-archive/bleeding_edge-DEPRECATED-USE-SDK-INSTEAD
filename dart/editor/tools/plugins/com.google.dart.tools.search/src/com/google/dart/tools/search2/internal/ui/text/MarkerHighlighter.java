@@ -18,21 +18,18 @@ import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.search.ui.text.Match;
 import com.google.dart.tools.search2.internal.ui.InternalSearchUI;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-
+import org.eclipse.core.filebuffers.IFileBuffer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
-
-import org.eclipse.core.filebuffers.IFileBuffer;
-
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.Position;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MarkerHighlighter extends Highlighter {
   private IFile fFile;

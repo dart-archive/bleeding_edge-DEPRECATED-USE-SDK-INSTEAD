@@ -17,10 +17,8 @@ import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.text.TextSearchQueryProvider;
 
 import org.eclipse.core.runtime.CoreException;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;

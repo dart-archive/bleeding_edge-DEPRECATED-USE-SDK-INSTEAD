@@ -18,13 +18,11 @@ import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.ISearchResult;
 import com.google.dart.tools.search.ui.NewSearchUI;
 
-import org.eclipse.swt.widgets.Shell;
-
 import org.eclipse.core.runtime.IStatus;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.swt.widgets.Shell;
 
 class SearchAgainAction extends Action {
   private SearchView fView;

@@ -16,8 +16,8 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;

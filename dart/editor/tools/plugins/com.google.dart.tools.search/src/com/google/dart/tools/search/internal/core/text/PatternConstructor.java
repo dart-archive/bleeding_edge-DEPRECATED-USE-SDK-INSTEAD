@@ -15,10 +15,10 @@ package com.google.dart.tools.search.internal.core.text;
 
 import com.google.dart.tools.search.internal.ui.SearchMessages;
 
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
+
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 
 /**
  *

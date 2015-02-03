@@ -17,14 +17,11 @@ import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.text.TextSearchQueryProvider;
 import com.google.dart.tools.search2.internal.ui.SearchMessages;
 
-import org.eclipse.core.runtime.CoreException;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;

@@ -17,12 +17,11 @@ import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.MatchFilter;
 
-import java.util.ArrayList;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-
 import org.eclipse.ui.texteditor.IUpdate;
+
+import java.util.ArrayList;
 
 public class MatchFilterAction extends Action implements IUpdate {
 

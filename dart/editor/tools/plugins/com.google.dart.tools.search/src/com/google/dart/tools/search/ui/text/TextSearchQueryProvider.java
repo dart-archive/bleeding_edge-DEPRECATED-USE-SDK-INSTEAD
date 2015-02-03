@@ -16,10 +16,8 @@ package com.google.dart.tools.search.ui.text;
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
 import com.google.dart.tools.search.ui.ISearchQuery;
 
-import org.eclipse.core.runtime.CoreException;
-
 import org.eclipse.core.resources.IResource;
-
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IWorkingSet;
 
 /**

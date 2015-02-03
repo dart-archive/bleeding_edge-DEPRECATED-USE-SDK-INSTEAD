@@ -15,7 +15,6 @@ package com.google.dart.tools.search.ui;
 
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.viewers.ISelection;
-
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkingSet;
 

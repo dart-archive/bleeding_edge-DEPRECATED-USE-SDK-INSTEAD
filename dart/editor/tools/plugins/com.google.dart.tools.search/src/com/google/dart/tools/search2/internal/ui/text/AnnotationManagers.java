@@ -15,11 +15,11 @@ package com.google.dart.tools.search2.internal.ui.text;
 
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 
-import java.util.HashMap;
-
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+
+import java.util.HashMap;
 
 public class AnnotationManagers {
   static {

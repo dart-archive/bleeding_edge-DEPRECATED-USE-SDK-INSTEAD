@@ -13,18 +13,16 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
-
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This action selects all entries currently showing in view.

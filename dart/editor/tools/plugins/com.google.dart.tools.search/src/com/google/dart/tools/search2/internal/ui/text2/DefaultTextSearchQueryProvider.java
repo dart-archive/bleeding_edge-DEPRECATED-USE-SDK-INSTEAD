@@ -19,7 +19,6 @@ import com.google.dart.tools.search.ui.text.FileTextSearchScope;
 import com.google.dart.tools.search.ui.text.TextSearchQueryProvider;
 
 import org.eclipse.core.resources.IResource;
-
 import org.eclipse.ui.IWorkingSet;
 
 public class DefaultTextSearchQueryProvider extends TextSearchQueryProvider {

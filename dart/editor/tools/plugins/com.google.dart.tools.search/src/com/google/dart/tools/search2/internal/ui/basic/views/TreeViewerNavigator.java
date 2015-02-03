@@ -15,12 +15,11 @@ package com.google.dart.tools.search2.internal.ui.basic.views;
 
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
-
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 
 public class TreeViewerNavigator implements INavigate {
   private TreeViewer fViewer;

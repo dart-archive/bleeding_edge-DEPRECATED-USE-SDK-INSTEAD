@@ -18,13 +18,12 @@ import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
 import com.google.dart.tools.search.internal.ui.SearchPreferencePage;
 
-import java.util.ArrayList;
-
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
-
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.SafeRunnable;
+
+import java.util.ArrayList;
 
 public class TextSearchEngineRegistry {
 

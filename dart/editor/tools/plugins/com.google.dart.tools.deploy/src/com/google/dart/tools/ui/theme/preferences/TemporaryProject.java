@@ -14,10 +14,11 @@
 package com.google.dart.tools.ui.theme.preferences;
 
 import com.google.common.io.CharStreams;
-import org.apache.commons.lang3.StringUtils;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

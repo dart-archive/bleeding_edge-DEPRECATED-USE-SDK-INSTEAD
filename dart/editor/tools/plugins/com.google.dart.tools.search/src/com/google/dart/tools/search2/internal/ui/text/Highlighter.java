@@ -15,11 +15,10 @@ package com.google.dart.tools.search2.internal.ui.text;
 
 import com.google.dart.tools.search.ui.text.Match;
 
-import org.eclipse.core.runtime.IPath;
-
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.IFileBuffer;
 import org.eclipse.core.filebuffers.IFileBufferListener;
+import org.eclipse.core.runtime.IPath;
 
 public class Highlighter {
   private IFileBufferListener fBufferListener;
