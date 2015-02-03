@@ -272,7 +272,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
 //  private OrganizeImportsAction organizeImportsAction;
 
-  private RunPubAction pubDeployAction;
+  private RunPubAction pubBuildAction;
+
+  private RunPubAction pubBuildDebugAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -592,7 +594,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     pubPublishAction = RunPublishAction.createPubPublishAction(window);
 
-    pubDeployAction = RunPubAction.createPubDeployAction(window);
+    pubBuildAction = RunPubAction.createPubBuildAction(window);
+
+    pubBuildDebugAction = RunPubAction.createPubBuildDebugAction(window);
 
     stopPubServeAction = new StopPubServeAction();
 
@@ -1192,7 +1196,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(pubInstallAction);
     menu.add(pubUpdateAction);
-    menu.add(pubDeployAction);
+    menu.add(pubBuildAction);
+    menu.add(pubBuildDebugAction);
     menu.add(pubPublishAction);
 
     menu.add(stopPubServeAction);

@@ -46,10 +46,19 @@ import java.util.List;
  */
 public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
-  public static RunPubAction createPubDeployAction(IWorkbenchWindow window) {
+  public static RunPubAction createPubBuildAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.BUILD_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build (generates JS)"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build - Minified"));
     action.setDescription(NLS.bind(ActionMessages.RunPubAction_commandDesc, RunPubJob.BUILD_COMMAND));
+    return action;
+  }
+
+  public static RunPubAction createPubBuildDebugAction(IWorkbenchWindow window) {
+    RunPubAction action = new RunPubAction(window, RunPubJob.BUILD_DEBUG_COMMAND);
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build - Debug"));
+    action.setDescription(NLS.bind(
+        ActionMessages.RunPubAction_commandDesc,
+        RunPubJob.BUILD_DEBUG_COMMAND));
     return action;
   }
 

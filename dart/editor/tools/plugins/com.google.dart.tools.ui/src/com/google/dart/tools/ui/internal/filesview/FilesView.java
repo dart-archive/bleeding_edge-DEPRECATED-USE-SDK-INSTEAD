@@ -932,7 +932,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
     pubInstallOfflineAction = RunPubAction.createPubInstallOfflineAction(getSite().getWorkbenchWindow());
-    pubDeployAction = RunPubAction.createPubDeployAction(getSite().getWorkbenchWindow());
+    pubDeployAction = RunPubAction.createPubBuildAction(getSite().getWorkbenchWindow());
 
     copyPackageAction = new NewAppFromPackageAction(getSite());
 

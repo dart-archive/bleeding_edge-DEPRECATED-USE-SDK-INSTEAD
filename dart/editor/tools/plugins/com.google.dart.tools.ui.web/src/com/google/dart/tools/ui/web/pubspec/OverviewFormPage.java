@@ -260,12 +260,23 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     });
 
     ImageHyperlink deployActionText = toolkit.createImageHyperlink(links, SWT.NONE);
-    deployActionText.setText("Run pub build");
+    deployActionText.setText("Run pub build - minified");
     deployActionText.setImage(DartWebPlugin.getImage("package_obj.gif"));
     deployActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        RunPubAction pubAction = RunPublishAction.createPubDeployAction(getSite().getWorkbenchWindow());
+        RunPubAction pubAction = RunPublishAction.createPubBuildAction(getSite().getWorkbenchWindow());
+        pubAction.run();
+      }
+    });
+
+    ImageHyperlink deployDebugActionText = toolkit.createImageHyperlink(links, SWT.NONE);
+    deployDebugActionText.setText("Run pub build - debug");
+    deployDebugActionText.setImage(DartWebPlugin.getImage("package_obj.gif"));
+    deployDebugActionText.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        RunPubAction pubAction = RunPublishAction.createPubBuildDebugAction(getSite().getWorkbenchWindow());
         pubAction.run();
       }
     });

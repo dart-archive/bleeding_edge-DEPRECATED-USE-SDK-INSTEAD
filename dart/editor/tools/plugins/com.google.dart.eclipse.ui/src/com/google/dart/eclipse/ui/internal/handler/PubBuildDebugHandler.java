@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,9 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.handlers;
+package com.google.dart.eclipse.ui.internal.handler;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.eclipse.DartEclipseUI;
 import com.google.dart.tools.ui.actions.RunPubAction;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -23,18 +23,18 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
- * Handler that runs pub build
+ * A handler to run pub build in debug mode.
  */
-public class PubBuildHandler extends AbstractHandler {
+public class PubBuildDebugHandler extends AbstractHandler {
 
   /**
-   * The id of the pub install action.
+   * The id of the pub build debug action.
    */
-  public static final String ID = DartToolsPlugin.PLUGIN_ID + ".PubBuildAction"; //$NON-NLS-1$
+  public static final String ID = DartEclipseUI.PLUGIN_ID + ".PubBuildDebugAction"; //$NON-NLS-1$
 
-  private RunPubAction pubBuildAction;
+  private RunPubAction pubBuildDebugAction;
 
-  public PubBuildHandler() {
+  public PubBuildDebugHandler() {
 
   }
 
@@ -45,11 +45,12 @@ public class PubBuildHandler extends AbstractHandler {
   }
 
   private RunPubAction getRunAction(IWorkbenchWindow window) {
-    if (pubBuildAction == null) {
-      pubBuildAction = RunPubAction.createPubBuildAction(window);
-      pubBuildAction.setId(ID);
+    if (pubBuildDebugAction == null) {
+      pubBuildDebugAction = RunPubAction.createPubBuildDebugAction(window);
+      pubBuildDebugAction.setId(ID);
     }
 
-    return pubBuildAction;
+    return pubBuildDebugAction;
   }
+
 }

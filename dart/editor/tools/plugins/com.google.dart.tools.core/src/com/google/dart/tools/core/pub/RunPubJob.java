@@ -39,6 +39,7 @@ public class RunPubJob extends Job {
   public static final String INSTALL_COMMAND = "get"; //$NON-NLS-1$
   public static final String INSTALL_OFFLINE_COMMAND = "get --offline"; //$NON-NLS-1$
   public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
+  public static final String BUILD_DEBUG_COMMAND = "build --mode debug"; //$NON-NLS-1$
   public static final String BUILD_COMMAND = "build"; //$NON-NLS-1$
 
   /**
@@ -140,10 +141,8 @@ public class RunPubJob extends Job {
       } else {
         args.add(command);
       }
-      // add flags for pub build
-      if (command.equals(BUILD_COMMAND)) {
-        args.add("--mode");
-        args.add("debug");
+      // add folder for pub build
+      if (command.equals(BUILD_COMMAND) || command.equals(BUILD_DEBUG_COMMAND)) {
         if (sourceFolder != null) {
           String name = sourceFolder.getFullPath().removeFirstSegments(
               container.getFullPath().segmentCount()).toString();

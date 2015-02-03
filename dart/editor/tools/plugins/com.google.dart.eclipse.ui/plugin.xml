@@ -387,7 +387,23 @@
           </command>
           <command
                 commandId="com.google.dart.tools.ui.commands.pubBuild"
-                label="Pub Build"
+                label="Pub Build - Minified"
+                style="push">
+             <visibleWhen
+                   checkEnabled="false">
+                <with
+                      variable="selection">
+                   <iterate>
+                      <adapt
+                            type="org.eclipse.core.resources.IProject">
+                      </adapt>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
+           <command
+                commandId="com.google.dart.eclipse.ui.commands.pub.build.debug"
+                label="Pub Build - Debug"
                 style="push">
              <visibleWhen
                    checkEnabled="false">
@@ -460,9 +476,35 @@
          </command>
          <command
                commandId="com.google.dart.tools.ui.commands.pubBuild"
-               label="Pub Build"
+               label="Pub Build - Minified"
                style="push"
                tooltip="Run pub build">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <and>
+                     <count
+                           value="1">
+                     </count>
+                     <iterate>
+                        <adapt
+                              type="org.eclipse.core.resources.IResource">
+                           <test
+                                 property="org.eclipse.core.resources.name"
+                                 value="pubspec.yaml">
+                           </test>
+                        </adapt>
+                     </iterate>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+          <command
+               commandId="com.google.dart.eclipse.ui.commands.pub.build.debug"
+               label="Pub Build - Debug"
+               style="push"
+               tooltip="Run pub build debug mode">
             <visibleWhen
                   checkEnabled="false">
                <with
@@ -551,6 +593,11 @@
             description="Stops pub serve"
             id="com.google.dart.eclipse.ui.pub.serve.stop"
             name="Stop Pub Serve">
+      </command>
+      <command
+            defaultHandler="com.google.dart.eclipse.ui.internal.handler.PubBuildDebugHandler"
+            id="com.google.dart.eclipse.ui.commands.pub.build.debug"
+            name="Pub Build Debug">
       </command> 
    </extension>
 
