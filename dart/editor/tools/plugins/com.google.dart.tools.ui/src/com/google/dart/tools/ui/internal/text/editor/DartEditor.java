@@ -58,7 +58,7 @@ import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.actions.DartdocActionGroup;
+import com.google.dart.tools.ui.actions.DartdocActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup_NEW;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup_NEW;
@@ -2592,12 +2592,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
           oeg = new OpenEditorActionGroup_NEW(this), ovg = new OpenViewActionGroup_NEW(this),
-          dsg = new DartSearchActionGroup_NEW(this), ddg = new DartdocActionGroup(this)});
-      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+          dsg = new DartSearchActionGroup_NEW(this)});
+      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg});
     } else {
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
           oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup_OLD(this),
-          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
+          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup_OLD(this)});
       fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
     }
 

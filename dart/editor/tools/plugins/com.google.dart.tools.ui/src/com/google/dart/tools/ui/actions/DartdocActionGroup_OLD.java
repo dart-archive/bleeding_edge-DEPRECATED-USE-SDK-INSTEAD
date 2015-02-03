@@ -23,12 +23,12 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 /**
  * {@link ActionGroup} that adds the Dart Doc action.
  */
-public class DartdocActionGroup extends AbstractDartSelectionActionGroup {
-  private OpenExternalDartdocAction openExternalDartdocAction;
+public class DartdocActionGroup_OLD extends AbstractDartSelectionActionGroup {
+  private OpenExternalDartdocAction_OLD openExternalDartdocAction;
 
-  public DartdocActionGroup(DartEditor editor) {
+  public DartdocActionGroup_OLD(DartEditor editor) {
     super(editor);
-    openExternalDartdocAction = new OpenExternalDartdocAction(editor);
+    openExternalDartdocAction = new OpenExternalDartdocAction_OLD(editor);
     editor.setAction("OpenDartdoc", openExternalDartdocAction); //$NON-NLS-1$
     addActions(openExternalDartdocAction);
   }

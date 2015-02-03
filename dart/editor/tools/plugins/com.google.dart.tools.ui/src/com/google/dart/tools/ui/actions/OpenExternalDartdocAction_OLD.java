@@ -40,13 +40,13 @@ import java.io.File;
 /**
  * This action opens an external DartDoc link.
  */
-public class OpenExternalDartdocAction extends AbstractDartSelectionAction_OLD {
+public class OpenExternalDartdocAction_OLD extends AbstractDartSelectionAction_OLD {
 
-  public OpenExternalDartdocAction(DartEditor editor) {
+  public OpenExternalDartdocAction_OLD(DartEditor editor) {
     super(editor);
   }
 
-  public OpenExternalDartdocAction(IWorkbenchSite site) {
+  public OpenExternalDartdocAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 
