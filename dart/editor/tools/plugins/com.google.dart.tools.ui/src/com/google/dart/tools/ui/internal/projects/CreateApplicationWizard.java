@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -215,18 +216,40 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     IRunnableWithProgress op = new IRunnableWithProgress() {
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        CreateProjectOperation op = new CreateProjectOperation(
-            description,
-            ResourceMessages.NewProject_windowTitle);
         try {
-          IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
-
-          if (status.isOK()) {
-            createdFile = createProjectContent(newProjectHandle, null, projectName, sampleContent);
-          }
-        } catch (ExecutionException e) {
-          throw new InvocationTargetException(e);
-        } catch (CoreException e) {
+          ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+            @Override
+            public void run(IProgressMonitor monitor) throws CoreException {
+              CreateProjectOperation op = new CreateProjectOperation(
+                  description,
+                  ResourceMessages.NewProject_windowTitle);
+              try {
+                IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+                if (status.isOK()) {
+                  createdFile = createProjectContent(
+                      newProjectHandle,
+                      null,
+                      projectName,
+                      sampleContent);
+                }
+              } catch (ExecutionException e) {
+                if (e.getCause() instanceof CoreException) {
+                  throw (CoreException) e.getCause();
+                } else {
+                  throw new CoreException(new Status(
+                      IStatus.ERROR,
+                      DartCore.PLUGIN_ID,
+                      0,
+                      "createProjectContent failed",
+                      e));
+                }
+              }
+            }
+          },
+              null,
+              IWorkspace.AVOID_UPDATE,
+              monitor);
+        } catch (Throwable e) {
           throw new InvocationTargetException(e);
         }
       }
