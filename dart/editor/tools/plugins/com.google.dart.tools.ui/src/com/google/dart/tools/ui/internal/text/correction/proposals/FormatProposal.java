@@ -41,6 +41,6 @@ public class FormatProposal extends AbstractActionProposal {
 
   @Override
   public int getRelevance() {
-    return 98;
+    return 4;
   }
 }

@@ -68,7 +68,8 @@ public class QuickAssistProcessor {
   static void addServerProposals(List<ICompletionProposal> proposals, List<SourceChange> changes) {
     for (int i = 0; i < changes.size(); i++) {
       SourceChange change = changes.get(i);
-      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change, i);
+      // Larger number = higher relevance. Ensure relevance higher than format or sort members.
+      ICompletionProposal uiProposal = ServiceUtils_NEW.toUI(change, 1000 - i);
       if (uiProposal != null) {
         proposals.add(uiProposal);
       }

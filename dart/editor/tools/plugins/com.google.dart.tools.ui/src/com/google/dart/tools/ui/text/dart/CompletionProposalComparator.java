@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.text.dart;
 
 import com.google.dart.tools.ui.internal.text.completion.AbstractDartCompletionProposal;
-import com.google.dart.tools.ui.internal.text.dart.DartServerProposal;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.templates.TemplateProposal;
@@ -54,7 +53,10 @@ public final class CompletionProposalComparator implements Comparator<Object> {
     if (!fOrderAlphabetically) {
       int r1 = getRelevance(p1);
       int r2 = getRelevance(p2);
-      int relevanceDif = r1 - r2;
+      // Both old non-server and new analysis server
+      // code completions and quick assists/fixes are sorted by this code
+      // and everything assumes larger number is higher relevance
+      int relevanceDif = r2 - r1;
       if (relevanceDif != 0) {
         return relevanceDif;
       }
@@ -78,11 +80,7 @@ public final class CompletionProposalComparator implements Comparator<Object> {
 
   private int getRelevance(ICompletionProposal obj) {
     if (obj instanceof IDartCompletionProposal) {
-      IDartCompletionProposal jcp = (IDartCompletionProposal) obj;
-      int relevance = jcp.getRelevance();
-      // Dart Analysis Server relevance is higher number is higher relevance
-      // where as Eclipse relevance is lower number is higher relevance
-      return jcp instanceof DartServerProposal ? -relevance : relevance;
+      return ((IDartCompletionProposal) obj).getRelevance();
     } else if (obj instanceof TemplateProposal) {
       TemplateProposal tp = (TemplateProposal) obj;
       return tp.getRelevance();
