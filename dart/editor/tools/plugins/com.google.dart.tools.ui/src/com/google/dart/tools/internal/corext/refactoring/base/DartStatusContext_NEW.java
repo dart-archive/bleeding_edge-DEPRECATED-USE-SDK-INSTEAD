@@ -15,8 +15,6 @@ package com.google.dart.tools.internal.corext.refactoring.base;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.ui.internal.refactoring.WorkbenchSourceAdapter_NEW;
 
@@ -30,8 +28,8 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 import java.io.File;
 
 /**
- * {@link DartStatusContext_NEW} is the wrapper of the {@link Source} and {@link SourceRange} in it
- * where some problem was detected.
+ * {@link DartStatusContext_NEW} is the wrapper of the {@link String} content and {@link Location}
+ * in it where some problem was detected.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */

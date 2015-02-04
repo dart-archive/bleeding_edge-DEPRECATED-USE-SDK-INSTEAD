@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.utilities.io;
 
 import com.google.common.io.CharStreams;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.utilities.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.filesystem.EFS;
@@ -224,9 +226,34 @@ public class FileUtilities {
   }
 
   /**
+   * Ensure that the given file exists and is executable. If it exists but is not executable, then
+   * make it executable and log that it was necessary for us to do so.
+   * <p>
+   * Originally copied from the engine project
+   * 
+   * @return {@code true} if the file exists and is executable, else {@code false}.
+   */
+  public static boolean ensureExecutable(File file) {
+    if (file == null || !file.exists()) {
+      return false;
+    }
+    if (!file.canExecute()) {
+      Logger logger = AnalysisEngine.getInstance().getLogger();
+      if (!makeExecutable(file)) {
+        logger.logError(file + " cannot be made executable");
+        return false;
+      }
+      logger.logError(file + " was not executable");
+    }
+    return true;
+  }
+
+  /**
    * Return the base name of the given file. The base name is the portion of the name that occurs
    * before the period or extension when a file name is assumed to be of the form
    * <code>baseName '.' extension</code>.
+   * <p>
+   * Originally copied from the engine project
    * 
    * @return the base name of the given file
    */
@@ -400,6 +427,21 @@ public class FileUtilities {
       directory = directory.getParentFile();
     }
     return false;
+  }
+
+  /**
+   * Attempt to make the given file executable.
+   * 
+   * @param file the file to be made executable
+   * @return {@code true} if the file is executable
+   */
+  public static boolean makeExecutable(File file) {
+    // Try to make the file executable for all users.
+    if (file.setExecutable(true, false)) {
+      return true;
+    }
+    // If that fails, then try to make it executable for the current user.
+    return file.setExecutable(true, true);
   }
 
   /**

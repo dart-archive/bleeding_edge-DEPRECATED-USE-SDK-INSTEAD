@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.server.utilities.instrumentation.Instrumentation;
+import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.ui.DartToolsPlugin;

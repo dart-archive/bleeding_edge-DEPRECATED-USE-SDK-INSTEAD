@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.theme.preferences;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
 
@@ -183,7 +182,7 @@ public class TemporaryProject {
   }
 
   /**
-   * Creates or updates {@link CompilationUnit} at given path.
+   * Creates or updates CompilationUnit at given path.
    */
   public IFile setUnitContent(String path, String content) throws IOException, CoreException {
     IFile file = setFileContent(path, content);

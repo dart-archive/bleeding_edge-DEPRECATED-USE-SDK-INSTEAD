@@ -1,6 +1,6 @@
 package com.google.dart.tools.ui.watchdog;
 
-import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.watchdog.SwtEventMonitorThread.StackTraceInfo;
 
