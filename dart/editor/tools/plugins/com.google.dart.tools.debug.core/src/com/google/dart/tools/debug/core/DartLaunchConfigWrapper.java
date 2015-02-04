@@ -48,7 +48,7 @@ public class DartLaunchConfigWrapper {
   private static final String INSTALL_CONTENT_SHELL = "installContentShell";
   private static final String LAUNCH_CONTENT_SHELL = "runContentShell";
   private static final String USE_PUB_SERVE = "usePubServe";
-
+  private static final String PUB_SERVE_ARGUMENTS = "pubArguments";
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String PAUSE_ISOLATE_ON_EXIT = "pauseIsolateOnExit";
   private static final String PAUSE_ISOLATE_ON_START = "pauseIsolateOnStart";
@@ -339,6 +339,31 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  /**
+   * @return the arguments string for Pub serve
+   */
+  public String getPubServeArguments() {
+    try {
+      return launchConfig.getAttribute(PUB_SERVE_ARGUMENTS, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
+  }
+
+  /**
+   * @return the arguments for Pub serve
+   */
+  public String[] getPubServeArgumentsAsArray() {
+    String command = getPubServeArguments();
+
+    if (command == null || command.length() == 0) {
+      return new String[0];
+    }
+    return StringUtilities.parseArgumentString(command);
+  }
+
   public boolean getShouldLaunchFile() {
     try {
       return launchConfig.getAttribute(IS_FILE, true);
@@ -564,6 +589,10 @@ public class DartLaunchConfigWrapper {
     if (getApplicationResource() == null) {
       updateMappedResources(value);
     }
+  }
+
+  public void setPubServeArguments(String value) {
+    getWorkingCopy().setAttribute(PUB_SERVE_ARGUMENTS, value);
   }
 
   public void setShouldLaunchFile(boolean value) {

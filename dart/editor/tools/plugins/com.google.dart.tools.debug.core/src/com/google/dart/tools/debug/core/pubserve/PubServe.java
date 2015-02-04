@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -85,13 +86,14 @@ public class PubServe {
    * connects to the pub admin server.
    * 
    * @param workingDir - working directory for the pub serve process
+   * @param arguments - a list of user arguments for pub serve
    * @param dirToServeName - name of the directory to be served
    * @throws Exception
    */
-  PubServe(IContainer workingDir, String directoryToServe) throws Exception {
+  PubServe(IContainer workingDir, String directoryToServe, String[] arguments) throws Exception {
     console = DartCore.getConsole();
     this.workingDir = workingDir;
-    runPubServe(directoryToServe);
+    runPubServe(directoryToServe, arguments);
     connectToPub();
   }
 
@@ -204,26 +206,34 @@ public class PubServe {
     }
   }
 
-  private List<String> buildPubServeCommand(String directoryToServe) {
+  private List<String> buildPubServeCommand(String directoryToServe, String[] args) {
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
-    List<String> args = new ArrayList<String>();
+    List<String> command = new ArrayList<String>();
+    List<String> pubServeArgs = Arrays.asList(args);
+
     pubFile = new File(sdk.getDirectory().getAbsolutePath(), PUB_SNAPSHOT_PATH);
-    args.add(sdk.getVmExecutable().getAbsolutePath());
-    args.add(pubFile.getAbsolutePath());
-    args.add(SERVE_COMMAND);
-    args.add(directoryToServe);
-    int pubport = NetUtils.getUnusedPort(8080, 8100);
-    if (pubport != -1) {
-      args.add("--port");
-      args.add(Integer.toString(pubport));
+    command.add(sdk.getVmExecutable().getAbsolutePath());
+    command.add(pubFile.getAbsolutePath());
+    command.add(SERVE_COMMAND);
+    command.add(directoryToServe);
+    int pubport;
+    if (!pubServeArgs.contains("--port")) {
+      pubport = NetUtils.getUnusedPort(8080, 8100);
+      if (pubport != -1) {
+        command.add("--port");
+        command.add(Integer.toString(pubport));
+      }
     }
-    args.add("--admin-port");
+    command.add("--admin-port");
     portNumber = Integer.toString(NetUtils.findUnusedPort(0));
-    args.add(portNumber);
-    args.add("--hostname");
-    args.add(LOCAL_HOST_ADDR);
-    return args;
+    command.add(portNumber);
+    if (!pubServeArgs.contains("--hostname")) {
+      command.add("--hostname");
+      command.add(LOCAL_HOST_ADDR);
+    }
+    command.addAll(pubServeArgs);
+    return command;
   }
 
   /**
@@ -275,12 +285,12 @@ public class PubServe {
     return true;
   }
 
-  private boolean runPubServe(String directoryToServe) {
+  private boolean runPubServe(String directoryToServe, String[] arguments) {
 
     stdOut = new StringBuilder();
     stdError = new StringBuilder();
 
-    List<String> args = buildPubServeCommand(directoryToServe);
+    List<String> args = buildPubServeCommand(directoryToServe, arguments);
 
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(args);

@@ -187,7 +187,10 @@ public class PubServeManager implements IResourceChangeListener {
         // terminate existing pub serve if any
         pubserve.dispose();
       }
-      pubserve = new PubServe(appDir, getPubServeRootDir(appDir, resource));
+      pubserve = new PubServe(
+          appDir,
+          getPubServeRootDir(appDir, resource),
+          wrapper.getPubServeArgumentsAsArray());
       ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
     }
 

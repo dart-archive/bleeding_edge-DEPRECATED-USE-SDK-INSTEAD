@@ -21,13 +21,18 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchTargetComposite;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * Main launch tab for Browser launch configurations
@@ -35,6 +40,7 @@ import org.eclipse.swt.widgets.Listener;
 public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
   private LaunchTargetComposite launchTargetGroup;
+  private Text pubArgsText;
 
   @Override
   public void createControl(Composite parent) {
@@ -49,6 +55,19 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
+
+    // pub serve setting
+    Group group = new Group(composite, SWT.NONE);
+    group.setText("Pub settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
+    // pub serve arguments
+    Label pubArgsLabel = new Label(group, SWT.NONE);
+    pubArgsLabel.setText("Pub serve arguments:");
+    pubArgsText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
+        pubArgsText);
 
     setControl(composite);
   }
@@ -111,7 +130,8 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     } else {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
-
+    pubArgsText.setText(wrapper.getPubServeArguments());
+    pubArgsText.setEnabled(wrapper.getShouldLaunchFile());
   }
 
   /**
@@ -137,6 +157,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
+    wrapper.setPubServeArguments(pubArgsText.getText().trim());
 
   }
 
@@ -149,6 +170,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
   private void notifyPanelChanged() {
     setDirty(true);
+    pubArgsText.setEnabled(launchTargetGroup.getHtmlButtonSelection());
     updateLaunchConfigurationDialog();
   }
 

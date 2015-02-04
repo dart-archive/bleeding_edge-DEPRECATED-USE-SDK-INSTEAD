@@ -64,6 +64,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button usePubServeButton;
 
+  private Text pubArgsText;
+
   /**
    * Create a new instance of DartServerMainTab.
    */
@@ -154,9 +156,17 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     usePubServeButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
+        pubArgsText.setEnabled(usePubServeButton.getSelection());
         notifyPanelChanged();
       }
     });
+    // pub serve arguments
+    Label pubArgsLabel = new Label(group, SWT.NONE);
+    pubArgsLabel.setText("Pub serve arguments:");
+
+    pubArgsText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
+        pubArgsText);
 
     setControl(composite);
   }
@@ -210,6 +220,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     usePubServeButton.setSelection(dartLauncher.getUsePubServe());
 
+    pubArgsText.setText(dartLauncher.getPubServeArguments());
+
+    pubArgsText.setEnabled(dartLauncher.getUsePubServe());
+
   }
 
   @Override
@@ -247,6 +261,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments(argumentText.getText().trim());
 
     dartLauncher.setUsePubServe(usePubServeButton.getSelection());
+
+    dartLauncher.setPubServeArguments(pubArgsText.getText().trim());
   }
 
   @Override
