@@ -80,7 +80,7 @@ vars = {
   "watcher_tag": "@0.9.4",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "websocket_rev" : "@35854",
-  "WebCore_rev" : "@43472",
+  "WebCore_rev" : "@43478",
   "weberknecht_rev" : "@33599",
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
