@@ -41,14 +41,8 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.IMPORT;
 import static com.google.dart.server.generated.types.CompletionSuggestionKind.KEYWORD;
-import static com.google.dart.server.generated.types.ElementKind.FIELD;
-import static com.google.dart.server.generated.types.ElementKind.FUNCTION;
 import static com.google.dart.server.generated.types.ElementKind.GETTER;
-import static com.google.dart.server.generated.types.ElementKind.LOCAL_VARIABLE;
-import static com.google.dart.server.generated.types.ElementKind.METHOD;
-import static com.google.dart.server.generated.types.ElementKind.PARAMETER;
 import static com.google.dart.server.generated.types.ElementKind.SETTER;
-import static com.google.dart.server.generated.types.ElementKind.TOP_LEVEL_VARIABLE;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -174,7 +168,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
-  private final int relevance;
 
   private final StyledString styledCompletion;
 
@@ -218,7 +211,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
     this.suggestion = suggestion;
-    this.relevance = computeRelevance();
     this.styledCompletion = computeStyledDisplayString();
   }
 
@@ -428,7 +420,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public int getRelevance() {
-    return relevance;
+    return suggestion.getRelevance();
   }
 
   @Override
@@ -594,33 +586,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     }
 
     return fRegistry.get(descriptor);
-  }
-
-  private int computeRelevance() {
-    int relevance = suggestion.getRelevance();
-    if (relevance != 1000) {
-      return relevance;
-    }
-    // TODO (danrubel) move this code to the server
-    { // DEFAULT
-      Element element = suggestion.getElement();
-      if (element != null) {
-        String kind = element.getKind();
-        if (LOCAL_VARIABLE.equals(kind) || PARAMETER.equals(kind)) {
-          return 1059;
-        } else if (FIELD.equals(kind)) {
-          return 1058;
-        } else if (METHOD.equals(kind) || GETTER.equals(kind) || SETTER.equals(kind)
-            || FUNCTION.equals(kind)) {
-          return 1057;
-        } else if (TOP_LEVEL_VARIABLE.equals(kind)) {
-          return 1056;
-        } else if (KEYWORD.equals(kind)) {
-          return 1055;
-        }
-      }
-      return 1000;
-    }
   }
 
   private StyledString computeStyledDisplayString() {
