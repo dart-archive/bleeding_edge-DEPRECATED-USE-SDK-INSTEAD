@@ -102,10 +102,11 @@ public class ByteResponseStream implements ResponseStream {
 
   @Override
   public JsonObject take() throws Exception {
-    if (lineQueue.peek() == EOF_LINE) {
+    String line = lineQueue.take();
+    if (line == EOF_LINE) {
+      lineQueue.add(line);
       return null;
     }
-    String line = lineQueue.take();
     try {
       return (JsonObject) new JsonParser().parse(line);
     } catch (JsonSyntaxException e) {
