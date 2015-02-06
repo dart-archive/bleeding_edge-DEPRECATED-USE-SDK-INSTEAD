@@ -345,7 +345,8 @@ public interface AnalysisServer {
    * created will persist until execution.deleteContext is used to delete it. Clients, therefore, are
    * responsible for managing the lifetime of execution contexts.
    *
-   * @param contextRoot The path of the Dart or HTML file that will be launched.
+   * @param contextRoot The path of the Dart or HTML file that will be launched, or the path of the
+   *         directory containing the file.
    */
   public void execution_createContext(String contextRoot, CreateContextConsumer consumer);
 
@@ -365,18 +366,19 @@ public interface AnalysisServer {
    * Map a URI from the execution context to the file that it corresponds to, or map a file to the
    * URI that it corresponds to in the execution context.
    *
-   * Exactly one of the file and uri fields must be provided.
+   * Exactly one of the file and uri fields must be provided. If both fields are provided, then an
+   * error of type INVALID_PARAMETER will be generated. Similarly, if neither field is provided, then
+   * an error of type INVALID_PARAMETER will be generated.
    *
    * If the file field is provided and the value is not the path of a file (either the file does not
    * exist or the path references something other than a file), then an error of type
-   * MAP_URI_INVALID_FILE will be generated.
+   * INVALID_PARAMETER will be generated.
    *
    * If the uri field is provided and the value is not a valid URI or if the URI references something
    * that is not a file (either a file that does not exist or something other than a file), then an
-   * error of type MAP_URI_INVALID_URI will be generated.
+   * error of type INVALID_PARAMETER will be generated.
    *
-   * If the contextRoot used to create the execution context is not a file (either the file does not
-   * exist or the path references something other than a file), then an error of type
+   * If the contextRoot used to create the execution context does not exist, then an error of type
    * INVALID_EXECUTION_CONTEXT will be generated.
    *
    * @param id The identifier of the execution context in which the URI is to be mapped.

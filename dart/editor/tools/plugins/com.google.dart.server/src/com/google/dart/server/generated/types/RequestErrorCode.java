@@ -42,6 +42,11 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * The context root used to create an execution context does not exist.
+   */
+  public static final String INVALID_EXECUTION_CONTEXT = "INVALID_EXECUTION_CONTEXT";
+
+  /**
    * An analysis.updateContent request contained a ChangeContentOverlay object which can't be
    * applied, due to an edit having an offset or length that is out of range.
    */
