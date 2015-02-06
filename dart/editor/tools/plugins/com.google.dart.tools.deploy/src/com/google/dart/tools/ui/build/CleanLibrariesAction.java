@@ -51,7 +51,7 @@ public class CleanLibrariesAction extends InstrumentedAction implements
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartCore.getAnalysisServer().analysis_reanalyze();
+      DartCore.getAnalysisServer().analysis_reanalyze(null);
     } else {
       Job job = new CleanLibrariesJob();
 

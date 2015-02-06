@@ -35,7 +35,7 @@ public class DartBuildParticipant implements BuildParticipant {
   @Override
   public void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartCore.getAnalysisServer().analysis_reanalyze();
+      DartCore.getAnalysisServer().analysis_reanalyze(null);
     }
   }
 }

@@ -896,7 +896,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_reanalyze() throws Exception {
-    server.analysis_reanalyze();
+    server.analysis_reanalyze(null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",

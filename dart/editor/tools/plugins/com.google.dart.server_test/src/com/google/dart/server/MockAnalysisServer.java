@@ -57,7 +57,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void analysis_reanalyze() {
+  public void analysis_reanalyze(List<String> roots) {
     throw new UnsupportedOperationException();
   }
 
