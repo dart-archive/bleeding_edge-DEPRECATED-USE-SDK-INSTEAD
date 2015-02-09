@@ -52,7 +52,8 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$
 
-  private ServerExtractMethodRefactoring refactoring;
+  private final ServerExtractMethodRefactoring refactoring;
+  private final WizardPageOptionsHelper helper;
   private Text fTextField;
   private boolean fFirstTime;
   private DartSourceViewer fSignaturePreview;
@@ -63,8 +64,10 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 
 //  private static final String GENERATE_JAVADOC = "GenerateJavadoc"; //$NON-NLS-1$
 
-  public ExtractMethodInputPage_NEW() {
+  public ExtractMethodInputPage_NEW(ServerExtractMethodRefactoring refactoring) {
     super(PAGE_NAME);
+    this.refactoring = refactoring;
+    this.helper = new WizardPageOptionsHelper(refactoring, this);
     setImageDescriptor(DartPluginImages.DESC_WIZBAN_REFACTOR_CU);
     setDescription(DESCRIPTION);
     fFirstTime = true;
@@ -73,7 +76,6 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 
   @Override
   public void createControl(Composite parent) {
-    refactoring = (ServerExtractMethodRefactoring) getRefactoring();
     loadSettings();
 
     Composite result = new Composite(parent, SWT.NONE);
@@ -186,6 +188,22 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
   }
 
   @Override
+  public boolean isPageComplete() {
+    if (helper.hasPendingRequests) {
+      return false;
+    }
+    return super.isPageComplete();
+  }
+
+//  private boolean computeGenerateJavadoc() {
+//    boolean result = fRefactoring.getGenerateJavadoc();
+//    if (result) {
+//      return result;
+//    }
+//    return fSettings.getBoolean(GENERATE_JAVADOC);
+//  }
+
+  @Override
   public void setVisible(boolean visible) {
     if (visible) {
       if (fFirstTime) {
@@ -200,14 +218,6 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
     }
     super.setVisible(visible);
   }
-
-//  private boolean computeGenerateJavadoc() {
-//    boolean result = fRefactoring.getGenerateJavadoc();
-//    if (result) {
-//      return result;
-//    }
-//    return fSettings.getBoolean(GENERATE_JAVADOC);
-//  }
 
   private void createSignaturePreview(Composite composite, RowLayouter layouter) {
     Label previewLabel = new Label(composite, SWT.NONE);
@@ -260,6 +270,11 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
     return fTextField.getText();
   }
 
+//  private void setGenerateJavadoc(boolean value) {
+//    fSettings.put(GENERATE_JAVADOC, value);
+//    fRefactoring.setGenerateJavadoc(value);
+//  }
+
   private void loadSettings() {
     // TODO(scheglov)
 //    fSettings = getDialogSettings().getSection(ExtractMethodWizard.DIALOG_SETTING_SECTION);
@@ -271,18 +286,12 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 //    }
   }
 
-//  private void setGenerateJavadoc(boolean value) {
-//    fSettings.put(GENERATE_JAVADOC, value);
-//    fRefactoring.setGenerateJavadoc(value);
-//  }
-
   private void parameterModified() {
     updatePreview();
     setPageComplete(validatePage(false));
   }
 
   private void textModified(String text) {
-    refactoring.setName(text);
     RefactoringStatus status = validatePage(true);
     if (!status.hasFatalError()) {
       updatePreview();
@@ -315,7 +324,8 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
       result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyMethodName);
       return result;
     }
-    result.merge(refactoring.setName(text));
+    refactoring.setName(text);
+    result.merge(helper.optionsStatus);
     return result;
   }
 
@@ -343,10 +353,8 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
 //          parameter.getNewTypeName(),
 //          fRefactoring.getUnit()));
     }
-    if (!refactoring.setOptions(true)) {
-      return ServerRefactoring.TIMEOUT_STATUS;
-    }
-    result.merge(refactoring.optionsStatus);
+    refactoring.setOptions(true);
+    result.merge(helper.optionsStatus);
     return result;
   }
 }

@@ -20,8 +20,6 @@ import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringOptions;
 
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-
 /**
  * LTK wrapper around Analysis Server 'Extract Local' refactoring.
  * 
@@ -49,12 +47,9 @@ public class ServerExtractLocalRefactoring extends ServerRefactoring {
     options.setExtractAll(extractAll);
   }
 
-  public RefactoringStatus setName(String name) {
+  public void setName(String name) {
     options.setName(name);
-    if (!setOptions(true)) {
-      return TIMEOUT_STATUS;
-    }
-    return optionsStatus;
+    setOptions(true);
   }
 
   @Override

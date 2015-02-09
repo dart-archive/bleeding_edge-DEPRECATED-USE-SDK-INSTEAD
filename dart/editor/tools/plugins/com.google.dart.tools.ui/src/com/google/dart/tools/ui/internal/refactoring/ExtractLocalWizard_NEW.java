@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2015, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.tools.ui.internal.refactoring.contentassist.VariableNamesProcessor;
@@ -23,10 +36,9 @@ import org.eclipse.ui.PlatformUI;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
-
-  private static class ExtractLocalInputPage extends TextInputWizardPage {
+  private class ExtractLocalInputPage extends TextInputWizardPage {
+    private final WizardPageOptionsHelper helper = new WizardPageOptionsHelper(refactoring, this);
     private final boolean initialValid;
-    private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
     private final String[] names;
 
     public ExtractLocalInputPage(String[] names) {
@@ -67,23 +79,25 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
     }
 
     @Override
+    public boolean isPageComplete() {
+      if (helper.hasPendingRequests) {
+        return false;
+      }
+      return super.isPageComplete();
+    }
+
+    @Override
     protected boolean isInitialInputValid() {
       return initialValid;
     }
 
     @Override
-    protected void textModified(String text) {
-      getExtractLocalRefactoring().setName(text);
-      super.textModified(text);
-    }
-
-    @Override
     protected RefactoringStatus validateTextField(String text) {
-      return getExtractLocalRefactoring().setName(text);
+      refactoring.setName(text);
+      return helper.optionsStatus;
     }
 
     private void addReplaceAllCheckbox(Composite result, RowLayouter layouter) {
-      final ServerExtractLocalRefactoring refactoring = getExtractLocalRefactoring();
       final Button checkBox = new Button(result, SWT.CHECK);
       layouter.perform(checkBox);
       checkBox.setText(RefactoringMessages.ExtractLocalInputPage_replace_all);
@@ -99,25 +113,21 @@ public class ExtractLocalWizard_NEW extends ServerRefactoringWizard {
         }
       });
     }
-
-    private ServerExtractLocalRefactoring getExtractLocalRefactoring() {
-      return (ServerExtractLocalRefactoring) getRefactoring();
-    }
   }
 
+  static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
   static final String DIALOG_SETTING_SECTION = "ExtractLocalWizard"; //$NON-NLS-1$
 
-  public ExtractLocalWizard_NEW(ServerExtractLocalRefactoring ref) {
-    super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
+  private final ServerExtractLocalRefactoring refactoring;
+
+  public ExtractLocalWizard_NEW(ServerExtractLocalRefactoring refactoing) {
+    super(refactoing, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
+    this.refactoring = refactoing;
     setDefaultPageTitle(RefactoringMessages.ExtractLocalWizard_defaultPageTitle);
   }
 
   @Override
   protected void addUserInputPages() {
-    addPage(new ExtractLocalInputPage(getExtractLocalRefactoring().getNames()));
-  }
-
-  private ServerExtractLocalRefactoring getExtractLocalRefactoring() {
-    return (ServerExtractLocalRefactoring) getRefactoring();
+    addPage(new ExtractLocalInputPage(refactoring.getNames()));
   }
 }

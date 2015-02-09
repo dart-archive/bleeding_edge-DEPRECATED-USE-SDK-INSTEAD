@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.Text;
 public class RenameWizard_NEW extends ServerRefactoringWizard {
 
   private class RenameInputPage extends TextInputWizardPage {
+    private final WizardPageOptionsHelper helper = new WizardPageOptionsHelper(refactoring, this);
+
     public RenameInputPage() {
       super(null, true, refactoring.getOldName());
     }
@@ -42,19 +44,22 @@ public class RenameWizard_NEW extends ServerRefactoringWizard {
     }
 
     @Override
+    public boolean isPageComplete() {
+      if (helper.hasPendingRequests) {
+        return false;
+      }
+      return super.isPageComplete();
+    }
+
+    @Override
     protected boolean isEmptyInputValid() {
       return true;
     }
 
     @Override
-    protected void textModified(String text) {
-      refactoring.setNewName(text);
-      super.textModified(text);
-    }
-
-    @Override
     protected RefactoringStatus validateTextField(String text) {
-      return refactoring.setNewName(text);
+      refactoring.setNewName(text);
+      return helper.optionsStatus;
     }
   }
 

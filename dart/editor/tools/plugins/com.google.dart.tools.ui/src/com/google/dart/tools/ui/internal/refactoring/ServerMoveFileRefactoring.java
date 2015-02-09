@@ -19,8 +19,6 @@ import com.google.dart.server.generated.types.RefactoringFeedback;
 import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RefactoringOptions;
 
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-
 /**
  * LTK wrapper around Analysis Server 'Move File' refactoring.
  * 
@@ -33,12 +31,9 @@ public class ServerMoveFileRefactoring extends ServerRefactoring {
     super(RefactoringKind.MOVE_FILE, "Move File", file, 0, 0);
   }
 
-  public RefactoringStatus setNewFile(String newFile) {
+  public void setNewFile(String newFile) {
     options.setNewFile(newFile);
-    if (!setOptions(true)) {
-      return TIMEOUT_STATUS;
-    }
-    return optionsStatus;
+    setOptions(true);
   }
 
   @Override

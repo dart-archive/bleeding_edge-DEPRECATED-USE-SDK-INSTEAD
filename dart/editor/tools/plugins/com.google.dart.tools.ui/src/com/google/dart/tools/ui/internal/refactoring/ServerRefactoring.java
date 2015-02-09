@@ -15,6 +15,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.server.GetRefactoringConsumer;
 import com.google.dart.server.generated.types.RefactoringFeedback;
@@ -36,6 +37,7 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +47,10 @@ import java.util.concurrent.TimeUnit;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public abstract class ServerRefactoring extends Refactoring {
+  public interface ServerRefactoringListener {
+    void requestStateChanged(boolean hasPendingRequests, RefactoringStatus optionsStatus);
+  }
+
   protected static final RefactoringStatus TIMEOUT_STATUS = RefactoringStatus.createFatalErrorStatus("Timeout");
 
   public static String[] toStringArray(List<String> list) {
@@ -64,6 +70,10 @@ public abstract class ServerRefactoring extends Refactoring {
   private Change change;
   private final List<String> externalFiles = Lists.newArrayList();
 
+  private int lastId = 0;
+  private final Set<Integer> pendingRequestIds = Sets.newHashSet();
+  private ServerRefactoringListener listener;
+
   public ServerRefactoring(String kind, String name, String file, int offset, int length) {
     this.kind = kind;
     this.name = name;
@@ -74,9 +84,7 @@ public abstract class ServerRefactoring extends Refactoring {
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) {
-    if (!setOptions(false)) {
-      return TIMEOUT_STATUS;
-    }
+    setOptions(false, pm);
     if (serverErrorStatus != null) {
       return serverErrorStatus;
     }
@@ -96,9 +104,7 @@ public abstract class ServerRefactoring extends Refactoring {
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) {
-    if (!setOptions(true)) {
-      return TIMEOUT_STATUS;
-    }
+    setOptions(true, pm);
     if (serverErrorStatus != null) {
       return serverErrorStatus;
     }
@@ -107,10 +113,7 @@ public abstract class ServerRefactoring extends Refactoring {
 
   @Override
   public Change createChange(IProgressMonitor pm) {
-    boolean timeout = !setOptions(false);
-    if (timeout) {
-      throw new OperationCanceledException();
-    }
+    setOptions(false, pm);
     return change;
   }
 
@@ -127,6 +130,10 @@ public abstract class ServerRefactoring extends Refactoring {
     return false;
   }
 
+  public void setListener(ServerRefactoringListener listener) {
+    this.listener = listener;
+  }
+
   /**
    * Returns this {@link RefactoringOptions} subclass instance.
    */
@@ -137,7 +144,18 @@ public abstract class ServerRefactoring extends Refactoring {
    */
   protected abstract void setFeedback(RefactoringFeedback feedback);
 
-  protected boolean setOptions(boolean validateOnly) {
+  protected void setOptions(boolean validateOnly) {
+    setOptions(validateOnly, null);
+  }
+
+  protected void setOptions(boolean validateOnly, IProgressMonitor pm) {
+    // add a new pending request ID
+    final int id;
+    synchronized (pendingRequestIds) {
+      id = ++lastId;
+      pendingRequestIds.add(id);
+    }
+    // do request
     serverErrorStatus = null;
     final CountDownLatch latch = new CountDownLatch(1);
     RefactoringOptions options = getOptions();
@@ -162,6 +180,7 @@ public abstract class ServerRefactoring extends Refactoring {
             finalStatus = toRefactoringStatus(finalProblems);
             change = toLTK(_change, externalFiles);
             latch.countDown();
+            requestDone(id);
           }
 
           @Override
@@ -169,8 +188,39 @@ public abstract class ServerRefactoring extends Refactoring {
             String message = "Server error: " + requestError.getMessage();
             serverErrorStatus = RefactoringStatus.createFatalErrorStatus(message);
             latch.countDown();
+            requestDone(id);
+          }
+
+          private void requestDone(final int id) {
+            synchronized (pendingRequestIds) {
+              pendingRequestIds.remove(id);
+              notifyListener();
+            }
           }
         });
-    return Uninterruptibles.awaitUninterruptibly(latch, 1000, TimeUnit.MILLISECONDS);
+    // wait for completion
+    if (pm != null) {
+      while (true) {
+        if (pm.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+        boolean done = Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS);
+        if (done) {
+          return;
+        }
+      }
+    } else {
+      // Wait a very short time, just in case it it can be done fast,
+      // so that we don't have to disable UI and re-enable it 2 milliseconds later.
+      Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS);
+      notifyListener();
+    }
+  }
+
+  private void notifyListener() {
+    if (listener != null) {
+      boolean hasPendingRequests = !pendingRequestIds.isEmpty();
+      listener.requestStateChanged(hasPendingRequests, optionsStatus);
+    }
   }
 }

@@ -21,7 +21,6 @@ import com.google.dart.server.generated.types.RenameFeedback;
 import com.google.dart.server.generated.types.RenameOptions;
 
 import org.apache.commons.lang3.text.WordUtils;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
  * LTK wrapper around Analysis Server 'Rename' refactoring.
@@ -45,12 +44,9 @@ public class ServerRenameRefactoring extends ServerRefactoring {
     return oldName;
   }
 
-  public RefactoringStatus setNewName(String newName) {
+  public void setNewName(String newName) {
     options.setNewName(newName);
-    if (!setOptions(true)) {
-      return TIMEOUT_STATUS;
-    }
-    return optionsStatus;
+    setOptions(true);
   }
 
   @Override

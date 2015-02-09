@@ -24,7 +24,7 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public abstract class ServerRefactoringWizard extends RefactoringWizard {
-  private ServerRefactoring refactoring;
+  protected final ServerRefactoring refactoring;
 
   public ServerRefactoringWizard(ServerRefactoring refactoring, int flags) {
     super(refactoring, flags);

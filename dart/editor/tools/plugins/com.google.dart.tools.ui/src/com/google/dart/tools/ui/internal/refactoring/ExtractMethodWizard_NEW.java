@@ -30,6 +30,6 @@ public class ExtractMethodWizard_NEW extends ServerRefactoringWizard {
 
   @Override
   protected void addUserInputPages() {
-    addPage(new ExtractMethodInputPage_NEW());
+    addPage(new ExtractMethodInputPage_NEW((ServerExtractMethodRefactoring) refactoring));
   }
 }
