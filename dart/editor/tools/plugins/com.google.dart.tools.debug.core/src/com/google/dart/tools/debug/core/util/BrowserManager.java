@@ -424,11 +424,6 @@ public class BrowserManager {
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
     arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath("dartium"));
 
-    if (launchConfig.getUseWebComponents()) {
-      arguments.add("--enable-experimental-web-platform-features");
-      arguments.add("--enable-html-imports");
-    }
-
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
 

@@ -56,8 +56,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button showOutputButton;
 
-  private Button useWebComponentsButton;
-
   private Text argumentText;
 
   private LaunchTargetComposite launchTargetGroup;
@@ -111,18 +109,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       @Override
       public void widgetSelected(SelectionEvent e) {
         ExternalBrowserUtil.openInExternalBrowser(DartDebugUIPlugin.CHECK_MODE_DESC_URL);
-      }
-    });
-
-    useWebComponentsButton = new Button(group, SWT.CHECK);
-    useWebComponentsButton.setText("Enable experimental browser features (Web Components)");
-    useWebComponentsButton.setToolTipText("--enable-experimental-webkit-features"
-        + " and --enable-devtools-experiments");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(useWebComponentsButton);
-    useWebComponentsButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
       }
     });
 
@@ -214,8 +200,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
 
-    useWebComponentsButton.setSelection(dartLauncher.getUseWebComponents());
-
     argumentText.setText(dartLauncher.getArguments());
 
     usePubServeButton.setSelection(dartLauncher.getUsePubServe());
@@ -255,8 +239,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
 
     dartLauncher.setShowLaunchOutput(showOutputButton.getSelection());
-
-    dartLauncher.setUseWebComponents(useWebComponentsButton.getSelection());
 
     dartLauncher.setArguments(argumentText.getText().trim());
 

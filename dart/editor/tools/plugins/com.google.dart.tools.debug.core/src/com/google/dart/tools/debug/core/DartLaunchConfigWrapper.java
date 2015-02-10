@@ -55,9 +55,6 @@ public class DartLaunchConfigWrapper {
   private static final String OBSERVATORY_PORT = "observatoryPort";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
-  // --enable-experimental-webkit-features and --enable-devtools-experiments
-  private static final String DARTIUM_USE_WEB_COMPONENTS = "enableExperimentalWebkitFeatures";
-
   private static final String IS_FILE = "launchHtmlFile";
   private static final String URL = "url";
 
@@ -439,16 +436,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public boolean getUseWebComponents() {
-    try {
-      return launchConfig.getAttribute(DARTIUM_USE_WEB_COMPONENTS, true);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return true;
-    }
-  }
-
   /**
    * @return the arguments string for the Dart VM
    */
@@ -626,10 +613,6 @@ public class DartLaunchConfigWrapper {
 
   public void setUsePubServe(boolean value) {
     getWorkingCopy().setAttribute(USE_PUB_SERVE, value);
-  }
-
-  public void setUseWebComponents(boolean value) {
-    getWorkingCopy().setAttribute(DARTIUM_USE_WEB_COMPONENTS, value);
   }
 
   /**

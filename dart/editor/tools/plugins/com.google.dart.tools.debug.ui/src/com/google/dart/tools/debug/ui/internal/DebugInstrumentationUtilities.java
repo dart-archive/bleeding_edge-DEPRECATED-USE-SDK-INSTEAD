@@ -33,9 +33,6 @@ public class DebugInstrumentationUtilities {
     instrumentation.metric(
         "LaunchConfig-getUseDefaultBrowser",
         String.valueOf(DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()));
-    instrumentation.metric(
-        "LaunchConfig-getUseWebComponents",
-        String.valueOf(launch.getUseWebComponents()));
     instrumentation.metric("LaunchConfig-getVmArgumentsAsArray", launch.getVmArgumentsAsArray());
   }
 
