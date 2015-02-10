@@ -386,6 +386,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   private final String contextMenuID;
   private DartEditor editor;
   private Outline input;
+  private int offset;
   private DartOutlineViewer viewer;
   private boolean ignoreSelectionChangedEvent = false;
   private Menu contextMenu;
@@ -439,6 +440,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     viewer.setContentProvider(new OutlineContentProvider());
     viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new OutlineLabelProvider()));
     SWTUtil.bindJFaceResourcesFontToControl(tree);
+    internalSetInput();
     // install listeners added before UI creation
     {
       Object[] listeners = selectionChangedListeners.getListeners();
@@ -579,16 +581,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       return;
     }
     this.input = input;
-    // set input
-    Object[] expandedElements = viewer.getExpandedElements();
-    ignoreSelectionChangedEvent = true;
-    try {
-      viewer.setInput(input);
-    } finally {
-      ignoreSelectionChangedEvent = false;
-    }
-    viewer.setExpandedElements(expandedElements);
-    select(offset);
+    this.offset = offset;
+    internalSetInput();
   }
 
   @Override
@@ -627,5 +621,23 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       viewer.updateColors();
       viewer.refresh(false);
     }
+  }
+
+  private void internalSetInput() {
+    if (viewer == null) {
+      return;
+    }
+    if (input == null) {
+      return;
+    }
+    Object[] expandedElements = viewer.getExpandedElements();
+    ignoreSelectionChangedEvent = true;
+    try {
+      viewer.setInput(input);
+    } finally {
+      ignoreSelectionChangedEvent = false;
+    }
+    viewer.setExpandedElements(expandedElements);
+    select(offset);
   }
 }

@@ -1513,6 +1513,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   };
 
+  private Outline lastOutline;
   private AnalysisServerOutlineListener outlineListener = new AnalysisServerOutlineListener() {
     @Override
     public void computedOutline(String file, final Outline outline) {
@@ -1520,10 +1521,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          if (fOutlinePage_NEW != null) {
-            int offset = getSourceViewer().getSelectedRange().x;
-            fOutlinePage_NEW.setInput(outline, offset);
-          }
+          lastOutline = outline;
+          updateOutlinePageNew(outline);
         }
       });
     }
@@ -1879,6 +1878,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         if (fOutlinePage_NEW == null) {
           fOutlinePage_NEW = createOutlinePage_NEW();
+          updateOutlinePageNew(lastOutline);
         }
         return fOutlinePage_NEW;
       } else {
@@ -4201,6 +4201,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       } else {
         sourceViewer.setTextHover(configuration.getTextHover(sourceViewer, t), t);
       }
+    }
+  }
+
+  private void updateOutlinePageNew(Outline outline) {
+    if (fOutlinePage_NEW != null && outline != null) {
+      int offset = getSourceViewer().getSelectedRange().x;
+      fOutlinePage_NEW.setInput(outline, offset);
     }
   }
 }
