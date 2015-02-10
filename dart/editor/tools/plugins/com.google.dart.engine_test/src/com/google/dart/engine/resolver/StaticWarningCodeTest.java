@@ -22,6 +22,19 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
+  public void fail_returnWithoutValue_async() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not yet been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
   public void fail_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
     // TODO

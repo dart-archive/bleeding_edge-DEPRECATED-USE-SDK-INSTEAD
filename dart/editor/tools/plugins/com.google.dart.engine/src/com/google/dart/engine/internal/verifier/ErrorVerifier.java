@@ -847,6 +847,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       checkForTypeAnnotationDeferredClass(returnType);
+      checkForIllegalReturnType(returnType);
       return super.visitFunctionDeclaration(node);
     } finally {
       enclosingFunction = outerFunction;
@@ -1028,6 +1029,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       checkForConcreteClassWithAbstractMember(node);
       checkForAllInvalidOverrideErrorCodesForMethod(node);
       checkForTypeAnnotationDeferredClass(returnTypeName);
+      checkForIllegalReturnType(returnTypeName);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -1254,7 +1256,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitYieldStatement(YieldStatement node) {
-    if (!inGenerator) {
+    if (inGenerator) {
+      checkForYieldOfInvalidType(node.getExpression(), node.getStar() != null);
+    } else {
       CompileTimeErrorCode errorCode;
       if (node.getStar() != null) {
         errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
@@ -1932,7 +1936,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // RETURN_WITHOUT_VALUE
     if (returnExpression == null) {
-      if (VoidTypeImpl.getInstance().isAssignableTo(expectedReturnType)) {
+      if (inGenerator || computeReturnTypeForMethod(null).isAssignableTo(expectedReturnType)) {
         return false;
       }
       hasReturnWithoutValue = true;
@@ -3554,6 +3558,35 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * If the current function is async, async*, or sync*, verify that its declared return type is
+   * assignable to Future, Stream, or Iterable, respectively. If not, report the error using [node].
+   */
+  private void checkForIllegalReturnType(TypeName node) {
+    if (node == null) {
+      // No declared return type, so the return type must be dynamic, which is assignable to
+      // everything.
+      return;
+    }
+    if (enclosingFunction.isAsynchronous()) {
+      if (enclosingFunction.isGenerator()) {
+        // TODO(paulberry): We should report an error if enclosingFunction.getReturnType() isn't
+        // assignable to Stream<dynamic>.  But we can't because the Stream type isn't available in
+        // the type provider.  So to avoid bogus warnings, don't do any check.
+      } else {
+        // TODO(paulberry): We should report an error if enclosingFunction.getReturnType() isn't
+        // assignable to Future<dynamic>.  But we can't because the Future type isn't available in
+        // the type provider.  So to avoid bogus warnings, don't do any check.
+      }
+    } else if (enclosingFunction.isGenerator()) {
+      if (!enclosingFunction.getReturnType().isAssignableTo(typeProvider.getIterableDynamicType())) {
+        errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+            node);
+      }
+    }
+  }
+
+  /**
    * This verifies that the passed implements clause does not implement classes that are deferred.
    * 
    * @param node the implements clause to test
@@ -5166,7 +5199,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (enclosingFunction == null) {
       return false;
     }
-    Type staticReturnType = getStaticType(returnExpression);
+    if (inGenerator) {
+      // "return expression;" is disallowed in generators, but this is checked elsewhere.  Bare
+      // "return" is always allowed in generators regardless of the return type.  So no need to do
+      // any further checking.
+      return false;
+    }
+    Type staticReturnType = computeReturnTypeForMethod(returnExpression);
     if (expectedReturnType.isVoid()) {
       if (staticReturnType.isVoid() || staticReturnType.isDynamic() || staticReturnType.isBottom()) {
         return false;
@@ -5178,22 +5217,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           expectedReturnType,
           enclosingFunction.getDisplayName());
       return true;
-    }
-    if (enclosingFunction.isAsynchronous() && !enclosingFunction.isGenerator()) {
-      // TODO(brianwilkerson) Figure out how to get the type "Future" so that we can build the type
-      // we need to test against.
-//      InterfaceType impliedType = "Future<" + flatten(staticReturnType) + ">"
-//      if (impliedType.isAssignableTo(expectedReturnType)) {
-//        return false;
-//      }
-//      errorReporter.reportTypeErrorForNode(
-//          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-//          returnExpression,
-//          impliedType,
-//          expectedReturnType.getDisplayName(),
-//          enclosingFunction.getDisplayName());
-//      return true;
-      return false;
     }
     if (staticReturnType.isAssignableTo(expectedReturnType)) {
       return false;
@@ -5686,6 +5709,59 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Check for a type mis-match between the yielded type and the declared return type of a generator
+   * function. This method should only be called in generator functions.
+   */
+  private boolean checkForYieldOfInvalidType(Expression yieldExpression, boolean isYieldEach) {
+    if (enclosingFunction == null) {
+      return false;
+    }
+    Type declaredReturnType = enclosingFunction.getReturnType();
+    Type staticYieldedType = getStaticType(yieldExpression);
+    Type impliedReturnType;
+    if (isYieldEach) {
+      impliedReturnType = staticYieldedType;
+    } else if (enclosingFunction.isAsynchronous()) {
+      // TODO(paulberry): We should set impliedReturnType to Stream<staticYieldedType>.  But we
+      // can't because the Stream type isn't available in the type provider.  So to avoid bogus
+      // warnings, use dynamic.
+      impliedReturnType = typeProvider.getDynamicType();
+    } else {
+      impliedReturnType = typeProvider.getIterableType().substitute(new Type[] {staticYieldedType});
+    }
+    if (!impliedReturnType.isAssignableTo(declaredReturnType)) {
+      errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+          yieldExpression,
+          impliedReturnType,
+          declaredReturnType);
+      return true;
+    }
+    if (isYieldEach) {
+      // Since the declared return type might have been "dynamic", we need to also check that the
+      // implied return type is assignable to generic Stream/Iterable.
+      Type requiredReturnType;
+      if (enclosingFunction.isAsynchronous()) {
+        // TODO(paulberry): We should set requiredReturnType to Stream<dynamic>.  But we can't
+        // because the Stream type isn't available in the type provider.  So to avoid bogus
+        // warnings, use dynamic.
+        requiredReturnType = typeProvider.getDynamicType();
+      } else {
+        requiredReturnType = typeProvider.getIterableDynamicType();
+      }
+      if (!impliedReturnType.isAssignableTo(requiredReturnType)) {
+        errorReporter.reportTypeErrorForNode(
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            yieldExpression,
+            impliedReturnType,
+            requiredReturnType);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * This verifies that if the given class declaration implements the class Function that it has a
    * concrete implementation of the call method.
    * 
@@ -5747,6 +5823,29 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // done
     return hasProblem;
+  }
+
+  private Type computeReturnTypeForMethod(Expression returnExpression) {
+    // This method should never be called for generators, since generators are never allowed to
+    // contain return statements with expressions.
+    if (returnExpression == null) {
+      if (enclosingFunction.isAsynchronous()) {
+        // TODO(paulberry): We should return Future<Null>.  But we can't because the Future type
+        // isn't available in the type provider.  So to avoid bogus warnings, return dynamic.
+        return typeProvider.getDynamicType();
+      } else {
+        return VoidTypeImpl.getInstance();
+      }
+    }
+    Type staticReturnType = getStaticType(returnExpression);
+    if (staticReturnType != null && enclosingFunction.isAsynchronous()) {
+      // TODO(paulberry): We should return Future<flatten(staticReturnType)>.  But we can't
+      // implement the flatten function, and even if we could, we wouldn't be able to return the
+      // proper type, because the Future type isn't available in the type provider.  So to avoid
+      // bogus warnings, return dynamic.
+      return typeProvider.getDynamicType();
+    }
+    return staticReturnType;
   }
 
   /**

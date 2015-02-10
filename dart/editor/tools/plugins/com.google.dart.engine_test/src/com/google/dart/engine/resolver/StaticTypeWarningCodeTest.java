@@ -13,17 +13,143 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticTypeWarningCodeTest extends ResolverTestCase {
+  public void fail_await_flattened() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Future<int>> ffi() => null;",
+        "f() async {",
+        "  Future<int> b = await ffi(); // Warning: int not assignable to Future<int>",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void fail_await_simple() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> fi() => null;",
+        "f() async {",
+        "  String a = await fi(); // Warning: int not assignable to String",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void fail_illegal_return_type_async_function() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+    "int f() async {}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
+  public void fail_illegal_return_type_async_generator_function() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+    "int f() async* {}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void fail_illegal_return_type_async_generator_method() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "class C",
+        "  int f() async* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void fail_illegal_return_type_async_method() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "class C {",
+        "  int f() async {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
+  public void fail_illegal_return_type_sync_generator_method() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "class C",
+        "  int f() sync* {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
   public void fail_inaccessibleSetter() throws Exception {
     Source source = addSource(createSource(//
     // TODO
     ));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.INACCESSIBLE_SETTER);
+    verify(source);
+  }
+
+  public void fail_returnOfInvalidType_async_future_int_mismatches_future_null() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not yet been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Null> f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void fail_returnOfInvalidType_async_future_int_mismatches_future_string() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not yet been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<String> f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void fail_returnOfInvalidType_async_future_int_mismatches_int() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not yet been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "int f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+        StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE);
     verify(source);
   }
 
@@ -36,6 +162,62 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT);
+    verify(source);
+  }
+
+  public void fail_yield_async_to_basic_type() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "int f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+        StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void fail_yield_async_to_iterable() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "Iterable<int> f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+        StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void fail_yield_async_to_mistyped_stream() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  yield 'foo';",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void fail_yield_each_async_non_stream() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.
+    // See dartbug.com/22252.
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -81,6 +263,14 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_illegal_return_type_sync_generator_function() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() sync* {}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
     verify(source);
   }
 
@@ -1462,6 +1652,77 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_yield_each_async_to_mistyped_stream() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  yield* g();",
+        "}",
+        "Stream<String> g() => null;"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_non_iterable() throws Exception {
+    resetWithAsync();
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield* 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_to_mistyped_iterable() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() sync* {",
+        "  yield* g();",
+        "}",
+        "Iterable<String> g() => null;"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_basic_type() throws Exception {
+    Source source = addSource(createSource(//
+        "int f() sync* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_mistyped_iterable() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() sync* {",
+        "  yield 'foo';",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_stream() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() sync* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
     verify(source);
   }
 }

@@ -299,6 +299,237 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_async_dynamic_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "dynamic f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_dynamic_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "dynamic f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_dynamic_without_return() throws Exception {
+    Source source = addSource(createSource(//
+    "dynamic f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_expression_function_type() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "typedef Future<int> F(int i);",
+        "main() {",
+        "  F f = (int i) async => i;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_flattened() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "typedef Future<int> CreatesFutureInt();",
+        "main() {",
+        "  CreatesFutureInt createFutureInt = () async => f();",
+        "  Future<int> futureInt = createFutureInt();",
+        "  futureInt.then((int i) => g(i));",
+        "}",
+        "Future<int> f() => null;",
+        "void g(x) {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_dynamic_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<dynamic> f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_dynamic_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<dynamic> f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_dynamic_without_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<dynamic> f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_int_with_return_future_int() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() async {",
+        "  return new Future<int>.value(5);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_int_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_null_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Null> f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_null_without_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Null> f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_object_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Object> f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_object_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Object> f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_object_without_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Object> f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_future_without_return() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_return_flattens_futures() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() async {",
+        "  return g();",
+        "}",
+        "Future<Future<int>> g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_with_return() throws Exception {
+    Source source = addSource(createSource(//
+        "f() async {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_with_return_value() throws Exception {
+    Source source = addSource(createSource(//
+        "f() async {",
+        "  return 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_async_without_return() throws Exception {
+    Source source = addSource(createSource(//
+    "f() async {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_asyncForInWrongContext_async() throws Exception {
     resetWithAsync();
     Source source = addSource(createSource(//
@@ -317,6 +548,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "f(list) async* {",
         "  await for (var e in list) {",
         "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_await_flattened() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<Future<int>> ffi() => null;",
+        "f() async {",
+        "  int b = await ffi();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_await_simple() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> fi() => null;",
+        "f() async {",
+        "  int a = await fi();",
         "}"));
     resolve(source);
     assertNoErrors(source);
@@ -1020,6 +1275,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "main() {",
         "  var v = dynamic;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_empty_generator_async() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
         "}"));
     resolve(source);
     assertNoErrors(source);
@@ -2470,6 +2735,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
             "}")}, new ErrorCode[] {});
   }
 
+  public void test_local_generator_async() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  return () async* { yield 0; };",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_local_generator_sync() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  return () sync* { yield 0; };",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_mapKeyTypeNotAssignable() throws Exception {
     Source source = addSource(createSource(//
     "var v = <String, int > {'a' : 1};"));
@@ -3721,6 +4006,27 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_return_in_generator_async() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_return_in_generator_sync() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() sync* {",
+        "  return;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_returnInGenerativeConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -4673,22 +4979,219 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_yieldEachInNonGenerator_asyncStar() throws Exception {
-    resetWithAsync();
+  public void test_yield_async_to_dynamic_type() throws Exception {
     Source source = addSource(createSource(//
-        "f() async* {",
-        "  yield* 0;",
+        "dynamic f() async* {",
+        "  yield 3;",
         "}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
   }
 
-  public void test_yieldEachInNonGenerator_syncStar() throws Exception {
-    resetWithAsync();
+  public void test_yield_async_to_generic_type() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_async_to_parameterized_type() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_async_to_untyped() throws Exception {
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_dynamic_to_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "f() async* {",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_dynamic_to_stream() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream f() async* {",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_dynamic_to_typed_stream() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_stream_to_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "f() async* {",
+        "  yield* g();",
+        "}",
+        "Stream g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_typed_stream_to_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "f() async* {",
+        "  yield* g();",
+        "}",
+        "Stream<int> g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_async_typed_stream_to_typed_stream() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Stream<int> f() async* {",
+        "  yield* g();",
+        "}",
+        "Stream<int> g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_dynamic_to_dynamic() throws Exception {
     Source source = addSource(createSource(//
         "f() sync* {",
-        "  yield* 0;",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_dynamic_to_iterable() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable f() sync* {",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_dynamic_to_typed_iterable() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() sync* {",
+        "  yield* g();",
+        "}",
+        "g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_iterable_to_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield* g();",
+        "}",
+        "Iterable g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_typed_iterable_to_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield* g();",
+        "}",
+        "Iterable<int> g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_each_sync_typed_iterable_to_typed_iterable() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() sync* {",
+        "  yield* g();",
+        "}",
+        "Iterable<int> g() => null;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_dynamic_type() throws Exception {
+    Source source = addSource(createSource(//
+        "dynamic f() sync* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_generic_type() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_parameterized_type() throws Exception {
+    Source source = addSource(createSource(//
+        "Iterable<int> f() async* {",
+        "  yield 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_yield_sync_to_untyped() throws Exception {
+    Source source = addSource(createSource(//
+        "f() sync* {",
+        "  yield 3;",
         "}"));
     resolve(source);
     assertNoErrors(source);

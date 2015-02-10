@@ -196,12 +196,12 @@ public final class AnalysisContextFactory {
     coreUnit.setTypes(new ClassElement[] {
         provider.getBoolType().getElement(), provider.getDeprecatedType().getElement(),
         provider.getDoubleType().getElement(), provider.getFunctionType().getElement(),
-        provider.getIntType().getElement(), provider.getListType().getElement(),
-        provider.getMapType().getElement(), provider.getNullType().getElement(),
-        provider.getNumType().getElement(), provider.getObjectType().getElement(),
-        proxyClassElement, provider.getStackTraceType().getElement(),
-        provider.getStringType().getElement(), provider.getSymbolType().getElement(),
-        provider.getTypeType().getElement()});
+        provider.getIntType().getElement(), provider.getIterableType().getElement(),
+        provider.getListType().getElement(), provider.getMapType().getElement(),
+        provider.getNullType().getElement(), provider.getNumType().getElement(),
+        provider.getObjectType().getElement(), proxyClassElement,
+        provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
+        provider.getSymbolType().getElement(), provider.getTypeType().getElement()});
     coreUnit.setFunctions(new FunctionElement[] {functionElement(
         "identical",
         provider.getBoolType().getElement(),

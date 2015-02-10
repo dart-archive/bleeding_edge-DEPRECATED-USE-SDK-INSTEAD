@@ -40,6 +40,7 @@ public class TypeProviderImplTest extends EngineTestCase {
     InterfaceType doubleType = classElement("double", numType).getType();
     InterfaceType functionType = classElement("Function", objectType).getType();
     InterfaceType intType = classElement("int", numType).getType();
+    InterfaceType iterableType = classElement("Iterable", objectType, "T").getType();
     InterfaceType listType = classElement("List", objectType, "E").getType();
     InterfaceType mapType = classElement("Map", objectType, "K", "V").getType();
     InterfaceType stackTraceType = classElement("StackTrace", objectType).getType();
@@ -49,9 +50,9 @@ public class TypeProviderImplTest extends EngineTestCase {
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     coreUnit.setTypes(new ClassElement[] {
         boolType.getElement(), doubleType.getElement(), functionType.getElement(),
-        intType.getElement(), listType.getElement(), mapType.getElement(), objectType.getElement(),
-        stackTraceType.getElement(), stringType.getElement(), symbolType.getElement(),
-        typeType.getElement()});
+        intType.getElement(), iterableType.getElement(), listType.getElement(),
+        mapType.getElement(), objectType.getElement(), stackTraceType.getElement(),
+        stringType.getElement(), symbolType.getElement(), typeType.getElement()});
     LibraryElementImpl coreLibrary = new LibraryElementImpl(
         new AnalysisContextImpl(),
         libraryIdentifier("dart.core"));

@@ -78,6 +78,11 @@ public class TestTypeProvider implements TypeProvider {
   private InterfaceType intType;
 
   /**
+   * The type representing 'Iterable&lt;dynamic&gt;'
+   */
+  private InterfaceType iterableDynamicType;
+
+  /**
    * The type representing the built-in type 'Iterable'.
    */
   private InterfaceType iterableType;
@@ -211,6 +216,15 @@ public class TestTypeProvider implements TypeProvider {
     return intType;
   }
 
+  @Override
+  public InterfaceType getIterableDynamicType() {
+    if (iterableDynamicType == null) {
+      iterableDynamicType = getIterableType().substitute(new Type[] {getDynamicType()});
+    }
+    return iterableDynamicType;
+  }
+
+  @Override
   public InterfaceType getIterableType() {
     if (iterableType == null) {
       ClassElementImpl iterableElement = classElement("Iterable", "E");

@@ -63,6 +63,17 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_missingReturn_async() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not yet been fully backported from dart.
+    // See dartbug.com/22252.
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() async {}"));
+    resolve(source);
+    assertErrors(source, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
   public void fail_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

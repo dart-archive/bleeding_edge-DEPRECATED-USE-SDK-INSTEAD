@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AwaitExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -325,6 +326,35 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
         if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
           recordPropagatedType(node, propagatedType);
         }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The Dart Language Specification, 16.29 (Await Expressions): <blockquote>Let flatten(T) =
+   * flatten(S) if T = Future&lt;S&gt;, and T otherwise. The static type of [the expression await
+   * "e"] is flatten(T) where T is the static type of e.</blockquote>
+   */
+  @Override
+  public Void visitAwaitExpression(AwaitExpression node) {
+    Type staticExpressionType = getStaticType(node.getExpression());
+    if (staticExpressionType == null) {
+      // TODO(brianwilkerson) Determine whether this can still happen.
+      staticExpressionType = dynamicType;
+    }
+    // TODO(paulberry): We should set staticType to flatten(staticExpressionType).  But we can't
+    // implement the flatten function because the Future type isn't available in the type provider.
+    // So to avoid bogus wrnings, set it to dynamic.
+    Type staticType = dynamicType;
+    recordStaticType(node, staticType);
+    Type propagatedExpressionType = node.getExpression().getPropagatedType();
+    if (propagatedExpressionType != null) {
+      // TODO(paulberry): This should be flatten(propagatedExpressionType) for the same reasons as
+      // documented above next to the declaration of staticType.
+      Type propagatedType = dynamicType;
+      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        recordPropagatedType(node, propagatedType);
       }
     }
     return null;
@@ -1536,10 +1566,28 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    */
   private Type computeStaticReturnTypeOfFunctionExpression(FunctionExpression node) {
     FunctionBody body = node.getBody();
-    if (body instanceof ExpressionFunctionBody) {
-      return getStaticType(((ExpressionFunctionBody) body).getExpression());
+    if (body.isGenerator()) {
+      if (body.isAsynchronous()) {
+        // TODO(paulberry): We should return Stream<dynamic>.  But we can't because the Stream type
+        // isn't available in the type provider.  So to avoid bogus warnings, return dynamic.
+        return typeProvider.getDynamicType();
+      } else {
+        return typeProvider.getIterableDynamicType();
+      }
     }
-    return dynamicType;
+    Type type;
+    if (body instanceof ExpressionFunctionBody) {
+      type = getStaticType(((ExpressionFunctionBody) body).getExpression());
+    } else {
+      type = dynamicType;
+    }
+    if (body.isAsynchronous()) {
+      // TODO(paulberry): we should return Future<flatten(type)>.  But we can't because the Future
+      // type isn't available in the type provider.  So to avoid bogus warnings, return dynamic.
+      return dynamicType;
+    } else {
+      return type;
+    }
   }
 
   /**

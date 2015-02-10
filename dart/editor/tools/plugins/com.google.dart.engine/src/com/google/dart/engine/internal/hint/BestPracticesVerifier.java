@@ -577,7 +577,9 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
   /**
    * Generate a hint for functions or methods that have a return type, but do not have a return
    * statement on all branches. At the end of blocks with no return, Dart implicitly returns
-   * {@code null}, avoiding these implicit returns is considered a best practice.
+   * {@code null}, avoiding these implicit returns is considered a best practice. Note: for async
+   * functions/methods, this hint only applies when the function has a return type that
+   * Future&lt;Null&gt; is not assignable to.
    * 
    * @param node the binary expression to check
    * @param body the function body
@@ -595,9 +597,22 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
 
+    // Generators are never required to have a return statement.
+    if (body.isGenerator()) {
+      return false;
+    }
+
     // Check that the type is resolvable, and is not "void"
     Type returnTypeType = returnType.getType();
     if (returnTypeType == null || returnTypeType.isVoid()) {
+      return false;
+    }
+
+    // For async, give no hint if Future<Null> is assignable to the return type.
+    // TODO(paulberry): we can't check if Future<Null> is assignable to the return type because the
+    // Future type isn't available in the type provider.  So to avoid bogus hints, just suppress
+    // the hint for asynchronous methods.
+    if (body.isAsynchronous()) {
       return false;
     }
 

@@ -15,9 +15,12 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstFactory;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
@@ -53,6 +56,7 @@ import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.scanner.TokenFactory;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -133,6 +137,34 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    * The type provider used to access the types.
    */
   private TestTypeProvider typeProvider;
+
+  public void fail_visitAwaitExpression_flattened() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.  In
+    // particular, this test can't be implemented until Future is available in the type provider.
+    // See dartbug.com/22252.
+    fail("Test not implemented yet");
+  }
+
+  public void fail_visitAwaitExpression_simple() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.  In
+    // particular, this test can't be implemented until Future is available in the type provider.
+    // See dartbug.com/22252.
+    fail("Test not implemented yet");
+  }
+
+  public void fail_visitFunctionExpression_async_expression_flatten() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.  In
+    // particular, this test can't be implemented until Future is available in the type provider.
+    // See dartbug.com/22252.
+    fail("Test not implemented yet");
+  }
+
+  public void fail_visitFunctionExpression_async_expression_flatten_twice() throws Exception {
+    // TODO(paulberry): Some async/await type checking has not been fully backported from dart.  In
+    // particular, this test can't be implemented until Future is available in the type provider.
+    // See dartbug.com/22252.
+    fail("Test not implemented yet");
+  }
 
   public void fail_visitFunctionExpressionInvocation() throws Exception {
     fail("Not yet tested");
@@ -337,6 +369,56 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // 4.33
     Expression node = doubleLiteral(4.33);
     assertSame(typeProvider.getDoubleType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFunctionExpression_async_block() throws Exception {
+    // () async {}
+    BlockFunctionBody body = AstFactory.blockFunctionBody();
+    body.setKeyword(TokenFactory.tokenFromString("async"));
+    FunctionExpression node = resolvedFunctionExpression(AstFactory.formalParameterList(), body);
+    @SuppressWarnings("unused")
+    Type resultType = analyze(node);
+    // TODO(paulberry): We should check that resultType is Future<dynamic>.  But we can't because
+    // the Future type isn't available in the type provider.
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFunctionExpression_async_expression() throws Exception {
+    // () async => e, where e has type int
+    InterfaceType intType = typeProvider.getIntType();
+    Expression expression = resolvedVariable(intType, "e");
+    ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
+    body.setKeyword(TokenFactory.tokenFromString("async"));
+    FunctionExpression node = resolvedFunctionExpression(AstFactory.formalParameterList(), body);
+    @SuppressWarnings("unused")
+    Type resultType = analyze(node);
+    // TODO(paulberry): We should check that resultType is Future<int>.  But we can't because the
+    // Future type isn't available in the type provider.
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFunctionExpression_generator_async() throws Exception {
+    // () async* {}
+    BlockFunctionBody body = AstFactory.blockFunctionBody();
+    body.setKeyword(TokenFactory.tokenFromString("async"));
+    body.setStar(TokenFactory.tokenFromType(TokenType.STAR));
+    FunctionExpression node = resolvedFunctionExpression(AstFactory.formalParameterList(), body);
+    @SuppressWarnings("unused")
+    Type resultType = analyze(node);
+    // TODO(paulberry): we should check that resultType is Stream<dynamic>.  But we can't because
+    // the Stream type isn't available in the type provider.
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFunctionExpression_generator_sync() throws Exception {
+    // () sync* {}
+    BlockFunctionBody body = AstFactory.blockFunctionBody();
+    body.setKeyword(TokenFactory.tokenFromString("sync"));
+    body.setStar(TokenFactory.tokenFromType(TokenType.STAR));
+    FunctionExpression node = resolvedFunctionExpression(AstFactory.formalParameterList(), body);
+    Type resultType = analyze(node);
+    assertFunctionType(typeProvider.getIterableDynamicType(), null, null, null, resultType);
     listener.assertNoErrors();
   }
 
@@ -1035,7 +1117,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
       }
     }
 
-    assertSame(expectedReturnType, functionType.getReturnType());
+    assertEquals(expectedReturnType, functionType.getReturnType());
   }
 
   private void assertType(InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {

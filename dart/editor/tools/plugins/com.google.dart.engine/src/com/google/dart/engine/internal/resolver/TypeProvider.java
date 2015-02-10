@@ -73,6 +73,16 @@ public interface TypeProvider {
   public InterfaceType getIntType();
 
   /**
+   * Return the type representing the type 'Iterable&lt;dynamic&gt;'.
+   */
+  public InterfaceType getIterableDynamicType();
+
+  /**
+   * Return the type representing the built-in type 'Iterable'.
+   */
+  public InterfaceType getIterableType();
+
+  /**
    * Return the type representing the built-in type 'List'.
    * 
    * @return the type representing the built-in type 'List'

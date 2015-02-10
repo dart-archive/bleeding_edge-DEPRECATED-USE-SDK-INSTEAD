@@ -67,6 +67,16 @@ public class TypeProviderImpl implements TypeProvider {
   private InterfaceType intType;
 
   /**
+   * The type representing 'Iterable&lt;dynamic&gt;'.
+   */
+  private InterfaceType iterableDynamicType;
+
+  /**
+   * The type representing the built-in type 'Iterable'.
+   */
+  private InterfaceType iterableType;
+
+  /**
    * The type representing the built-in type 'List'.
    */
   private InterfaceType listType;
@@ -156,6 +166,16 @@ public class TypeProviderImpl implements TypeProvider {
   }
 
   @Override
+  public InterfaceType getIterableDynamicType() {
+    return iterableDynamicType;
+  }
+
+  @Override
+  public InterfaceType getIterableType() {
+    return iterableType;
+  }
+
+  @Override
   public InterfaceType getListType() {
     return listType;
   }
@@ -231,6 +251,7 @@ public class TypeProviderImpl implements TypeProvider {
     dynamicType = DynamicTypeImpl.getInstance();
     functionType = getType(namespace, "Function");
     intType = getType(namespace, "int");
+    iterableType = getType(namespace, "Iterable");
     listType = getType(namespace, "List");
     mapType = getType(namespace, "Map");
     nullType = getType(namespace, "Null");
@@ -240,5 +261,6 @@ public class TypeProviderImpl implements TypeProvider {
     stringType = getType(namespace, "String");
     symbolType = getType(namespace, "Symbol");
     typeType = getType(namespace, "Type");
+    iterableDynamicType = iterableType.substitute(new Type[] {dynamicType});
   }
 }

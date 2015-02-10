@@ -41,6 +41,27 @@ public enum StaticTypeWarningCode implements ErrorCode {
       "Map literal requires exactly two type arguments or none, but %d found"),
 
   /**
+   * 9 Functions: It is a static warning if the declared return type of a function marked async* may
+   * not be assigned to Stream.
+   */
+  ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE(
+      "Functions marked 'async*' must have a return type assignable to 'Stream'"),
+
+  /**
+   * 9 Functions: It is a static warning if the declared return type of a function marked async may
+   * not be assigned to Stream.
+   */
+  ILLEGAL_ASYNC_RETURN_TYPE(
+      "Functions marked 'async' must have a return type assignable to 'Future'"),
+
+  /**
+   * 9 Functions: It is a static warning if the declared return type of a function marked sync* may
+   * not be assigned to Stream.
+   */
+  ILLEGAL_SYNC_GENERATOR_RETURN_TYPE(
+      "Functions marked 'sync*' must have a return type assignable to 'Iterable'"),
+
+  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 
@@ -325,7 +346,25 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
    */
   WRONG_NUMBER_OF_TYPE_ARGUMENTS(
-      "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+      "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
+
+  /**
+   * 17.16.1 Yield: Let T be the static type of e [the expression to the right of "yield"] and let f
+   * be the immediately enclosing function. It is a static type warning if either:
+   * <ul>
+   * <li>the body of f is marked async* and the type Stream&lt;T&gt; may not be assigned to the
+   * declared return type of f.
+   * <li>the body of f is marked sync* and the type Iterable&lt;T&gt; may not be assigned to the
+   * declared return type of f.
+   * <p>
+   * 17.16.2 Yield-Each: Let T be the static type of e [the expression to the right of "yield*"] and
+   * let f be the immediately enclosing function. It is a static type warning if T may not be
+   * assigned to the declared return type of f. If f is synchronous it is a static type warning if T
+   * may not be assigned to Iterable. If f is asynchronous it is a static type warning if T may not
+   * be assigned to Stream.
+   */
+  YIELD_OF_INVALID_TYPE(
+      "The type '%s' implied by the 'yield' expression must be assignable to '%s'");
 
   /**
    * The template used to create the message to be displayed for this error.
