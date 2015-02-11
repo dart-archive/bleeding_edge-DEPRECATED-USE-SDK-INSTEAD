@@ -14,6 +14,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.source.Source;
@@ -180,9 +181,7 @@ public class AnalysisView extends ViewPart {
   }
 
   private static enum ContextWorkerState {
-    NONE,
-    IN_QUEUE,
-    ACTIVE;
+    NONE, IN_QUEUE, ACTIVE;
   }
 
   private static class LibraryDependencyCollector {
@@ -254,11 +253,7 @@ public class AnalysisView extends ViewPart {
         // default context
         AnalysisContext defaultContext = project.getDefaultContext();
         if (visited.add(defaultContext)) {
-          addContext(
-              queueWorkers,
-              activeWorker,
-              contexts,
-              projectName,
+          addContext(queueWorkers, activeWorker, contexts, projectName,
               (InternalAnalysisContext) defaultContext);
         }
         // separate Pub folders
@@ -266,11 +261,7 @@ public class AnalysisView extends ViewPart {
           String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
           AnalysisContext context = pubFolder.getContext();
           if (context != defaultContext && visited.add(context)) {
-            addContext(
-                queueWorkers,
-                activeWorker,
-                contexts,
-                pubFolderName,
+            addContext(queueWorkers, activeWorker, contexts, pubFolderName,
                 (InternalAnalysisContext) context);
           }
         }
@@ -567,6 +558,14 @@ public class AnalysisView extends ViewPart {
         copyMemoryStats();
       }
     });
+    MenuItem copyPerformanceStatsItem = new MenuItem(menu, SWT.PUSH);
+    copyPerformanceStatsItem.setText("Copy Performance Statistics");
+    copyPerformanceStatsItem.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent event) {
+        copyPerformanceStats();
+      }
+    });
     viewer.getTree().setMenu(menu);
 
     viewer.setInput(this);
@@ -609,6 +608,13 @@ public class AnalysisView extends ViewPart {
   public void setFocus() {
   }
 
+  private void appendPerfLine(StringBuilder buffer, String name, long time) {
+    buffer.append(name);
+    buffer.append(" ");
+    buffer.append(time);
+    buffer.append("\n");
+  }
+
   private void copyExceptions() {
     Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
     TextTransfer textTransfer = TextTransfer.getInstance();
@@ -618,8 +624,7 @@ public class AnalysisView extends ViewPart {
   private void copyLibraryDependencies(AnalysisContextData data) {
     Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
     TextTransfer textTransfer = TextTransfer.getInstance();
-    clipboard.setContents(
-        new Object[] {copyLibraryDependenciesText(data)},
+    clipboard.setContents(new Object[] {copyLibraryDependenciesText(data)},
         new Transfer[] {textTransfer});
   }
 
@@ -633,6 +638,12 @@ public class AnalysisView extends ViewPart {
     Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
     TextTransfer textTransfer = TextTransfer.getInstance();
     clipboard.setContents(new Object[] {getMemoryStatsText()}, new Transfer[] {textTransfer});
+  }
+
+  private void copyPerformanceStats() {
+    Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
+    TextTransfer textTransfer = TextTransfer.getInstance();
+    clipboard.setContents(new Object[] {getPerformanceStatsText()}, new Transfer[] {textTransfer});
   }
 
   private void copySources(AnalysisContextData data) {
@@ -694,6 +705,17 @@ public class AnalysisView extends ViewPart {
       usageData.addContext(data.getContext());
     }
     return usageData.getReport();
+  }
+
+  private String getPerformanceStatsText() {
+    StringBuilder buf = new StringBuilder();
+    appendPerfLine(buf, "io     ", PerformanceStatistics.io.getResult());
+    appendPerfLine(buf, "scan   ", PerformanceStatistics.scan.getResult());
+    appendPerfLine(buf, "parse  ", PerformanceStatistics.parse.getResult());
+    appendPerfLine(buf, "resolve", PerformanceStatistics.resolve.getResult());
+    appendPerfLine(buf, "errors ", PerformanceStatistics.errors.getResult());
+    appendPerfLine(buf, "hints  ", PerformanceStatistics.hints.getResult());
+    return buf.toString();
   }
 
   private Color getRedColor() {
