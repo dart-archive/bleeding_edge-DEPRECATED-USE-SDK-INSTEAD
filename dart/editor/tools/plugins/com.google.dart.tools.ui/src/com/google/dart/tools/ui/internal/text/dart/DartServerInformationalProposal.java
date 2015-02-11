@@ -84,7 +84,7 @@ public class DartServerInformationalProposal implements ICompletionProposal,
   /**
    * The selection offset. This is set if the trigger character was inserted.
    */
-  private int selectionOffset = 0;
+  private int selectionOffset = -1;
 
   private DartServerInformationalProposal(String message) {
     this.message = message;
@@ -98,10 +98,11 @@ public class DartServerInformationalProposal implements ICompletionProposal,
   @Override
   public void apply(IDocument document, char trigger, int offset) {
     // Informational only... only insert the trigger character if there was one
+    selectionOffset = offset;
     if (trigger != '\0') {
       try {
         document.replace(offset, 0, Character.toString(trigger));
-        selectionOffset = offset + 1;
+        ++selectionOffset;
       } catch (BadLocationException e) {
         // ignored
       }
@@ -135,10 +136,7 @@ public class DartServerInformationalProposal implements ICompletionProposal,
 
   @Override
   public Point getSelection(IDocument document) {
-    if (selectionOffset != 0) {
-      return new Point(selectionOffset, 0);
-    }
-    return null;
+    return new Point(selectionOffset, 0);
   }
 
   @Override
