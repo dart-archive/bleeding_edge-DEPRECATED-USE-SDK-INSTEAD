@@ -466,21 +466,31 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     if (offset < replacementOffset) {
       return false;
     }
-    String prefix;
+    if (offset == replacementOffset) {
+      return true;
+    }
+    String textEntered;
     try {
-      prefix = document.get(replacementOffset, offset - replacementOffset);
+      textEntered = document.get(replacementOffset, offset - replacementOffset);
     } catch (BadLocationException x) {
       return false;
     }
-    String string = TextProcessor.deprocess(getDisplayString());
-    if (string.length() < prefix.length()) {
+    String completion = TextProcessor.deprocess(getDisplayString());
+    if (completion.length() == 0 || completion.length() < textEntered.length()) {
       return false;
     }
-    String start = string.substring(0, prefix.length());
-    char[] pattern = prefix.toCharArray();
-    char[] name = string.toCharArray();
-    return start.equalsIgnoreCase(prefix)
-        || CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
+    // If the user has entered an upper case char as the first char
+    // then filter all lower case first character suggestions.
+    if (Character.isUpperCase(textEntered.charAt(0)) && Character.isLowerCase(completion.charAt(0))) {
+      return false;
+    }
+    String partialCompletion = completion.substring(0, textEntered.length());
+    if (partialCompletion.equalsIgnoreCase(textEntered)) {
+      return true;
+    }
+    char[] pattern = textEntered.toCharArray();
+    char[] name = completion.toCharArray();
+    return CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
   }
 
   protected void buildLinkedModeModel(LinkedModeModel model, IDocument document, int baseOffset)
