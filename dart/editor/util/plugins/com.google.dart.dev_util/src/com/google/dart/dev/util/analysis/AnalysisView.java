@@ -13,6 +13,9 @@ import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.internal.cache.CacheState;
+import com.google.dart.engine.internal.cache.DataDescriptor;
+import com.google.dart.engine.internal.cache.SourceEntryImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.index.IndexImpl;
@@ -27,6 +30,7 @@ import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -56,8 +60,12 @@ import org.eclipse.ui.part.ViewPart;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -709,12 +717,40 @@ public class AnalysisView extends ViewPart {
 
   private String getPerformanceStatsText() {
     StringBuilder buf = new StringBuilder();
-    appendPerfLine(buf, "io     ", PerformanceStatistics.io.getResult());
-    appendPerfLine(buf, "scan   ", PerformanceStatistics.scan.getResult());
-    appendPerfLine(buf, "parse  ", PerformanceStatistics.parse.getResult());
-    appendPerfLine(buf, "resolve", PerformanceStatistics.resolve.getResult());
-    appendPerfLine(buf, "errors ", PerformanceStatistics.errors.getResult());
-    appendPerfLine(buf, "hints  ", PerformanceStatistics.hints.getResult());
+    buf.append("Time spent in each phase of analysis:\n");
+    appendPerfLine(buf, "  io     ", PerformanceStatistics.io.getResult());
+    appendPerfLine(buf, "  scan   ", PerformanceStatistics.scan.getResult());
+    appendPerfLine(buf, "  parse  ", PerformanceStatistics.parse.getResult());
+    appendPerfLine(buf, "  resolve", PerformanceStatistics.resolve.getResult());
+    appendPerfLine(buf, "  errors ", PerformanceStatistics.errors.getResult());
+    appendPerfLine(buf, "  hints  ", PerformanceStatistics.hints.getResult());
+    buf.append("\n");
+    buf.append("Number of times data switched to VALID:\n");
+    // transitions
+    Map<DataDescriptor<?>, Map<CacheState, Integer>> transitionmap = SourceEntryImpl.transitionMap;
+    List<DataDescriptor<?>> descs = Lists.newArrayList(transitionmap.keySet());
+    Collections.sort(descs, new Comparator<DataDescriptor<?>>() {
+      @Override
+      public int compare(DataDescriptor<?> o1, DataDescriptor<?> o2) {
+        String name1 = o1.getName();
+        String name2 = o2.getName();
+        return name1.compareTo(name2);
+      }
+    });
+    for (DataDescriptor<?> desc : descs) {
+      buf.append("  ");
+      buf.append(desc);
+      buf.append("\n");
+      Map<CacheState, Integer> descMap = transitionmap.get(desc);
+      for (Entry<CacheState, Integer> entry2 : descMap.entrySet()) {
+        CacheState fromState = entry2.getKey();
+        int count = entry2.getValue();
+        buf.append(StringUtils.leftPad(Integer.toString(count), 15));
+        buf.append(" ");
+        buf.append(fromState.name());
+        buf.append("\n");
+      }
+    }
     return buf.toString();
   }
 

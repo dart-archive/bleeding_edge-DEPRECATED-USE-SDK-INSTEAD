@@ -1432,15 +1432,19 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public <E> void setValueInLibrary(DataDescriptor<E> descriptor, Source librarySource, E value) {
     ResolutionState state = getOrCreateResolutionState(librarySource);
     if (descriptor == RESOLUTION_ERRORS) {
+      countTransitionToValid(descriptor, state.resolutionErrorsState);
       state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.resolutionErrorsState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
+      countTransitionToValid(descriptor, state.resolvedUnitState);
       state.resolvedUnit = (CompilationUnit) value;
       state.resolvedUnitState = CacheState.VALID;
     } else if (descriptor == VERIFICATION_ERRORS) {
+      countTransitionToValid(descriptor, state.verificationErrorsState);
       state.verificationErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.verificationErrorsState = CacheState.VALID;
     } else if (descriptor == HINTS) {
+      countTransitionToValid(descriptor, state.hintsState);
       state.hints = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.hintsState = CacheState.VALID;
     }

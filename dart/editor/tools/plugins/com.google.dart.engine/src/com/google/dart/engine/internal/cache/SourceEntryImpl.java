@@ -304,8 +304,8 @@ public abstract class SourceEntryImpl implements SourceEntry {
       descriptorMap = Maps.newHashMap();
       transitionMap.put(descriptor, descriptorMap);
     }
-    Integer count = descriptorMap.get(descriptor);
-    descriptorMap.put(currentState, count == null ? 0 : count.intValue() + 1);
+    Integer count = descriptorMap.get(currentState);
+    descriptorMap.put(currentState, count == null ? 1 : count.intValue() + 1);
   }
 
   /**
