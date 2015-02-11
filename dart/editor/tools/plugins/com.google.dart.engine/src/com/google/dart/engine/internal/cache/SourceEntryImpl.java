@@ -13,11 +13,14 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
+
+import java.util.Map;
 
 /**
  * Instances of the abstract class {@code SourceEntryImpl} implement the behavior common to all
@@ -62,6 +65,12 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * currently cached.
    */
   private LineInfo lineInfo;
+
+  /**
+   * A table mapping data descriptors to a count of the number of times a value of that kind was
+   * transitioned from some {@link CacheState} to {@link CacheState#VALID}.
+   */
+  public static final Map<DataDescriptor<?>, Map<CacheState, Integer>> transitionMap = Maps.newHashMap();
 
   /**
    * The index of the flag indicating whether the source was explicitly added to the context or
@@ -240,9 +249,11 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == CONTENT) {
+      countTransitionToValid(descriptor, contentState);
       content = (CharSequence) value;
       contentState = checkContentState(CacheState.VALID);
     } else if (descriptor == LINE_INFO) {
+      countTransitionToValid(descriptor, lineInfoState);
       lineInfo = (LineInfo) value;
       lineInfoState = CacheState.VALID;
     } else {
@@ -281,6 +292,20 @@ public abstract class SourceEntryImpl implements SourceEntry {
     content = entry.content;
     lineInfoState = entry.lineInfoState;
     lineInfo = entry.lineInfo;
+  }
+
+  /**
+   * Increment count of transitions of the given {@link DataDescriptor} from the current
+   * {@link CacheState} to the {@link CacheState#VALID}.
+   */
+  protected <E> void countTransitionToValid(DataDescriptor<E> descriptor, CacheState currentState) {
+    Map<CacheState, Integer> descriptorMap = transitionMap.get(descriptor);
+    if (descriptorMap == null) {
+      descriptorMap = Maps.newHashMap();
+      transitionMap.put(descriptor, descriptorMap);
+    }
+    Integer count = descriptorMap.get(descriptor);
+    descriptorMap.put(currentState, count == null ? 0 : count.intValue() + 1);
   }
 
   /**

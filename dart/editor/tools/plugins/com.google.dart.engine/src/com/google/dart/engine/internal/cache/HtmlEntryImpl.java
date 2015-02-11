@@ -479,42 +479,55 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == ANGULAR_APPLICATION) {
+      countTransitionToValid(descriptor, angularApplicationState);
       angularApplication = (AngularApplication) value;
       angularApplicationState = CacheState.VALID;
     } else if (descriptor == ANGULAR_COMPONENT) {
+      countTransitionToValid(descriptor, angularComponentState);
       angularComponent = (AngularComponentElement) value;
       angularComponentState = CacheState.VALID;
     } else if (descriptor == ANGULAR_ENTRY) {
+      countTransitionToValid(descriptor, angularEntryState);
       angularEntry = (AngularApplication) value;
       angularEntryState = CacheState.VALID;
     } else if (descriptor == ANGULAR_ERRORS) {
+      countTransitionToValid(descriptor, angularErrorsState);
       angularErrors = (AnalysisError[]) value;
       angularErrorsState = CacheState.VALID;
     } else if (descriptor == ELEMENT) {
+      countTransitionToValid(descriptor, elementState);
       element = (HtmlElement) value;
       elementState = CacheState.VALID;
     } else if (descriptor == PARSE_ERRORS) {
+      countTransitionToValid(descriptor, parseErrorsState);
       parseErrors = (AnalysisError[]) value;
       parseErrorsState = CacheState.VALID;
     } else if (descriptor == PARSED_UNIT) {
+      countTransitionToValid(descriptor, parsedUnitState);
       parsedUnit = (HtmlUnit) value;
       parsedUnitState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
+      countTransitionToValid(descriptor, resolvedUnitState);
       resolvedUnit = (HtmlUnit) value;
       resolvedUnitState = CacheState.VALID;
     } else if (descriptor == REFERENCED_LIBRARIES) {
+      countTransitionToValid(descriptor, referencedLibrariesState);
       referencedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       referencedLibrariesState = CacheState.VALID;
     } else if (descriptor == RESOLUTION_ERRORS) {
+      countTransitionToValid(descriptor, resolutionErrorsState);
       resolutionErrors = (AnalysisError[]) value;
       resolutionErrorsState = CacheState.VALID;
     } else if (descriptor == HINTS) {
+      countTransitionToValid(descriptor, hintsState);
       hints = (AnalysisError[]) value;
       hintsState = CacheState.VALID;
     } else if (descriptor == POLYMER_BUILD_ERRORS) {
+      countTransitionToValid(descriptor, polymerBuildErrorsState);
       polymerBuildErrors = (AnalysisError[]) value;
       polymerBuildErrorsState = CacheState.VALID;
     } else if (descriptor == POLYMER_RESOLUTION_ERRORS) {
+      countTransitionToValid(descriptor, polymerResolutionErrorsState);
       polymerResolutionErrors = (AnalysisError[]) value;
       polymerResolutionErrorsState = CacheState.VALID;
     } else {

@@ -1367,40 +1367,52 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (descriptor == ANGULAR_ERRORS) {
       angularErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
     } else if (descriptor == ELEMENT) {
+      countTransitionToValid(descriptor, elementState);
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
     } else if (descriptor == EXPORTED_LIBRARIES) {
+      countTransitionToValid(descriptor, exportedLibrariesState);
       exportedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       exportedLibrariesState = CacheState.VALID;
     } else if (descriptor == IMPORTED_LIBRARIES) {
+      countTransitionToValid(descriptor, importedLibrariesState);
       importedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       importedLibrariesState = CacheState.VALID;
     } else if (descriptor == INCLUDED_PARTS) {
+      countTransitionToValid(descriptor, includedPartsState);
       includedParts = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       includedPartsState = CacheState.VALID;
     } else if (descriptor == IS_CLIENT) {
+      countTransitionToValid(descriptor, clientServerState);
       setFlag(CLIENT_CODE_INDEX, ((Boolean) value).booleanValue());
       clientServerState = CacheState.VALID;
     } else if (descriptor == IS_LAUNCHABLE) {
+      countTransitionToValid(descriptor, launchableState);
       setFlag(LAUNCHABLE_INDEX, ((Boolean) value).booleanValue());
       launchableState = CacheState.VALID;
     } else if (descriptor == PARSE_ERRORS) {
+      countTransitionToValid(descriptor, parseErrorsState);
       parseErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       parseErrorsState = CacheState.VALID;
     } else if (descriptor == PARSED_UNIT) {
+      countTransitionToValid(descriptor, parsedUnitState);
       parsedUnit = (CompilationUnit) value;
       parsedUnitAccessed = false;
       parsedUnitState = CacheState.VALID;
     } else if (descriptor == PUBLIC_NAMESPACE) {
+      countTransitionToValid(descriptor, publicNamespaceState);
       publicNamespace = (Namespace) value;
       publicNamespaceState = CacheState.VALID;
     } else if (descriptor == SCAN_ERRORS) {
+      countTransitionToValid(descriptor, scanErrorsState);
       scanErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       scanErrorsState = CacheState.VALID;
     } else if (descriptor == SOURCE_KIND) {
+      countTransitionToValid(descriptor, sourceKindState);
       sourceKind = (SourceKind) value;
       sourceKindState = CacheState.VALID;
     } else if (descriptor == TOKEN_STREAM) {
+      countTransitionToValid(descriptor, tokenStreamState);
       tokenStream = (Token) value;
       tokenStreamState = CacheState.VALID;
     } else {
