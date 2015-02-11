@@ -107,6 +107,18 @@ public class DartEditorContentAssistant extends ContentAssistant {
     this.sourceViewer = sourceViewer;
   }
 
+  /**
+   * Returns the caret position relative to the start of the text.
+   */
+  public int getDocumentOffset() {
+    return sourceViewer.getTextWidget().getCaretOffset();
+  }
+
+  @Override
+  public void hide() {
+    super.hide();
+  }
+
   @Override
   public void install(ITextViewer textViewer) {
     super.install(textViewer);

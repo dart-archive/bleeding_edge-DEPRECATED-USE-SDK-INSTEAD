@@ -139,6 +139,13 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     return proposals;
   }
 
+  /**
+   * Return the offset of the start of the text to be replaced.
+   */
+  int getReplacementOffset() {
+    return collector != null ? collector.getReplacementOffset() : 0;
+  }
+
   private boolean waitUntilReady_NEW(boolean auto, int offset) {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());

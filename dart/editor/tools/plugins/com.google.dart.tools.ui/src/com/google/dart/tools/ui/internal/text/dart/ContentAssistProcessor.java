@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
+import com.google.dart.tools.ui.text.DartEditorContentAssistant;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 
@@ -40,6 +41,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
+import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistantExtension2;
@@ -86,6 +88,99 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ContentAssistProcessor implements IContentAssistProcessor {
 
+  private final class CompletionListenerImpl implements ICompletionListener,
+      ICompletionListenerExtension {
+    /*
+     * @see org.eclipse.jface.text.contentassist.ICompletionListener#assistSessionEnded
+     * (org.eclipse.jface.text.contentassist.ContentAssistEvent)
+     */
+    @Override
+    public void assistSessionEnded(ContentAssistEvent event) {
+      if (event.processor != ContentAssistProcessor.this) {
+        return;
+      }
+
+      for (Iterator it = fCategories.iterator(); it.hasNext();) {
+        CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
+        cat.sessionEnded();
+      }
+
+      fCategoryIteration = null;
+      fRepetition = -1;
+      fIterationGesture = null;
+      if (event.assistant instanceof IContentAssistantExtension2) {
+        IContentAssistantExtension2 extension = (IContentAssistantExtension2) event.assistant;
+        extension.setShowEmptyList(false);
+        extension.setRepeatedInvocationMode(false);
+        extension.setStatusLineVisible(false);
+        if (extension instanceof IContentAssistantExtension3) {
+          IContentAssistantExtension3 ext3 = (IContentAssistantExtension3) extension;
+          ((ContentAssistant) ext3).setRepeatedInvocationTrigger(null);
+        }
+      }
+    }
+
+    @Override
+    public void assistSessionRestarted(ContentAssistEvent event) {
+      if (event.processor instanceof DartCompletionProcessor) {
+        DartCompletionProcessor processor = (DartCompletionProcessor) event.processor;
+        if (event.assistant instanceof DartEditorContentAssistant) {
+          DartEditorContentAssistant assistant = (DartEditorContentAssistant) event.assistant;
+          if (assistant.getDocumentOffset() < processor.getReplacementOffset()) {
+            // Cancel the suggestion dialog if user backspaces beyond insertion point
+            assistant.hide();
+          }
+        }
+      }
+    }
+
+    /*
+     * @see org.eclipse.jface.text.contentassist.ICompletionListener# assistSessionStarted
+     * (org.eclipse.jface.text.contentassist.ContentAssistEvent)
+     */
+    @Override
+    public void assistSessionStarted(ContentAssistEvent event) {
+      if (event.processor != ContentAssistProcessor.this) {
+        return;
+      }
+
+      fIterationGesture = getIterationGesture();
+      KeySequence binding = getIterationBinding();
+
+      // this may show the warning dialog if all categories are disabled
+      fCategoryIteration = getCategoryIteration();
+      for (Iterator it = fCategories.iterator(); it.hasNext();) {
+        CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
+        cat.sessionStarted();
+      }
+
+      fRepetition = 0;
+      if (event.assistant instanceof IContentAssistantExtension2) {
+        IContentAssistantExtension2 extension = (IContentAssistantExtension2) event.assistant;
+
+        if (fCategoryIteration.size() == 1) {
+          extension.setRepeatedInvocationMode(false);
+          extension.setShowEmptyList(false);
+        } else {
+          extension.setRepeatedInvocationMode(true);
+          extension.setStatusLineVisible(true);
+          extension.setStatusMessage(createIterationMessage());
+          extension.setShowEmptyList(true);
+          if (extension instanceof IContentAssistantExtension3) {
+            IContentAssistantExtension3 ext3 = (IContentAssistantExtension3) extension;
+            ((ContentAssistant) ext3).setRepeatedInvocationTrigger(binding);
+          }
+        }
+
+      }
+    }
+
+    @Override
+    public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
+      // ignored
+    }
+  }
+
   private static final boolean DEBUG = DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING;
 
   /**
@@ -125,88 +220,7 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     fPartition = partition;
     fCategories = CompletionProposalComputerRegistry.getDefault().getProposalCategories();
     fAssistant = assistant;
-    fAssistant.addCompletionListener(new ICompletionListener() {
-
-      /*
-       * @see org.eclipse.jface.text.contentassist.ICompletionListener#assistSessionEnded
-       * (org.eclipse.jface.text.contentassist.ContentAssistEvent)
-       */
-      @Override
-      public void assistSessionEnded(ContentAssistEvent event) {
-        if (event.processor != ContentAssistProcessor.this) {
-          return;
-        }
-
-        for (Iterator it = fCategories.iterator(); it.hasNext();) {
-          CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
-          cat.sessionEnded();
-        }
-
-        fCategoryIteration = null;
-        fRepetition = -1;
-        fIterationGesture = null;
-        if (event.assistant instanceof IContentAssistantExtension2) {
-          IContentAssistantExtension2 extension = (IContentAssistantExtension2) event.assistant;
-          extension.setShowEmptyList(false);
-          extension.setRepeatedInvocationMode(false);
-          extension.setStatusLineVisible(false);
-          if (extension instanceof IContentAssistantExtension3) {
-            IContentAssistantExtension3 ext3 = (IContentAssistantExtension3) extension;
-            ((ContentAssistant) ext3).setRepeatedInvocationTrigger(null);
-          }
-        }
-      }
-
-      /*
-       * @see org.eclipse.jface.text.contentassist.ICompletionListener# assistSessionStarted
-       * (org.eclipse.jface.text.contentassist.ContentAssistEvent)
-       */
-      @Override
-      public void assistSessionStarted(ContentAssistEvent event) {
-        if (event.processor != ContentAssistProcessor.this) {
-          return;
-        }
-
-        fIterationGesture = getIterationGesture();
-        KeySequence binding = getIterationBinding();
-
-        // this may show the warning dialog if all categories are disabled
-        fCategoryIteration = getCategoryIteration();
-        for (Iterator it = fCategories.iterator(); it.hasNext();) {
-          CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
-          cat.sessionStarted();
-        }
-
-        fRepetition = 0;
-        if (event.assistant instanceof IContentAssistantExtension2) {
-          IContentAssistantExtension2 extension = (IContentAssistantExtension2) event.assistant;
-
-          if (fCategoryIteration.size() == 1) {
-            extension.setRepeatedInvocationMode(false);
-            extension.setShowEmptyList(false);
-          } else {
-            extension.setRepeatedInvocationMode(true);
-            extension.setStatusLineVisible(true);
-            extension.setStatusMessage(createIterationMessage());
-            extension.setShowEmptyList(true);
-            if (extension instanceof IContentAssistantExtension3) {
-              IContentAssistantExtension3 ext3 = (IContentAssistantExtension3) extension;
-              ((ContentAssistant) ext3).setRepeatedInvocationTrigger(binding);
-            }
-          }
-
-        }
-      }
-
-      /*
-       * @see org.eclipse.jface.text.contentassist.ICompletionListener#selectionChanged
-       * (org.eclipse.jface.text.contentassist.ICompletionProposal, boolean)
-       */
-      @Override
-      public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-      }
-
-    });
+    fAssistant.addCompletionListener(new CompletionListenerImpl());
   }
 
   /*
