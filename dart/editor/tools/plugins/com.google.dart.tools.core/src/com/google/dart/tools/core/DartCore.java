@@ -568,7 +568,14 @@ public class DartCore extends Plugin implements DartSdkListener {
               httpPort,
               false,
               FileReadMode.AS_IS);
-          socket.setClientId("org.dartlang.darteditor");
+          if (isPluginsBuild()) {
+            // plugin mode
+            socket.setClientId("org.dartlang.dartplugin");
+          } else {
+            // editor mode
+            socket.setClientId("org.dartlang.darteditor");
+          }
+          socket.setClientVersion(getVersion());
           // start server
           analysisServer = new RemoteAnalysisServerImpl(socket);
           analysisServerDataImpl.setServer(analysisServer);

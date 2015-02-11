@@ -81,6 +81,12 @@ public class StdioServerSocket implements AnalysisServerSocket {
    */
   private String clientId;
 
+  /**
+   * The identifier used to identify this client to the server, or {@code null} if the client does
+   * not choose to identify itself.
+   */
+  private String clientVersion;
+
   public StdioServerSocket(String runtimePath, String analysisServerPath,
       DebugPrintStream debugStream, boolean debugRemoteProcess, boolean profileRemoteProcess,
       int httpPort) {
@@ -149,6 +155,14 @@ public class StdioServerSocket implements AnalysisServerSocket {
    */
   public void setClientId(String id) {
     clientId = id;
+  }
+
+  /**
+   * Set the identifier used to identify this client version to the server to the given identifier.
+   * The identifier must be set before the server has been started.
+   */
+  public void setClientVersion(String version) {
+    clientVersion = version;
   }
 
   @Override
@@ -249,6 +263,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
     //
     if (clientId != null) {
       args.add("--client-id=" + clientId);
+    }
+    if (clientVersion != null) {
+      args.add("--client-version=" + clientVersion);
     }
     if (httpPort != 0) {
       args.add("--port=" + httpPort);
