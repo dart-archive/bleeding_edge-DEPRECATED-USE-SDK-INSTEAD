@@ -724,6 +724,7 @@ public class AnalysisView extends ViewPart {
     appendPerfLine(buf, "  resolve", PerformanceStatistics.resolve.getResult());
     appendPerfLine(buf, "  errors ", PerformanceStatistics.errors.getResult());
     appendPerfLine(buf, "  hints  ", PerformanceStatistics.hints.getResult());
+    appendPerfLine(buf, "  pub    ", PerformanceStatistics.pubList.getResult());
     buf.append("\n");
     buf.append("Number of times data switched to VALID:\n");
     // transitions

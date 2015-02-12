@@ -16,7 +16,9 @@ package com.google.dart.engine.source;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.ProcessRunner;
 
 import org.json.JSONArray;
@@ -128,7 +130,12 @@ public class ExplicitPackageUriResolver extends UriResolver {
     }
 
     if (packageMap == null) {
-      packageMap = calculatePackageMap();
+      TimeCounterHandle handle = PerformanceStatistics.pubList.start();
+      try {
+        packageMap = calculatePackageMap();
+      } finally {
+        handle.stop();
+      }
     }
 
     List<File> dirs = packageMap.get(pkgName);

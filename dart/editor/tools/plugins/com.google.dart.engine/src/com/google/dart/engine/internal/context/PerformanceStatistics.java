@@ -62,6 +62,11 @@ public class PerformanceStatistics {
   public static TimeCounter hints = new TimeCounter();
 
   /**
+   * The {@link TimeCounter} for time spent running "pub list".
+   */
+  public static TimeCounter pubList = new TimeCounter();
+
+  /**
    * Reset all of the time counters to zero.
    */
   public static void reset() {
@@ -73,5 +78,6 @@ public class PerformanceStatistics {
     polymer = new TimeCounter();
     errors = new TimeCounter();
     hints = new TimeCounter();
+    pubList = new TimeCounter();
   }
 }
