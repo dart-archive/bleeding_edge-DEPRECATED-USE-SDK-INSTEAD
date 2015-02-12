@@ -171,6 +171,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String ANGULAR_WARNING_MARKER_TYPE = PLUGIN_ID + ".angular_warning";
 
   /**
+   * Correction marker attribute.
+   */
+  public static final String MARKER_ATTR_CORRECTION = "correction";
+
+  /**
    * Extension for single unit compiled into JavaScript.
    */
   public static final String EXTENSION_JS = "js";

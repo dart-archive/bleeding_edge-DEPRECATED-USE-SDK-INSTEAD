@@ -58,6 +58,7 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -196,6 +197,18 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     private void copyToClipboard(String str) {
       clipboard.setContents(new Object[] {str}, new Transfer[] {TextTransfer.getInstance()});
+    }
+  }
+
+  private static class CorrectionLabelProvider extends ColumnLabelProvider {
+    @Override
+    public String getText(Object element) {
+      if (element instanceof IMarker) {
+        IMarker marker = (IMarker) element;
+        return marker.getAttribute(DartCore.MARKER_ATTR_CORRECTION, null);
+      } else {
+        return super.getText(element);
+      }
     }
   }
 
@@ -773,7 +786,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  public static final ColumnLabelProvider LABEL_PROVIDER = new DescriptionLabelProvider();
+  public static final ILabelProvider DESCRIPTION_LABEL_PROVIDER = new DescriptionLabelProvider();
+  public static final ILabelProvider CORRECTION_LABEL_PROVIDER = new CorrectionLabelProvider();
 
   private final PageSelectionListener pageSelectionListener = new PageSelectionListener();
 
@@ -941,6 +955,13 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     fileNameColumn.getColumn().setWidth(220);
     fileNameColumn.getColumn().setResizable(true);
     enableSorting(fileNameColumn.getColumn(), 1);
+
+    TableViewerColumn correctionColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
+    correctionColumn.setLabelProvider(new CorrectionLabelProvider());
+    correctionColumn.getColumn().setText("Correction");
+    correctionColumn.getColumn().setWidth(520);
+    correctionColumn.getColumn().setResizable(true);
+    enableSorting(correctionColumn.getColumn(), 2);
 
     tableViewer.getTable().setSortColumn(fileNameColumn.getColumn());
 

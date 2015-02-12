@@ -126,6 +126,7 @@ public class AnalysisMarkerManager_NEW {
         marker.setAttribute(IMarker.CHAR_END, location.getOffset() + location.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, location.getStartLine());
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
+        marker.setAttribute(DartCore.MARKER_ATTR_CORRECTION, error.getCorrection());
 
         if (isHint) {
           marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);

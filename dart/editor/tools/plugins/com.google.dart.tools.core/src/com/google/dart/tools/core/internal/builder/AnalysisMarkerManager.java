@@ -133,6 +133,7 @@ public class AnalysisMarkerManager {
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
         marker.setAttribute(ERROR_CODE, encodeErrorCode(errorCode));
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
+        marker.setAttribute(DartCore.MARKER_ATTR_CORRECTION, error.getCorrection());
 
         if (isHint) {
           marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);

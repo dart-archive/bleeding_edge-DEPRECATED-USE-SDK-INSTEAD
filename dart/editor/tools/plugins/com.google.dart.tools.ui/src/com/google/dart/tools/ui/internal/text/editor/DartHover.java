@@ -107,12 +107,28 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       }
       annotations = getSortedAnnotations(annotations);
       for (Annotation annotation : annotations) {
-        Label imageLabel = new Label(container, SWT.NONE);
+        // prepare marker
+        IMarker marker = null;
         if (annotation instanceof MarkerAnnotation) {
-          IMarker marker = ((MarkerAnnotation) annotation).getMarker();
-          imageLabel.setImage(ProblemsView.LABEL_PROVIDER.getImage(marker));
+          marker = ((MarkerAnnotation) annotation).getMarker();
         }
+        // icon
+        {
+          Label imageLabel = new Label(container, SWT.NONE);
+          if (marker != null) {
+            imageLabel.setImage(ProblemsView.DESCRIPTION_LABEL_PROVIDER.getImage(marker));
+          }
+        }
+        // message
         toolkit.createLabel(container, annotation.getText());
+        // correction
+        if (marker != null) {
+          String correction = marker.getAttribute(DartCore.MARKER_ATTR_CORRECTION, (String) null);
+          if (correction != null) {
+            new Label(container, SWT.NONE);
+            toolkit.createLabel(container, correction);
+          }
+        }
       }
     }
   }
