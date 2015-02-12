@@ -44,21 +44,56 @@ public class DartStringDoubleClickSelector_NEW extends DartDoubleClickSelector_O
     }
   }
 
-  private IRegion match(IDocument document, int offset) {
+  private boolean isQuote(char c) {
+    return c == '"' || c == '\'';
+  }
+
+  private boolean isQuote(IDocument document, int offset) throws BadLocationException {
+    char c = document.getChar(offset);
+    return isQuote(c);
+  }
+
+  private IRegion match(IDocument doc, int offset) {
     try {
+      int docLength = doc.getLength();
       // previous is quote, search forward
       {
-        char c = document.getChar(offset - 1);
-        if (c == '"' || c == '\'') {
-          int end = match(document, offset, 1, c);
+        char c = doc.getChar(offset - 1);
+        if (isQuote(c)) {
+          int end;
+          if (offset >= 3 && isQuote(doc, offset - 2) && isQuote(doc, offset - 3)) {
+            // triple quote
+            end = match(doc, offset, 1, doc.get(offset - 3, 3));
+          } else {
+            // single quote
+            end = match(doc, offset, 1, c);
+          }
+          if (end == -1) {
+            return null;
+          }
           return new Region(offset, end - offset);
         }
       }
       // next is quote, search backward
       {
-        char c = document.getChar(offset);
-        if (c == '"' || c == '\'') {
-          int end = match(document, offset - 1, -1, c) + 1;
+        char c = doc.getChar(offset);
+        if (isQuote(c)) {
+          int end;
+          if (offset + 2 < docLength && isQuote(doc, offset + 1) && isQuote(doc, offset + 2)) {
+            // triple quote
+            end = match(doc, offset - 1, -1, doc.get(offset, 3));
+            if (end == -1) {
+              return null;
+            }
+            end += 3;
+          } else {
+            // single quote
+            end = match(doc, offset - 1, -1, c);
+            if (end == -1) {
+              return null;
+            }
+            end += 1;
+          }
           return new Region(end, offset - end);
         }
       }
@@ -67,14 +102,25 @@ public class DartStringDoubleClickSelector_NEW extends DartDoubleClickSelector_O
     return null;
   }
 
-  private int match(IDocument document, int offset, int delta, char charToFind)
+  private int match(IDocument doc, int offset, int delta, char charToFind)
       throws BadLocationException {
+    String stringToFind = new String(new char[] {charToFind});
+    return match(doc, offset, delta, stringToFind);
+  }
+
+  private int match(IDocument doc, int offset, int delta, String strToFind)
+      throws BadLocationException {
+    int docLength = doc.getLength();
+    int strLength = strToFind.length();
     for (;; offset += delta) {
-      char c = document.getChar(offset);
-      if (c == charToFind) {
-        return offset;
+      if (offset < 0) {
+        return -1;
       }
-      if (c == '\\') {
+      if (offset + strLength >= docLength) {
+        return -1;
+      }
+      if (doc.get(offset, strLength).equals(strToFind)) {
+        return offset;
       }
     }
   }

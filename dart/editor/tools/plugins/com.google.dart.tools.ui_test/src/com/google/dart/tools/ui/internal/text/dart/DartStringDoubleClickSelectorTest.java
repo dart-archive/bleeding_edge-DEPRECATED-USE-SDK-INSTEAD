@@ -41,7 +41,7 @@ public class DartStringDoubleClickSelectorTest extends ParserTestCase {
     int clickOffset = content.indexOf(clickPattern);
     when(textViewer.getSelectedRange()).thenReturn(new Point(clickOffset, 0));
     // ask for double click range
-    DartStringDoubleClickSelector_OLD selector = new DartStringDoubleClickSelector_OLD();
+    DartStringDoubleClickSelector_NEW selector = new DartStringDoubleClickSelector_NEW();
     selector.doubleClicked(textViewer);
     // validate
     int resultOffset = content.indexOf(resultContent);
@@ -63,6 +63,20 @@ public class DartStringDoubleClickSelectorTest extends ParserTestCase {
     assertDoubleClickSelection(content, clickPattern, resultContent);
   }
 
+  public void test_afterMultilineQuote_hasSingleQuote_double() throws Exception {
+    String content = "main() { print(\"\"\"aaa \"bbb\" ccc\"\"\"); }";
+    String clickPattern = "aaa ";
+    String resultContent = "aaa \"bbb\" ccc";
+    assertDoubleClickSelection(content, clickPattern, resultContent);
+  }
+
+  public void test_afterMultilineQuote_hasSingleQuote_single() throws Exception {
+    String content = "main() { print('''aaa 'bbb' ccc'''); }";
+    String clickPattern = "aaa ";
+    String resultContent = "aaa 'bbb' ccc";
+    assertDoubleClickSelection(content, clickPattern, resultContent);
+  }
+
   public void test_afterSingleQuote() throws Exception {
     String content = "main() { print('aaa bbb'); }";
     String clickPattern = "aaa bbb";
@@ -77,7 +91,21 @@ public class DartStringDoubleClickSelectorTest extends ParserTestCase {
     assertDoubleClickSelection(content, clickPattern, resultContent);
   }
 
-  public void test_beforeMultilineQuote() throws Exception {
+  public void test_beforeMultilineQuote_hasSingleQuote_double() throws Exception {
+    String content = "main() { print(\"\"\"aaa \"bbb\" ccc\"\"\"); }";
+    String clickPattern = "\"\"\");";
+    String resultContent = "aaa \"bbb\" ccc";
+    assertDoubleClickSelection(content, clickPattern, resultContent);
+  }
+
+  public void test_beforeMultilineQuote_hasSingleQuote_single() throws Exception {
+    String content = "main() { print('''aaa 'bbb' ccc'''); }";
+    String clickPattern = "''');";
+    String resultContent = "aaa 'bbb' ccc";
+    assertDoubleClickSelection(content, clickPattern, resultContent);
+  }
+
+  public void test_beforeMultilineQuote_single() throws Exception {
     String content = "main() { print('''aaa \n bbb'''); }";
     String clickPattern = "''');";
     String resultContent = "aaa \n bbb";
@@ -101,7 +129,7 @@ public class DartStringDoubleClickSelectorTest extends ParserTestCase {
         "  print(s); ",
         "}");
     assertDoubleClickSelection(content, "xxx", "xxx$first$second${first$second.length}yyy");
-    assertDoubleClickSelection(content, "xx$", "xxx");
+    assertDoubleClickSelection(content, "xx$", "xxx$first$second$");
     assertDoubleClickSelection(content, "yy\'", "yyy");
     assertDoubleClickSelection(content, "';/", "xxx$first$second${first$second.length}yyy");
   }
