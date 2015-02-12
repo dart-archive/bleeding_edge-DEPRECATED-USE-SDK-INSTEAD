@@ -23,12 +23,25 @@ public class CodeFormatEditFactoryTest extends TestCase {
 
   static final String EOL = System.getProperty("line.separator");
 
+  public void test_removeTrailingWhitespace_emptyLine_hasSelection() throws Exception {
+    String original = "main() {" + EOL + "   " + EOL + "}";
+    IDocument doc = new Document(original);
+    int selectionStart = ("main() {" + EOL + "  ").length();
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(
+        doc,
+        selectionStart,
+        selectionStart);
+    edit.apply(doc);
+    String expected = "main() {" + EOL + "  " + EOL + "}";
+    assertEquals(expected, doc.get());
+  }
+
   public void test_removeTrailingWhitespace_none() throws Exception {
     String original = "class NoTrailingWhitespace {" + EOL //
         + "  void foo() { }" + EOL //
         + "}";
     IDocument doc = new Document(original);
-    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc);
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc, -1, 0);
     assertEquals(0, edit.getChildrenSize());
     edit.apply(doc);
     assertEquals(original, doc.get());
@@ -39,7 +52,7 @@ public class CodeFormatEditFactoryTest extends TestCase {
         + "  void foo() { }" + EOL //
         + "}" + EOL;
     IDocument doc = new Document(original);
-    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc);
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc, -1, 0);
     assertEquals(0, edit.getChildrenSize());
     edit.apply(doc);
     assertEquals(original, doc.get());
@@ -50,7 +63,7 @@ public class CodeFormatEditFactoryTest extends TestCase {
         + "  void foo() { }" + EOL //
         + "}\r";
     IDocument doc = new Document(original);
-    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc);
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc, -1, 0);
     assertEquals(0, edit.getChildrenSize());
     edit.apply(doc);
     assertEquals(original, doc.get());
@@ -61,7 +74,7 @@ public class CodeFormatEditFactoryTest extends TestCase {
         + "  void foo() { }" + EOL //
         + "}\n";
     IDocument doc = new Document(original);
-    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc);
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc, -1, 0);
     assertEquals(0, edit.getChildrenSize());
     edit.apply(doc);
     assertEquals(original, doc.get());
@@ -73,7 +86,7 @@ public class CodeFormatEditFactoryTest extends TestCase {
         + "}   " + EOL //
         + "  " + EOL;
     IDocument doc = new Document(original);
-    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc);
+    MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(doc, -1, 0);
     assertEquals(3, edit.getChildrenSize());
     edit.apply(doc);
     String expected = "class NoTrailingWhitespace {" + EOL //

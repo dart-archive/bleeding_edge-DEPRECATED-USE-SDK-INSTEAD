@@ -18,6 +18,7 @@ import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
@@ -64,7 +65,13 @@ public class RemoveTrailingWhitespaceAction {
     }
 
     try {
-      MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(document);
+      Point selectionRange = viewer.getSelectedRange();
+      int selectionStart = selectionRange.x;
+      int selectionEnd = selectionStart + selectionRange.y;
+      MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(
+          document,
+          selectionStart,
+          selectionEnd);
       if (edit.hasChildren()) {
         applyTextEdit(document, edit);
         // using rewrite session causes horizontal scroll bar reset, so we need to show selection
