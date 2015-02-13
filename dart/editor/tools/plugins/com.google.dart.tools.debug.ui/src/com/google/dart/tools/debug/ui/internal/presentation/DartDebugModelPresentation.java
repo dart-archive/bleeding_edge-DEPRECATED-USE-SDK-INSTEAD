@@ -448,8 +448,11 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
   }
 
   private String getLineExtract(DartBreakpoint bp) {
-    try {
+    if (bp == null) {
+      return null;
+    }
 
+    try {
       Reader r = new InputStreamReader(bp.getContents(), bp.getCharset());
 
       List<String> lines = CharStreams.readLines(r);
