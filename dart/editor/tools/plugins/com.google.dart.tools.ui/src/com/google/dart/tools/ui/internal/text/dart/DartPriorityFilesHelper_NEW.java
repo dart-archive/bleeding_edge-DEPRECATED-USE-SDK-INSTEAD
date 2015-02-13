@@ -52,7 +52,6 @@ public class DartPriorityFilesHelper_NEW {
   private final Map<String, List<String>> subscriptions = Maps.newHashMap();
   private final List<String> visibleFiles = Lists.newArrayList();
   private List<String> visibleFilesSent = Lists.newArrayList();
-  private String activeFile = null;
 
   private final Job sendToServerJob = new Job("Send visible files subscriptions") {
     @Override
@@ -63,19 +62,11 @@ public class DartPriorityFilesHelper_NEW {
           analysisServer.analysis_setPriorityFiles(visibleFiles);
           visibleFilesSent = Lists.newArrayList(visibleFiles);
         }
-        // update active file subscriptions
-        {
-          List<String> activeFileList = Lists.newArrayList();
-          if (activeFile != null) {
-            activeFileList.add(activeFile);
-          }
-          // update subscriptions
-          subscriptions.put(AnalysisService.NAVIGATION, activeFileList);
-          subscriptions.put(AnalysisService.OCCURRENCES, activeFileList);
-          subscriptions.put(AnalysisService.OUTLINE, activeFileList);
-        }
         // update visible file subscriptions
         subscriptions.put(AnalysisService.HIGHLIGHTS, visibleFiles);
+        subscriptions.put(AnalysisService.NAVIGATION, visibleFiles);
+        subscriptions.put(AnalysisService.OCCURRENCES, visibleFiles);
+        subscriptions.put(AnalysisService.OUTLINE, visibleFiles);
         subscriptions.put(AnalysisService.OVERRIDES, visibleFiles);
         analysisServer.analysis_setSubscriptions(subscriptions);
         // done
@@ -160,27 +151,10 @@ public class DartPriorityFilesHelper_NEW {
     return editors;
   }
 
-  private void handlePartActivated(IWorkbenchPart part, boolean scheduleJob) {
-    DartPriorityFileEditor editor = getPriorityFileEditor(part);
-    String file = editor != null ? editor.getInputFilePath() : null;
-    synchronized (lock) {
-      activeFile = file;
-      if (scheduleJob) {
-        test_hasPendingJob = true;
-        sendToServerJob.schedule();
-      }
-    }
-  }
-
   /**
    * Starts listening for {@link IWorkbenchPage} and adding/removing files of the visible editors.
    */
   private void internalStart(IWorkbenchPage activePage) {
-    // subscribe for currently active part
-    {
-      IWorkbenchPart activePart = activePage.getActivePart();
-      handlePartActivated(activePart, false);
-    }
     // make files of the currently visible editors a priority ones
     prepareVisibleFiles();
     // schedule job to send an initial state
@@ -190,8 +164,6 @@ public class DartPriorityFilesHelper_NEW {
     activePage.addPartListener(new IPartListener2() {
       @Override
       public void partActivated(IWorkbenchPartReference partRef) {
-        IWorkbenchPart part = partRef.getPart(false);
-        handlePartActivated(part, true);
       }
 
       @Override
