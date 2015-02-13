@@ -883,7 +883,8 @@ public class OmniBoxPopup extends BasePopupDialog {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       return new OmniProposalProvider[] {
           new PreviousPicksProvider(), new TextSearchProvider(this),
-          new TopLevelElementProvider_NEW(pm), new FileProvider(pm),
+          new TopLevelElementProvider_NEW(pm), FileProvider.projectFiles(pm),
+          FileProvider.packageFiles(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
@@ -892,7 +893,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     } else {
       return new OmniProposalProvider[] {
           new PreviousPicksProvider(), new TextSearchProvider(this), new TypeProvider_OLD(pm),
-          new FileProvider(pm),
+          FileProvider.projectFiles(pm), FileProvider.packageFiles(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),

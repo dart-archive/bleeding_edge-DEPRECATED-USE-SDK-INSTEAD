@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.omni.elements;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
 import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.search.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
@@ -41,7 +42,6 @@ import java.util.List;
  * Provider for files.
  */
 public class FileProvider extends OmniProposalProvider {
-
   private class FileCollector implements IResourceProxyVisitor {
 
     private final IProgressMonitor progressMonitor;
@@ -79,6 +79,10 @@ public class FileProvider extends OmniProposalProvider {
       }
       IFile resource = (IFile) item;
       if (isFiltered(resource)) {
+        return false;
+      }
+
+      if (!isProviderResource(resource)) {
         return false;
       }
 
@@ -198,6 +202,34 @@ public class FileProvider extends OmniProposalProvider {
       "/test/packages/",
       "/bin/packages/");
 
+  public static FileProvider packageFiles(IProgressMonitor pm) {
+    return new FileProvider(pm) {
+      @Override
+      public String getName() {
+        return "Package Files";
+      }
+
+      @Override
+      protected boolean isProviderResource(IResource resource) {
+        return PubCacheManager_NEW.isPubCacheResource(resource);
+      }
+    };
+  }
+
+  public static FileProvider projectFiles(IProgressMonitor pm) {
+    return new FileProvider(pm) {
+      @Override
+      public String getName() {
+        return "Project Files";
+      }
+
+      @Override
+      protected boolean isProviderResource(IResource resource) {
+        return !PubCacheManager_NEW.isPubCacheResource(resource);
+      }
+    };
+  }
+
   /**
    * The base outer-container which will be used to search for resources. This is the root of the
    * tree that spans the search space. Often, this is the workspace root.
@@ -250,7 +282,6 @@ public class FileProvider extends OmniProposalProvider {
 
   @Override
   public OmniElement[] getElements(String stringPattern) {
-
     InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-FileProvider.doSearch");
     try {
       String filenamePattern;
@@ -312,9 +343,7 @@ public class FileProvider extends OmniProposalProvider {
 
     } finally {
       instrumentation.log();
-
     }
-
   }
 
   @Override
@@ -325,6 +354,10 @@ public class FileProvider extends OmniProposalProvider {
   @Override
   public String getName() {
     return OmniBoxMessages.OmniBox_Files;
+  }
+
+  protected boolean isProviderResource(IResource resource) {
+    return true;
   }
 
   /**
