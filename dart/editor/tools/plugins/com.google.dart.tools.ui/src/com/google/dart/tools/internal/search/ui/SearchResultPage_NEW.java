@@ -559,7 +559,10 @@ public abstract class SearchResultPage_NEW extends SearchPage {
               ? HIGHLIGHT_WRITE_STYLE : HIGHLIGHT_STYLE;
           int styleOffset = linePosition.positionSrc.offset - item.line.start;
           int styleLength = linePosition.positionSrc.length;
-          styledText.setStyle(styleOffset, styleLength, style);
+          // Prevent exceptions if search results are out of sync with the source.
+          if (styleOffset >= 0 && styleLength < styledText.length()) {
+            styledText.setStyle(styleOffset, styleLength, style);
+          }
         }
         // may be potential match
         if (item.potential) {
