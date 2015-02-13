@@ -48,6 +48,8 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
@@ -438,6 +440,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   @Override
   public void warnOfContentChange(IConsole console) {
+    // If the view stack is minimized, we don't want to show it and make it focused.
+    // https://code.google.com/p/dart/issues/detail?id=22307
+    if (isMinimized()) {
+      return;
+    }
+
     IWorkbenchSiteProgressService progressService = (IWorkbenchSiteProgressService) getViewSite().getAdapter(
         IWorkbenchSiteProgressService.class);
 
@@ -460,8 +468,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private void bringToFront() {
-    if (!getViewSite().getPage().isPartVisible(this)) {
-      getViewSite().getPage().activate(this);
+    IWorkbenchPage page = getViewSite().getPage();
+    if (!page.isPartVisible(this)) {
+      page.activate(this);
     }
   }
 
@@ -495,6 +504,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
         return null;
       }
     }
+  }
+
+  private boolean isMinimized() {
+    IWorkbenchPage workbenchPage = getSite().getPage();
+    IViewReference thisRef = (IViewReference) workbenchPage.getReference(this);
+    return thisRef.isFastView();
   }
 
   private void showPauseOnStartMessage(ILaunchConfiguration config) {
