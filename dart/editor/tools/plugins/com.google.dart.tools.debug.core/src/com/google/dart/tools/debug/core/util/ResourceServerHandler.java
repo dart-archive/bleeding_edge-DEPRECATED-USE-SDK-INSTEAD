@@ -21,6 +21,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -385,8 +386,8 @@ class ResourceServerHandler implements Runnable {
     response.responseText = "Not Found";
 
     response.headers.put(CONTENT_TYPE, "text/html");
-    response.responseBodyText = "<html><head><title>404 Not Found</title></head><body>" + message
-        + "</body></html>";
+    response.responseBodyText = "<html><head><title>404 Not Found</title></head><body>"
+        + StringEscapeUtils.escapeHtml4(message) + "</body></html>";
     response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
 
     return addStandardResponseHeaders(response);
