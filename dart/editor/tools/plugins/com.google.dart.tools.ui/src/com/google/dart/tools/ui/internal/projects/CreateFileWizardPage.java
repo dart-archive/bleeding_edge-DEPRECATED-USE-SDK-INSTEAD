@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.internal.projects;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.NewFileGenerator;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -24,6 +26,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
 
@@ -36,6 +39,20 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
 
   public CreateFileWizardPage(String pageName, IStructuredSelection selection) {
     super(pageName, selection);
+  }
+
+  @Override
+  public void createControl(Composite parent) {
+    super.createControl(parent);
+    // Replace content provider to ignore package projects.
+    try {
+      Object resourceGroup = ReflectionUtils.getFieldObject(this, "resourceGroup");
+      Object containerGroup = ReflectionUtils.getFieldObject(resourceGroup, "containerGroup");
+      TreeViewer treeViewer = ReflectionUtils.getFieldObject(containerGroup, "treeViewer");
+      treeViewer.setContentProvider(new ContainerContentProvider());
+    } catch (Throwable e) {
+      DartToolsPlugin.log(e);
+    }
   }
 
   @Override
