@@ -253,43 +253,58 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       if (completion.startsWith("(")) {
         completion = completion.substring(1, completion.length() - 1);
       }
+      boolean hasArgumentList = completion.endsWith(")");
+      boolean hasArguments = !completion.endsWith("()");
       /*
        * Insert the suggestion
        */
       doc.replace(replacementOffset, replacementLength, completion);
       /*
-       * If the suggestion has parameters, initiate entering parameters
+       * Check if linked mode for arguments is needed
        */
-      if (argumentLengths != null) {
-        // Set up linked position groups for the arguments.
-        LinkedModeModel model = new LinkedModeModel();
-        buildLinkedModeModel(model, doc, replacementOffset);
-        model.forceInstall();
-
-        LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
-        ui.setExitPolicy(new ExitPolicy(')', doc, viewer));
-        ui.setExitPosition(viewer, replacementOffset + completion.length(), 0, Integer.MAX_VALUE);
-        ui.setCyclingMode(LinkedModeUI.CYCLE_WHEN_NO_PARENT);
-        ui.enter();
-        return;
-      }
-      /*
-       * If completion already includes '()' then don't insert extra '(' or ')'
-       */
-      if (completion.endsWith(")") && (trigger == '(' || trigger == ')')) {
-        return;
-      }
-      /*
-       * Insert the trigger character typed if it is not enter or null
-       */
-      if (trigger != '\0' && trigger != '\n') {
+      boolean isTriggerEnter = trigger == '\0' || trigger == '\n';
+      if (hasArgumentList && (isTriggerEnter || trigger == '(')) {
+        // If Enter or '(' (when blind typing), then use linked mode.
+      } else {
+        // Insert the trigger and stop completion.
+        selectionOffset = completion.length();
+        selectionLength = 0;
         doc.replace(
             replacementOffset + selectionOffset,
             selectionLength,
             Character.toString(trigger));
         ++selectionOffset;
-        selectionLength = 0;
         return;
+      }
+      /*
+       * Done if zero arguments and Enter is the trigger
+       */
+      if (!hasArguments && isTriggerEnter) {
+        return;
+      }
+      /*
+       * If the suggestion has an argument list, initiate entering arguments
+       */
+      if (hasArgumentList) {
+        // Prepare linked mode model
+        LinkedModeModel model = new LinkedModeModel();
+        if (hasArguments) {
+          buildLinkedModeModel_hasArgumentList(model, doc, replacementOffset);
+        } else {
+          // If there are no arguments, we still want to use linked mode to ignore ')'.
+          buildLinkedModeModel_emptyArguments(model, doc, replacementOffset, completion);
+        }
+        model.forceInstall();
+        // Start linked mode UI
+        LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
+        if (hasArguments) {
+          ui.setExitPolicy(new ExitPolicy(')', doc, viewer));
+        } else {
+          ui.setExitPolicy(new AnyExitPolicy());
+        }
+        ui.setExitPosition(viewer, replacementOffset + completion.length(), 0, Integer.MAX_VALUE);
+        ui.setCyclingMode(LinkedModeUI.CYCLE_WHEN_NO_PARENT);
+        ui.enter();
       }
     } catch (BadLocationException e) {
       DartCore.logInformation("Failed to replace offset:" + replacementOffset + " length:"
@@ -493,8 +508,20 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     return CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
   }
 
-  protected void buildLinkedModeModel(LinkedModeModel model, IDocument document, int baseOffset)
-      throws BadLocationException {
+  protected void buildLinkedModeModel_emptyArguments(LinkedModeModel model, IDocument document,
+      int baseOffset, String completion) throws BadLocationException {
+    LinkedPositionGroup group = new LinkedPositionGroup();
+    LinkedPosition pos = new LinkedPosition(
+        document,
+        baseOffset + completion.length(),
+        0,
+        LinkedPositionGroup.NO_STOP);
+    group.addPosition(pos);
+    model.addGroup(group);
+  }
+
+  protected void buildLinkedModeModel_hasArgumentList(LinkedModeModel model, IDocument document,
+      int baseOffset) throws BadLocationException {
     // TODO(paulberry): consider extending to support optional arguments, as
     // FilledArgumentNamesMethodProposal does.
     for (int i = 0; i != argumentOffsets.length; i++) {
@@ -676,6 +703,20 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 }
 
 /**
+ * {@link IExitPolicy} that exists on any character.
+ */
+class AnyExitPolicy implements IExitPolicy {
+  @Override
+  public ExitFlags doExit(LinkedModeModel environment, VerifyEvent event, int offset, int length) {
+    if (event.character == 0) {
+      return null;
+    }
+    boolean doit = event.character != ')';
+    return new ExitFlags(ILinkedModeListener.UPDATE_CARET, doit);
+  }
+}
+
+/**
  * Allow the linked mode editor to continue running even when the exit character is typed as part of
  * a function argument. Using shift operators in a context that expects balanced angle brackets is
  * not legal syntax and will confuse the linked mode editor.
@@ -688,7 +729,7 @@ class ExitPolicy implements IExitPolicy {
   private int angleBracketCount = 0;
   private char lastChar = (char) 0;
 
-  final char exitChar;
+  private final char exitChar;
   private final IDocument document;
   private final ITextViewer viewer;
 
