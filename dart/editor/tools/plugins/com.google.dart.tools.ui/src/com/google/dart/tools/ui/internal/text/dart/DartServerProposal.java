@@ -497,13 +497,12 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       return false;
     }
     // If the user has entered an upper case char as the first char
-    // then filter all lower case first character suggestions.
-    if (Character.isUpperCase(textEntered.charAt(0)) && Character.isLowerCase(completion.charAt(0))) {
-      return false;
-    }
-    String partialCompletion = completion.substring(0, textEntered.length());
-    if (partialCompletion.equalsIgnoreCase(textEntered)) {
-      return true;
+    // then filter using only camelCaseMatching
+    if (!Character.isUpperCase(textEntered.charAt(0))) {
+      String partialCompletion = completion.substring(0, textEntered.length());
+      if (partialCompletion.equalsIgnoreCase(textEntered)) {
+        return true;
+      }
     }
     char[] pattern = textEntered.toCharArray();
     char[] name = completion.toCharArray();
