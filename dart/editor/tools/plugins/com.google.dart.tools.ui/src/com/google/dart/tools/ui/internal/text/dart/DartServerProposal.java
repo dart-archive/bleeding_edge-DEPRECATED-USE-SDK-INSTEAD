@@ -269,11 +269,13 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         // Insert the trigger and stop completion.
         selectionOffset = completion.length();
         selectionLength = 0;
-        doc.replace(
-            replacementOffset + selectionOffset,
-            selectionLength,
-            Character.toString(trigger));
-        ++selectionOffset;
+        if (!isTriggerEnter) {
+          doc.replace(
+              replacementOffset + selectionOffset,
+              selectionLength,
+              Character.toString(trigger));
+          ++selectionOffset;
+        }
         return;
       }
       /*
