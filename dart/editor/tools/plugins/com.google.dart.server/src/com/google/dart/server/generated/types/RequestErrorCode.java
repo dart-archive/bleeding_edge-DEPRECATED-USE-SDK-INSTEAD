@@ -47,7 +47,7 @@ public class RequestErrorCode {
   public static final String INVALID_EXECUTION_CONTEXT = "INVALID_EXECUTION_CONTEXT";
 
   /**
-   * An analysis.updateContent request contained a ChangeContentOverlay object which can't be
+   * An "analysis.updateContent" request contained a ChangeContentOverlay object which can't be
    * applied, due to an edit having an offset or length that is out of range.
    */
   public static final String INVALID_OVERLAY_CHANGE = "INVALID_OVERLAY_CHANGE";
@@ -61,6 +61,12 @@ public class RequestErrorCode {
    * A malformed request was received.
    */
   public static final String INVALID_REQUEST = "INVALID_REQUEST";
+
+  /**
+   * The "--no-index" flag was passed when the analysis server created, but this API call requires an
+   * index to have been generated.
+   */
+  public static final String NO_INDEX_GENERATED = "NO_INDEX_GENERATED";
 
   /**
    * Another refactoring request was received during processing of this one.
