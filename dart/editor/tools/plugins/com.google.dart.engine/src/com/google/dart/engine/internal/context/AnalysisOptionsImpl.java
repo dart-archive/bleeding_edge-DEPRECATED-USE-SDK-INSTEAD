@@ -47,7 +47,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * A flag indicating whether analysis is to analyze Angular.
    */
-  private boolean analyzeAngular = true;
+  private boolean analyzeAngular = false;
 
   /**
    * A flag indicating whether analysis is to parse and analyze function bodies.
@@ -57,7 +57,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * A flag indicating whether analysis is to analyze Polymer.
    */
-  private boolean analyzePolymer = true;
+  private boolean analyzePolymer = false;
 
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
