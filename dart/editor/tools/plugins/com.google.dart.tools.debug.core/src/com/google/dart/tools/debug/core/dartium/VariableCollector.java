@@ -304,6 +304,10 @@ class VariableCollector {
       return true;
     }
 
+    if (descriptor.getName().startsWith(":")) {
+      return true;
+    }
+
     return false;
   }
 

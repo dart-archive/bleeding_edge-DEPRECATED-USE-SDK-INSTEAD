@@ -159,6 +159,10 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
     return value;
   }
 
+  public boolean isHidden() {
+    return name != null && name.startsWith(":");
+  }
+
   public boolean isLocal() {
     return isLocal;
   }

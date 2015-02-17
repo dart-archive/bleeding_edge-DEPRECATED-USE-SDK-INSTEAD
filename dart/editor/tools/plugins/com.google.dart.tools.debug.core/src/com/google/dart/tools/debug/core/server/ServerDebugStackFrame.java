@@ -410,6 +410,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 //          vmFrame.getLibraryId()));
 
       for (VmVariable var : frame.getLocals()) {
+        if (var.isHidden()) {
+          continue;
+        }
+
         ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);
 
         variables.add(serverVariable);
