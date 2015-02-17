@@ -53,6 +53,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
@@ -452,14 +453,23 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       return null;
     }
 
+    InputStream contents = bp.getContents();
+
+    if (contents == null) {
+      return null;
+    }
+
     try {
-      Reader r = new InputStreamReader(bp.getContents(), bp.getCharset());
+      String charset = bp.getCharset();
+
+      Reader r = charset != null ? new InputStreamReader(contents, charset)
+          : new InputStreamReader(contents);
 
       List<String> lines = CharStreams.readLines(r);
 
       int line = bp.getLine() - 1;
 
-      if (line > 0 && line < lines.size()) {
+      if (line >= 0 && line < lines.size()) {
         String lineStr = lines.get(line).trim();
 
         return lineStr.length() == 0 ? null : lineStr;
