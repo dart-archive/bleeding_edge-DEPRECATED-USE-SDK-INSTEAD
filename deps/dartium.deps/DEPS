@@ -28,7 +28,7 @@ vars.update({
   "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
-  "observatory_pub_packages_rev": "@42487",
+  "observatory_pub_packages_rev": "@43830",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
   "pub_semver_rev": "@182d55d7207e3af5e76e96834fa7cf63c55ce09a",
