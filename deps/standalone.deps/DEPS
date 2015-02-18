@@ -38,7 +38,7 @@ vars = {
   "smoke_rev": "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
-  "stack_trace_rev": "@1.2.0",
+  "stack_trace_tag": "@1.2.1",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
   "watcher_rev": "@f1015e987b4e5a3b7fb65d8716ae9b5ee372b470",
@@ -135,7 +135,7 @@ deps = {
   "dart/third_party/pkg/smoke":
       "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
   "dart/third_party/pkg/stack_trace":
-      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
+      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_tag"),
   "dart/third_party/pkg/unittest":
       "https://github.com/dart-lang/unittest.git" + Var("unittest_rev"),
 }

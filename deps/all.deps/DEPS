@@ -73,7 +73,7 @@ vars = {
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
-  "stack_trace_rev": "@1.2.0",
+  "stack_trace_tag": "@1.2.1",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "unittest_rev": "@1625274a8b6309588eb4c0017b5b672a96ad3230",
@@ -232,7 +232,7 @@ deps = {
   "dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "dart/third_party/pkg/stack_trace":
-      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_rev"),
+      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_tag"),
   "dart/third_party/pkg/string_scanner":
       "https://github.com/dart-lang/string_scanner.git" +
       Var("string_scanner_rev"),
