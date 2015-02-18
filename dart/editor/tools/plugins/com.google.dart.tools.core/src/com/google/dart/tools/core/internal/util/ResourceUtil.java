@@ -49,6 +49,12 @@ public class ResourceUtil {
       return null;
     }
     IResource resource = getResource(file);
+    if (resource == null) {
+      return null;
+    }
+    if (!resource.exists()) {
+      return null;
+    }
     return (IFile) resource;
   }
 
