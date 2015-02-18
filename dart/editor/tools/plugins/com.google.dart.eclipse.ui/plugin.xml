@@ -292,7 +292,7 @@
    </extension>
    <extension
         point="org.eclipse.ui.navigator.viewer">
-     <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+     <viewerContentBinding viewerId="org.eclipse.jdt.ui.PackageExplorer">
         <includes>
            <contentExtension 
               pattern="com.google.dart.eclipse.ui.navigatorContent">
@@ -304,6 +304,20 @@
      </viewerContentBinding>
    </extension>
 
+ <extension
+        point="org.eclipse.ui.navigator.viewer">
+     <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+           <contentExtension 
+              pattern="com.google.dart.eclipse.ui.navigatorContent">
+           </contentExtension>
+           <contentExtension
+              pattern="com.google.dart.eclipse.ui.commonFilter.pubCacheProjects">
+           </contentExtension>
+        </includes>
+     </viewerContentBinding>
+   </extension>
+   
   <extension point="org.eclipse.ui.menus">
    <menuContribution
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
@@ -320,13 +334,19 @@
        <menu
              label="Dart">
           <visibleWhen>
+          <and>
+          <test
+                     property="com.google.dart.tools.debug.isInDartProject"
+                     value="true">
+               </test>
             <with variable="activeMenuSelection">
                <iterate>
                   <adapt
                         type="org.eclipse.core.resources.IResource">
                   </adapt>
-               </iterate>
+               </iterate>  
            </with>
+           </and>
         </visibleWhen>
           <command
                 commandId="com.google.dart.tools.ui.commands.unIgnoreResource"
