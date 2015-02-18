@@ -20,7 +20,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartOutlinePage_NEW;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElements;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
-import com.google.dart.tools.ui.internal.util.StringMatcher;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -66,19 +65,19 @@ import java.util.List;
  */
 public class DartOutlineInformationControl_NEW extends PopupDialog implements IInformationControl {
   /**
-   * {@link ViewerFilter} that allows only branches with outlines satisfying {@link #stringMatcher}.
+   * {@link ViewerFilter} that allows only branches with outlines satisfying {@link #matcher}.
    */
   private class NameFilter extends ViewerFilter {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       Outline outline = (Outline) element;
       // no filter
-      if (stringMatcher == null) {
+      if (matcher == null) {
         return true;
       }
       // maybe "outline" matches
       String name = outline.getElement().getName();
-      if (name != null && stringMatcher.match(name)) {
+      if (name != null && matcher.match(name)) {
         return true;
       }
       // ...or has matching children
@@ -133,7 +132,7 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
   private Text filterText;
   private OutlineTreeViewer viewer;
 
-  private StringMatcher stringMatcher;
+  private DartElementPrefixPatternMatcher matcher;
 
   public DartOutlineInformationControl_NEW(Shell parent, int shellStyle, ITextEditor textEditor) {
     super(parent, shellStyle, true, true, true, true, true, "titleText", "infoText");
@@ -336,12 +335,6 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
       @Override
       public void modifyText(ModifyEvent e) {
         String text = filterText.getText();
-        // treat as prefix
-        int length = text.length();
-        if (length > 0 && text.charAt(length - 1) != '*') {
-          text = text + '*';
-        }
-        // update filter
         setMatcherString(text);
       }
     });
@@ -365,18 +358,18 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
   }
 
   /**
-   * @return the first {@link TreeItem} matching {@link #stringMatcher}.
+   * @return the first {@link TreeItem} matching {@link #matcher}.
    */
   private TreeItem findFirstMatchingItem(TreeItem[] items) {
     for (TreeItem item : items) {
       // no filter  - first is good
-      if (stringMatcher == null) {
+      if (matcher == null) {
         return item;
       }
       // check "outline" for filter
       {
         String label = item.getText();
-        if (stringMatcher.match(label)) {
+        if (matcher.match(label)) {
           return item;
         }
       }
@@ -403,7 +396,7 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
   }
 
   /**
-   * Selects the first {@link TreeItem} which matches the {@link #stringMatcher}.
+   * Selects the first {@link TreeItem} which matches the {@link #matcher}.
    */
   private void selectFirstMatch() {
     Tree tree = viewer.getTree();
@@ -468,10 +461,9 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
   private void setMatcherString(String pattern) {
     // update "stringMatcher"
     if (pattern.length() == 0) {
-      stringMatcher = null;
+      matcher = null;
     } else {
-      boolean ignoreCase = pattern.toLowerCase().equals(pattern);
-      stringMatcher = new StringMatcher(pattern, ignoreCase, false);
+      matcher = new DartElementPrefixPatternMatcher(pattern);
     }
     // refresh "viewer"
     viewer.getControl().setRedraw(false);
