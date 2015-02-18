@@ -253,6 +253,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
     if (profileRemoteProcess) {
       args.add("--observe");
       args.add("--pause-isolates-on-exit");
+      args.add("--code_comments");
     }
     //
     // The analysis server path.
