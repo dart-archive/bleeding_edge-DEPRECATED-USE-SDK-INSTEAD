@@ -31,6 +31,10 @@ public class ElementKind {
 
   public static final String CONSTRUCTOR = "CONSTRUCTOR";
 
+  public static final String ENUM = "ENUM";
+
+  public static final String ENUM_CONSTANT = "ENUM_CONSTANT";
+
   public static final String FIELD = "FIELD";
 
   public static final String FUNCTION = "FUNCTION";

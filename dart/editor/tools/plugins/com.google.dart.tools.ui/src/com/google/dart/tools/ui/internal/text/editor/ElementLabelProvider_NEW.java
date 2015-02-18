@@ -81,6 +81,11 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
     if (elementKind.equals(ElementKind.CLASS) || elementKind.equals(ElementKind.CLASS_TYPE_ALIAS)) {
       return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
           : DartPluginImages.DESC_DART_CLASS_PUBLIC;
+    } else if (elementKind.equals(ElementKind.ENUM)) {
+      return isPrivate ? DartPluginImages.DESC_DART_ENUM_PRIVATE
+          : DartPluginImages.DESC_DART_ENUM_PUBLIC;
+    } else if (elementKind.equals(ElementKind.ENUM_CONSTANT)) {
+      return DartPluginImages.DESC_DART_FIELD_PUBLIC;
     } else if (elementKind.equals(ElementKind.COMPILATION_UNIT)) {
       return DartPluginImages.DESC_DART_COMP_UNIT;
     } else if (elementKind.equals(ElementKind.CONSTRUCTOR)

@@ -234,6 +234,14 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_DART_CLASS_PRIVATE = createUnManaged(
       T_DART,
       "class_private.png"); //$NON-NLS-1$
+
+  public static final ImageDescriptor DESC_DART_ENUM_PUBLIC = createUnManaged(
+      T_DART,
+      "enum_obj.gif"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_DART_ENUM_PRIVATE = createUnManaged(
+      T_DART,
+      "enum_private_obj.gif"); //$NON-NLS-1$
+
   public static final ImageDescriptor DESC_DART_INTERFACE = createUnManaged(
       T_DART,
       "interface_public.png"); //$NON-NLS-1$
