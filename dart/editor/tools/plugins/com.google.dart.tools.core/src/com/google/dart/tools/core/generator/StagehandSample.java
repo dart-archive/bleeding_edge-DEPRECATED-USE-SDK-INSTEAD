@@ -47,7 +47,7 @@ public class StagehandSample extends AbstractSample {
     File directory = new File(container.getLocationURI()).getAbsoluteFile();
 
     if (!directory.exists()) {
-      directory.mkdir();
+      directory.mkdirs();
     }
 
     try {
