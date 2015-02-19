@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <sample name="TodoMVC" file="web/index.html" early="true"
-    url="https://github.com/dart-lang/sample-todomvc-polymer/archive/requires.1.8.zip">
+    url="https://github.com/dart-lang/sample-todomvc-polymer/archive/1.9.0.zip">
   <description>A simple note taking application, built with Polymer technology.</description>
 </sample>
