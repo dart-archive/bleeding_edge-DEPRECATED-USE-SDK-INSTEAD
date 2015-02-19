@@ -22,6 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ExitDetectorTest.class);
+    suite.addTestSuite(ExitDetectorTest2.class);
     return suite;
   }
 }

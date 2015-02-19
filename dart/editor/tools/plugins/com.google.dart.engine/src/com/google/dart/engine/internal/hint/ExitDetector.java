@@ -68,7 +68,10 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code ExitDetector} determine whether the visited AST node is guaranteed
@@ -76,6 +79,12 @@ import com.google.dart.engine.scanner.TokenType;
  * expression, or simple infinite loop such as {@code while(true)}.
  */
 public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
+  /**
+   * Return {@code true} if the given {@link AstNode} exits.
+   */
+  public static boolean exits(AstNode node) {
+    return new ExitDetector().nodeExits(node);
+  }
 
   /**
    * Set to {@code true} when a {@code break} is encountered, and reset to {@code false} when a
@@ -440,6 +449,19 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
         // no return is found in the children statements
         if (!switchMember.getStatements().isEmpty() && !switchMember.accept(this)) {
           return false;
+        }
+      }
+      // All of the members exit, determine whether there are possible cases
+      // that are not caught by the members.
+      Type type = node.getExpression() == null ? null : node.getExpression().getBestType();
+      if (type instanceof InterfaceType) {
+        InterfaceType interfaceType = (InterfaceType) type;
+        ClassElement element = interfaceType.getElement();
+        if (element != null && element.isEnum()) {
+          // If some of the enum values are not covered, then a warning will
+          // have already been generated, so there's no point in generating a
+          // hint.
+          return true;
         }
       }
       return hasDefault;
