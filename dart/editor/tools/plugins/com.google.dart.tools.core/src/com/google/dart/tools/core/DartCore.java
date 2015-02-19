@@ -14,6 +14,7 @@
 package com.google.dart.tools.core;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
@@ -42,6 +43,7 @@ import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceAnalysisServerListener;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.Util;
@@ -49,6 +51,7 @@ import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
@@ -717,6 +720,27 @@ public class DartCore extends Plugin implements DartSdkListener {
     ArrayList<String> extensionList = new ArrayList<String>(extensionSet);
     extensionList.add(0, Extensions.DART);
     return extensionList.toArray(new String[extensionList.size()]);
+  }
+
+  /**
+   * Returns all existing and open workspace Dart projects.
+   */
+  public static IProject[] getDartProjects() {
+    List<IProject> dartProjects = Lists.newArrayList();
+    IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    for (IProject project : projects) {
+      if (!project.isAccessible()) {
+        continue;
+      }
+      if (!DartProjectNature.hasDartNature(project)) {
+        continue;
+      }
+      if (PubCacheManager_NEW.isPubCacheProject(project)) {
+        continue;
+      }
+      dartProjects.add(project);
+    }
+    return dartProjects.toArray(new IProject[dartProjects.size()]);
   }
 
   /**

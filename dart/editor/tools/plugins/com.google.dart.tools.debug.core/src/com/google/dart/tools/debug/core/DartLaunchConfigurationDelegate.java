@@ -15,10 +15,10 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
@@ -58,16 +58,9 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
   }
 
   @Override
-  protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode)
-      throws CoreException {
-    // indicate which project to save before launch
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
-    IResource resource = launchConfig.getApplicationResource();
-
-    if (resource != null) {
-      return new IProject[] {resource.getProject()};
-    }
-
-    return null;
+  protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode) {
+    // TODO(scheglov) When we use Analysis Server we don't know dependencies.
+    // So, we consider all Dart projects as potential dependencies.
+    return DartCore.getDartProjects();
   }
 }

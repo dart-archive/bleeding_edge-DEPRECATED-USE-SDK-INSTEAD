@@ -56,7 +56,8 @@ public final class IProjectUtilities {
       String projectName, IPath projectLocation) {
     final IProjectDescription description = root.getWorkspace().newProjectDescription(projectName);
     if (projectLocation != null && !root.getLocation().isPrefixOf(projectLocation)) {
-      description.setLocation(projectLocation);
+      IPath fullProjectLocation = projectLocation.append(projectName);
+      description.setLocation(fullProjectLocation);
     }
     description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
     ICommand command = description.newCommand();
