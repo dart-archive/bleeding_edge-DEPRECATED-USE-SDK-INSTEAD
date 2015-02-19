@@ -86,7 +86,7 @@ public class MockAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverConnected() {
+  public void serverConnected(String version) {
     throw new UnsupportedOperationException();
   }
 

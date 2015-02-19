@@ -129,7 +129,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverConnected() {
+  public void serverConnected(String version) {
     projectManager.start();
   }
 

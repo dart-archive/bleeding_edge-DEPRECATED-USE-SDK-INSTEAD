@@ -313,7 +313,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void serverConnected() {
+  public synchronized void serverConnected(String version) {
     serverConnected = true;
   }
 

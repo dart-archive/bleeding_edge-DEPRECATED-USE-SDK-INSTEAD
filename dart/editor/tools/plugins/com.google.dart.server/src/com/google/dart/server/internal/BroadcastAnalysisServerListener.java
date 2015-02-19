@@ -150,9 +150,9 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverConnected() {
+  public void serverConnected(String version) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.serverConnected();
+      listener.serverConnected(version);
     }
   }
 

@@ -153,8 +153,10 @@ public interface AnalysisServerListener {
   /**
    * Reports that the server is running. This notification is issued once after the server has
    * started running to let the client know that it started correctly.
+   * 
+   * @param version the version of the server that is running
    */
-  public void serverConnected();
+  public void serverConnected(String version);
 
   /**
    * An error happened in the {@link AnalysisServer}.
