@@ -2573,11 +2573,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
-
     support.setCharacterPairMatcher(fBracketMatcher);
     support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
-
     super.configureSourceViewerDecorationSupport(support);
+    support.setMarginPainterPreferenceKeys(
+        DartFormatter.PRINT_MARGIN,
+        DartFormatter.PRINT_MARGIN_COLOR,
+        DartFormatter.PRINT_MARGIN_COLUMN);
   }
 
   @Override

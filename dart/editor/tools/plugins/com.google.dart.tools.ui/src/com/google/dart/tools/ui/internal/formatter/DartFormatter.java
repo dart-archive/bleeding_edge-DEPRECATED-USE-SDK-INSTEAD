@@ -38,6 +38,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
@@ -78,7 +79,6 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("restriction")
 public class DartFormatter {
-
   public static class DartFmtRunner {
 
     public static FormattedSource format(final String source, final Point selection,
@@ -179,7 +179,6 @@ public class DartFormatter {
 
     }
   }
-
   public static class DartStyleRunner {
 
     public static void formatFile(final IFile file, final Point selection,
@@ -237,7 +236,6 @@ public class DartFormatter {
 
     }
   }
-
   public static class FormatFileAction extends WorkspaceAction {
 
     private List<IFile> files = Arrays.asList(new IFile[0]);
@@ -297,6 +295,26 @@ public class DartFormatter {
     public String changeReplacement;
   }
 
+  /**
+   * Preference key for showing migrating print margin preferences.
+   */
+  private final static String PRINT_MARGIN_MIGRATED = "dart-printMargin-migrated";
+
+  /**
+   * Preference key for showing print margin ruler.
+   */
+  public final static String PRINT_MARGIN = "dart-printMargin";
+
+  /**
+   * Preference key for print margin ruler color.
+   */
+  public final static String PRINT_MARGIN_COLOR = AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLOR;
+
+  /**
+   * Preference key for print margin ruler column.
+   */
+  public final static String PRINT_MARGIN_COLUMN = "dart-printMarginColumn";
+
   private static final String ARGS_INDENT_FLAG = "-i";
   private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
   private static final String ARGS_MAX_LINE_LEN_FLAG = "-l";
@@ -307,6 +325,22 @@ public class DartFormatter {
   private static final String JSON_OFFSET_KEY = "offset";
   private static final String JSON_SELECTION_KEY = "selection";
   private static final String JSON_SOURCE_KEY = "source";
+
+  public static void ensurePrintMarginPreferencesMigrated() {
+    IPreferenceStore store = EditorsPlugin.getDefault().getPreferenceStore();
+    if (!store.getBoolean(PRINT_MARGIN_MIGRATED)) {
+      store.setValue(
+          PRINT_MARGIN_COLOR,
+          store.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLOR));
+      store.setValue(
+          PRINT_MARGIN_COLUMN,
+          store.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
+      store.setValue(
+          PRINT_MARGIN,
+          store.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN));
+      store.setValue(PRINT_MARGIN_MIGRATED, true);
+    }
+  }
 
   /**
    * Run the formatter on the given input file.
@@ -353,13 +387,11 @@ public class DartFormatter {
   }
 
   public static String getMaxLineLength() {
-    return EditorsPlugin.getDefault().getPreferenceStore().getString(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN);
+    return EditorsPlugin.getDefault().getPreferenceStore().getString(PRINT_MARGIN_COLUMN);
   }
 
   public static boolean getMaxLineLengthEnabled() {
-    return EditorsPlugin.getDefault().getPreferenceStore().getBoolean(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN);
+    return EditorsPlugin.getDefault().getPreferenceStore().getBoolean(PRINT_MARGIN);
   }
 
   public static boolean getPerformTransforms() {
@@ -390,15 +422,11 @@ public class DartFormatter {
   }
 
   public static void setMaxLineLength(String maxLineLength) {
-    EditorsPlugin.getDefault().getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
-        maxLineLength);
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(PRINT_MARGIN_COLUMN, maxLineLength);
   }
 
   public static void setMaxLineLengthEnabled(boolean enabled) {
-    EditorsPlugin.getDefault().getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
-        enabled);
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(PRINT_MARGIN, enabled);
   }
 
   public static void setPerformTransforms(boolean performTransforms) {

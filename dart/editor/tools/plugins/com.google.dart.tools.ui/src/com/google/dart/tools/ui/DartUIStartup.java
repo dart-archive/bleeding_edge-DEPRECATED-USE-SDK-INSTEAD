@@ -24,6 +24,7 @@ import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.HeapTracker;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter;
 import com.google.dart.tools.ui.internal.text.dart.DartPriorityFilesHelper_NEW;
 import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
@@ -90,6 +91,8 @@ public class DartUIStartup implements IStartup {
       reportDartCoreDebug();
 
       HeapTracker.start();
+
+      DartFormatter.ensurePrintMarginPreferencesMigrated();
 
       {
         IWorkbench workbench = PlatformUI.getWorkbench();
