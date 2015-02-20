@@ -2247,6 +2247,18 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <key
+            commandId="org.eclipse.ui.edit.text.select.lineUp"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M2+ARROW_UP">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.lineDown"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M2+ARROW_DOWN">
+      </key>
+      <key
             commandId="org.eclipse.ui.edit.text.select.lineStart"
             sequence="M2+HOME"
             contextId="org.eclipse.ui.textEditorScope"
