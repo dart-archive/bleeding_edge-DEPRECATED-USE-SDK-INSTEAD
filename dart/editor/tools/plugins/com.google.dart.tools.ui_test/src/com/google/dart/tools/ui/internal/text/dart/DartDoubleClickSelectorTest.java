@@ -28,44 +28,15 @@ public class DartDoubleClickSelectorTest extends ParserTestCase {
     int clickOffset = content.indexOf(clickPattern);
     when(textViewer.getSelectedRange()).thenReturn(new Point(clickOffset, 0));
     // ask for double click range
-    DartDoubleClickSelector_OLD selector = new DartDoubleClickSelector_OLD();
+    DartDoubleClickSelector_NEW selector = new DartDoubleClickSelector_NEW();
     selector.doubleClicked(textViewer);
     // validate
     int resultOffset = offset;
-    if (offset == 0) {
+    if (resultOffset == 0) {
       resultOffset = content.indexOf(resultContent);
     }
     int resultLength = resultContent.length();
     verify(textViewer).setSelectedRange(resultOffset, resultLength);
-  }
-
-  public void test_dollarIdentifier() throws Exception {
-    String content = "main() { var first$second; }";
-    String clickPattern = "first";
-    String resultContent = "first$second";
-    assertDoubleClickSelection(content, clickPattern, resultContent, 0);
-    clickPattern = "$";
-    assertDoubleClickSelection(content, clickPattern, resultContent, 0);
-    clickPattern = "second";
-    assertDoubleClickSelection(content, clickPattern, resultContent, 0);
-  }
-
-  public void test_interpolation() throws Exception {
-    String content = createSource(//
-        "main() {",
-        "  String first = 'a';",
-        "  String second = 'b';",
-        "  String first$second = 'c';",
-        "  String s = 'xxx$first$second${first$second.length}yyy';",
-        "  print(s); ",
-        "}");
-    int indexOfxxx = content.indexOf("xxx");
-    int indexOfThirdFirst = content.indexOf("first", indexOfxxx);
-    assertDoubleClickSelection(content, "$first", "xxx", 0);
-    assertDoubleClickSelection(content, "first$second$", "first", indexOfThirdFirst);
-    assertDoubleClickSelection(content, "first$second.", "first$second.length", 0);
-    assertDoubleClickSelection(content, "{first$", "${first$second.length}", 0);
-    assertDoubleClickSelection(content, "yyy", "first$second.length", 0);
   }
 
   public void test_typeArgument() throws Exception {
@@ -78,5 +49,27 @@ public class DartDoubleClickSelectorTest extends ParserTestCase {
         "}");
     assertDoubleClickSelection(content, "Rand", "Random", 0);
     assertDoubleClickSelection(content, "m.Rand", "m.Random", 0);
+  }
+
+  public void test_word_identifier() throws Exception {
+    String content = createSource(//
+        "main() {",
+        "  var myVar;",
+        "  var my_var;",
+        "}");
+    assertDoubleClickSelection(content, "mai", "main", 0);
+    assertDoubleClickSelection(content, "yV", "myVar", 0);
+    assertDoubleClickSelection(content, "var;", "my_var", 0);
+  }
+
+  public void test_word_identifier_withDollar() throws Exception {
+    String content = "main() { var first$second; }";
+    assertDoubleClickSelection(content, "first", "first$second", 0);
+    assertDoubleClickSelection(content, "irst", "first$second", 0);
+    assertDoubleClickSelection(content, "econd", "first$second", 0);
+  }
+
+  public void test_word_interpolation() throws Exception {
+    assertDoubleClickSelection("main() { print('$ident'); }", "dent", "ident", 0);
   }
 }
