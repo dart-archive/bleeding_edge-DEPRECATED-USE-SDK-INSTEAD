@@ -420,17 +420,21 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
     usePubServeButton = new Button(pubGroup, SWT.CHECK);
     usePubServeButton.setText("Using pub to serve the application");
-    usePubServeButton.setSelection(true);
+    IDialogSettings settings = getDialogSettings();
+    int selected;
+    try {
+      selected = getDialogSettings().getInt("selected");
+    } catch (NumberFormatException nfe) {
+      selected = 0;
+    }
+    String pubSettings = settings.get(ConnectionType.values()[selected].name() + ".usePubServe");
+    boolean pubSelection = pubSettings != null ? Boolean.parseBoolean(pubSettings) : true;
+    usePubServeButton.setSelection(pubSelection);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(usePubServeButton);
     Label message = new Label(pubGroup, SWT.NONE);
     message.setText("(This information will be used to resolve breakpoints)");
     message.setFont(Fonts.getItalicFont(message.getFont()));
-
-    try {
-      exceptionsCombo.select(getDialogSettings().getInt("selected"));
-    } catch (NumberFormatException nfe) {
-      exceptionsCombo.select(0);
-    }
+    exceptionsCombo.select(selected);
 
     handleComboChanged();
   }
