@@ -29,7 +29,7 @@ vars = {
   "commons-lang_rev" : "@33092",
   "csslib_rev" : "@994d20b90038fedd2aa7ad31f2a31456da96b225",
   "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
-  "dart_style_tag" : "@0.1.2",
+  "dart_style_tag" : "@0.1.5",
   "d8_rev" : "@39739",
   "eclipse_rev" : "@38742",
   "fake_async_rev" : "@38614",
