@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
@@ -57,8 +59,14 @@ public class CleanFoldersAction extends InstrumentedSelectionDispatchAction {
       for (Object sel : selection.toArray()) {
         projects.add((IProject) sel);
       }
-      CleanLibrariesJob job = new CleanLibrariesJob(projects);
-      job.schedule();
+
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        DartCore.getAnalysisServer().analysis_reanalyze(null);
+      } else {
+        CleanLibrariesJob job = new CleanLibrariesJob(projects);
+        job.schedule();
+      }
+
     }
   }
 
