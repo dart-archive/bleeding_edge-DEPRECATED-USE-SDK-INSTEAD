@@ -180,42 +180,43 @@ public class DartFormatter {
     }
   }
   public static class DartStyleRunner {
-
-    public static void formatFile(final IFile file, final Point selection,
-        final IProgressMonitor monitor) throws IOException, CoreException {
-
+    public static Point formatFile(IFile file, final Point selection, final IProgressMonitor monitor)
+        throws IOException, CoreException {
+      final String fileName = file.getName();
       final String sourcePath = file.getRawLocation().makeAbsolute().toOSString();
-      final CompilationUnitChange[] change = new CompilationUnitChange[1];
+
+      final CompilationUnitChange change = new CompilationUnitChange(fileName, file);
+      change.setEdit(new MultiTextEdit());
+      change.initializeValidationData(monitor);
+      change.setSaveMode(TextFileChange.LEAVE_DIRTY);
+
+      final Point newSelection = new Point(-1, 0);
 
       ExecutionUtils.runLog(new RunnableEx() {
         @Override
         public void run() throws Exception {
-
-          int selectionStart = selection != null ? selection.x : -1;
-          int selectionLength = selection != null ? selection.y : -1;
+          int initialSelectionOffset = selection != null ? selection.x : -1;
+          int initialSelectionLength = selection != null ? selection.y : -1;
 
           final CountDownLatch latch = new CountDownLatch(1);
 
           DartCore.getAnalysisServer().edit_format(
               sourcePath,
-              selectionStart,
-              selectionLength,
+              initialSelectionOffset,
+              initialSelectionLength,
               new FormatConsumer() {
-
                 @Override
-                public void computedFormat(List<SourceEdit> edits, int selectionOffset,
-                    int selectionLength) {
+                public void computedFormat(List<SourceEdit> edits, int newSelectionOffset,
+                    int newSelectionLength) {
+                  newSelection.x = newSelectionOffset;
+                  newSelection.y = newSelectionLength;
                   TextEdit[] textEdits = ServiceUtils_NEW.toLTK(edits);
-                  change[0] = new CompilationUnitChange(file.getName(), file);
-                  change[0].setEdit(new MultiTextEdit());
-                  change[0].initializeValidationData(monitor);
-                  change[0].setSaveMode(TextFileChange.LEAVE_DIRTY);
                   try {
                     for (TextEdit ltkEdit : textEdits) {
-                      change[0].addEdit(ltkEdit);
+                      change.addEdit(ltkEdit);
                     }
                   } catch (MalformedTreeException e) {
-                    throw new Error(file.getName() + " " + StringUtils.join(textEdits, " "), e);
+                    throw new Error(fileName + " " + StringUtils.join(textEdits, " "), e);
                   } finally {
                     latch.countDown();
                   }
@@ -226,14 +227,16 @@ public class DartFormatter {
                   latch.countDown();
                 }
               });
-          Uninterruptibles.awaitUninterruptibly(latch, 5000, TimeUnit.MILLISECONDS);
-
-          if (change[0] != null) {
-            new PerformChangeOperation(change[0]).run(monitor);
+          boolean success = Uninterruptibles.awaitUninterruptibly(
+              latch,
+              5000,
+              TimeUnit.MILLISECONDS);
+          if (success) {
+            new PerformChangeOperation(change).run(monitor);
           }
         }
       });
-
+      return newSelection;
     }
   }
   public static class FormatFileAction extends WorkspaceAction {

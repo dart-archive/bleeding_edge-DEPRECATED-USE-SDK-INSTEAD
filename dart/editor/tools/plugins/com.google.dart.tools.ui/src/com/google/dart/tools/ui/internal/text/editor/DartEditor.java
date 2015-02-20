@@ -751,20 +751,32 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           console.println("Formatting " + file.getName() + " ...");
         }
 
-        final IDocument document = getSourceViewer().getDocument();
+        final ISourceViewer sourceViewer = getSourceViewer();
+        final IDocument document = sourceViewer.getDocument();
 
         try {
 
-          final Point[] selection = new Point[1];
+          final Point initialSelection = new Point(-1, 0);
           Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-              selection[0] = getSourceViewer().getSelectedRange();
+              Point selection = sourceViewer.getSelectedRange();
+              initialSelection.x = selection.x;
+              initialSelection.y = selection.y;
             }
           });
 
           if (DartFormatter.isDartStyleEnabled()) {
-            DartFormatter.DartStyleRunner.formatFile(file, selection[0], monitor);
+            final Point newSelection = DartFormatter.DartStyleRunner.formatFile(
+                file,
+                initialSelection,
+                monitor);
+            Display.getDefault().syncExec(new Runnable() {
+              @Override
+              public void run() {
+                sourceViewer.setSelectedRange(newSelection.x, newSelection.y);
+              }
+            });
             return Status.OK_STATUS;
           }
 
@@ -772,7 +784,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
           final FormattedSource formatResult = DartFormatter.format(
               unformattedSource,
-              selection[0],
+              initialSelection,
               monitor);
 
           Display.getDefault().syncExec(new Runnable() {
@@ -784,10 +796,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
                       formatResult.changeOffset,
                       formatResult.changeLength,
                       formatResult.changeReplacement);
-                  getSourceViewer().revealRange(
+                  sourceViewer.revealRange(
                       formatResult.selectionOffset,
                       formatResult.selectionLength);
-                  getSourceViewer().setSelectedRange(
+                  sourceViewer.setSelectedRange(
                       formatResult.selectionOffset,
                       formatResult.selectionLength);
                 } catch (BadLocationException e) {
