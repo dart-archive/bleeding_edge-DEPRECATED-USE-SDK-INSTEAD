@@ -1221,8 +1221,13 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
-    getViewer().refresh(false);
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+        getViewer().refresh(false);
+      }
+    });
   }
 
   private void enableSorting(final TableColumn column, final int index) {

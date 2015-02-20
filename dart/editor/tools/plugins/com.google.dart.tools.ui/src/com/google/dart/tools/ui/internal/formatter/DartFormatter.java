@@ -333,9 +333,6 @@ public class DartFormatter {
     IPreferenceStore store = EditorsPlugin.getDefault().getPreferenceStore();
     if (!store.getBoolean(PRINT_MARGIN_MIGRATED)) {
       store.setValue(
-          PRINT_MARGIN_COLOR,
-          store.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLOR));
-      store.setValue(
           PRINT_MARGIN_COLUMN,
           store.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
       store.setValue(
