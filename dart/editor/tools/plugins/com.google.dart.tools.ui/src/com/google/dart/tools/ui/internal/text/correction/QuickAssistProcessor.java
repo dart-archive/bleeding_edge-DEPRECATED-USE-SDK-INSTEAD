@@ -22,6 +22,8 @@ import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.GetAvailableRefactoringsConsumer;
+import com.google.dart.server.generated.types.RefactoringKind;
 import com.google.dart.server.generated.types.RequestError;
 import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.tools.core.DartCore;
@@ -106,7 +108,6 @@ public class QuickAssistProcessor {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       // add refactoring proposals
       addProposal_convertGetterToMethodRefactoring();
-      addProposal_convertMethodToGetterRefactoring();
       // TODO(scheglov) add other proposals
 //      addProposal_renameRefactoring();
       addProposal_format();
@@ -116,7 +117,7 @@ public class QuickAssistProcessor {
         @Override
         public void run() throws Exception {
           final List<SourceChange> changes = Lists.newArrayList();
-          final CountDownLatch latch = new CountDownLatch(1);
+          final CountDownLatch latch = new CountDownLatch(2);
           String file = context.getFile();
           DartCore.getAnalysisServer().edit_getAssists(
               file,
@@ -126,6 +127,24 @@ public class QuickAssistProcessor {
                 @Override
                 public void computedSourceChanges(List<SourceChange> _changes) {
                   changes.addAll(_changes);
+                  latch.countDown();
+                }
+
+                @Override
+                public void onError(RequestError requestError) {
+                  latch.countDown();
+                }
+              });
+          DartCore.getAnalysisServer().edit_getAvailableRefactorings(
+              file,
+              selection.getOffset(),
+              selection.getLength(),
+              new GetAvailableRefactoringsConsumer() {
+                @Override
+                public void computedRefactoringKinds(List<String> refactoringKinds) {
+                  if (refactoringKinds.contains(RefactoringKind.CONVERT_METHOD_TO_GETTER)) {
+                    addProposal_convertMethodToGetterRefactoring();
+                  }
                   latch.countDown();
                 }
 
