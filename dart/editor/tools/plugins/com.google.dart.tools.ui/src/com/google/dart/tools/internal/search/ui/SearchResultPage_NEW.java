@@ -964,7 +964,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   @Override
   public void createControl(Composite parent) {
     initFilters();
-    viewer = new TreeViewer(parent, SWT.FULL_SELECTION);
+    viewer = new TreeViewer(parent, SWT.FULL_SELECTION | SWT.MULTI);
     viewer.setContentProvider(CONTENT_PROVIDER);
     // NB(scheglov): don't attempt to share label provider - it is not allowed in JFace
     viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new SearchLabelProvider()));
