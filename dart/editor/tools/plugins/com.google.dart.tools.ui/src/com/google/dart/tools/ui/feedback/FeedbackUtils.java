@@ -101,7 +101,9 @@ public class FeedbackUtils {
 
       writer.println("thread count: " + countString(numThreads));
 
-      writer.println("index: " + indexStats);
+      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        writer.println("index: " + indexStats);
+      }
 
       return writer.toString();
     }

@@ -17,6 +17,7 @@ import com.google.dart.engine.utilities.instrumentation.Base64;
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 
@@ -57,7 +58,9 @@ public class Heartbeat {
     instrumentation.metric("FB-Stats-numEditors", stats.numEditors);
     instrumentation.metric("FB-Stats-numProjects", stats.numProjects);
     instrumentation.metric("FB-Stats-numThreads", stats.numThreads);
-    instrumentation.metric("FB-Stats-indexStats", "index: " + stats.indexStats);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      instrumentation.metric("FB-Stats-indexStats", "index: " + stats.indexStats);
+    }
 
   }
 
