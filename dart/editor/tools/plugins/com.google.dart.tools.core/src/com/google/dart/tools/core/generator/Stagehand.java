@@ -76,11 +76,24 @@ public class Stagehand {
   }
 
   public List<StagehandTuple> getAvailableSamples() throws StagehandException {
+    return getAvailableSamples(false);
+  }
+
+  public List<StagehandTuple> getAvailableSamples(boolean activate) throws StagehandException {
+    if (activate) {
+      install();
+    }
+
     // pub global run stagehand --machine
     ProcessRunner runner = createPubRunner(new String[] {"global", "run", "stagehand", "--machine"});
 
     try {
       int exitCode = runner.runSync(null);
+
+      // Check if the snapshot if out of date.
+      if (exitCode == 253 && !activate) {
+        return getAvailableSamples(true);
+      }
 
       if (exitCode != 0) {
         throw new StagehandException("Error running '" + runner.toString() + "'");
@@ -124,7 +137,7 @@ public class Stagehand {
     try {
       runner.runSync(null);
     } catch (IOException e) {
-
+      DartCore.logError(e);
     }
   }
 
