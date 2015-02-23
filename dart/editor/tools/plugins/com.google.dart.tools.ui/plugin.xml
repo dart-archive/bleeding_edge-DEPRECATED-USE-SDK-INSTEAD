@@ -253,6 +253,21 @@
          <showInPart id="org.eclipse.team.ui.GenericHistoryView"/>
          <showInPart id="org.eclipse.ui.views.ResourceNavigator"/>
       </perspectiveExtension>
+      <perspectiveExtension
+            targetID="*">
+         <view
+               closeable="true"
+               id="com.google.dart.tools.ui.butterBarView"
+               minimized="false"
+               moveable="false"
+               ratio="0.07"
+               relationship="top"
+               relative="org.eclipse.ui.editorss"
+               showTitle="false"
+               standalone="true"
+               visible="false">
+         </view>
+      </perspectiveExtension>
       
    </extension>
    
@@ -287,6 +302,14 @@
             id="com.google.dart.tools.ui.view.packages"
             name="Packages"
             restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.ButterBarView"
+            id="com.google.dart.tools.ui.butterBarView"
+            name="ButterBarView"
+            restorable="false">
       </view>
       
       <!-- view
