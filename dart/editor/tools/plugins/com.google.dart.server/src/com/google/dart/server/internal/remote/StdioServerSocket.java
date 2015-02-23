@@ -243,7 +243,6 @@ public class StdioServerSocket implements AnalysisServerSocket {
     //
     // VM arguments.
     //
-    args.add("--old_gen_heap_size=4096");
     if (packageRoot != null) {
       args.add("--package-root=" + packageRoot);
     }
