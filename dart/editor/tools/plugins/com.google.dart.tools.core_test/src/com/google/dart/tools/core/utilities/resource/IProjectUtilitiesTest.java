@@ -43,7 +43,11 @@ public class IProjectUtilitiesTest extends TestCase {
 
   public void test_newProjectDescription() throws Exception {
     MockWorkspaceRoot root = new MockWorkspaceRoot();
-    IProjectDescription description = IProjectUtilities.newDartProjectDescription(root, "foo", null);
+    IProjectDescription description = IProjectUtilities.newDartProjectDescription(
+        root,
+        "foo",
+        null,
+        false);
     assertNotNull(description);
     assertEquals("foo", description.getName());
     assertNull(description.getLocation());
@@ -53,7 +57,11 @@ public class IProjectUtilitiesTest extends TestCase {
   public void test_newProjectDescription_outsideWorkspace() throws Exception {
     MockWorkspaceRoot root = new MockWorkspaceRoot();
     IPath loc = new Path("/some/other/place");
-    IProjectDescription description = IProjectUtilities.newDartProjectDescription(root, "foo", loc);
+    IProjectDescription description = IProjectUtilities.newDartProjectDescription(
+        root,
+        "foo",
+        loc,
+        false);
     assertNotNull(description);
     assertEquals("foo", description.getName());
     assertFalse(root.getLocation().isPrefixOf(description.getLocation()));

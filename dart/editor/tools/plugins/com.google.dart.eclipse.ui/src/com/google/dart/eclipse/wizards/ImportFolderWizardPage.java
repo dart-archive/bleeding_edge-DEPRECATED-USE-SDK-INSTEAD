@@ -15,6 +15,12 @@ package com.google.dart.eclipse.wizards;
 
 import com.google.dart.eclipse.DartEclipseUI;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -39,6 +45,7 @@ public class ImportFolderWizardPage extends WizardPage {
   private Label directoryLabel;
   private Button browseButton;
   private Text existingSourcePathText;
+  private Text projectNameText;
 
   protected ImportFolderWizardPage() {
     super("wizard page");
@@ -59,6 +66,19 @@ public class ImportFolderWizardPage extends WizardPage {
 
     container.setLayout(gridLayout);
 
+    Label projectLabel = new Label(container, SWT.NONE);
+    projectLabel.setText("Project Name:");
+    projectNameText = new Text(container, SWT.BORDER);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).span(2, 1).grab(true, false).applyTo(
+        projectNameText);
+    projectNameText.addModifyListener(new ModifyListener() {
+
+      @Override
+      public void modifyText(ModifyEvent e) {
+        updatePage();
+      }
+    });
+
     directoryLabel = new Label(container, SWT.NONE);
     directoryLabel.setText("Directory:");
 
@@ -69,12 +89,7 @@ public class ImportFolderWizardPage extends WizardPage {
 
       @Override
       public void modifyText(ModifyEvent e) {
-        if (!existingSourcePathText.getText().trim().isEmpty()) {
-          setPageComplete(true);
-          setMessage("Create a Dart project from existing source");
-        } else {
-
-        }
+        updatePage();
       }
     });
 
@@ -93,7 +108,7 @@ public class ImportFolderWizardPage extends WizardPage {
       }
     });
     setPageComplete(false);
-    setMessage("Select a directory to import");
+    setMessage("Enter a project name");
     setControl(container);
   }
 
@@ -102,7 +117,70 @@ public class ImportFolderWizardPage extends WizardPage {
   }
 
   public String getProjectName() {
-    return new Path(getProjectLocation()).lastSegment();
+    return projectNameText.getText().trim();
+  }
+
+  private void updatePage() {
+
+    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+    final String name = projectNameText.getText().trim();
+
+    // check whether the project name field is empty
+    if (name.length() == 0) {
+      setErrorMessage(null);
+      setMessage("Enter a project name");
+      setPageComplete(false);
+      return;
+    }
+
+    // check whether the project name is valid
+    final IStatus nameStatus = workspace.validateName(name, IResource.PROJECT);
+    if (!nameStatus.isOK()) {
+      setErrorMessage(nameStatus.getMessage());
+      setPageComplete(false);
+      return;
+    }
+
+    // check whether project already exists
+    final IProject handle = workspace.getRoot().getProject(name);
+    if (handle.exists()) {
+      setErrorMessage("A project with this name already exists");
+      setPageComplete(false);
+      return;
+    }
+
+    final String location = existingSourcePathText.getText().trim();
+
+    // check whether location is empty
+    if (location.length() == 0) {
+      setErrorMessage(null);
+      setMessage("Select a directory to import");
+      setPageComplete(false);
+      return;
+    }
+
+    // check whether the location is a syntactically correct path
+    if (!Path.EMPTY.isValidPath(location)) {
+      setErrorMessage("Invalid project contents directory");
+      setPageComplete(false);
+      return;
+    }
+
+    IPath projectPath = Path.fromOSString(location);
+
+    // validate the location
+    final IStatus locationStatus = workspace.validateProjectLocation(handle, projectPath);
+    if (!locationStatus.isOK()) {
+      setErrorMessage(locationStatus.getMessage());
+      setPageComplete(false);
+      return;
+    }
+
+    setPageComplete(true);
+
+    setErrorMessage(null);
+    setMessage("Create a Dart project from existing source");
   }
 
 }

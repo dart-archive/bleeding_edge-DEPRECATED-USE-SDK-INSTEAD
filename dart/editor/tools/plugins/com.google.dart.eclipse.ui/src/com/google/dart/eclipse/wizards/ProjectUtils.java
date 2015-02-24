@@ -52,11 +52,11 @@ import java.lang.reflect.InvocationTargetException;
 public class ProjectUtils {
 
   public static IProject createNewProject(String projectName, String projectLocation,
-      final IRunnableContext runnableContext, final Shell shell) {
+      boolean isImport, final IRunnableContext runnableContext, final Shell shell) {
 
     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
     final IProjectDescription description = IProjectUtilities.newDartProjectDescription(root,
-        projectName, projectLocation != null ? new Path(projectLocation) : null);
+        projectName, projectLocation != null ? new Path(projectLocation) : null, isImport);
     final IProject project = root.getProject(description.getName());
 
     // create the new project operation

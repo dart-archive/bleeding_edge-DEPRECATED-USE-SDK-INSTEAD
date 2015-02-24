@@ -53,11 +53,13 @@ public final class IProjectUtilities {
    * @return the project description, not {@code null}
    */
   public static IProjectDescription newDartProjectDescription(IWorkspaceRoot root,
-      String projectName, IPath projectLocation) {
+      String projectName, IPath projectLocation, boolean isImport) {
     final IProjectDescription description = root.getWorkspace().newProjectDescription(projectName);
-    if (projectLocation != null && !root.getLocation().isPrefixOf(projectLocation)) {
+    if (projectLocation != null && !root.getLocation().isPrefixOf(projectLocation) && !isImport) {
       IPath fullProjectLocation = projectLocation.append(projectName);
       description.setLocation(fullProjectLocation);
+    } else if (isImport) {
+      description.setLocation(projectLocation);
     }
     description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
     ICommand command = description.newCommand();

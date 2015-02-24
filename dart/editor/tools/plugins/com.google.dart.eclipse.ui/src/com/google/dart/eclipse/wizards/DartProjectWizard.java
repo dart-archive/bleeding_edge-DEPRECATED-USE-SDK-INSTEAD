@@ -69,8 +69,8 @@ public class DartProjectWizard extends Wizard implements INewWizard {
 
     String name = page.getProjectName();
 
-    newProject = ProjectUtils.createNewProject(name, page.getProjectLocation(), getContainer(),
-        getShell());
+    newProject = ProjectUtils.createNewProject(name, page.getProjectLocation(), false,
+        getContainer(), getShell());
 
     if (newProject == null) {
       return false;

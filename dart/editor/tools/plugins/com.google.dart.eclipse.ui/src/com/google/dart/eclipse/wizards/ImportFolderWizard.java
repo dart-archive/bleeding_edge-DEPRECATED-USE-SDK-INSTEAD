@@ -78,7 +78,7 @@ public class ImportFolderWizard extends Wizard implements IImportWizard, INewWiz
   public boolean performFinish() {
 
     newProject = ProjectUtils.createNewProject(page.getProjectName(), page.getProjectLocation(),
-        getContainer(), getShell());
+        true, getContainer(), getShell());
 
     if (newProject == null) {
       return false;
