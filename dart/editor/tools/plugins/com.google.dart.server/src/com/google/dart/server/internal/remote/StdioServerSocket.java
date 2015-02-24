@@ -254,6 +254,7 @@ public class StdioServerSocket implements AnalysisServerSocket {
       args.add("--pause-isolates-on-exit");
       args.add("--code_comments");
       args.add("--profile_depth=16");
+      args.add("--collect-code=false");
     }
     //
     // The analysis server path.
