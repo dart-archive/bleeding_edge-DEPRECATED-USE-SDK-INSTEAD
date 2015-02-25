@@ -104,6 +104,9 @@ public class DartServerProposalCollector {
       }
       filtered.addAll(Math.min(filtered.size(), 9), informational);
     }
+    if (filtered.isEmpty()) {
+      filtered.add(DartServerInformationalProposal.NO_RESULTS_COMPLETE);
+    }
     proposals = filtered;
   }
 
