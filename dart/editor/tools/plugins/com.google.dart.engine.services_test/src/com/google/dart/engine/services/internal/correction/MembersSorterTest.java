@@ -436,6 +436,24 @@ public class MembersSorterTest extends RefactoringImplTest {
     assertSorting(initial, expected);
   }
 
+  public void test_unitMembers_mainFirst() throws Exception {
+    String initial = makeSource(//
+        "class C {}",
+        "aaa() {}",
+        "class A {}",
+        "main() {}",
+        "class B {}",
+        "");
+    String expected = makeSource(//
+        "main() {}",
+        "aaa() {}",
+        "class A {}",
+        "class B {}",
+        "class C {}",
+        "");
+    assertSorting(initial, expected);
+  }
+
   public void test_unitMembers_mix() throws Exception {
     verifyNoTestUnitErrors = false;
     String initial = makeSource(//

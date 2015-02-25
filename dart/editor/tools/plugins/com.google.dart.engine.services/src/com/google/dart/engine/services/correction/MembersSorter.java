@@ -111,6 +111,7 @@ public class MembersSorter {
   }
 
   private static enum MemberKind {
+    UNIT_FUNCTION_MAIN,
     UNIT_ACCESSOR,
     UNIT_FUNCTION,
     UNIT_FUNCTION_TYPE,
@@ -151,6 +152,7 @@ public class MembersSorter {
 
   private static final PriorityItem[] PRIORITY_ITEMS = {
       // unit
+      new PriorityItem(false, MemberKind.UNIT_FUNCTION_MAIN, false),
       new PriorityItem(false, MemberKind.UNIT_VARIABLE, false),
       new PriorityItem(false, MemberKind.UNIT_VARIABLE, true),
       new PriorityItem(false, MemberKind.UNIT_ACCESSOR, false),
@@ -445,7 +447,11 @@ public class MembersSorter {
           kind = MemberKind.UNIT_ACCESSOR;
           name += " setter";
         } else {
-          kind = MemberKind.UNIT_FUNCTION;
+          if (name.equals("main")) {
+            kind = MemberKind.UNIT_FUNCTION_MAIN;
+          } else {
+            kind = MemberKind.UNIT_FUNCTION;
+          }
         }
       }
       if (member instanceof FunctionTypeAlias) {
