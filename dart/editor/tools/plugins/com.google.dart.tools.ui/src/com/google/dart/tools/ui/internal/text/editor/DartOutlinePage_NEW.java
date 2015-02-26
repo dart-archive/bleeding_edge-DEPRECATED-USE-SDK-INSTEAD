@@ -555,7 +555,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
 
   public void select(int offset) {
     Outline newOutline = getOutlineAtOffset(input, offset);
-    if (newOutline == null) {
+    if (newOutline == null || viewer == null) {
       return;
     }
     // check if the same Outline is selected
