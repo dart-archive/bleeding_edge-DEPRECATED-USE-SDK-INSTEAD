@@ -10,7 +10,7 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "master",
-  "dartium_chromium_commit": "2bc49d71121edbec13d9ca6bea5fc38a666b2526",
+  "dartium_chromium_commit": "5daf3bceac78c2038362cda6250e3201e5899ece",
   "chromium_base_revision": "297060",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
