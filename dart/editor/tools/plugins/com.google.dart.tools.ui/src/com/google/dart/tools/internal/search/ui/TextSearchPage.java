@@ -225,12 +225,14 @@ public class TextSearchPage extends SearchPage {
       }
       // remove if in wrong folder
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        // we don't create 'packages' with the analysis server
+        if (DartCore.isPackagesResource(file)) {
+          Match[] matches = searchResult.getMatches(element);
+          searchResult.removeMatches(matches);
+        }
       } else {
         if (isInWrongPackageFolder(file)) {
           Match[] matches = searchResult.getMatches(element);
           searchResult.removeMatches(matches);
-          continue;
         }
       }
     }
