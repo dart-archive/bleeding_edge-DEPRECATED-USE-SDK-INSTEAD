@@ -16,3 +16,6 @@ dart_style/test/command_line_test: Fail # Issue 22585
 
 [ $compiler == dart2dart ]
 dart_style/test/formatter_test: Fail # Issue 22587
+
+[ $browser ]
+*: SkipByDesign
