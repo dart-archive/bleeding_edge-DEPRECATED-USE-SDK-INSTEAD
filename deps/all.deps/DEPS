@@ -31,7 +31,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_rev" : "@994d20b90038fedd2aa7ad31f2a31456da96b225",
   "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
-  "dart_style_tag" : "@0.1.5+1",
+  "dart_style_tag" : "@0.1.5+2",
   "d8_rev" : "@39739",
   "eclipse_rev" : "@38742",
   "fake_async_rev" : "@38614",
