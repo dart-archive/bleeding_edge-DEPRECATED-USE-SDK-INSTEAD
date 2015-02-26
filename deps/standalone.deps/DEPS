@@ -15,6 +15,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev" : "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "fake_async_rev": "@38614",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -78,6 +79,8 @@ deps = {
   "dart/third_party/observatory_pub_packages":
       "/third_party/observatory_pub_packages" +
       Var("observatory_pub_packages_rev"),
+  "dart/third_party/pkg/crypto":
+      "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
 
   # Needed to run pub
   "dart/third_party/pkg/barback":

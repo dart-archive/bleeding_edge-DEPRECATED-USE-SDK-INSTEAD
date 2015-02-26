@@ -18,6 +18,7 @@ vars.update({
 
   "args_rev": "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_rev" : "@84f368d86fd9619def668e49824fe3e71a1e010f",
@@ -82,6 +83,8 @@ deps.update({
   # Needed to run pub.
   "src/dart/third_party/pkg/barback":
       "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
+  "src/dart/third_party/pkg/crypto":
+      "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
   "src/dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   "src/dart/third_party/pkg/json_rpc_2":
