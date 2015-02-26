@@ -436,6 +436,25 @@ public class MembersSorterTest extends RefactoringImplTest {
     assertSorting(initial, expected);
   }
 
+  public void test_unitMembers_importsAndDeclarations() throws Exception {
+    String initial = makeSource(//
+        "import 'dart:a';",
+        "import 'package:b';",
+        "",
+        "bbb() => null;",
+        "aaa() {}",
+        "");
+    String expected = makeSource(//
+        "import 'dart:a';",
+        "",
+        "import 'package:b';",
+        "",
+        "aaa() {}",
+        "bbb() => null;",
+        "");
+    assertSorting(initial, expected);
+  }
+
   public void test_unitMembers_mainFirst() throws Exception {
     String initial = makeSource(//
         "class C {}",

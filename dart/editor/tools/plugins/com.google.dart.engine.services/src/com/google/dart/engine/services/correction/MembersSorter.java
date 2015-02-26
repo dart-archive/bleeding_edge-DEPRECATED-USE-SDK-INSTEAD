@@ -239,8 +239,10 @@ public class MembersSorter {
       return null;
     }
     sortClassesMembers();
-    sortUnitDirectives();
     sortUnitMembers();
+    // Must sort unit directives last because it may insert newlines, which
+    // would confuse the offsets used by the other sort functions.
+    sortUnitDirectives();
     // is the any change?
     if (code.equals(initialCode)) {
       return null;
