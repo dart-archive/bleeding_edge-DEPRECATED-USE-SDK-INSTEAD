@@ -55,6 +55,30 @@ public class DartUIStartup implements IStartup {
   @Override
   public void earlyStartup() {
     doEarlyStartup();
+    Display.getDefault().asyncExec(new Runnable() {
+
+      @Override
+      public void run() {
+        // show analytics dialog
+        if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+          if (DartCore.getPlugin().getShowAnalyticsDailog()) {
+            ButterBarView.show(
+                "Would you like to help make Dart better by sending usage statistics to Google?",
+                new String[] {"Yes", "No thanks!"},
+                new ButterBarView.Listener() {
+                  @Override
+                  public void buttonPressed(int buttonIndex) {
+                    DartCore.getPlugin().setShowAnalyticsDialogFalse();
+                    boolean sendUsageData = buttonIndex == 1 ? true : false;
+                    DartCore.getPlugin().setEnableAnalytics(sendUsageData);
+                  }
+                });
+          }
+        }
+
+      }
+    });
+
   }
 
   private void doEarlyStartup() {

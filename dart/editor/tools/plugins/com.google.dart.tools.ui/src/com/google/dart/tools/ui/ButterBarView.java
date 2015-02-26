@@ -146,7 +146,7 @@ public class ButterBarView extends ViewPart {
         button = buttons.get(buttonIndex);
       } else {
         button = new Button(parent, SWT.NONE);
-        button.addSelectionListener(new ButtonSelectionListener(buttonIndex++));
+        button.addSelectionListener(new ButtonSelectionListener(buttonIndex + 1));
         buttons.add(button);
       }
       button.setText(buttonText[buttonIndex]);

@@ -224,6 +224,13 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public static final String PROJECT_PREF_DISABLE_DART_BASED_BUILDER = "disableDartBasedBuilder";
 
+  /**
+   * Preference for enabling usage collection
+   */
+  public static final String PREFS_ENABLE_ANALYTICS = "enableAnalytics";
+
+  public static final String PREFS_SHOW_ANALYTICS_DIALOG = "showAnalyticsDialog";
+
   // white listed dirs that can be used for pub build
   public static final List<String> pubDirectories = Arrays.asList(
       "assest",
@@ -1696,6 +1703,13 @@ public class DartCore extends Plugin implements DartSdkListener {
     return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
   }
 
+  public boolean getEnableAnalytics() {
+    if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+      return getPrefs().getBoolean(PREFS_ENABLE_ANALYTICS, false);
+    }
+    return false;
+  }
+
   /**
    * Given an File, return the appropriate java.io.File representing a package root. This can be
    * null if a package root should not be used.
@@ -1758,6 +1772,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     return getPrefs().get(PREFS_SDK_LOCATION, "");
   }
 
+  public boolean getShowAnalyticsDailog() {
+    return getPrefs().getBoolean(PREFS_SHOW_ANALYTICS_DIALOG, true);
+  }
+
   public boolean isAutoRunPubEnabled() {
     return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
   }
@@ -1815,6 +1833,19 @@ public class DartCore extends Plugin implements DartSdkListener {
     }
   }
 
+  public void setEnableAnalytics(boolean value) {
+    if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+      IEclipsePreferences prefs = getPrefs();
+      prefs.putBoolean(PREFS_ENABLE_ANALYTICS, value);
+
+      try {
+        getPrefs().flush();
+      } catch (BackingStoreException exception) {
+        logError(exception);
+      }
+    }
+  }
+
   public void setPackageRoot(IProject project, String packageRootPath) throws CoreException {
     try {
       IEclipsePreferences prefs = getProjectPreferences(project);
@@ -1822,6 +1853,17 @@ public class DartCore extends Plugin implements DartSdkListener {
       prefs.flush();
     } catch (BackingStoreException ex) {
       throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));
+    }
+  }
+
+  public void setShowAnalyticsDialogFalse() {
+    IEclipsePreferences prefs = getPrefs();
+    prefs.putBoolean(PREFS_SHOW_ANALYTICS_DIALOG, false);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException exception) {
+      logError(exception);
     }
   }
 

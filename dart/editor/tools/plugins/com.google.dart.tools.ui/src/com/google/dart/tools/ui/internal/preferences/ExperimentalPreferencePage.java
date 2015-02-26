@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.preferences;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -26,6 +27,7 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -52,6 +54,7 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
   private Button useNewFormatter;
   private Label serverHttpPortLabel;
   private Text serverHttpPortText;
+  private Button serverUsageButton;
 
   public ExperimentalPreferencePage() {
     setPreferenceStore(null);
@@ -79,12 +82,18 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
 
       // Formatter changes don't require restart.
       boolean hasChanges = serverChanged || portChanged;
+      boolean analyticsOptionChanged = false;
+      if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+        analyticsOptionChanged = serverUsageButton.getSelection() != DartCore.getPlugin().getEnableAnalytics()
+            ? true : false;
+        DartCore.getPlugin().setEnableAnalytics(serverUsageButton.getSelection());
+      }
       try {
         DartCore.getPlugin().savePrefs();
       } catch (CoreException e) {
         DartToolsPlugin.log(e);
       }
-      if (hasChanges) {
+      if (hasChanges || analyticsOptionChanged) {
         MessageDialog.openInformation(
             getShell(),
             "Restart Required",
@@ -152,9 +161,39 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
       GridDataFactory.fillDefaults().grab(true, false).applyTo(separatorLabel);
     }
 
+    if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+
+      {
+        Composite group = new Composite(composite, SWT.NONE);
+        GridData data = new GridData(SWT.FILL, SWT.BEGINNING, true, false);
+        data.widthHint = composite.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+        group.setLayoutData(data);
+        //GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
+        GridLayoutFactory.fillDefaults().applyTo(group);
+
+        serverUsageButton = createCheckBox(
+            group,
+            "Send usage statistics to Google Inc.",
+            "Send usage statistics to Google Inc.");
+        GridDataFactory.fillDefaults().applyTo(serverUsageButton);
+
+        Label usageNotes = new Label(group, SWT.WRAP);
+        usageNotes.setText(PreferencesMessages.ExperimentalPreferencePage_usage_notes);
+        usageNotes.setFont(Fonts.getItalicFont(usageNotes.getFont()));
+        GridDataFactory.fillDefaults().align(SWT.FILL, SWT.TOP).grab(true, false).applyTo(
+            usageNotes);
+      }
+
+      // Separator
+      {
+        Label separatorLabel = new Label(composite, SWT.NONE);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(separatorLabel);
+      }
+    }
+
     Label notes = new Label(composite, SWT.NONE);
     notes.setText(PreferencesMessages.ExperimentalPreferencePage_notes);
-    GridDataFactory.fillDefaults().grab(true, true).applyTo(notes);
+    GridDataFactory.fillDefaults().grab(false, true).applyTo(notes);
 
     // init
     initFromPrefs();
@@ -183,6 +222,9 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     }
     serverHttpPortText.setText(textValue);
     updateServerOptionEnablement();
+    if (DartCoreDebug.ASK_FOR_USER_ANALYTICS) {
+      serverUsageButton.setSelection(DartCore.getPlugin().getEnableAnalytics());
+    }
   }
 
   private boolean setPref(String prefKey, Button button) {
