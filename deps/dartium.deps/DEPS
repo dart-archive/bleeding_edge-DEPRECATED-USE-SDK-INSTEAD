@@ -18,6 +18,7 @@ vars.update({
 
   "args_rev": "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -27,6 +28,7 @@ vars.update({
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_rev": "@1cad08d3ee7b14e00fee83718236b92e5cf9c9e9",
+  "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observatory_pub_packages_rev": "@43830",
@@ -85,6 +87,8 @@ deps.update({
       "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
   "src/dart/third_party/pkg/crypto":
       "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
+  "src/dart/third_party/pkg/collection":
+      "https://github.com/dart-lang/collection.git" + Var("collection_rev"),
   "src/dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   "src/dart/third_party/pkg/json_rpc_2":
@@ -98,6 +102,8 @@ deps.update({
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
       "https://github.com/dart-lang/http_throttle.git" + Var("http_throttle_rev"),
+  "src/dart/third_party/pkg/mime":
+      "https://github.com/dart-lang/mime.git" + Var("mime_rev"),
   "src/dart/third_party/pkg/oauth2":
     "https://github.com/dart-lang/oauth2.git" + Var("oauth2_rev"),
   "src/dart/third_party/pkg/pool":
