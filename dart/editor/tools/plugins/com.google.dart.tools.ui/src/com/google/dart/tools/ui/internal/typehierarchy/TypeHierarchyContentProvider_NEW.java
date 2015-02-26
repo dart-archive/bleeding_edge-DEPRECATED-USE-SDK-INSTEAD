@@ -33,6 +33,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -287,6 +289,14 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
       int id = subIds[i];
       subTypes[i] = items.get(id);
     }
+    Arrays.sort(subTypes, new Comparator<TypeHierarchyItem>() {
+      @Override
+      public int compare(TypeHierarchyItem o1, TypeHierarchyItem o2) {
+        String name1 = o1.getClassElement().getName();
+        String name2 = o2.getClassElement().getName();
+        return name1.compareToIgnoreCase(name2);
+      }
+    });
     List<TypeItem> subItems = Lists.newArrayList();
     for (TypeHierarchyItem subType : subTypes) {
       if (seenItems.add(subType)) {
