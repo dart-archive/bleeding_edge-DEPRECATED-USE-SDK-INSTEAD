@@ -74,6 +74,8 @@ public class DartCoreDebug {
   public static final String ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_LOG = getOptionValue("experimental/analysisServer/incrementalResolutionLog");
   public static final boolean ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_VALIDATION = isOptionTrue("experimental/analysisServer/incrementalResolutionValidation");
 
+  public static final String ANALYSIS_SERVER_INSTRUMENTATION_LOG_FILE = getOptionValue("experimental/analysisServer/instrumentationLogFile");
+
   public static final String ANALYSIS_SERVER_HTTP_PORT_PREF = "analysisServerHttpPort";
   public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionOrPrefValue(
       "experimental/analysisServer/http_port",

@@ -557,6 +557,14 @@ public class DartCore extends Plugin implements DartSdkListener {
                 additionalArguments,
                 "--incremental-resolution-validation");
           }
+          {
+            String log = DartCoreDebug.ANALYSIS_SERVER_INSTRUMENTATION_LOG_FILE;
+            if (log != null) {
+              additionalArguments = ArrayUtils.add(
+                  additionalArguments,
+                  "--instrumentation-log-file=" + log);
+            }
+          }
           if (DartCoreDebug.ANALYSIS_SERVER_PRINT_TO_CONSOLE) {
             additionalArguments = ArrayUtils.add(additionalArguments, "--internal-print-to-console");
           }

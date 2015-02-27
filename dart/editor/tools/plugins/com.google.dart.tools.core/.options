@@ -45,6 +45,7 @@ com.google.dart.tools.core/experimental/analysisServer/http_port =
 com.google.dart.tools.core/experimental/analysisServer/incrementalResolutionApi = false
 com.google.dart.tools.core/experimental/analysisServer/incrementalResolutionLog =
 com.google.dart.tools.core/experimental/analysisServer/incrementalResolutionValidation = false
+com.google.dart.tools.core/experimental/analysisServer/instrumentationLogFile =
 com.google.dart.tools.core/experimental/analysisServer/logFile =
 com.google.dart.tools.core/experimental/analysisServer/printToConsole = false
 com.google.dart.tools.core/experimental/analysisServer/profile = false
