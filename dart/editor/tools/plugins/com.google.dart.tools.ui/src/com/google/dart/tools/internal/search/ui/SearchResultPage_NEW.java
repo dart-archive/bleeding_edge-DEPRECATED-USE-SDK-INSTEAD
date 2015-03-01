@@ -210,6 +210,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       if (content == null) {
         return null;
       }
+      if (offset < 0 || offset >= content.length()) {
+        return null;
+      }
       // find start of line
       int start = offset;
       while (start > 0 && content.charAt(start - 1) != '\n') {
