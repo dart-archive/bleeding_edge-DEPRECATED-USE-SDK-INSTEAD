@@ -17,5 +17,5 @@ dart_style/*: SkipByDesign # Tests spawn Dart processes and read files.
 [ $browser ]
 dart_style/*: SkipByDesign
 
-[ $runtime == vm && ($mode == debug || $arch == mips || $arch == simmips || $arch == simarm) ]
+[ $runtime == vm && ($mode == debug || $arch == mips || $arch == simmips || $arch == simarm || $arch == simarm64) ]
 dart_style/test/command_line_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators/mips.
