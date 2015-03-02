@@ -84,6 +84,7 @@ public class DartCoreDebug {
 
   public static final String ENABLE_NEW_FORMATTER_PREF = "experimental/newFormatter";
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
+  public static final String ANALYSIS_SERVER_PATH = getOptionValue("experimental/analysisServer/path");
   public static final boolean ANALYSIS_SERVER_PRINT_TO_CONSOLE = isOptionTrue("experimental/analysisServer/printToConsole");
   public static final boolean ANALYSIS_SERVER_PROFILE = isOptionTrue("experimental/analysisServer/profile");
   public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");

@@ -485,22 +485,26 @@ public class DartCore extends Plugin implements DartSdkListener {
           System.exit(1);
         }
 
-        String svnRoot = System.getProperty("com.google.dart.svnRoot");
         String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
-        String analysisServerPath = null;
-        String packageRoot = null;
-        if (svnRoot == null) {
-          File analysisServerSnapshot = new File(
-              DartSdkManager.getManager().getSdk().getDirectory(),
-              "bin/snapshots/analysis_server.dart.snapshot");
-          analysisServerPath = analysisServerSnapshot.getAbsolutePath();
-          if (!analysisServerSnapshot.exists()) {
-            DartCore.logError("Analysis Server snapshot was not found in "
-                + analysisServerSnapshot.getAbsolutePath() + ", SDK is corrupt.");
-            System.exit(1);
+        String analysisServerPath = DartCoreDebug.ANALYSIS_SERVER_PATH;
+        if (analysisServerPath == null) {
+          String svnRoot = System.getProperty("com.google.dart.svnRoot");
+          if (svnRoot == null) {
+            File analysisServerSnapshot = new File(
+                DartSdkManager.getManager().getSdk().getDirectory(),
+                "bin/snapshots/analysis_server.dart.snapshot");
+            analysisServerPath = analysisServerSnapshot.getAbsolutePath();
+            if (!analysisServerSnapshot.exists()) {
+              DartCore.logError("Analysis Server snapshot was not found in "
+                  + analysisServerSnapshot.getAbsolutePath() + ", SDK is corrupt.");
+              System.exit(1);
+            }
+          } else {
+            analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
           }
-        } else {
-          analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
+        }
+        String packageRoot = null;
+        if (analysisServerPath != null) {
           packageRoot = System.getProperty("com.google.dart.packageRoot");
           if (packageRoot == null) {
             DartCore.logError("To run analysis server from source, a package root must be "
