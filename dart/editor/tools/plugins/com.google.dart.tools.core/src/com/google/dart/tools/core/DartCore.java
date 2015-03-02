@@ -487,7 +487,7 @@ public class DartCore extends Plugin implements DartSdkListener {
 
         String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
         String analysisServerPath = DartCoreDebug.ANALYSIS_SERVER_PATH;
-        if (analysisServerPath == null) {
+        if (StringUtils.isEmpty(analysisServerPath)) {
           String svnRoot = System.getProperty("com.google.dart.svnRoot");
           if (svnRoot == null) {
             File analysisServerSnapshot = new File(
@@ -550,7 +550,7 @@ public class DartCore extends Plugin implements DartSdkListener {
           }
           {
             String log = DartCoreDebug.ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_LOG;
-            if (log != null) {
+            if (!StringUtils.isEmpty(log)) {
               additionalArguments = ArrayUtils.add(
                   additionalArguments,
                   "--incremental-resolution-log=" + log);
@@ -563,7 +563,7 @@ public class DartCore extends Plugin implements DartSdkListener {
           }
           {
             String log = DartCoreDebug.ANALYSIS_SERVER_INSTRUMENTATION_LOG_FILE;
-            if (log != null) {
+            if (!StringUtils.isEmpty(log)) {
               log = log.trim();
               if (log.length() > 0) {
                 additionalArguments = ArrayUtils.add(
