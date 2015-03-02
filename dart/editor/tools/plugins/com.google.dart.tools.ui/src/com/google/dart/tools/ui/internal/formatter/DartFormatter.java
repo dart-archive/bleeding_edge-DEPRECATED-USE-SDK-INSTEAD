@@ -99,17 +99,19 @@ public class DartFormatter {
 
       List<String> args = new ArrayList<String>();
       args.add(dartfmt.getPath());
-      if (selection != null) {
-        args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
-      }
+
+// TODO(pquitslund): Re-enable when dart_style plays nice with the -s flag
+// https://github.com/dart-lang/dart_style/issues/194     
+//      if (selection != null) {
+//        args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
+//      }
+
       args.add(ARGS_MAX_LINE_LEN_FLAG);
       if (getMaxLineLengthEnabled() && getMaxLineLength().length() > 0) {
         args.add(getMaxLineLength());
       } else {
         args.add("Infinity");
       }
-      args.add(ARGS_INDENT_FLAG);
-      args.add(getInsertSpacesForTabs() ? getSpacesPerIndent() : "tab");
       if (getPerformTransforms()) {
         args.add(ARGS_TRANSFORMS_FLAG);
       }

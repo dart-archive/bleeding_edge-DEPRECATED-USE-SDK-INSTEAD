@@ -796,12 +796,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
                       formatResult.changeOffset,
                       formatResult.changeLength,
                       formatResult.changeReplacement);
-                  sourceViewer.revealRange(
-                      formatResult.selectionOffset,
-                      formatResult.selectionLength);
-                  sourceViewer.setSelectedRange(
-                      formatResult.selectionOffset,
-                      formatResult.selectionLength);
+// TODO(pquitslund): Re-enable when dart_style plays nice with the -s flag
+// https://github.com/dart-lang/dart_style/issues/194                  
+//                  sourceViewer.revealRange(
+//                      formatResult.selectionOffset,
+//                      formatResult.selectionLength);
+//                  sourceViewer.setSelectedRange(
+//                      formatResult.selectionOffset,
+//                      formatResult.selectionLength);
                 } catch (BadLocationException e) {
                   DartToolsPlugin.log(e);
                 }
