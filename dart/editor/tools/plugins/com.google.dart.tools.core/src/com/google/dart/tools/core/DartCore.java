@@ -560,9 +560,12 @@ public class DartCore extends Plugin implements DartSdkListener {
           {
             String log = DartCoreDebug.ANALYSIS_SERVER_INSTRUMENTATION_LOG_FILE;
             if (log != null) {
-              additionalArguments = ArrayUtils.add(
-                  additionalArguments,
-                  "--instrumentation-log-file=" + log);
+              log = log.trim();
+              if (log.length() > 0) {
+                additionalArguments = ArrayUtils.add(
+                    additionalArguments,
+                    "--instrumentation-log-file=" + log);
+              }
             }
           }
           if (DartCoreDebug.ANALYSIS_SERVER_PRINT_TO_CONSOLE) {
