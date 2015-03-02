@@ -49,8 +49,7 @@ public class CodeFormatEditFactory {
    * @return an edit that removes all trailing whitespace
    * @throws CoreException if an error occurs in creating the edit
    */
-  public static MultiTextEdit removeTrailingWhitespace(IDocument document, int selectionStart,
-      int selectionEnd) throws CoreException {
+  public static MultiTextEdit removeTrailingWhitespace(IDocument document) throws CoreException {
 
     MultiTextEdit textEdit = new MultiTextEdit();
 
@@ -80,13 +79,8 @@ public class CodeFormatEditFactory {
             lineStart,
             lineExclusiveEnd - 1,
             document);
+
         j++;
-
-        if (selectionStart != -1 && j == lineStart && selectionStart > lineStart
-            && selectionEnd <= lineExclusiveEnd) {
-          j = selectionStart;
-        }
-
         if (j < lineExclusiveEnd) {
           DeleteEdit edit = new DeleteEdit(j, lineExclusiveEnd - j);
           textEdit.addChild(edit);
