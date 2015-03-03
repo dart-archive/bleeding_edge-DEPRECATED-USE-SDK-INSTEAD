@@ -630,7 +630,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     // element
     Element element = suggestion.getElement();
     if (element != null) {
-      return ELEMENT_LABEL_PROVIDER.getStyledText(element);
+      return ELEMENT_LABEL_PROVIDER.getStyledText(element, suggestion.getCompletion());
     }
 
     // not element

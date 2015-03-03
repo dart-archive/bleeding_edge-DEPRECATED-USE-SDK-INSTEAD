@@ -132,8 +132,12 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
 
   @Override
   public StyledString getStyledText(Object obj) {
+    return getStyledText(obj, getText(obj));
+  }
+
+  public StyledString getStyledText(Object obj, String text) {
     Element element = (Element) obj;
-    StyledString styledString = new StyledString(getText(obj));
+    StyledString styledString = new StyledString(text);
     // append parameters
     String parameters = element.getParameters();
     if (parameters != null) {
