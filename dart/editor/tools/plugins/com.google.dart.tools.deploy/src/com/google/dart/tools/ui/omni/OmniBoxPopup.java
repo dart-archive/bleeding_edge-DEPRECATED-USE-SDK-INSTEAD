@@ -877,7 +877,6 @@ public class OmniBoxPopup extends BasePopupDialog {
       return new OmniProposalProvider[] {
           new PreviousPicksProvider(), new TextSearchProvider(this),
           new TopLevelElementProvider_NEW(pm), FileProvider.projectFiles(pm),
-          FileProvider.packageFiles(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
@@ -886,7 +885,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     } else {
       return new OmniProposalProvider[] {
           new PreviousPicksProvider(), new TextSearchProvider(this), new TypeProvider_OLD(pm),
-          FileProvider.projectFiles(pm), FileProvider.packageFiles(pm),
+          FileProvider.projectFiles(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
