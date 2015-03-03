@@ -83,21 +83,16 @@ public class DartFormatter {
       List<String> args = new ArrayList<String>();
       args.add(dartfmt.getPath());
 
-// TODO(pquitslund): Re-enable when dart_style plays nice with the -s flag
-// https://github.com/dart-lang/dart_style/issues/194     
-//      if (selection != null) {
-//        args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
-//      }
+      if (selection != null) {
+        args.add(ARGS_PRESERVE_FLAG);
+        args.add(selection.x + ":" + selection.y);
+      }
 
-      args.add(ARGS_MAX_LINE_LEN_FLAG);
       if (getMaxLineLengthEnabled() && getMaxLineLength().length() > 0) {
+        args.add(ARGS_MAX_LINE_LEN_FLAG);
         args.add(getMaxLineLength());
-      } else {
-        args.add("Infinity");
       }
-      if (getPerformTransforms()) {
-        args.add(ARGS_TRANSFORMS_FLAG);
-      }
+
       args.add(ARGS_MACHINE_FORMAT_FLAG);
 
       builder.command(args);
@@ -244,12 +239,9 @@ public class DartFormatter {
    */
   public final static String PRINT_MARGIN_COLUMN = "dart-printMarginColumn";
 
-  private static final String ARGS_INDENT_FLAG = "-i";
   private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
   private static final String ARGS_MAX_LINE_LEN_FLAG = "-l";
-  private static final String ARGS_SOURCE_FLAG = "-s";
-  private static final String ARGS_TRANSFORMS_FLAG = "-t";
-
+  private static final String ARGS_PRESERVE_FLAG = "--preserve";
   private static final String JSON_LENGTH_KEY = "length";
   private static final String JSON_OFFSET_KEY = "offset";
   private static final String JSON_SELECTION_KEY = "selection";
