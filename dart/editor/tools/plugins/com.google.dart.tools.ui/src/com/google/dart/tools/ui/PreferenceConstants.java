@@ -3150,11 +3150,6 @@ public class PreferenceConstants {
   public final static String VIEW_TEXT_FONT = "com.google.dart.tools.ui.views.textfont"; //$NON-NLS-1$
 
   /**
-   * A named preference that tells whether to perform code transforms when formatting.
-   */
-  public static final String FORMATTER_PERFORM_TRANSFORMS = "com.google.dart.tools.ui.performTransforms";
-
-  /**
    * Decodes an encoded JRE library and returns its class path entries.
    * 
    * @param encodedLibrary the encoded library

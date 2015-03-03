@@ -19,7 +19,6 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -299,11 +298,6 @@ public class DartFormatter {
     return DartFmtRunner.format(source, selection, monitor);
   }
 
-  public static boolean getInsertSpacesForTabs() {
-    return PreferenceConstants.getPreferenceStore().getBoolean(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
-  }
-
   public static String getMaxLineLength() {
     return EditorsPlugin.getDefault().getPreferenceStore().getString(PRINT_MARGIN_COLUMN);
   }
@@ -312,27 +306,8 @@ public class DartFormatter {
     return EditorsPlugin.getDefault().getPreferenceStore().getBoolean(PRINT_MARGIN);
   }
 
-  public static boolean getPerformTransforms() {
-    return PreferenceConstants.getPreferenceStore().getBoolean(
-        PreferenceConstants.FORMATTER_PERFORM_TRANSFORMS);
-  }
-
-  public static String getSpacesPerIndent() {
-    return PreferenceConstants.getPreferenceStore().getString(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
-  }
-
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
-  }
-
-  public static void setInsertSpacesForTabs(boolean useSpaces) {
-    PreferenceConstants.getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-        useSpaces);
-    EditorsPlugin.getDefault().getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-        useSpaces);
   }
 
   public static void setMaxLineLength(String maxLineLength) {
@@ -341,21 +316,6 @@ public class DartFormatter {
 
   public static void setMaxLineLengthEnabled(boolean enabled) {
     EditorsPlugin.getDefault().getPreferenceStore().setValue(PRINT_MARGIN, enabled);
-  }
-
-  public static void setPerformTransforms(boolean performTransforms) {
-    PreferenceConstants.getPreferenceStore().setValue(
-        PreferenceConstants.FORMATTER_PERFORM_TRANSFORMS,
-        performTransforms);
-  }
-
-  public static void setSpacesPerIndent(String tabWidth) {
-    PreferenceConstants.getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
-        tabWidth);
-    EditorsPlugin.getDefault().getPreferenceStore().setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
-        tabWidth);
   }
 
   private static IEditorPart findEditor(final IWorkbenchPage activePage, final IFile file) {
@@ -418,12 +378,5 @@ public class DartFormatter {
     }
     return null;
   }
-
-//  private static List<String> buildArguments(IPath path) {
-//    ArrayList<String> args = new ArrayList<String>();
-//    args.add("-w");
-//    args.add(path.toOSString());
-//    return args;
-//  }
 
 }
