@@ -52,7 +52,8 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   private final int length;
 
   /**
-   * The proposed return type for the method.
+   * The proposed return type for the method. If the returned element does not have a declared return
+   * type, this field will contain an empty string.
    */
   private final String returnType;
 
@@ -194,7 +195,8 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   /**
-   * The proposed return type for the method.
+   * The proposed return type for the method. If the returned element does not have a declared return
+   * type, this field will contain an empty string.
    */
   public String getReturnType() {
     return returnType;
