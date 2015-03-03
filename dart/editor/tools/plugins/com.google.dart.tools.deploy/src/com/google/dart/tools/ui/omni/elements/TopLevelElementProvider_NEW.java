@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 import com.google.dart.tools.ui.omni.util.CamelUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.List;
@@ -35,7 +36,6 @@ import java.util.regex.Pattern;
  * Provider for class elements.
  */
 public class TopLevelElementProvider_NEW extends OmniProposalProvider {
-
   /**
    * Place holder to indicate that a search is still in progress.
    */
@@ -61,6 +61,8 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     }
   }
 
+  private static final long WAIT_MS = 20;
+
   private static String getIdentifierCharacters(String str) {
     int length = str.length();
     StringBuilder buf = new StringBuilder(length);
@@ -74,6 +76,9 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
   }
 
   private final List<OmniElement> results = Lists.newArrayList();
+
+  private String currentRequestPattern = null;
+  private CountDownLatch currentRequestLatch;
 
   private boolean searchComplete;
 
@@ -91,7 +96,19 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
 
   @Override
   public OmniElement[] getElements(String pattern) {
-    return doSearch(pattern);
+    if (StringUtils.isBlank(pattern)) {
+      return new OmniElement[0];
+    }
+    // initiate a new request, if a new pattern
+    if (!StringUtils.equals(currentRequestPattern, pattern)) {
+      currentRequestPattern = pattern;
+      currentRequestLatch = new CountDownLatch(1);
+      doSearch();
+      // wait a little, if results are ready quickly
+      Uninterruptibles.awaitUninterruptibly(currentRequestLatch, WAIT_MS, TimeUnit.MILLISECONDS);
+    }
+    // return current results
+    return results.toArray(new OmniElement[results.size()]);
   }
 
   @Override
@@ -111,14 +128,14 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     return searchComplete;
   }
 
-  private OmniElement[] doSearch(String str) {
-    str = getIdentifierCharacters(str);
-    final String pattern = "^" + CamelUtil.getCamelCaseRegExp(str) + ".*";
+  private void doSearch() {
+    String text = getIdentifierCharacters(currentRequestPattern);
+    final String pattern = "^" + CamelUtil.getCamelCaseRegExp(text) + ".*";
     final Pattern patternObj = Pattern.compile(pattern);
     //
     searchComplete = false;
     results.clear();
-    final CountDownLatch latch = new CountDownLatch(1);
+    final CountDownLatch latch = currentRequestLatch;
     DartCore.getAnalysisServer().search_findTopLevelDeclarations(
         pattern,
         new FindTopLevelDeclarationsConsumer() {
@@ -129,14 +146,17 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
                 new SearchResultsListener() {
                   @Override
                   public void computedSearchResults(List<SearchResult> searchResults, boolean last) {
-                    for (SearchResult searchResult : searchResults) {
-                      results.add(new TopLevelElement_NEW(
-                          TopLevelElementProvider_NEW.this,
-                          patternObj,
-                          searchResult));
-                    }
-                    if (last) {
-                      latch.countDown();
+                    if (latch == currentRequestLatch) {
+                      for (SearchResult searchResult : searchResults) {
+                        results.add(new TopLevelElement_NEW(
+                            TopLevelElementProvider_NEW.this,
+                            patternObj,
+                            searchResult));
+                      }
+                      if (last) {
+                        searchComplete = true;
+                        currentRequestLatch.getCount();
+                      }
                     }
                   }
                 });
@@ -144,11 +164,11 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
 
           @Override
           public void onError(RequestError requestError) {
-            latch.countDown();
+            if (latch == currentRequestLatch) {
+              searchComplete = true;
+              currentRequestLatch.getCount();
+            }
           }
         });
-    Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);
-    searchComplete = true;
-    return results.toArray(new OmniElement[results.size()]);
   }
 }

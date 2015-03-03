@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -90,6 +91,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("restriction")
 public class OmniBoxPopup extends BasePopupDialog {
@@ -148,7 +150,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   /**
    * Refresh interval (in ms) for asynchronous search results.
    */
-  private static final int REFRESH_INTERVAL = 500;
+  private static final int REFRESH_INTERVAL = 10;
 
   private static final int INITIAL_COUNT_PER_PROVIDER = 5;
 
@@ -699,7 +701,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     searchItemCount = computeNumberOfItems();
     searchFilter = filter;
     refreshJob.setPriority(Job.INTERACTIVE);
-    refreshJob.schedule(100L);
+    refreshJob.schedule();
 //    refreshInternal(filter);
   }
 
@@ -1014,6 +1016,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     for (OmniProposalProvider provider : providers) {
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         if (provider instanceof TopLevelElementProvider_NEW) {
+          provider.getElements(filter);
           needsRefresh = !((TopLevelElementProvider_NEW) provider).isSearchComplete();
           provider.reset();
         }
@@ -1224,21 +1227,20 @@ public class OmniBoxPopup extends BasePopupDialog {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        while (!isDisposed() && needsRefresh) {
-          try {
-            Thread.sleep(REFRESH_INTERVAL);
-          } catch (Exception e) {
-          }
-          Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                refresh(getFilterText());
-              } catch (SWTException e) {
-                //ignore dispose
+        while (!isDisposed()) {
+          Uninterruptibles.sleepUninterruptibly(REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+          if (needsRefresh) {
+            Display.getDefault().asyncExec(new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  refresh(getFilterText());
+                } catch (SWTException e) {
+                  //ignore dispose
+                }
               }
-            }
-          });
+            });
+          }
         }
       }
     }).start();
