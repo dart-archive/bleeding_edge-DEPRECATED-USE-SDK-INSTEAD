@@ -14,9 +14,18 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.common.io.CharStreams;
+import com.google.common.io.Closeables;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IStackFrame;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -111,6 +120,44 @@ public class DebuggerUtils {
     }
 
     return name;
+  }
+
+  public static String extractFileLine(IFile file, int lineNumber) {
+    if (file == null) {
+      return null;
+    }
+
+    try {
+      return extractFileLine(file.getContents(), file.getCharset(), lineNumber);
+    } catch (CoreException ce) {
+
+    }
+
+    return null;
+  }
+
+  public static String extractFileLine(InputStream contents, String charset, int lineNumber) {
+    if (contents == null) {
+      return null;
+    }
+
+    try {
+      Reader r = charset != null ? new InputStreamReader(contents, charset)
+          : new InputStreamReader(contents);
+
+      List<String> lines = CharStreams.readLines(r);
+      Closeables.close(r, true);
+
+      if (lineNumber >= 0 && lineNumber < lines.size()) {
+        String lineStr = lines.get(lineNumber).trim();
+
+        return lineStr.length() == 0 ? null : lineStr;
+      }
+    } catch (IOException ioe) {
+
+    }
+
+    return null;
   }
 
   public static boolean isInternalMethodName(String methodName) {

@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.internal.presentation;
 
-import com.google.common.io.CharStreams;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.server.ServerDebugValue;
 import com.google.dart.tools.debug.core.source.DartNoSourceFoundElement;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
@@ -52,10 +52,6 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -453,31 +449,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       return null;
     }
 
-    InputStream contents = bp.getContents();
-
-    if (contents == null) {
-      return null;
-    }
-
-    try {
-      String charset = bp.getCharset();
-
-      Reader r = charset != null ? new InputStreamReader(contents, charset)
-          : new InputStreamReader(contents);
-
-      List<String> lines = CharStreams.readLines(r);
-
-      int line = bp.getLine() - 1;
-
-      if (line >= 0 && line < lines.size()) {
-        String lineStr = lines.get(line).trim();
-
-        return lineStr.length() == 0 ? null : lineStr;
-      }
-    } catch (IOException ioe) {
-      return null;
-    }
-
-    return null;
+    return DebuggerUtils.extractFileLine(bp.getContents(), bp.getCharset(), bp.getLine() - 1);
   }
 }

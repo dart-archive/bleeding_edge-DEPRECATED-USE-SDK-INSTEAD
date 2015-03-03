@@ -87,12 +87,12 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public boolean canStepInto() {
-    return !hasException() && getThread().canStepInto();
+    return !hasException() && getThread().canStepInto() && !isOnAwaitKeyword();
   }
 
   @Override
   public boolean canStepOver() {
-    return !hasException() && getThread().canStepOver();
+    return !hasException() && getThread().canStepOver() && !isOnAwaitKeyword();
   }
 
   @Override
@@ -502,6 +502,45 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   /**
+   * @return whether we are on a line with the 'await' keyword.
+   */
+  protected boolean isOnAwaitKeyword() {
+    final String await = "await";
+
+    if (!DartDebugCorePlugin.DISABLE_STEPPING_ON_AWAIT) {
+      return false;
+    }
+
+    try {
+      String line = getCurrentSourceLine();
+
+      if (line == null) {
+        return false;
+      }
+
+      // Find occurrences of `await`.
+      int index = line.indexOf(await);
+
+      while (index != -1) {
+        // Check to make sure the the beginning and end of the 'await' string are not valid
+        // identifier parts.
+        if (index == 0 || !Character.isJavaIdentifierPart(line.charAt(index - 1))) {
+          if (index + await.length() >= line.length()
+              || !Character.isJavaIdentifierPart(line.charAt(index + await.length()))) {
+            return true;
+          }
+        }
+
+        index = line.indexOf(await, index + 1);
+      }
+    } catch (DebugException e) {
+
+    }
+
+    return false;
+  }
+
+  /**
    * Fill in the IVariables from the Webkit variables.
    * 
    * @param exception can be null
@@ -529,6 +568,24 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         remoteObjects,
         null,
         exception);
+  }
+
+  private String getCurrentSourceLine() throws DebugException {
+    int line = getLineNumber();
+
+    if (line == 0) {
+      return null;
+    }
+
+    Object sourceElement = getLaunch().getSourceLocator().getSourceElement(this);
+
+    if (sourceElement instanceof IFile) {
+      IFile file = (IFile) sourceElement;
+
+      return DebuggerUtils.extractFileLine(file, line - 1);
+    }
+
+    return null;
   }
 
   private String getFileOrLibraryName() {

@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
@@ -21,6 +22,7 @@ import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
@@ -68,12 +70,12 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public boolean canStepInto() {
-    return !hasException() && getThread().canStepInto();
+    return !hasException() && getThread().canStepInto() && !isOnAwaitKeyword();
   }
 
   @Override
   public boolean canStepOver() {
-    return !hasException() && getThread().canStepOver();
+    return !hasException() && getThread().canStepOver() && !isOnAwaitKeyword();
   }
 
   @Override
@@ -397,6 +399,45 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return null;
   }
 
+  /**
+   * @return whether we are on a line with the 'await' keyword.
+   */
+  protected boolean isOnAwaitKeyword() {
+    final String await = "await";
+
+    if (!DartDebugCorePlugin.DISABLE_STEPPING_ON_AWAIT) {
+      return false;
+    }
+
+    try {
+      String line = getCurrentSourceLine();
+
+      if (line == null) {
+        return false;
+      }
+
+      // Find occurrences of `await`.
+      int index = line.indexOf(await);
+
+      while (index != -1) {
+        // Check to make sure the the beginning and end of the 'await' string are not valid
+        // identifier parts.
+        if (index == 0 || !Character.isJavaIdentifierPart(line.charAt(index - 1))) {
+          if (index + await.length() >= line.length()
+              || !Character.isJavaIdentifierPart(line.charAt(index + await.length()))) {
+            return true;
+          }
+        }
+
+        index = line.indexOf(await, index + 1);
+      }
+    } catch (DebugException e) {
+
+    }
+
+    return false;
+  }
+
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {
     if (frame.getLocals() == null) {
       return Collections.emptyList();
@@ -421,6 +462,24 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
       return variables;
     }
+  }
+
+  private String getCurrentSourceLine() throws DebugException {
+    int line = getLineNumber();
+
+    if (line == 0) {
+      return null;
+    }
+
+    Object sourceElement = getLaunch().getSourceLocator().getSourceElement(this);
+
+    if (sourceElement instanceof IFile) {
+      IFile file = (IFile) sourceElement;
+
+      return DebuggerUtils.extractFileLine(file, line - 1);
+    }
+
+    return null;
   }
 
   private String getFileOrLibraryName() {
