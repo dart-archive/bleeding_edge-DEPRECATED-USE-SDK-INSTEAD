@@ -487,7 +487,6 @@ public class DartCore extends Plugin implements DartSdkListener {
 
         String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
         String analysisServerPath = DartCoreDebug.ANALYSIS_SERVER_PATH;
-        String packageRoot = null;
         if (StringUtils.isEmpty(analysisServerPath)) {
           String svnRoot = System.getProperty("com.google.dart.svnRoot");
           if (svnRoot == null) {
@@ -502,14 +501,14 @@ public class DartCore extends Plugin implements DartSdkListener {
             }
           } else {
             analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
-
-            packageRoot = System.getProperty("com.google.dart.packageRoot");
-            if (packageRoot == null) {
-              DartCore.logError("To run analysis server from source, a package root must be "
-                  + "supplied using -Dcom.google.dart.packageRoot.");
-              System.exit(1);
-            }
           }
+        }
+
+        String packageRoot = System.getProperty("com.google.dart.packageRoot");
+        if (packageRoot == null) {
+          DartCore.logError("To run analysis server from source, a package root must be "
+              + "supplied using -Dcom.google.dart.packageRoot.");
+          System.exit(1);
         }
 
         try {
