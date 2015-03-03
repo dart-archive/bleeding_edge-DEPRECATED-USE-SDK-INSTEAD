@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.ui.omni;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
+import com.google.dart.tools.ui.omni.elements.ProviderCompleteListener;
 import com.google.dart.tools.ui.omni.elements.TextSearchElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
 import com.google.dart.tools.ui.omni.elements.TopLevelElementProvider_NEW;
@@ -91,7 +91,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("restriction")
 public class OmniBoxPopup extends BasePopupDialog {
@@ -147,11 +146,6 @@ public class OmniBoxPopup extends BasePopupDialog {
   // NOTE: requires the HOVER_SHELLSTYLE to work on GTK linux.
   private static final boolean FOCUS_ON_OPEN = false;
 
-  /**
-   * Refresh interval (in ms) for asynchronous search results.
-   */
-  private static final int REFRESH_INTERVAL = 10;
-
   private static final int INITIAL_COUNT_PER_PROVIDER = 5;
 
   private static final int MAX_COUNT_TOTAL = 20;
@@ -200,9 +194,6 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   //used to restore selection post table refresh
   private TableItem cachedSelection;
-
-  //flag to indicate whether asynchronous search results require a refresh
-  private boolean needsRefresh = true;
 
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
     super(
@@ -253,8 +244,6 @@ public class OmniBoxPopup extends BasePopupDialog {
         }
       }
     });
-
-    startRefreshTimer();
   }
 
   @Override
@@ -357,9 +346,11 @@ public class OmniBoxPopup extends BasePopupDialog {
   @Override
   protected void adjustBounds() {
     //calculate a new height (in case new table items have been added), but leave width alone
-    int width = getShell().getSize().x;
+    getShell().layout();
     int maxHeight = (int) (window.getShell().getBounds().height * .66);
-    int height = Math.min(maxHeight, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT, true).y);
+    int width = getShell().getSize().x;
+    Point shellSize = getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+    int height = Math.min(maxHeight, shellSize.y);
     getShell().setSize(width, height);
   }
 
@@ -1016,13 +1007,27 @@ public class OmniBoxPopup extends BasePopupDialog {
     for (OmniProposalProvider provider : providers) {
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         if (provider instanceof TopLevelElementProvider_NEW) {
+          TopLevelElementProvider_NEW topProvider = (TopLevelElementProvider_NEW) provider;
           provider.getElements(filter);
-          needsRefresh = !((TopLevelElementProvider_NEW) provider).isSearchComplete();
+          topProvider.onComplete(new ProviderCompleteListener() {
+            @Override
+            public void complete(OmniProposalProvider provider) {
+              Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    refresh(getFilterText());
+                  } catch (SWTException e) {
+                    //ignore dispose
+                  }
+                }
+              });
+            }
+          });
           provider.reset();
         }
       } else {
         if (provider instanceof TypeProvider_OLD) {
-          needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
           provider.reset();
         }
       }
@@ -1097,7 +1102,6 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private int refreshTable(OmniElement perfectMatch, List<OmniEntry>[] entries) {
-
     if (table.isDisposed()) {
       return 0;
     }
@@ -1221,29 +1225,6 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private void setFilterFocus() {
 //    filterText.setFocus();
-  }
-
-  private void startRefreshTimer() {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (!isDisposed()) {
-          Uninterruptibles.sleepUninterruptibly(REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
-          if (needsRefresh) {
-            Display.getDefault().asyncExec(new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  refresh(getFilterText());
-                } catch (SWTException e) {
-                  //ignore dispose
-                }
-              }
-            });
-          }
-        }
-      }
-    }).start();
   }
 
   private void storeDialog(IDialogSettings dialogSettings) {

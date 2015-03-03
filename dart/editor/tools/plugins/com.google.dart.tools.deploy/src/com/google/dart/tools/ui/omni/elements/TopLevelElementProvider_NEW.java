@@ -75,12 +75,16 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     return buf.toString();
   }
 
+  private final Object lock = new Object();
+
   private final List<OmniElement> results = Lists.newArrayList();
 
   private String currentRequestPattern = null;
   private CountDownLatch currentRequestLatch;
 
   private boolean searchComplete;
+
+  private final List<ProviderCompleteListener> listeners = Lists.newArrayList();
 
   public TopLevelElementProvider_NEW(IProgressMonitor progressMonitor) {
   }
@@ -108,7 +112,9 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
       Uninterruptibles.awaitUninterruptibly(currentRequestLatch, WAIT_MS, TimeUnit.MILLISECONDS);
     }
     // return current results
-    return results.toArray(new OmniElement[results.size()]);
+    synchronized (lock) {
+      return results.toArray(new OmniElement[results.size()]);
+    }
   }
 
   @Override
@@ -128,13 +134,28 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     return searchComplete;
   }
 
+  /**
+   * If the current search is not complete yet, the given listener will be notified when the search
+   * is complete.
+   */
+  public void onComplete(ProviderCompleteListener listener) {
+    synchronized (lock) {
+      if (searchComplete) {
+        return;
+      }
+    }
+    synchronized (listeners) {
+      listeners.add(listener);
+    }
+  }
+
   private void doSearch() {
     String text = getIdentifierCharacters(currentRequestPattern);
     final String pattern = "^" + CamelUtil.getCamelCaseRegExp(text) + ".*";
     final Pattern patternObj = Pattern.compile(pattern);
     //
     searchComplete = false;
-    results.clear();
+    final List<OmniElement> newResults = Lists.newArrayList();
     final CountDownLatch latch = currentRequestLatch;
     DartCore.getAnalysisServer().search_findTopLevelDeclarations(
         pattern,
@@ -148,14 +169,24 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
                   public void computedSearchResults(List<SearchResult> searchResults, boolean last) {
                     if (latch == currentRequestLatch) {
                       for (SearchResult searchResult : searchResults) {
-                        results.add(new TopLevelElement_NEW(
+                        newResults.add(new TopLevelElement_NEW(
                             TopLevelElementProvider_NEW.this,
                             patternObj,
                             searchResult));
                       }
                       if (last) {
-                        searchComplete = true;
-                        currentRequestLatch.getCount();
+                        synchronized (lock) {
+                          results.clear();
+                          results.addAll(newResults);
+                          searchComplete = true;
+                          currentRequestLatch.getCount();
+                        }
+                        synchronized (listeners) {
+                          for (ProviderCompleteListener listener : listeners) {
+                            listener.complete(TopLevelElementProvider_NEW.this);
+                          }
+                          listeners.clear();
+                        }
                       }
                     }
                   }
@@ -165,8 +196,17 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
           @Override
           public void onError(RequestError requestError) {
             if (latch == currentRequestLatch) {
-              searchComplete = true;
-              currentRequestLatch.getCount();
+              synchronized (results) {
+                results.clear();
+                searchComplete = true;
+                currentRequestLatch.getCount();
+              }
+              synchronized (listeners) {
+                for (ProviderCompleteListener listener : listeners) {
+                  listener.complete(TopLevelElementProvider_NEW.this);
+                }
+                listeners.clear();
+              }
             }
           }
         });
