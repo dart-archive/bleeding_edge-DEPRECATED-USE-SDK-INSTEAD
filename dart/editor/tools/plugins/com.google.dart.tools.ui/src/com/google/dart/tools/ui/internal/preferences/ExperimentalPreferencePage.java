@@ -51,7 +51,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
   }
 
   private Button enableAnalysisServerButton;
-  private Button useNewFormatter;
   private Label serverHttpPortLabel;
   private Text serverHttpPortText;
   private Button serverUsageButton;
@@ -77,8 +76,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
       boolean portChanged = setPref(
           DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF,
           serverHttpPortText);
-
-      setPref(DartCoreDebug.ENABLE_NEW_FORMATTER_PREF, useNewFormatter);
 
       // Formatter changes don't require restart.
       boolean hasChanges = serverChanged || portChanged;
@@ -147,12 +144,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
       // Only allow integer values
       serverHttpPortText.addListener(SWT.Verify, new ValidIntListener());
 
-      useNewFormatter = createCheckBox(
-          group,
-          "Use dart_style for formatting.",
-          "Use dart_style for formatting.");
-      GridDataFactory.fillDefaults().applyTo(useNewFormatter);
-
     }
 
     // Separator
@@ -211,7 +202,6 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
 
   private void initFromPrefs() {
     enableAnalysisServerButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
-    useNewFormatter.setSelection(DartCoreDebug.isNewFormatterEnabled());
     String textValue = getPref(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF);
     try {
       if (Integer.parseInt(textValue) < 0) {
@@ -246,8 +236,5 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     serverHttpPortLabel.setForeground(getShell().getDisplay().getSystemColor(
         enabled ? SWT.COLOR_BLACK : SWT.COLOR_GRAY));
     serverHttpPortText.setEnabled(enabled);
-    useNewFormatter.setForeground(getShell().getDisplay().getSystemColor(
-        enabled ? SWT.COLOR_BLACK : SWT.COLOR_GRAY));
-    useNewFormatter.setEnabled(enabled);
   }
 }

@@ -82,7 +82,6 @@ public class DartCoreDebug {
       "experimental/analysisServer/http_port",
       ANALYSIS_SERVER_HTTP_PORT_PREF);
 
-  public static final String ENABLE_NEW_FORMATTER_PREF = "experimental/newFormatter";
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
   public static final String ANALYSIS_SERVER_PATH = getOptionValue("experimental/analysisServer/path");
   public static final boolean ANALYSIS_SERVER_PRINT_TO_CONSOLE = isOptionTrue("experimental/analysisServer/printToConsole");
@@ -106,13 +105,6 @@ public class DartCoreDebug {
    * highlighting bug can be better investigated.
    */
   public static final boolean DISABLE_SEMANTIC_HIGHLIGHT_FILTERING = isOptionTrue("experimental/analysisServer/disableSemanticHighlightFiltering");
-
-  /**
-   * Check to see if the new formatter is enabled.
-   */
-  public static boolean isNewFormatterEnabled() {
-    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_NEW_FORMATTER_PREF, false);
-  }
 
   /**
    * Report each of these parameters to the provided instrumentation builder

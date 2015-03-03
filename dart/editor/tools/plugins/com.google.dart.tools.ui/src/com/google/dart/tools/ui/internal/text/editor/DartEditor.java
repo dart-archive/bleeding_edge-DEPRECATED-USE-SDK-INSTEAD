@@ -766,20 +766,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             }
           });
 
-          if (DartFormatter.isDartStyleEnabled()) {
-            final Point newSelection = DartFormatter.DartStyleRunner.formatFile(
-                file,
-                initialSelection,
-                monitor);
-            Display.getDefault().syncExec(new Runnable() {
-              @Override
-              public void run() {
-                sourceViewer.setSelectedRange(newSelection.x, newSelection.y);
-              }
-            });
-            return Status.OK_STATUS;
-          }
-
           final String unformattedSource = document.get();
 
           final FormattedSource formatResult = DartFormatter.format(
