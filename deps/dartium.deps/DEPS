@@ -7,14 +7,18 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 # Now we need to override some settings and add some new ones.
 
 vars.update({
+  'chromium_git': 'https://chromium.googlesource.com',
+  'googlecode_url': 'http://%s.googlecode.com/svn',
+  'webkit_revision': '889f35a63b23d86c0f318af9a65a875117811cfd', # from svn revision 18277
+
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "releases/2171",
-  "dartium_chromium_commit": "5daf3bceac78c2038362cda6250e3201e5899ece",
+  "dartium_chromium_commit": "a68efcf7f47b66832e4662b91e54612555f4964e",
   "chromium_base_revision": "297060",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/2171_2",
-  "dartium_webkit_revision": "191201",
+  "dartium_webkit_revision": "191210",
 
   "args_rev": "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
