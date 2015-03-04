@@ -32,11 +32,11 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
     // Engine
-    suite.addTest(com.google.dart.engine.TestAll.suite());
+//    suite.addTest(com.google.dart.engine.TestAll.suite());
     suite.addTest(com.google.dart.server.TestAll.suite());
 
     // Services
-    suite.addTest(com.google.dart.engine.services.TestAll.suite());
+//    suite.addTest(com.google.dart.engine.services.TestAll.suite());
 
     // Core
     suite.addTest(com.google.dart.tools.core.TestAll.suite());

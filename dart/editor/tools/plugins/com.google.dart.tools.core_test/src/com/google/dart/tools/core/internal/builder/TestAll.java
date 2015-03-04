@@ -19,16 +19,16 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(AnalysisEngineParticipantTest.class);
-    suite.addTestSuite(AnalysisMarkerManagerTest.class);
-    suite.addTestSuite(AnalysisManagerTest.class);
-    suite.addTestSuite(AnalysisWorkerTest.class);
-    suite.addTestSuite(BuildDartParticipantTest.class);
-    suite.addTestSuite(BuildParticipantDeclarationTest.class);
+//    suite.addTestSuite(AnalysisEngineParticipantTest.class);
+//    suite.addTestSuite(AnalysisMarkerManagerTest.class);
+//    suite.addTestSuite(AnalysisManagerTest.class);
+//    suite.addTestSuite(AnalysisWorkerTest.class);
+//    suite.addTestSuite(BuildDartParticipantTest.class);
+//    suite.addTestSuite(BuildParticipantDeclarationTest.class);
 //    suite.addTestSuite(CachingArtifactProviderTest.class);
     suite.addTestSuite(DartBuilderTest.class);
-    suite.addTestSuite(DeltaProcessorTest.class);
-    suite.addTestSuite(DeltaProcessorCanonicalTest.class);
+//    suite.addTestSuite(DeltaProcessorTest.class);
+//    suite.addTestSuite(DeltaProcessorCanonicalTest.class);
     suite.addTestSuite(IgnoreResourceFilterTest.class);
 //    suite.addTestSuite(LocalArtifactProviderTest.class);
 //    suite.addTestSuite(RootArtifactProviderTest.class);

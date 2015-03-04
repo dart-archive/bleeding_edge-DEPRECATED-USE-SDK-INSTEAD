@@ -20,14 +20,14 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompositeSourceContainerTest.class);
-    suite.addTestSuite(DartProjectManagerTest.class);
-    suite.addTestSuite(ProjectImplTest.class);
-    suite.addTestSuite(ProjectManagerIgnoreListenerTest.class);
-    suite.addTestSuite(ProjectManagerImplTest.class);
-    suite.addTestSuite(PubFolderImplTest.class);
-    suite.addTestSuite(PubResourceMapImplTest.class);
-    suite.addTestSuite(SimpleResourceMapImplTest.class);
-    suite.addTestSuite(WorkspaceDeltaProcessorTest.class);
+//    suite.addTestSuite(DartProjectManagerTest.class);
+//    suite.addTestSuite(ProjectImplTest.class);
+//    suite.addTestSuite(ProjectManagerIgnoreListenerTest.class);
+//    suite.addTestSuite(ProjectManagerImplTest.class);
+//    suite.addTestSuite(PubFolderImplTest.class);
+//    suite.addTestSuite(PubResourceMapImplTest.class);
+//    suite.addTestSuite(SimpleResourceMapImplTest.class);
+//    suite.addTestSuite(WorkspaceDeltaProcessorTest.class);
     return suite;
   }
 }

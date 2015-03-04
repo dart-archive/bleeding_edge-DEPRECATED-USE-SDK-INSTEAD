@@ -22,7 +22,7 @@ public class TestAll {
     suite.addTestSuite(DartAutoIndentStrategyTest.class);
     suite.addTestSuite(DartDocAutoIndentStrategyTest.class);
     suite.addTestSuite(DartReconcilingRegionTest.class);
-    suite.addTestSuite(DartReconcilingStrategyTest.class);
+//    suite.addTestSuite(DartReconcilingStrategyTest.class);
     suite.addTestSuite(DartStringDoubleClickSelectorTest.class);
     suite.addTestSuite(DartDoubleClickSelectorTest.class);
     suite.addTestSuite(DartPrioritySourcesHelperTest.class);

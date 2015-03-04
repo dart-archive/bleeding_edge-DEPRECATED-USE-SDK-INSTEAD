@@ -20,10 +20,10 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(DartProjectGeneratorTest.class);
-    suite.addTestSuite(CommandLineSampleTest.class);
+//    suite.addTestSuite(CommandLineSampleTest.class);
     suite.addTestSuite(ChromePackagedAppSampleTest.class);
-    suite.addTestSuite(ProjectSampleTest.class);
-    suite.addTestSuite(WebAppSampleTest.class);
+//    suite.addTestSuite(ProjectSampleTest.class);
+//    suite.addTestSuite(WebAppSampleTest.class);
     suite.addTestSuite(PolymerSampleTest.class);
     return suite;
   }
