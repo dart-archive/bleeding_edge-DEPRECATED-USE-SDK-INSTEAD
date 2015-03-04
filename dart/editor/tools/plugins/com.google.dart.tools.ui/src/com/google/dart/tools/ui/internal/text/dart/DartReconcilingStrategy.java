@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 
@@ -81,6 +80,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private IDocument document;
 
   /**
+   * The {@link IDocumentExtension4} for {@link #document}.
+   */
+  private IDocumentExtension4 document4;
+
+  /**
    * Synchronize against this field before accessing {@link #dirtyRegion}
    */
   private final Object lock = new Object();
@@ -104,16 +108,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private boolean isOverlayAdded = false;
 
   /**
-   * A flag indicating whether there are changes in {@link #document} that have not yet been sent to
-   * the analysis.
+   * The modification stamp of the document which was sent to the server.
    */
-  private boolean hasPendingDocumentChanges = false;
+  private long lastSentStamp = -1;
 
   /**
-   * A counter of requests and responses to 'analysis.updateContent'. When it is {@code 0}, then
-   * every request had a response so far.
+   * The modification stamp of the document which was confirmed by the server.
    */
-  private final AtomicInteger updateContentBalance = new AtomicInteger();
+  private long lastConfirmedStamp = -1;
 
   /**
    * Listen for analysis results for the source being edited and update the editor.
@@ -153,8 +155,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
     @Override
     public void documentChanged(DocumentEvent event) {
-      hasPendingDocumentChanges = true;
-
       // Record the source region that has changed
       String newText = event.getText();
       int newLength = newText != null ? newText.length() : 0;
@@ -238,10 +238,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public void dispose() {
     if (document != null) {
       document.removeDocumentListener(documentListener);
-      if (document instanceof IDocumentExtension4) {
-        IDocumentExtension4 document4 = (IDocumentExtension4) document;
-        document4.removeDocumentRewriteSessionListener(rewriteSessionListener);
-      }
+      document4.removeDocumentRewriteSessionListener(rewriteSessionListener);
     }
     AnalysisWorker.removeListener(analysisListener);
     // clear the cached source content to ensure the source will be read from disk
@@ -253,11 +250,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   }
 
   /**
-   * Return {@code true} if there are pending document changes that have not been sent to the server
-   * yet or if there is a request to which the server has not responded yet.
+   * Return {@code true} if there are sent content changes that have not been processed by the
+   * server yet.
    */
   public boolean hasPendingContentChanges() {
-    return hasPendingDocumentChanges || updateContentBalance.get() != 0;
+    return lastConfirmedStamp != document4.getModificationStamp();
   }
 
   @Override
@@ -327,7 +324,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   public void saved() {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      hasPendingDocumentChanges = false;
       reconcile();
       removeOverlay();
     } else {
@@ -341,20 +337,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   @Override
   public void setDocument(IDocument document) {
     IDocument oldDocument = this.document;
+    IDocumentExtension4 oldDocument4 = this.document4;
     if (oldDocument != null) {
       oldDocument.removeDocumentListener(documentListener);
-      if (oldDocument instanceof IDocumentExtension4) {
-        IDocumentExtension4 oldDocument4 = (IDocumentExtension4) oldDocument;
-        oldDocument4.removeDocumentRewriteSessionListener(rewriteSessionListener);
-      }
+      oldDocument4.removeDocumentRewriteSessionListener(rewriteSessionListener);
     }
     this.document = document;
+    this.document4 = (IDocumentExtension4) document;
+    this.lastSentStamp = document4.getModificationStamp();
+    this.lastConfirmedStamp = document4.getModificationStamp();
     document.addDocumentListener(documentListener);
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      if (document instanceof IDocumentExtension4) {
-        IDocumentExtension4 document4 = (IDocumentExtension4) document;
-        document4.addDocumentRewriteSessionListener(rewriteSessionListener);
-      }
+      document4.addDocumentRewriteSessionListener(rewriteSessionListener);
     }
   }
 
@@ -477,7 +471,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      if (editor.isDirty()) {
+      if (document4.getModificationStamp() != lastSentStamp) {
         if (!isOverlayAdded) {
           addOverlay(code);
         } else {
@@ -487,8 +481,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           ChangeContentOverlay change = new ChangeContentOverlay(sourceEdits);
           updateFileContent(change);
         }
-      } else {
-        removeOverlay();
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
@@ -511,14 +503,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void updateFileContent(Object change) {
     String file = editor.getInputFilePath();
     if (file != null) {
-      updateContentBalance.incrementAndGet();
-      hasPendingDocumentChanges = false;
+      final long documentStamp = document4.getModificationStamp();
+      lastSentStamp = documentStamp;
       Map<String, Object> files = new HashMap<String, Object>();
       files.put(file, change);
       DartCore.getAnalysisServer().analysis_updateContent(files, new UpdateContentConsumer() {
         @Override
         public void onResponse() {
-          updateContentBalance.decrementAndGet();
+          lastConfirmedStamp = documentStamp;
         }
       });
     }
