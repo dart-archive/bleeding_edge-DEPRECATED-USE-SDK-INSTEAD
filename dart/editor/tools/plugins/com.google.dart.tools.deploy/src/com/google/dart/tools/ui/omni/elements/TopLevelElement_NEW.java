@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.omni.elements;
 import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.SearchResult;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -26,6 +27,7 @@ import com.google.dart.tools.ui.omni.OmniEntry;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import java.util.List;
@@ -37,8 +39,10 @@ import java.util.regex.Pattern;
  */
 public class TopLevelElement_NEW extends OmniElement {
   private static final String DEFAULT_PROJECT = "Dart SDK";
+
   private final Pattern pattern;
   private final Element element;
+
   private final Element library;
 
   public TopLevelElement_NEW(OmniProposalProvider provider, Pattern pattern,
@@ -62,22 +66,14 @@ public class TopLevelElement_NEW extends OmniElement {
 
   @Override
   public String getInfoLabel() {
-    String info = "";
     String file = element.getLocation().getFile();
-    IFile resource = DartUI.getSourceFile(file);
+    IFile resource = ResourceUtil.getFile(file);
     if (resource != null) {
-      info = resource.getProject().getName();
+      IPath path = resource.getFullPath();
+      return ResourceUtil.getShortedPath(path, 55);
     } else {
-      // TODO(scheglov) Analysis Server: implement
-      info = DEFAULT_PROJECT;
-//      IProject project = DartCore.getProjectManager().getProjectForContextId(element.getContextId());
-//      if (project != null) {
-//        info = project.getName();
-//      } else {
-//        info = DEFAULT_PROJECT;
-//      }
+      return DEFAULT_PROJECT;
     }
-    return info;
   }
 
   @Override

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -22,6 +23,7 @@ import com.google.dart.tools.ui.omni.OmniElement;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -82,7 +84,8 @@ public class FileElement extends OmniElement {
 
   @Override
   public String getInfoLabel() {
-    return file.getFullPath().toOSString();
+    IPath path = file.getFullPath();
+    return ResourceUtil.getShortedPath(path, 55);
   }
 
   @Override

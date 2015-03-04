@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.util;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -105,6 +107,41 @@ public class ResourceUtil {
       return files[0];
     }
     return null;
+  }
+
+  /**
+   * Returns the string that corresponds to the given {@link IPath} and is shortened to be not
+   * longer than the given number of characters.
+   */
+  public static String getShortedPath(IPath path, int maxChars) {
+    String result;
+    String[] segments = path.segments();
+    boolean ellipsisInserted = false;
+    while (true) {
+      result = StringUtils.join(segments, '/');
+      // stop if the only one segment - project name
+      if (segments.length == 1) {
+        break;
+      }
+      // stop if already short enough
+      if (result.length() < maxChars) {
+        break;
+      }
+      // remove the least interesting segment
+      if (segments.length <= 2) {
+        break;
+      }
+      if (!ellipsisInserted) {
+        segments[1] = "...";
+        ellipsisInserted = true;
+      } else {
+        segments = ArrayUtils.remove(segments, 2);
+      }
+    }
+    if (result.length() > maxChars) {
+      result = result.substring(result.length() - maxChars);
+    }
+    return result;
   }
 
   public static boolean isExistingProject(IProject project) {
