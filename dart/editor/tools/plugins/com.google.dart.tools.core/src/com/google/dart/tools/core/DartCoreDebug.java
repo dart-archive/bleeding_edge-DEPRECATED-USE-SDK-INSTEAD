@@ -66,7 +66,7 @@ public class DartCoreDebug {
 
   public static final String ENABLE_ANALYSIS_SERVER_PREF = "enableAnalysisServer";
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer")
-      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, true);
+      || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, false);
 
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
 

@@ -70,9 +70,8 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
 
-      boolean serverChanged = setPrefBool(
+      boolean serverChanged = setPref(
           DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
-          true,
           enableAnalysisServerButton);
       boolean portChanged = setPref(
           DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF,
@@ -197,14 +196,12 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     return DartCore.getPlugin().getPrefs().get(prefKey, "").trim();
   }
 
-  private boolean getPrefBool(String prefKey, boolean def) {
-    return DartCore.getPlugin().getPrefs().getBoolean(prefKey, def);
+  private boolean getPrefBool(String prefKey) {
+    return DartCore.getPlugin().getPrefs().getBoolean(prefKey, false);
   }
 
   private void initFromPrefs() {
-    enableAnalysisServerButton.setSelection(getPrefBool(
-        DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
-        true));
+    enableAnalysisServerButton.setSelection(getPrefBool(DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF));
     String textValue = getPref(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT_PREF);
     try {
       if (Integer.parseInt(textValue) < 0) {
@@ -220,18 +217,18 @@ public class ExperimentalPreferencePage extends PreferencePage implements IWorkb
     }
   }
 
+  private boolean setPref(String prefKey, Button button) {
+    boolean oldValue = getPrefBool(prefKey);
+    boolean newValue = button.getSelection();
+    DartCore.getPlugin().getPrefs().putBoolean(prefKey, newValue);
+    return oldValue != newValue;
+  }
+
   private boolean setPref(String prefKey, Text textBox) {
     String oldValue = getPref(prefKey);
     String newValue = textBox.getText().trim();
     DartCore.getPlugin().getPrefs().put(prefKey, newValue);
     return !oldValue.equals(newValue);
-  }
-
-  private boolean setPrefBool(String prefKey, boolean def, Button button) {
-    boolean oldValue = getPrefBool(prefKey, def);
-    boolean newValue = button.getSelection();
-    DartCore.getPlugin().getPrefs().putBoolean(prefKey, newValue);
-    return oldValue != newValue;
   }
 
   private void updateServerOptionEnablement() {
