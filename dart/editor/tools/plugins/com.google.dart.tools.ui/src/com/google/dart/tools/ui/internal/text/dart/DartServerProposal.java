@@ -547,7 +547,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       return;
     }
     List<String> parameterNames = suggestion.getParameterNames();
-    if (parameterNames == null) {
+    if (parameterNames == null || CompletionSuggestionKind.IDENTIFIER.equals(suggestion.getKind())) {
       // Just complete a single identifier.
       replacementString = suggestion.getCompletion();
       selectionOffset = replacementString.length();
