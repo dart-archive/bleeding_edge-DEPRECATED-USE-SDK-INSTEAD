@@ -189,20 +189,20 @@ public class DartVariablesView extends VariablesView {
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        IPreferenceStore prefs = getPreferences();
-        StyledText detailsText = getDetailsText();
-        SWTUtil.setColors(treeViewer.getTree(), prefs);
-        SWTUtil.setColors(detailsText, prefs);
-      }
-    });
+    IPreferenceStore prefs = getPreferences();
+    StyledText detailsText = getDetailsText();
+    SWTUtil.setColors(treeViewer.getTree(), prefs);
+    SWTUtil.setColors(detailsText, prefs);
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
-    treeViewer.refresh(false);
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+        treeViewer.refresh(false);
+      }
+    });
   }
 
   private StyledText getDetailsText() {

@@ -1168,12 +1168,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        SWTUtil.setColors(getViewer().getTable(), getPreferences());
-      }
-    });
+    SWTUtil.setColors(getViewer().getTable(), getPreferences());
   }
 
   protected void updateContentDescription(List<IMarker> markers) {

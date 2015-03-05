@@ -457,14 +457,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        if (page != null && page.getControl() != null) {
-          SWTUtil.setColors((StyledText) page.getControl(), getPreferences());
-        }
-      }
-    });
+    if (page != null && page.getControl() != null) {
+      SWTUtil.setColors((StyledText) page.getControl(), getPreferences());
+    }
   }
 
   private void bringToFront() {
@@ -481,7 +476,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+      }
+    });
   }
 
   private PageSite getPageSite() {

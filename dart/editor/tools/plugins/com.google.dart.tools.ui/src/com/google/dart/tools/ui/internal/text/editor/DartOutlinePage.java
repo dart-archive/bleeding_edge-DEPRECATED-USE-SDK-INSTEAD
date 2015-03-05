@@ -97,12 +97,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
 
     private void updateColors() {
-      SWTUtil.runUI(new Runnable() {
-        @Override
-        public void run() {
-          SWTUtil.setColors(getTree(), preferences);
-        }
-      });
+      SWTUtil.setColors(getTree(), preferences);
     }
   }
 
@@ -435,10 +430,15 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    if (viewer != null) {
-      viewer.updateColors();
-      viewer.refresh(false);
-    }
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        if (viewer != null) {
+          viewer.updateColors();
+          viewer.refresh(false);
+        }
+      }
+    });
   }
 
   /**

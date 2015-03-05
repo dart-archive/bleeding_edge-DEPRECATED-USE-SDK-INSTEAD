@@ -112,17 +112,12 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        StructuredViewer viewer = getViewer();
-        if (viewer instanceof TableViewer) {
-          SWTUtil.setColors(((TableViewer) viewer).getTable(), getPreferences());
-        } else {
-          SWTUtil.setColors(((TreeViewer) viewer).getTree(), getPreferences());
-        }
-      }
-    });
+    StructuredViewer viewer = getViewer();
+    if (viewer instanceof TableViewer) {
+      SWTUtil.setColors(((TableViewer) viewer).getTable(), getPreferences());
+    } else {
+      SWTUtil.setColors(((TreeViewer) viewer).getTree(), getPreferences());
+    }
   }
 
   protected void updateTableFont() {
@@ -142,8 +137,13 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
-    getViewer().refresh(false);
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+        getViewer().refresh(false);
+      }
+    });
   }
 
   private IPreferenceStore getPreferences() {

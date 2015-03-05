@@ -735,12 +735,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        SWTUtil.setColors(getViewer().getTree(), getPreferences());
-      }
-    });
+    SWTUtil.setColors(getViewer().getTree(), getPreferences());
   }
 
   Shell getShell() {
@@ -752,8 +747,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
-    treeViewer.refresh(false);
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+        treeViewer.refresh(false);
+      }
+    });
   }
 
   private void fillInActionBars() {

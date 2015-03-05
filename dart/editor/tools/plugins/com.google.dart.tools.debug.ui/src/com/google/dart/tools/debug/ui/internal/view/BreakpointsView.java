@@ -181,17 +181,17 @@ public class BreakpointsView extends
   }
 
   protected void updateColors() {
-    SWTUtil.runUI(new Runnable() {
-      @Override
-      public void run() {
-        SWTUtil.setColors(treeViewer.getTree(), getPreferences());
-      }
-    });
+    SWTUtil.setColors(treeViewer.getTree(), getPreferences());
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    updateColors();
-    treeViewer.refresh(false);
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        updateColors();
+        treeViewer.refresh(false);
+      }
+    });
   }
 
   private Composite getDetails() {
