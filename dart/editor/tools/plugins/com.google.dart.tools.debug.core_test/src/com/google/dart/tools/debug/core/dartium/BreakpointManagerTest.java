@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IResource;
 
 import java.io.File;
+import java.io.IOException;
 
 public class BreakpointManagerTest extends TestCase {
 
@@ -49,20 +50,19 @@ public class BreakpointManagerTest extends TestCase {
 
   }
 
-  public void test_getPackagePath() {
+  public void test_getPackagePath() throws IOException {
     MockBreakpointManager manager = new MockBreakpointManager();
 
     if (!DartCore.isWindows()) {
-      String path = manager.getPackagePath(
-          createFile("/baz/lib/myLib.dart").getAbsolutePath(),
-          null);
+      File file = createFile("/baz/lib/myLib.dart");
+      String path = manager.getPackagePath(file.getAbsolutePath(), null, file.getCanonicalPath());
       assertNotNull(path);
       assertEquals("foo.bar.baz/myLib.dart", path);
-      path = manager.getPackagePath(createFile("/baz/src/myLib.dart").getAbsolutePath(), null);
+      file = createFile("/baz/src/myLib.dart");
+      path = manager.getPackagePath(file.getAbsolutePath(), null, file.getCanonicalPath());
       assertNull(path);
-      path = manager.getPackagePath(
-          createFile("/bar/baz/lib/util/util.dart").getAbsolutePath(),
-          null);
+      file = createFile("/bar/baz/lib/util/util.dart");
+      path = manager.getPackagePath(file.getAbsolutePath(), null, file.getCanonicalPath());
       assertNotNull(path);
       assertEquals("foo.bar.baz/util/util.dart", path);
     }

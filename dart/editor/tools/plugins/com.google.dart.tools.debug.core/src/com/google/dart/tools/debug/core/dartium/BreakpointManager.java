@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -219,25 +220,35 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
   }
 
   @VisibleForTesting
-  public String getPackagePath(String regex, IResource resource) {
-    Path path = new Path(regex);
-    int i = 0;
-    if (regex.indexOf(LIB_DIRECTORY_PATH) != -1) {
-      // remove all segments after "lib", they show path in the package
-      while (i < path.segmentCount() && !path.segment(i).equals("lib")) {
-        i++;
+  public String getPackagePath(String regex, IResource resource, String fileLocation) {
+    String filePath = regex;
+    String packagePath = null;
+
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      filePath = fileLocation;
+      packagePath = resolvePathToPackage(resource, filePath);
+      if (packagePath != null && packagePath.startsWith(DartCore.PACKAGE_SCHEME_SPEC)) {
+        packagePath = packagePath.substring(DartCore.PACKAGE_SCHEME_SPEC.length());
       }
     } else {
-      i = 1;
-    }
-    String filePath = regex;
-    if (path.segmentCount() > i + 1) {
-      filePath = new Path(regex).removeLastSegments(path.segmentCount() - (i + 1)).toString();
-    }
 
-    String packagePath = resolvePathToPackage(resource, filePath);
-    if (packagePath != null) {
-      packagePath += "/" + path.removeFirstSegments(i + 1);
+      Path path = new Path(regex);
+      int i = 0;
+      if (regex.indexOf(LIB_DIRECTORY_PATH) != -1) {
+        // remove all segments after "lib", they show path in the package
+        while (i < path.segmentCount() && !path.segment(i).equals("lib")) {
+          i++;
+        }
+      } else {
+        i = 1;
+      }
+      if (path.segmentCount() > i + 1) {
+        filePath = new Path(regex).removeLastSegments(path.segmentCount() - (i + 1)).toString();
+      }
+      packagePath = resolvePathToPackage(resource, filePath);
+      if (packagePath != null) {
+        packagePath += "/" + path.removeFirstSegments(i + 1);
+      }
     }
     return packagePath;
   }
@@ -345,7 +356,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
         resource = wrapper.getProject();
       }
 
-      String packagePath = getPackagePath(regex, resource);
+      String packagePath = getPackagePath(regex, resource, breakpoint.getActualFilePath());
       if (packagePath != null) {
         regex = packagePath;
       }

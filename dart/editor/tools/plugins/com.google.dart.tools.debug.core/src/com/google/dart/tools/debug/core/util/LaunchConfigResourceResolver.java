@@ -103,13 +103,13 @@ public class LaunchConfigResourceResolver implements IResourceResolver {
       if (sourceDirectory == null) {
         return null;
       }
+      if (filePath != null) {
+        IResource resource = sourceDirectory.findMember(filePath);
 
-      IResource resource = sourceDirectory.findMember(filePath);
-
-      if (resource.exists()) {
-        return resource;
+        if (resource.exists()) {
+          return resource;
+        }
       }
-
       return null;
     } catch (Throwable t) {
       return null;
