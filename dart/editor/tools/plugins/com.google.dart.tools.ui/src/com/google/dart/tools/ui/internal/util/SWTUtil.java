@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.util;
 
 import com.google.common.collect.Maps;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 
@@ -246,12 +247,11 @@ public class SWTUtil {
 
   /**
    * Returns the standard display to be used. The method first checks, if the thread calling this
-   * method has an associated disaply. If so, this display is returned. Otherwise the method returns
+   * method has an associated display. If so, this display is returned. Otherwise the method returns
    * the default display.
    */
   public static Display getStandardDisplay() {
-    Display display;
-    display = Display.getCurrent();
+    Display display = Display.getCurrent();
     if (display == null) {
       display = Display.getDefault();
     }
@@ -267,6 +267,36 @@ public class SWTUtil {
       result += table.getGridLineWidth() * (rows - 1);
     }
     return result;
+  }
+
+  /**
+   * Runs the given {@link Runnable} in the UI thread.
+   * <p>
+   * If the current thread in the UI thread, run immediately.
+   * <p>
+   * Otherwise, run asynchronously.
+   */
+  public static void runUI(final Runnable runnable) {
+    Display display = Display.getCurrent();
+    if (display != null) {
+      try {
+        runnable.run();
+      } catch (Throwable e) {
+        DartToolsPlugin.log(e);
+      }
+    } else {
+      display = Display.getDefault();
+      display.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            runnable.run();
+          } catch (Throwable e) {
+            DartToolsPlugin.log(e);
+          }
+        }
+      });
+    }
   }
 
   /**

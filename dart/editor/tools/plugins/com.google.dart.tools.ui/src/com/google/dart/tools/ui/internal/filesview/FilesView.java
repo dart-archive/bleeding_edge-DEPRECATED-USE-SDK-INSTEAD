@@ -735,7 +735,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void updateColors() {
-    SWTUtil.setColors(getViewer().getTree(), getPreferences());
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        SWTUtil.setColors(getViewer().getTree(), getPreferences());
+      }
+    });
   }
 
   Shell getShell() {

@@ -180,7 +180,12 @@ public class SearchView extends ViewPart implements ISearchResultViewPart {
     if (emptyComposite.isDisposed()) {
       return;
     }
-    SWTUtil.setColors(emptyComposite, preferences);
-    SWTUtil.setColors(emptyLabel, preferences);
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        SWTUtil.setColors(emptyComposite, preferences);
+        SWTUtil.setColors(emptyLabel, preferences);
+      }
+    });
   }
 }

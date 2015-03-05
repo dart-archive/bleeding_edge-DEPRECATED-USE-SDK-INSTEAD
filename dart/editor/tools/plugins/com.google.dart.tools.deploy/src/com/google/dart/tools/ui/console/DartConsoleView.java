@@ -457,7 +457,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   protected void updateColors() {
-    Display.getDefault().asyncExec(new Runnable() {
+    SWTUtil.runUI(new Runnable() {
       @Override
       public void run() {
         if (page != null && page.getControl() != null) {

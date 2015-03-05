@@ -112,12 +112,17 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   }
 
   protected void updateColors() {
-    StructuredViewer viewer = getViewer();
-    if (viewer instanceof TableViewer) {
-      SWTUtil.setColors(((TableViewer) viewer).getTable(), getPreferences());
-    } else {
-      SWTUtil.setColors(((TreeViewer) viewer).getTree(), getPreferences());
-    }
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        StructuredViewer viewer = getViewer();
+        if (viewer instanceof TableViewer) {
+          SWTUtil.setColors(((TableViewer) viewer).getTable(), getPreferences());
+        } else {
+          SWTUtil.setColors(((TreeViewer) viewer).getTree(), getPreferences());
+        }
+      }
+    });
   }
 
   protected void updateTableFont() {

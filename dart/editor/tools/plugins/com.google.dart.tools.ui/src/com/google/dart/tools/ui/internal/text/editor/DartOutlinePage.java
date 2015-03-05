@@ -97,7 +97,12 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
 
     private void updateColors() {
-      SWTUtil.setColors(getTree(), preferences);
+      SWTUtil.runUI(new Runnable() {
+        @Override
+        public void run() {
+          SWTUtil.setColors(getTree(), preferences);
+        }
+      });
     }
   }
 

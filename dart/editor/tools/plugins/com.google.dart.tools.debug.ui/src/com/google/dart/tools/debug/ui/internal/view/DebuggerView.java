@@ -260,7 +260,12 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   }
 
   protected void updateColors() {
-    SWTUtil.setColors(treeViewer.getTree(), getPreferences());
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        SWTUtil.setColors(treeViewer.getTree(), getPreferences());
+      }
+    });
   }
 
   void updateSashOrientation(SashForm sash) {

@@ -1472,7 +1472,12 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     if (viewer.getTree().isDisposed()) {
       return;
     }
-    SWTUtil.setColors(viewer.getTree(), preferences);
-    viewer.refresh();
+    SWTUtil.runUI(new Runnable() {
+      @Override
+      public void run() {
+        SWTUtil.setColors(viewer.getTree(), preferences);
+        viewer.refresh();
+      }
+    });
   }
 }
