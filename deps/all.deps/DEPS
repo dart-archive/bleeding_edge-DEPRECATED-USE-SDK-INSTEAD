@@ -36,7 +36,7 @@ vars = {
   "eclipse_rev" : "@38742",
   "fake_async_rev" : "@38614",
   "fest_rev" : "@19997",
-  "firefox_jsshell_rev" : "@35614",
+  "firefox_jsshell_rev" : "@44282",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "gson_rev" : "@36048",
   "gsutil_rev" : "@33376",
