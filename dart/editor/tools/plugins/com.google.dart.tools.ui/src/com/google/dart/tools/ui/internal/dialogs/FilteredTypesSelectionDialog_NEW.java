@@ -657,16 +657,30 @@ public class FilteredTypesSelectionDialog_NEW extends FilteredItemsSelectionDial
 
     @Override
     public void computedSearchResults(List<SearchResult> searchResults, boolean last) {
-      for (SearchResult searchResult : searchResults) {
-        TopLevelElement result = new TopLevelElement(searchResult);
-        results.add(result);
-
-        //      if (fTypeItemsFilter.matchesFilterExtension(result)) {
-        fContentProvider.add(result, fTypeItemsFilter);
-        //    }
+      int length = searchResults.size();
+      int index;
+      if (length > 25) {
+        index = 25;
+      } else {
+        index = length;
       }
-      //TODO(pquitslund): this shouldn't be necessary (possibly remove once history is working)
+      for (int i = 0; i < index; i++) {
+        SearchResult searchResult = searchResults.get(i);
+        addToResults(searchResult);
+      }
       scheduleRefresh();
+      if (index < length) {
+        for (int i = index; i < length; i++) {
+          SearchResult searchResult = searchResults.get(i);
+          addToResults(searchResult);
+        }
+      }
+    }
+
+    private void addToResults(SearchResult searchResult) {
+      TopLevelElement result = new TopLevelElement(searchResult);
+      results.add(result);
+      fContentProvider.add(result, fTypeItemsFilter);
     }
   }
 
