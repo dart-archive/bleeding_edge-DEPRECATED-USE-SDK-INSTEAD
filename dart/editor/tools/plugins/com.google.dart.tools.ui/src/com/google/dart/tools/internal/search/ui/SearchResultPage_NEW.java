@@ -780,6 +780,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
         }
       }
       calculateNumMatches(rootItem);
+      setResultsDescription(rootItem.numMatches);
       // update viewer
       viewer.refresh();
       // update markers
@@ -922,9 +923,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   private boolean filterEnabledSdk = false;
   private boolean filterEnabledPotential = false;
   private boolean filterEnabledProject = false;
+  private int totalCount = 0;
   private int filteredCountSdk = 0;
   private int filteredCountPotential = 0;
   private int filteredCountProject = 0;
+  private String filtersDesc;
 
   private static final Predicate<SearchResult> FILTER_SDK = new Predicate<SearchResult>() {
     @Override
@@ -1324,10 +1327,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
           beforeRefresh();
           // do query
           List<SearchResult> results = runQuery();
-          int totalCount = results.size();
+          totalCount = results.size();
           results = applyFilters(results);
           // set description
-          String filtersDesc;
           {
             filtersDesc = "";
             filtersDesc += ",   SDK: " + filteredCountSdk;
@@ -1347,8 +1349,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
               }
             }
           }
-          setContentDescription("'" + getQueryElementName() + "' - " + results.size() + " "
-              + getQueryKindName() + ",   total: " + totalCount + filtersDesc);
+          setResultsDescription(results.size());
           // process query results
           rootItem = buildElementItemTree(results);
           itemCursor = new ItemCursor(rootItem);
@@ -1415,6 +1416,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
         searchView.setContentDescription(description);
       }
     });
+  }
+
+  private void setResultsDescription(int resultCount) {
+    setContentDescription("'" + getQueryElementName() + "' - " + resultCount + " "
+        + getQueryKindName() + ",   total: " + totalCount + filtersDesc);
   }
 
   /**
