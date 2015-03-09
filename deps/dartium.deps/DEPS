@@ -22,7 +22,7 @@ vars.update({
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
-  "http_multi_server_rev" : "@84f368d86fd9619def668e49824fe3e71a1e010f",
+  "http_multi_server_tag" : "@1.3.1",
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
@@ -97,7 +97,7 @@ deps.update({
       "https://github.com/dart-lang/http.git" + Var("http_rev"),
   "src/dart/third_party/pkg/http_multi_server":
       "https://github.com/dart-lang/http_multi_server.git" +
-      Var("http_multi_server_rev"),
+      Var("http_multi_server_tag"),
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
