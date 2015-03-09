@@ -3403,7 +3403,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOccurrencesFinder(boolean forceUpdate) {
     DartSourceViewer viewer = (DartSourceViewer) getSourceViewer();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      occurrencesManager_NEW = new MarkOccurrencesManager_NEW(this, viewer);
+      occurrencesManager_NEW = new MarkOccurrencesManager_NEW(
+          this,
+          viewer,
+          getDartReconcilingStrategy());
     } else {
       occurrencesManager_OLD = new MarkOccurrencesManager_OLD(this, viewer);
     }

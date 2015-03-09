@@ -67,9 +67,9 @@ public class Occurrences {
     this.length = length;
   }
 
-  public boolean contains(int x) {
+  public boolean containsInclusive(int x) {
     for (int offset : offsets) {
-      if (offset <= x && x < offset + length) {
+      if (offset <= x && x <= offset + length) {
         return true;
       }
     }

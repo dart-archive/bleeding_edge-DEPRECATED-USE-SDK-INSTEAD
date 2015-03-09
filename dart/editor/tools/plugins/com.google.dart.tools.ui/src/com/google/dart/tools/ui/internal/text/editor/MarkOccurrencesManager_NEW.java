@@ -18,6 +18,7 @@ import com.google.common.collect.Maps;
 import com.google.dart.server.generated.types.Occurrences;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOccurrencesListener;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.functions.DartWordFinder;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -43,7 +44,8 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
   private static final String TYPE = "com.google.dart.tools.ui.occurrences";
 
   private final DartEditor editor;
-  private final DartSourceViewer viewer;
+  private final IDocument document;
+  private final DartReconcilingStrategy reconcilingStrategy;
   private final IEditorInput editorInput;
   private final String file;
 
@@ -54,9 +56,11 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
   private Annotation[] fOccurrenceAnnotations;
   private IRegion fMarkOccurrenceTargetRegion;
 
-  public MarkOccurrencesManager_NEW(DartEditor _editor, DartSourceViewer viewer) {
-    this.editor = _editor;
-    this.viewer = viewer;
+  public MarkOccurrencesManager_NEW(DartEditor editor, DartSourceViewer viewer,
+      DartReconcilingStrategy reconcilingStrategy) {
+    this.editor = editor;
+    this.document = viewer.getDocument();
+    this.reconcilingStrategy = reconcilingStrategy;
     this.editorInput = editor.getEditorInput();
     this.file = editor.getInputFilePath();
     DartCore.getAnalysisServerData().addOccurrencesListener(file, this);
@@ -171,11 +175,6 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
   }
 
   private void updateOccurrenceAnnotations() {
-    IDocument document = viewer.getDocument();
-    if (document == null) {
-      return;
-    }
-
     if (document instanceof IDocumentExtension4) {
       IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
       if (markOccurrenceTargetRegion != null) {
@@ -200,11 +199,13 @@ public class MarkOccurrencesManager_NEW implements AnalysisServerOccurrencesList
     }
 
     Occurrences targetOccurrences = null;
-    Occurrences[] occurrencesArray = DartCore.getAnalysisServerData().getOccurrences(file);
-    for (Occurrences occurrences : occurrencesArray) {
-      if (occurrences.contains(selectionOffset)) {
-        targetOccurrences = occurrences;
-        break;
+    if (!reconcilingStrategy.hasPendingContentChanges()) {
+      Occurrences[] occurrencesArray = DartCore.getAnalysisServerData().getOccurrences(file);
+      for (Occurrences occurrences : occurrencesArray) {
+        if (occurrences.containsInclusive(selectionOffset)) {
+          targetOccurrences = occurrences;
+          break;
+        }
       }
     }
 
