@@ -179,9 +179,10 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
 
     drawImage(bg, 0, 0);
 
+    drawOver();
     drawTopRight();
-    drawBottomRight();
     drawBottomLeft();
+    drawBottomRight();
 
   }
 
@@ -208,6 +209,11 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
       drawImage(data, x, y);
       pos.x = x;
     }
+  }
+
+  private void addOverImage(ImageDescriptor desc) {
+    ImageData data = getImageData(desc);
+    drawImage(data, 0, 0);
   }
 
   private void addTopRightImage(ImageDescriptor desc, Point pos) {
@@ -273,8 +279,12 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
     if ((flags & SETTER) != 0) {
       addBottomRightImage(DartPluginImages.DESC_OVR_SETTER, pos);
     }
+  }
+
+  private void drawOver() {
+    int flags = fFlags;
     if ((flags & DEPRECATED) != 0) {
-      addBottomRightImage(DartPluginImages.DESC_OVR_DEPRECATED, pos);
+      addOverImage(DartPluginImages.DESC_OVR_DEPRECATED);
     }
   }
 
@@ -298,7 +308,6 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
     if ((fFlags & CONST) != 0) {
       addTopRightImage(DartPluginImages.DESC_OVR_FINAL, pos);
     }
-
   }
 
   private ImageData getImageData(ImageDescriptor descriptor) {
