@@ -138,6 +138,11 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
   public StyledString getStyledText(Object obj, String text) {
     Element element = (Element) obj;
     StyledString styledString = new StyledString(text);
+    // append type parameters
+    String typeParameters = element.getTypeParameters();
+    if (typeParameters != null) {
+      styledString.append(typeParameters);
+    }
     // append parameters
     String parameters = element.getParameters();
     if (parameters != null) {

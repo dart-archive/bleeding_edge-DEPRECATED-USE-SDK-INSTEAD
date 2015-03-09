@@ -97,15 +97,22 @@ public class Element {
   private final String returnType;
 
   /**
+   * The type parameter list for the element. If the element doesn't have type parameters, this field
+   * will not be defined.
+   */
+  private final String typeParameters;
+
+  /**
    * Constructor for {@link Element}.
    */
-  public Element(String kind, String name, Location location, int flags, String parameters, String returnType) {
+  public Element(String kind, String name, Location location, int flags, String parameters, String returnType, String typeParameters) {
     this.kind = kind;
     this.name = name;
     this.location = location;
     this.flags = flags;
     this.parameters = parameters;
     this.returnType = returnType;
+    this.typeParameters = typeParameters;
   }
 
   @Override
@@ -118,7 +125,8 @@ public class Element {
         ObjectUtilities.equals(other.location, location) &&
         other.flags == flags &&
         ObjectUtilities.equals(other.parameters, parameters) &&
-        ObjectUtilities.equals(other.returnType, returnType);
+        ObjectUtilities.equals(other.returnType, returnType) &&
+        ObjectUtilities.equals(other.typeParameters, typeParameters);
     }
     return false;
   }
@@ -130,7 +138,8 @@ public class Element {
     int flags = jsonObject.get("flags").getAsInt();
     String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
-    return new Element(kind, name, location, flags, parameters, returnType);
+    String typeParameters = jsonObject.get("typeParameters") == null ? null : jsonObject.get("typeParameters").getAsString();
+    return new Element(kind, name, location, flags, parameters, returnType, typeParameters);
   }
 
   public static List<Element> fromJsonArray(JsonArray jsonArray) {
@@ -198,6 +207,14 @@ public class Element {
     return returnType;
   }
 
+  /**
+   * The type parameter list for the element. If the element doesn't have type parameters, this field
+   * will not be defined.
+   */
+  public String getTypeParameters() {
+    return typeParameters;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -207,6 +224,7 @@ public class Element {
     builder.append(flags);
     builder.append(parameters);
     builder.append(returnType);
+    builder.append(typeParameters);
     return builder.toHashCode();
   }
 
@@ -248,6 +266,9 @@ public class Element {
     if (returnType != null) {
       jsonObject.addProperty("returnType", returnType);
     }
+    if (typeParameters != null) {
+      jsonObject.addProperty("typeParameters", typeParameters);
+    }
     return jsonObject;
   }
 
@@ -266,7 +287,9 @@ public class Element {
     builder.append("parameters=");
     builder.append(parameters + ", ");
     builder.append("returnType=");
-    builder.append(returnType);
+    builder.append(returnType + ", ");
+    builder.append("typeParameters=");
+    builder.append(typeParameters);
     builder.append("]");
     return builder.toString();
   }
