@@ -81,6 +81,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
 
   private static String PACKAGES_DIRECTORY_PATH = "/packages/";
 
+  private static String FILE_SPEC = "file://";
   private static String LIB_DIRECTORY_PATH = "/lib/";
 
   private DartiumDebugTarget debugTarget;
@@ -229,6 +230,12 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       packagePath = resolvePathToPackage(resource, filePath);
       if (packagePath != null && packagePath.startsWith(DartCore.PACKAGE_SCHEME_SPEC)) {
         packagePath = packagePath.substring(DartCore.PACKAGE_SCHEME_SPEC.length());
+      }
+      if (packagePath != null && packagePath.startsWith(FILE_SPEC)) {
+        packagePath = packagePath.substring(FILE_SPEC.length());
+        if (packagePath.equals(fileLocation)) {
+          packagePath = null;
+        }
       }
     } else {
 
