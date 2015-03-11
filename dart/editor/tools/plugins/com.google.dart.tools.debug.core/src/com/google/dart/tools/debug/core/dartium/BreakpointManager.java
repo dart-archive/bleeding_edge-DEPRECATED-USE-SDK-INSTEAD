@@ -233,8 +233,11 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       }
       if (packagePath != null && packagePath.startsWith(FILE_SPEC)) {
         packagePath = packagePath.substring(FILE_SPEC.length());
-        if (packagePath.equals(fileLocation)) {
-          packagePath = null;
+        if (DartCore.isWindows() && packagePath.startsWith("/")) {
+          packagePath = packagePath.substring(1);
+        }
+        if (new Path(packagePath).equals(new Path(fileLocation))) {
+          return null;
         }
       }
     } else {
