@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -120,6 +121,17 @@ public class VariableResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     return null;
+  }
+
+  @Override
+  public Void visitMethodDeclaration(MethodDeclaration node) {
+    ExecutableElement outerFunction = enclosingFunction;
+    try {
+      enclosingFunction = node.getElement();
+      return super.visitMethodDeclaration(node);
+    } finally {
+      enclosingFunction = outerFunction;
+    }
   }
 
   @Override
