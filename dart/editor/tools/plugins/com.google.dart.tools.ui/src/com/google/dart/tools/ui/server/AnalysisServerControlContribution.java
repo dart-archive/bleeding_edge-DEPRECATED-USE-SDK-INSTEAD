@@ -5,29 +5,39 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.themes.Fonts;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 public class AnalysisServerControlContribution implements AnalysisServerStatusListener {
 
-  private Control control;
+  private static String failMessage = "Use \"{0}\" to send feedback about the failure, and relaunch {1} to restart Analysis Server.";
 
+  private Control control;
+  private boolean inControl;
   private CLabel label;
+  private WorkbenchWindowControlContribution controlContribution;
 
   public AnalysisServerControlContribution(WorkbenchWindowControlContribution controlContribution) {
-
+    this.controlContribution = controlContribution;
   }
 
   public Control createControl(Composite parent) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       control = createLabel(parent);
       DartCore.getAnalysisServer().addStatusListener(this);
+      hookupLabelListeners();
     } else {
       control = new Composite(parent, SWT.NONE);
     }
@@ -45,6 +55,24 @@ public class AnalysisServerControlContribution implements AnalysisServerStatusLi
       });
 
     }
+  }
+
+  protected void handleMouseEnter() {
+    inControl = true;
+  }
+
+  protected void handleMouseExit() {
+    inControl = false;
+  }
+
+  protected void handleSelection() {
+    String message;
+    if (DartCore.isPluginsBuild()) {
+      message = NLS.bind(failMessage, "Help > Send feedback about Dart", "Eclipse");
+    } else {
+      message = NLS.bind(failMessage, "Send Feedback", "Dart Editor");
+    }
+    MessageDialog.openInformation(getActiveShell(), "Analaysis Server Inactive", message);
   }
 
   private Control createLabel(Composite parent) {
@@ -65,6 +93,33 @@ public class AnalysisServerControlContribution implements AnalysisServerStatusLi
     GridDataFactory.fillDefaults().grab(true, false).applyTo(label);
     label.setVisible(false);
     return label;
+  }
+
+  private Shell getActiveShell() {
+    return controlContribution.getWorkbenchWindow().getShell();
+  }
+
+  private void hookupLabelListeners() {
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseUp(MouseEvent e) {
+        if (inControl && e.button == 1) {
+          handleSelection();
+        }
+      }
+    });
+
+    label.addMouseTrackListener(new MouseTrackAdapter() {
+      @Override
+      public void mouseEnter(MouseEvent e) {
+        handleMouseEnter();
+      }
+
+      @Override
+      public void mouseExit(MouseEvent e) {
+        handleMouseExit();
+      }
+    });
   }
 
   private void updateLabelText(String message) {
