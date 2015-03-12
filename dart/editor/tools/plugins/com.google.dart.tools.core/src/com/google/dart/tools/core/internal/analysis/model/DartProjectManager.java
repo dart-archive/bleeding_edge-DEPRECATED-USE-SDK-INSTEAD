@@ -46,10 +46,19 @@ public class DartProjectManager {
     private boolean shouldSetAnalysisRoots(IResourceChangeEvent event) {
       if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
         IResourceDelta delta = event.getDelta();
-        if (delta.getAffectedChildren(IResourceDelta.ADDED | IResourceDelta.REMOVED).length > 0) {
-          // Toplevel project added or removed.
+        // Toplevel project added or removed.
+        if (delta.getAffectedChildren(IResourceDelta.REMOVED).length > 0) {
           return true;
         }
+        if (delta.getAffectedChildren(IResourceDelta.ADDED).length > 0) {
+          IResource resource = delta.getAffectedChildren(IResourceDelta.ADDED)[0].getResource();
+          if (resource instanceof IProject && hasPubspecAndLoc((IProject) resource)) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+
         for (IResourceDelta child : delta.getAffectedChildren(IResourceDelta.CHANGED)) {
           if (child.findMember(new Path(".settings/com.google.dart.tools.core.prefs")) != null) {
             // Toplevel project had its package root changed.
@@ -57,6 +66,10 @@ public class DartProjectManager {
             // IPreferenceChangeListener?
             return true;
           }
+          if (child.findMember(new Path(DartCore.PUBSPEC_LOCK_FILE_NAME)) != null) {
+            return true;
+          }
+
           IResource resource = child.getResource();
           // for project open and close
           if (resource instanceof IProject && ((child.getFlags() & IResourceDelta.OPEN) != 0)) {
@@ -121,5 +134,22 @@ public class DartProjectManager {
     setAnalysisRoots();
     root.getWorkspace().addResourceChangeListener(resourceChangeListener);
     ignoreManager.addListener(ignoreManagerListener);
+  }
+
+  /**
+   * Check that if pubspec is present, there is also a lock file, indicating pub get has run, and
+   * project is ready for analysis.
+   */
+  private boolean hasPubspecAndLoc(IProject proj) {
+    if (proj.findMember(DartCore.PUBSPEC_FILE_NAME) == null
+        || !DartCore.getPlugin().isAutoRunPubEnabled()) {
+      return true;
+    }
+
+    if (proj.findMember(DartCore.PUBSPEC_FILE_NAME) != null
+        && proj.findMember(DartCore.PUBSPEC_LOCK_FILE_NAME) != null) {
+      return true;
+    }
+    return false;
   }
 }
