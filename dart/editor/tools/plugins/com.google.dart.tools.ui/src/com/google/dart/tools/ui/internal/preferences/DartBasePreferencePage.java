@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.RunPubJob;
@@ -29,6 +30,7 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -63,6 +65,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button printMarginCheck;
   private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
+  private Button enableAnalysisServerButton;
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
@@ -145,6 +148,18 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       }
     }
 
+    boolean serverChanged = setPrefBool(
+        DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
+        true,
+        enableAnalysisServerButton);
+
+    if (serverChanged) {
+      MessageDialog.openInformation(
+          getShell(),
+          "Restart Required",
+          "These changes will only take effect once the IDE has been restarted.");
+    }
+
     return true;
   }
 
@@ -180,6 +195,19 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_show_line_numbers,
         PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(lineNumbersCheck);
+
+    // Analysis group
+    Group serverGroup = new Group(composite, SWT.NONE);
+    serverGroup.setText("Analysis");
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        serverGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(serverGroup);
+
+    enableAnalysisServerButton = createCheckBox(
+        serverGroup,
+        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server,
+        PreferencesMessages.ExperimentalPreferencePage_enable_analysis_server_tooltip);
+    GridDataFactory.fillDefaults().applyTo(enableAnalysisServerButton);
 
     // Format group
     Group formatGroup = new Group(composite, SWT.NONE);
@@ -284,7 +312,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
+      enableAnalysisServerButton.setSelection(prefs.getBoolean(
+          DartCoreDebug.ENABLE_ANALYSIS_SERVER_PREF,
+          true));
     }
+
   }
 
   /**
@@ -316,5 +348,13 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       }
     }
     firstJob.schedule();
+  }
+
+  private boolean setPrefBool(String prefKey, boolean def, Button button) {
+    IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
+    boolean oldValue = prefs.getBoolean(prefKey, def);
+    boolean newValue = button.getSelection();
+    prefs.putBoolean(prefKey, newValue);
+    return oldValue != newValue;
   }
 }
