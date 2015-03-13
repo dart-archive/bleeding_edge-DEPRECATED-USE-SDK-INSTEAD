@@ -947,8 +947,8 @@ public class OmniBoxPopup extends BasePopupDialog {
             : element;
       }
     }
-    close();
     if (selectedElement != null) {
+      close();
       handleElementSelected(text, selectedElement);
     }
   }
