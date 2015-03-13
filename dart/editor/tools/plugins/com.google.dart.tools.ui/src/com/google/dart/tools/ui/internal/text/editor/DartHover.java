@@ -171,6 +171,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     private Composite container;
     private TextSection elementSection;
+    private TextSection classSection;
     private TextSection librarySection;
     private AnnotationsSection problemsSection;
     private DocSection docSection;
@@ -210,6 +211,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       hasContents = false;
       // Hide all sections.
       setGridVisible(elementSection, false);
+      setGridVisible(classSection, false);
       setGridVisible(librarySection, false);
       setGridVisible(problemsSection, false);
       setGridVisible(docSection, false);
@@ -232,6 +234,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
                 setGridVisible(elementSection, true);
                 elementSection.setTitle(WordUtils.capitalize(hover.getElementKind()));
                 elementSection.setText(text);
+              }
+            }
+            // show Class
+            {
+              String className = hover.getContainingClassDescription();
+              if (className != null) {
+                setGridVisible(classSection, true);
+                classSection.setText(className);
               }
             }
             // show Library
@@ -402,7 +412,8 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       container = toolkit.createComposite(parent);
       GridLayoutFactory.create(container);
       elementSection = new TextSection(container, "Element");
-      librarySection = new TextSection(container, "Library");
+      classSection = new TextSection(container, "Containing class");
+      librarySection = new TextSection(container, "Containing library");
       problemsSection = new AnnotationsSection(container, "Problems");
       docSection = new DocSection(container, "Documentation");
       staticTypeSection = new TextSection(container, "Static type");
