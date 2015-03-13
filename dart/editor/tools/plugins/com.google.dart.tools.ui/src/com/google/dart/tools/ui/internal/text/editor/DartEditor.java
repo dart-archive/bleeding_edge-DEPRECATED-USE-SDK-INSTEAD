@@ -2637,24 +2637,26 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     fSelectionHistory = new SelectionHistory(this);
 
-    action = new StructureSelectEnclosingAction(this, fSelectionHistory);
-    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
-    setAction(StructureSelectionAction.ENCLOSING, action);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      action = new StructureSelectEnclosingAction(this, fSelectionHistory);
+      action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
+      setAction(StructureSelectionAction.ENCLOSING, action);
 
-    action = new StructureSelectNextAction(this, fSelectionHistory);
-    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
-    setAction(StructureSelectionAction.NEXT, action);
+      action = new StructureSelectNextAction(this, fSelectionHistory);
+      action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
+      setAction(StructureSelectionAction.NEXT, action);
 
-    action = new StructureSelectPreviousAction(this, fSelectionHistory);
-    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
-    setAction(StructureSelectionAction.PREVIOUS, action);
+      action = new StructureSelectPreviousAction(this, fSelectionHistory);
+      action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
+      setAction(StructureSelectionAction.PREVIOUS, action);
 
-    StructureSelectHistoryAction historyAction = new StructureSelectHistoryAction(
-        this,
-        fSelectionHistory);
-    historyAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
-    setAction(StructureSelectionAction.HISTORY, historyAction);
-    fSelectionHistory.setHistoryAction(historyAction);
+      StructureSelectHistoryAction historyAction = new StructureSelectHistoryAction(
+          this,
+          fSelectionHistory);
+      historyAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
+      setAction(StructureSelectionAction.HISTORY, historyAction);
+      fSelectionHistory.setHistoryAction(historyAction);
+    }
 
     action = GoToNextPreviousMemberAction.newGoToNextMemberAction(this);
     action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_NEXT_MEMBER);

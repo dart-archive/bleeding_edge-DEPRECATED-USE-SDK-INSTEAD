@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -122,14 +123,16 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
         "OpenStructure."); //$NON-NLS-1$
     fOpenStructure.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
 
-    fStructureSelectEnclosingAction = new RetargetTextEditorAction(b, "StructureSelectEnclosing."); //$NON-NLS-1$
-    fStructureSelectEnclosingAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
-    fStructureSelectNextAction = new RetargetTextEditorAction(b, "StructureSelectNext."); //$NON-NLS-1$
-    fStructureSelectNextAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
-    fStructureSelectPreviousAction = new RetargetTextEditorAction(b, "StructureSelectPrevious."); //$NON-NLS-1$
-    fStructureSelectPreviousAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
-    fStructureSelectHistoryAction = new RetargetTextEditorAction(b, "StructureSelectHistory."); //$NON-NLS-1$
-    fStructureSelectHistoryAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      fStructureSelectEnclosingAction = new RetargetTextEditorAction(b, "StructureSelectEnclosing."); //$NON-NLS-1$
+      fStructureSelectEnclosingAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
+      fStructureSelectNextAction = new RetargetTextEditorAction(b, "StructureSelectNext."); //$NON-NLS-1$
+      fStructureSelectNextAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
+      fStructureSelectPreviousAction = new RetargetTextEditorAction(b, "StructureSelectPrevious."); //$NON-NLS-1$
+      fStructureSelectPreviousAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
+      fStructureSelectHistoryAction = new RetargetTextEditorAction(b, "StructureSelectHistory."); //$NON-NLS-1$
+      fStructureSelectHistoryAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
+    }
 
     fGotoNextMemberAction = new RetargetTextEditorAction(b, "GotoNextMember."); //$NON-NLS-1$
     fGotoNextMemberAction.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_NEXT_MEMBER);
@@ -256,14 +259,18 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     fOpenDeclaration.setAction(getAction(textEditor, "OpenEditor"));
 
-    fStructureSelectEnclosingAction.setAction(getAction(
-        textEditor,
-        StructureSelectionAction.ENCLOSING));
-    fStructureSelectNextAction.setAction(getAction(textEditor, StructureSelectionAction.NEXT));
-    fStructureSelectPreviousAction.setAction(getAction(
-        textEditor,
-        StructureSelectionAction.PREVIOUS));
-    fStructureSelectHistoryAction.setAction(getAction(textEditor, StructureSelectionAction.HISTORY));
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      fStructureSelectEnclosingAction.setAction(getAction(
+          textEditor,
+          StructureSelectionAction.ENCLOSING));
+      fStructureSelectNextAction.setAction(getAction(textEditor, StructureSelectionAction.NEXT));
+      fStructureSelectPreviousAction.setAction(getAction(
+          textEditor,
+          StructureSelectionAction.PREVIOUS));
+      fStructureSelectHistoryAction.setAction(getAction(
+          textEditor,
+          StructureSelectionAction.HISTORY));
+    }
 
     fGotoNextMemberAction.setAction(getAction(textEditor, GoToNextPreviousMemberAction.NEXT_MEMBER));
     fGotoPreviousMemberAction.setAction(getAction(
