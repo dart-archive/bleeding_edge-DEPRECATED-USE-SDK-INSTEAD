@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -76,8 +74,7 @@ public class CreateFileChange extends Change {
     // prepare IFile
     final IFile newFile;
     {
-      Source source = new FileBasedSource(file);
-      IResource resource = DartCore.getProjectManager().getResource(source);
+      IResource resource = ResourceUtil.getResource(file);
       if (!(resource instanceof IFile)) {
         return null;
       }

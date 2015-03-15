@@ -84,7 +84,15 @@ public class ResourceUtil {
   }
 
   /**
-   * Answer the Eclipse resource associated with the specified file or <code>null</code> if none
+   * Return the {@link IResource} associated with the given Java {@link File}.
+   * <p>
+   * If the {@link File} is an existing directory, then {@link IContainer} is returned.
+   * <p>
+   * If the {@link File} is an existing file or does not exist in the file system, then
+   * {@link IFile} is returned.
+   * <p>
+   * If the {@link File} does not represent a valid part in the workspace, then {@code null} is
+   * returned.
    */
   public static IResource getResource(File file) {
     if (file == null) {
@@ -98,15 +106,13 @@ public class ResourceUtil {
       }
       return containers[0];
     }
-    if (file.isFile()) {
-      IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-      IFile[] files = workspaceRoot.findFilesForLocationURI(file.toURI());
-      if (files.length == 0) {
-        return null;
-      }
-      return files[0];
+    // probably IFile
+    IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+    IFile[] files = workspaceRoot.findFilesForLocationURI(file.toURI());
+    if (files.length == 0) {
+      return null;
     }
-    return null;
+    return files[0];
   }
 
   /**
