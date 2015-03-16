@@ -14,11 +14,14 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.core.utilities.io.FilenameUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.ServerMoveFileRefactoring;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -26,6 +29,7 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -92,8 +96,12 @@ public class RenameProjectParticipant extends RenameParticipant {
     }
 
     private void renamePubSpec(IProject newProject) {
+      // Analysis Server will return the required change.
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        return;
+      }
+      // do rename
       IFile pubspec = newProject.getFile(DartCore.PUBSPEC_FILE_NAME);
-
       if (pubspec != null) {
         try {
           Reader reader = new InputStreamReader(pubspec.getContents(), pubspec.getCharset());
@@ -101,7 +109,6 @@ public class RenameProjectParticipant extends RenameParticipant {
           model.setName(newName);
           model.save();
         } catch (Exception e) {
-
         }
       }
     }
@@ -133,12 +140,19 @@ public class RenameProjectParticipant extends RenameParticipant {
   }
 
   @Override
-  public Change createChange(final IProgressMonitor pm) throws CoreException,
+  public Change createChange(IProgressMonitor pm) {
+    RenameArguments arguments = getArguments();
+    String newName = arguments.getNewName();
+    return new RenameProjectFolderChange(project, newName);
+  }
+
+  @Override
+  public Change createPreChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
     return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
       @Override
       public Change runObject() throws Exception {
-        return createChangeEx(pm);
+        return createPreChangeEx(pm);
       }
     });
   }
@@ -158,11 +172,28 @@ public class RenameProjectParticipant extends RenameParticipant {
   }
 
   /**
-   * Implementation of {@link #createChange(IProgressMonitor)} which can throw any exception.
+   * Implementation of {@link #createPreChangeEx(IProgressMonitor)} which can throw any exception.
    */
-  private Change createChangeEx(IProgressMonitor pm) throws Exception {
-    RenameArguments arguments = getArguments();
-    return new RenameProjectFolderChange(project, arguments.getNewName());
+  private Change createPreChangeEx(IProgressMonitor pm) throws Exception {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      try {
+        RenameArguments arguments = getArguments();
+        IPath fileLocation = project.getLocation();
+        String oldFile = fileLocation.toOSString();
+        String oldDir = fileLocation.removeLastSegments(1).toOSString();
+        String newName = arguments.getNewName();
+        String newFile = FilenameUtils.concat(oldDir, newName);
+        ServerMoveFileRefactoring refactoring = new ServerMoveFileRefactoring(oldFile);
+        refactoring.setNewFile(newFile);
+        if (refactoring.checkAllConditions(pm).hasError()) {
+          return null;
+        }
+        return refactoring.createChange(pm);
+      } catch (Throwable e) {
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
-
 }
