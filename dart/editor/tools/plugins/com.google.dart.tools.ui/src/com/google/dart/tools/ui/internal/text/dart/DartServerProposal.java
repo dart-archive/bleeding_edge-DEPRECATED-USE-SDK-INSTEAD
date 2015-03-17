@@ -165,7 +165,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
    */
   private static String CSS_STYLES;
   private final static char[] TRIGGERS = new char[] {
-      ' ', '\t', '.', ',', ';', '(', ')', '[', ']', '{', '}', '=', '!', '#'};
+      ' ', '\t', '.', ',', ';', '(', '[', '{', '=', '!', '#'};
   private final DartServerProposalCollector collector;
   private final CompletionSuggestion suggestion;
 
@@ -208,6 +208,13 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
    */
   private int[] argumentLengths = null;
 
+  /**
+   * If the completion has been canceled, the selection which should be returned by
+   * {@link getSelection}. If {@code null}, then {@link getSelection} will return a selection based
+   * on the completion.
+   */
+  private Point canceledSelection = null;
+
   public DartServerProposal(DartServerProposalCollector collector, CompletionSuggestion suggestion) {
     this.collector = collector;
     this.suggestion = suggestion;
@@ -226,6 +233,23 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+    IDocument doc = viewer.getDocument();
+    // don't apply the proposal if we're not valid any longer.  This could happen, for instance,
+    // if the user types a ')' which exits a LinkedModeUI without canceling the completion.
+    if (!validate(doc, offset, null)) {
+      if (trigger != '\0') {
+        canceledSelection = new Point(offset + 1, 0);
+        try {
+          doc.replace(offset, 0, String.valueOf(trigger));
+        } catch (BadLocationException x) {
+          // ignore
+        }
+      } else {
+        canceledSelection = new Point(offset, 0);
+      }
+      return;
+    }
+
     String completion = getCompletion();
     InstrumentationBuilder instrumentation = Instrumentation.builder("ServerProposal-Apply");
     instrumentation.metric("Trigger", trigger);
@@ -233,7 +257,6 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
     int replacementOffset = collector.getReplacementOffset();
     int replacementLength = offset - replacementOffset;
     try {
-      IDocument doc = viewer.getDocument();
       /*
        * If no characters have been typed and the trigger character is a '.'
        * then then skip the suggestion and just insert the trigger character
@@ -442,6 +465,9 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
 
   @Override
   public Point getSelection(IDocument document) {
+    if (canceledSelection != null) {
+      return canceledSelection;
+    }
     computeCompletion();
     return new Point(collector.getReplacementOffset() + selectionOffset, selectionLength);
   }
