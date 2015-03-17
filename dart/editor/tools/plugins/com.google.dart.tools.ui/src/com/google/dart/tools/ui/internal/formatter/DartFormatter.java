@@ -123,6 +123,10 @@ public class DartFormatter {
       }
 
       String formattedSource = sb.toString();
+      if (!formattedSource.startsWith("{")) {
+        throw new IOException(formattedSource);
+      }
+
       try {
         JSONObject json = new JSONObject(formattedSource);
         String sourceString = (String) json.get(JSON_SOURCE_KEY);

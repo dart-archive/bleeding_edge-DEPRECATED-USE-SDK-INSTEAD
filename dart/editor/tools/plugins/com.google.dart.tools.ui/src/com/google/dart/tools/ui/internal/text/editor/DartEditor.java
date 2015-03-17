@@ -823,8 +823,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
 
       private boolean isParseFailure(Exception e) {
+        String message = e.getMessage();
         //TODO (pquitslund): use a return code or something better to signal parse failures
-        return e.getMessage().startsWith("Uncaught Error: An error occured while parsing");
+        return message != null
+            && message.startsWith("Could not format because the source could not be parsed:");
       }
     };
 
