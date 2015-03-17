@@ -527,6 +527,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       public void received() {
         // Close communication channels once response has been received
         requestSink.close();
+        for (AnalysisServerStatusListener listener : statusListenerList) {
+          listener.isAliveServer(false);
+        }
       }
     });
     stopServer();

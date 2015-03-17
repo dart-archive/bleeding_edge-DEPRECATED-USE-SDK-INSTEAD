@@ -14,7 +14,9 @@
 package com.google.dart.tools.update.core.internal.jobs;
 
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.server.AnalysisServerStatusListener;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.update.core.Revision;
@@ -47,6 +49,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An action that installs an available Dart Editor update.
@@ -192,6 +196,33 @@ public class InstallUpdateAction extends Action {
       }
     }
 
+    boolean isTerminated = true;
+    String failMsg = "";
+    final CountDownLatch latch = new CountDownLatch(1);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+
+      AnalysisServerStatusListener listener = new AnalysisServerStatusListener() {
+        @Override
+        public void isAliveServer(boolean isAlive) {
+          if (!isAlive) {
+            latch.countDown();
+          }
+        }
+      };
+      DartCore.getAnalysisServer().addStatusListener(listener);
+
+      DartCore.getAnalysisServer().server_shutdown();
+
+      try {
+        if (!latch.await(3, TimeUnit.SECONDS)) {
+          failMsg = "Unable to shutdown Analysis Server";
+          isTerminated = false;
+        }
+      } catch (InterruptedException e) {
+        // do nothing
+      }
+    }
+
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     List<Executable> executables = new ArrayList<Executable>();
     // check if executables are updated only when sdk in use is the one
@@ -201,6 +232,7 @@ public class InstallUpdateAction extends Action {
       Executable.add(executables, "Dartium", DartSdkManager.getManager().getDartiumExecutable());
     }
     int index = 0;
+
     while (index < executables.size()) {
       if (!executables.get(index).rename()) {
         Executable failedRename = executables.get(index);
@@ -209,13 +241,16 @@ public class InstallUpdateAction extends Action {
           executables.get(index).restore();
           --index;
         }
-        MessageDialog.openError(
-            getShell(),
-            UpdateJobMessages.InstallUpdateAction_errorTitle,
-            failedRename.getRenameFailedMessage());
-        return;
+        isTerminated = false;
+        failMsg = failedRename.getRenameFailedMessage();
+        break;
       }
       ++index;
+    }
+
+    if (!isTerminated) {
+      MessageDialog.openError(getShell(), UpdateJobMessages.InstallUpdateAction_errorTitle, failMsg);
+      return;
     }
 
     try {
