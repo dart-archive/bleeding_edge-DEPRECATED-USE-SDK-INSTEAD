@@ -170,6 +170,7 @@ public class ExtractMethodInputPage_NEW extends UserInputWizardPage {
         @Override
         public void widgetSelected(SelectionEvent e) {
           refactoring.setCreateGetter(((Button) e.widget).getSelection());
+          updatePreview();
         }
       });
       layouter.perform(checkBox);
