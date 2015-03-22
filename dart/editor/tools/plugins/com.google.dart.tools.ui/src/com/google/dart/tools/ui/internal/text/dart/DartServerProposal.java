@@ -166,7 +166,37 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
   private static String CSS_STYLES;
   private final static char[] TRIGGERS = new char[] {
       ' ', '\t', '.', ',', ';', '(', '[', '{', '=', '!', '#'};
+
+  /**
+   * Return {@code true} if the text entered matches the given completion text.
+   * 
+   * @param textEntered the text entered by the user
+   * @param completion the completion text
+   * @return {@code true} if matching, else {@code false}
+   */
+  public static boolean match(String textEntered, String completion) {
+    // Ignore leading '_' when matching
+    if (completion.startsWith("_") && !textEntered.startsWith("_")) {
+      completion = completion.substring(1);
+    }
+    if (completion.length() == 0 || completion.length() < textEntered.length()) {
+      return false;
+    }
+    // If the user has entered an upper case char as the first char
+    // then filter using only camelCaseMatching
+    if (!Character.isUpperCase(textEntered.charAt(0))) {
+      String partialCompletion = completion.substring(0, textEntered.length());
+      if (partialCompletion.equalsIgnoreCase(textEntered)) {
+        return true;
+      }
+    }
+    char[] pattern = textEntered.toCharArray();
+    char[] name = completion.toCharArray();
+    return CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
+  }
+
   private final DartServerProposalCollector collector;
+
   private final CompletionSuggestion suggestion;
 
   private final StyledString styledCompletion;
@@ -519,20 +549,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
       return false;
     }
     String completion = TextProcessor.deprocess(getDisplayString());
-    if (completion.length() == 0 || completion.length() < textEntered.length()) {
-      return false;
-    }
-    // If the user has entered an upper case char as the first char
-    // then filter using only camelCaseMatching
-    if (!Character.isUpperCase(textEntered.charAt(0))) {
-      String partialCompletion = completion.substring(0, textEntered.length());
-      if (partialCompletion.equalsIgnoreCase(textEntered)) {
-        return true;
-      }
-    }
-    char[] pattern = textEntered.toCharArray();
-    char[] name = completion.toCharArray();
-    return CharOperation.camelCaseMatch(pattern, 0, pattern.length, name, 0, name.length, false);
+    return match(textEntered, completion);
   }
 
   protected void buildLinkedModeModel_emptyArguments(LinkedModeModel model, IDocument document,
