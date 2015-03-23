@@ -135,8 +135,6 @@ public class UriToFileResolver {
       if (url == null) {
         return null;
       }
-      URI uri = new URI(url);
-      String uriScheme = uri.getScheme();
 
       // Special case Chrome extension paths.
       if (url.startsWith(chromeExt)) {
@@ -145,6 +143,13 @@ public class UriToFileResolver {
           url = url.substring(url.indexOf('/') + 1);
         }
       }
+
+      if (url.startsWith("/")) {
+        return url;
+      }
+
+      URI uri = new URI(url);
+      String uriScheme = uri.getScheme();
 
       // handle dart:lib/lib.dart in DartSdkSourceContainer,
       // exclude "_patch.dart" files, they don't exist as files in sdk/lib folder
@@ -155,9 +160,7 @@ public class UriToFileResolver {
       }
 
       // Handle both fully absolute path names and http: urls.
-      if (url.startsWith("/")) {
-        return url;
-      } else if (uriScheme == null) {
+      if (uriScheme == null) {
         // handle relative file path
         filePath = resolveRelativePath(url);
       } else {

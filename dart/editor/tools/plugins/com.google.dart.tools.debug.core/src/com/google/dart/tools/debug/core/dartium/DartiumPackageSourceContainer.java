@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.source.UriToFileResolver;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -44,12 +45,27 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // This class is not used with the Analysis Server.
+
+    if (!name.startsWith("package:")) {
       return EMPTY;
     }
 
-    if (!name.startsWith("package:")) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      UriToFileResolver resolver = DartiumDebugTarget.getActiveTarget().getUriToFileResolver();
+      String filePath = resolver.getFileForUri(name);
+      System.out.println("");
+      for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+        String projectLocation = project.getLocation().toString();
+
+        if (filePath.startsWith(projectLocation)) {
+          // /mydir/myproject/lib/lib.dart => lib/lib.dart
+          String path = filePath.substring(projectLocation.length() + 1);
+          IResource resource = project.findMember(path);
+          if (resource != null) {
+            return new Object[] {resource};
+          }
+        }
+      }
       return EMPTY;
     }
 
