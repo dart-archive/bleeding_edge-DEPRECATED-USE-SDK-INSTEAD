@@ -26,6 +26,7 @@ import com.google.dart.server.generated.types.SourceChange;
 import com.google.dart.server.generated.types.SourceEdit;
 import com.google.dart.server.generated.types.SourceFileEdit;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext_NEW;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -249,7 +250,11 @@ public class ServiceUtils_NEW {
   private static IFile getFile(SourceFileEdit change) {
     String filePath = change.getFile();
     File fileJava = new File(filePath);
-    return ResourceUtil.getFile(fileJava);
+    IFile file = ResourceUtil.getFile(fileJava);
+    if (PubCacheManager_NEW.isPubCacheResource(file)) {
+      return null;
+    }
+    return file;
   }
 
   private static Image getLinkedEditSuggestionIcon(LinkedEditSuggestion suggestion) {
