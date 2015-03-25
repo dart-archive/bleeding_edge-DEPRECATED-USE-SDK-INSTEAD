@@ -13,13 +13,16 @@
  */
 package com.google.dart.eclipse.ui.internal.navigator;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.pub.PubCacheManager_NEW;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 
 /**
- * A test to check if the project represents a package in the pub cache
+ * A test to check if the project represents a package in the pub cache, and is not opened as a dart
+ * project.
  */
 public class PubCacheProjectPropertyTester extends PropertyTester {
 
@@ -30,10 +33,14 @@ public class PubCacheProjectPropertyTester extends PropertyTester {
 
     if (IS_IN_PUB_CACHE.equalsIgnoreCase(property)) {
       if (receiver instanceof IProject) {
-        return PubCacheManager_NEW.isPubCacheProject((IProject) receiver);
+        try {
+          return PubCacheManager_NEW.isPubCacheProject((IProject) receiver)
+              && !((IProject) receiver).hasNature(DartCore.DART_PROJECT_NATURE);
+        } catch (CoreException e) {
+          return false;
+        }
       }
     }
     return false;
   }
-
 }
