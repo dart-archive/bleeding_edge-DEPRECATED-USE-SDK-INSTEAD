@@ -14,7 +14,6 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
@@ -105,19 +104,12 @@ public class DartProjectManager {
     List<String> includedPaths = Lists.newArrayList();
     List<String> excludedPaths = Lists.newArrayList();
     HashMap<String, String> packageRoots = new HashMap<String, String>();
-    for (IProject proj : root.getProjects()) {
-      try {
-        boolean hasNature = proj.isOpen() && proj.hasNature(DartCore.DART_PROJECT_NATURE);
-        if (hasNature) {
-          String projPath = proj.getLocation().toOSString();
-          includedPaths.add(projPath);
-          File packageRoot = IPackageRootProvider.DEFAULT.getPackageRoot(proj);
-          if (packageRoot != null) {
-            packageRoots.put(projPath, packageRoot.getPath());
-          }
-        }
-      } catch (CoreException e) {
-        DartCore.logError("Failed to determine if project should be analyzed: " + proj.getName(), e);
+    for (IProject proj : DartCore.getDartProjects()) {
+      String projPath = proj.getLocation().toOSString();
+      includedPaths.add(projPath);
+      File packageRoot = IPackageRootProvider.DEFAULT.getPackageRoot(proj);
+      if (packageRoot != null) {
+        packageRoots.put(projPath, packageRoot.getPath());
       }
     }
     for (String path : ignoreManager.getExclusionPatterns()) {
