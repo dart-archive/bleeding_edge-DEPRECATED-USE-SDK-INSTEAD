@@ -104,9 +104,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     toolsPreferenceStore.setValue(
         PreferenceConstants.CODEASSIST_AUTOACTIVATION,
         enableAutoCompletion.getSelection());
-    toolsPreferenceStore.setValue(
-        PreferenceConstants.EDITOR_FOLDING_ENABLED,
-        enableFolding.getSelection());
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      toolsPreferenceStore.setValue(
+          PreferenceConstants.EDITOR_FOLDING_ENABLED,
+          enableFolding.getSelection());
+    }
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
@@ -184,11 +186,13 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_enable_auto_completion_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(enableAutoCompletion);
 
-    enableFolding = createCheckBox(
-        generalGroup,
-        PreferencesMessages.DartBasePreferencePage_enable_code_folding,
-        PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      enableFolding = createCheckBox(
+          generalGroup,
+          PreferencesMessages.DartBasePreferencePage_enable_code_folding,
+          PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
+      GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
+    }
 
     lineNumbersCheck = createCheckBox(
         generalGroup,
@@ -305,9 +309,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText.setText(DartFormatter.getMaxLineLength());
     printMarginText.setEnabled(printMarginCheck.getSelection());
 
-    removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
     enableAutoCompletion.setSelection(toolsPreferences.getBoolean(PreferenceConstants.CODEASSIST_AUTOACTIVATION));
-    enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
+    }
+    removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
