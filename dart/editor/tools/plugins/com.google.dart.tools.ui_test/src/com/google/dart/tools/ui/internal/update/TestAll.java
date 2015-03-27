@@ -22,6 +22,7 @@ public class TestAll {
     suite.addTestSuite(CleanupInstallationJobTest.class);
     suite.addTestSuite(UpdateUtilsTest.class);
     suite.addTestSuite(INIRewriteTest.class);
+    suite.addTestSuite(PropertiesRewriterTest.class);
     return suite;
   }
 }

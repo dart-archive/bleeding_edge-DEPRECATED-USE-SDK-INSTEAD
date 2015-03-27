@@ -159,7 +159,7 @@ public class InstallUpdateAction extends Action {
       }
 
       if (name.equals("editor.properties")) { //$NON-NLS-1$
-        return true;
+        return false;
       }
 
       return false;
@@ -438,6 +438,8 @@ public class InstallUpdateAction extends Action {
       mergeIniFile(installDir, installTarget);
     }
 
+    mergePropertiesFile(installDir, installTarget);
+
     //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
     UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles()); //$NON-NLS-1$
     UpdateUtils.ensureExecutable(DartSdkManager.getManager().getDartiumExecutable());
@@ -469,6 +471,10 @@ public class InstallUpdateAction extends Action {
     return installer;
   }
 
+  private File getProperties(File dir) {
+    return new File(dir, "editor.properties"); //$NON-NLS-1$
+  }
+
   private Shell getShell() {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
@@ -495,6 +501,18 @@ public class InstallUpdateAction extends Action {
       UpdateCore.logError(e);
     }
 
+  }
+
+  private void mergePropertiesFile(File installDir, File installTarget) {
+
+    File latestProperties = getProperties(installDir);
+    File currentProperties = getProperties(installTarget);
+
+    try {
+      PropertiesRewriter.mergeAndWrite(currentProperties, latestProperties);
+    } catch (IOException e) {
+      UpdateCore.logError(e);
+    }
   }
 
   private boolean resourcesNeedSaving() {
