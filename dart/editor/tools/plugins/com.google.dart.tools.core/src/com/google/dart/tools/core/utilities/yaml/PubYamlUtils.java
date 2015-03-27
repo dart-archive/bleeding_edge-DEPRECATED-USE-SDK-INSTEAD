@@ -414,9 +414,27 @@ public class PubYamlUtils {
   }
 
   /**
+   * Checks if the package dependency version constraint is valid for SDK >= 1.8.5, contstraints can
+   * be specified as ^1.2.3
+   */
+  public static boolean isValidDependencyConstraintString(String version) {
+    if (version.isEmpty()) {
+      return false;
+    }
+
+    // TODO(keertip): add check for specified SDK version
+    if (version.startsWith("^")) {
+      return version.substring(1).matches(PACKAGE_VERSION_EXPRESSION);
+    }
+
+    return isValidVersionConstraintString(version);
+  }
+
+  /**
    * Checks if the string has a valid version constraint format ">=1.2.3 <2.0.0", "1.0.0", "<1.5.0"
    */
   public static boolean isValidVersionConstraintString(String version) {
+
     if (!version.equals(PubspecConstants.ANY) && !version.isEmpty()) {
       String[] versions = version.split(" ");
       if (versions.length > 2) {

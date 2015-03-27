@@ -319,14 +319,14 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
   }
 
   private boolean validateVersionConstriants(String version) {
-    boolean isValid = PubYamlUtils.isValidVersionConstraintString(version);
+    boolean isValid = PubYamlUtils.isValidDependencyConstraintString(version);
 
     if (isValid) {
       getManagedForm().getMessageManager().removeMessage(VERSION_CONTSTRAINTS_KEY, versionText);
     } else {
       getManagedForm().getMessageManager().addMessage(
           VERSION_CONTSTRAINTS_KEY,
-          "The version constriant does not have the correct format as in '1.0.0', '<1.5.0', \n'>=2.0.0 <3.0.0', or it contains invalid characters",
+          "The version constriant does not have the correct format as in '1.0.0', '<1.5.0', \n'>=2.0.0 <3.0.0', '^1.2.3' or it contains invalid characters",
           null,
           IMessageProvider.ERROR,
           versionText);

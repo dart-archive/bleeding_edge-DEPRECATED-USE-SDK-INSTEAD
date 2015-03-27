@@ -123,6 +123,8 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertFalse(PubYamlUtils.isValidVersionConstraintString(">1.0.0  <2.0.0")); // multiple space not allowed
     assertFalse(PubYamlUtils.isValidVersionConstraintString(" >1.0.0 ")); // no leading/trailing space
     assertTrue(PubYamlUtils.isValidVersionConstraintString("any"));
+    assertTrue(PubYamlUtils.isValidDependencyConstraintString("^1.2.3"));
+    assertFalse(PubYamlUtils.isValidDependencyConstraintString("^1.2"));
   }
 
   public void test_sortVersions() {
