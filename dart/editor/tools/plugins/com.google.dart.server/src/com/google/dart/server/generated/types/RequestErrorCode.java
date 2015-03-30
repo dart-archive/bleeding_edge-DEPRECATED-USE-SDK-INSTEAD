@@ -42,6 +42,12 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * A path passed as an argument to a request (such as analysis.reanalyze) is required to be an
+   * analysis root, but isn't.
+   */
+  public static final String INVALID_ANALYSIS_ROOT = "INVALID_ANALYSIS_ROOT";
+
+  /**
    * The context root used to create an execution context does not exist.
    */
   public static final String INVALID_EXECUTION_CONTEXT = "INVALID_EXECUTION_CONTEXT";
