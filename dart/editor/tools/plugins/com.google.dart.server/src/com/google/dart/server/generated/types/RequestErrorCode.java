@@ -111,6 +111,11 @@ public class RequestErrorCode {
   public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
 
   /**
+   * The analysis server was requested to perform an action on a source that does not exist.
+   */
+  public static final String UNKNOWN_SOURCE = "UNKNOWN_SOURCE";
+
+  /**
    * The analysis server was requested to perform an action which is not supported.
    *
    * This is a legacy error; it will be removed before the API reaches version 1.0.
