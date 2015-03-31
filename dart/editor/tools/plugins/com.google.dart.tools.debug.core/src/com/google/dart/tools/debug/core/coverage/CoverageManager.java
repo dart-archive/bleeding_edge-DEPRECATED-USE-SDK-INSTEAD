@@ -191,7 +191,7 @@ public class CoverageManager {
       return;
     }
     // parse coverage output
-    final Map<IFile, List<SourceRange>> filesMarkerRanges = parseCoverageFileInTempDirectory(
+    final Map<IFile, List<SourceRange>> filesMarkerRanges = parseCoverageFilesInTempDirectory(
         uriToFileResolver,
         contextContainer,
         tempPath);
@@ -274,22 +274,29 @@ public class CoverageManager {
     return filesMarkerRanges;
   }
 
-  private static Map<IFile, List<SourceRange>> parseCoverageFileInTempDirectory(
+  private static Map<IFile, List<SourceRange>> parseCoverageFilesInTempDirectory(
       UriToFileResolver uriToFileResolver, IContainer container, String tempPath) {
+    Map<IFile, List<SourceRange>> result = Maps.newHashMap();
     File tempFile = new File(tempPath);
     File[] outputFiles = tempFile.listFiles();
-    for (File file : outputFiles) {
-      String fileName = file.getName().toLowerCase();
-      if (fileName.startsWith("dart-cov-") && fileName.endsWith(".json")) {
-        try {
-          return parseCoverageFile(uriToFileResolver, container, file);
-        } catch (Exception e) {
-        } finally {
-          FileUtilities.delete(tempFile);
+    try {
+      for (File file : outputFiles) {
+        String fileName = file.getName().toLowerCase();
+        if (fileName.startsWith("dart-cov-") && fileName.endsWith(".json")) {
+          try {
+            Map<IFile, List<SourceRange>> fileResult = parseCoverageFile(
+                uriToFileResolver,
+                container,
+                file);
+            result.putAll(fileResult);
+          } catch (Exception e) {
+          }
         }
       }
+    } finally {
+      FileUtilities.delete(tempFile);
     }
-    return null;
+    return result;
   }
 
   private static List<SourceRange> parseFileLines(IFile file) throws Exception {
