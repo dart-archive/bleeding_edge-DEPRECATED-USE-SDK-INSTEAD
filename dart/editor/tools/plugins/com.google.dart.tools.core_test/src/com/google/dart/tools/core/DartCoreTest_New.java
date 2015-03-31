@@ -16,10 +16,15 @@ package com.google.dart.tools.core;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.test.util.TestProject;
+
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_LOCK_FILE_NAME;
 
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
@@ -120,10 +125,31 @@ public class DartCoreTest_New extends TestCase {
     assertFalse(DartCore.isTxtLikeFileName("nametxt"));
   }
 
+  public void test_isInBuildDirectory() throws Exception {
+    TestProject project = getTestProject();
+    project.setFileContent("build/file.dart", "library myLib;");
+    IResource file = project.getFile("build/file.dart");
+    assertTrue(DartCore.isInBuildDirectory(file));
+    project.setFileContent("lib/build/file.dart", "library myLib;");
+    file = project.getFile("lib/build/file.dart");
+    assertFalse(DartCore.isInBuildDirectory(file));
+  }
+
   @SuppressWarnings("unchecked")
   private ArrayList<String> getExclusionPatterns() throws Exception {
     Method method = DartIgnoreManager.class.getDeclaredMethod("getExclusionPatterns");
     method.setAccessible(true);
     return (ArrayList<String>) method.invoke(DartIgnoreManager.getInstance());
+  }
+
+  private TestProject getTestProject() throws Exception {
+    TestProject testProject = new TestProject();
+    if (testProject.getProject().exists()) {
+      testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
+      testProject.createFolder(DartCore.BUILD_DIRECTORY_NAME);
+      testProject.createFolder("lib/build");
+      testProject.setFileContent(PUBSPEC_LOCK_FILE_NAME, "packages:");
+    }
+    return testProject;
   }
 }

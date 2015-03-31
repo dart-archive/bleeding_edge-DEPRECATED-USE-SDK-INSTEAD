@@ -43,10 +43,8 @@ public class DartIgnoreManager {
   private static final DartIgnoreManager INSTANCE = new DartIgnoreManager();
 
   public static final String[] DEFAULT_IGNORE_REGEX = new String[] {
-      // Ignore pub build output
-      ".*/build(/.*)?",
-      // Ignore dart2js generated files
-      ".*\\.js\\.info\\.html" //
+  // Ignore dart2js generated files
+  ".*\\.js\\.info\\.html" //
   };
 
   private static final Pattern[] DEFAULT_IGNORE_PATTERNS = new Pattern[DEFAULT_IGNORE_REGEX.length];

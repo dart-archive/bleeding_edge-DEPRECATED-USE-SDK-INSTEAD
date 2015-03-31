@@ -28,6 +28,8 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
+import java.io.IOException;
+
 /**
  * Import Dart Wizard. Imports existing Dart source as a project.
  */
@@ -45,6 +47,11 @@ public class ImportFolderWizard extends Wizard implements IImportWizard, INewWiz
           IFolder folder = (IFolder) proxy.requestResource();
           if (DartCore.isBuildDirectory(folder)) {
             folder.setDerived(true, null);
+            try {
+              DartCore.addToIgnores(folder);
+            } catch (IOException e) {
+
+            }
           }
           return false;
         }

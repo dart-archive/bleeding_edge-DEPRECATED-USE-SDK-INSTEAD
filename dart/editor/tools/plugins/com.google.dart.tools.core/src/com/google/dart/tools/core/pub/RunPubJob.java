@@ -197,6 +197,8 @@ public class RunPubJob extends Job {
       } catch (CoreException e) {
         // Log the exception and move on
         DartCore.logError("Exception refreshing " + container, e);
+      } catch (IOException e) {
+        DartCore.logError("Exception adding to ignores " + container, e);
       }
 
       return new Status(IStatus.OK, DartCore.PLUGIN_ID, stringBuilder.toString());
@@ -222,10 +224,11 @@ public class RunPubJob extends Job {
     return new ProcessRunner(builder);
   }
 
-  private void setDerived(IProgressMonitor monitor) {
+  private void setDerived(IProgressMonitor monitor) throws IOException {
     IFolder buildDir = container.getFolder(new Path("build"));
     try {
       ((IResource) buildDir).setDerived(true, monitor);
+      DartCore.addToIgnores(buildDir);
     } catch (CoreException e) {
       DartCore.logError("Failed to set derived flag: " + buildDir, e);
     }

@@ -66,6 +66,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -1203,6 +1204,21 @@ public class DartCore extends Plugin implements DartSdkListener {
       folder = folder.getParent();
     }
     return false;
+  }
+
+  /**
+   * Return true if is in build directory created by pub
+   */
+  public static boolean isInBuildDirectory(IResource resource) {
+    if (resource == null) {
+      return false;
+    }
+    if (!(resource instanceof IContainer)) {
+      resource = resource.getParent();
+    }
+    return !(resource instanceof IProject || resource instanceof IWorkspaceRoot)
+        && (isBuildDirectory((IFolder) resource) || isInBuildDirectory((IContainer) resource));
+
   }
 
   /**

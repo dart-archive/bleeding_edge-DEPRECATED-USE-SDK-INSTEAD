@@ -16,6 +16,10 @@ package com.google.dart.tools.core.internal.model;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
+import com.google.dart.tools.core.test.util.TestProject;
+
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_LOCK_FILE_NAME;
 
 import junit.framework.TestCase;
 
@@ -142,10 +146,8 @@ public class DartIgnoreManagerTest extends TestCase {
   }
 
   public void test_default_ignores() throws Exception {
-    final String[] paths = {"/some/build", // pub build directory
-        "/some/out.js.info.html" // dart2js info file
+    final String[] paths = {"/some/out.js.info.html" // dart2js info file
     };
-    final String buildFile = "/some/build/file/path";
 
     // Assert specific files/directories are not analyzed by default
     assertTrue(
@@ -154,7 +156,6 @@ public class DartIgnoreManagerTest extends TestCase {
     for (String eachPath : paths) {
       assertFalse("Expect " + eachPath + " to be ignored by default", manager.isAnalyzed(eachPath));
     }
-    assertFalse("Expect " + buildFile + " to be ignored by default", manager.isAnalyzed(buildFile));
     assertTrue(manager.isAnalyzed("/some/build0"));
     assertTrue(manager.isAnalyzed("/some/build0/foo"));
     assertTrue(manager.isAnalyzed("/some/abuild"));
@@ -224,11 +225,12 @@ public class DartIgnoreManagerTest extends TestCase {
   }
 
   public void test_isAnalyzed_IResource() throws Exception {
-    final IResource res = mockResource(FILE_PATH);
-    when(res.exists()).thenReturn(true);
-    assertTrue(manager.isAnalyzed(res));
-    manager.addToIgnores(res);
-    assertFalse(manager.isAnalyzed(res));
+    TestProject project = getTestProject();
+    project.setFileContent("file.dart", "library myLib;");
+    IResource file = project.getFile("file.dart");
+    assertTrue(manager.isAnalyzed(file));
+    manager.addToIgnores(file);
+    assertFalse(manager.isAnalyzed(file));
   }
 
   public void test_isAnalyzed_IResource_does_not_exist() throws Exception {
@@ -279,10 +281,12 @@ public class DartIgnoreManagerTest extends TestCase {
   }
 
   public void test_isIgnored_IResource() throws Exception {
-    final IResource res = mockResource(FILE_PATH);
-    assertFalse(manager.isIgnored(res));
-    manager.addToIgnores(res);
-    assertTrue(manager.isIgnored(res));
+    TestProject project = getTestProject();
+    project.setFileContent("file.dart", "library myLib;");
+    final IResource file = project.getFile("file.dart");
+    assertFalse(manager.isIgnored(file));
+    manager.addToIgnores(file);
+    assertTrue(manager.isIgnored(file));
   }
 
   public void test_isIgnored_IResource_null() throws Exception {
@@ -308,6 +312,15 @@ public class DartIgnoreManagerTest extends TestCase {
 
   public void test_isIgnored_String_null() throws Exception {
     assertFalse(manager.isIgnored((String) null));
+  }
+
+  public void test_isIgnoredFilesInBuild() throws Exception {
+    TestProject project = getTestProject();
+    project.setFileContent("build/file.dart", "library myLib;");
+    IResource file = project.getFile("build/file.dart");
+    assertFalse(manager.isIgnored(file));
+    manager.addToIgnores(file);
+    assertTrue(manager.isIgnored(file));
   }
 
   public void test_removeFromIgnores_File() throws Exception {
@@ -404,6 +417,17 @@ public class DartIgnoreManagerTest extends TestCase {
     manager = new DartIgnoreManager(storage);
     listener = mock(DartIgnoreListener.class);
     manager.addListener(listener);
+  }
+
+  private TestProject getTestProject() throws Exception {
+    TestProject testProject = new TestProject();
+    if (testProject.getProject().exists()) {
+      testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
+      testProject.createFolder(DartCore.BUILD_DIRECTORY_NAME);
+      testProject.createFolder("lib/build");
+      testProject.setFileContent(PUBSPEC_LOCK_FILE_NAME, "packages:");
+    }
+    return testProject;
   }
 
   private IResource mockResource(String absPath) {

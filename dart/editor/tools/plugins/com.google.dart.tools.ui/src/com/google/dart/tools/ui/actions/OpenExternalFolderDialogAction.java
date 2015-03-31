@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.ScanCallbackProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -20,7 +21,12 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.dialogs.DialogMessages;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
@@ -30,11 +36,38 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Opens the "Open..." dialog.
  */
 public class OpenExternalFolderDialogAction extends InstrumentedAction implements IWorkbenchAction {
+
+  /**
+   * A visitor that checks for the build directory and marks it as derived.
+   */
+  class BuildDirectoryFinder implements IResourceProxyVisitor {
+
+    @Override
+    public boolean visit(IResourceProxy proxy) throws CoreException {
+      if (proxy.getType() == IResource.FOLDER) {
+        if (proxy.getName().equals(DartCore.BUILD_DIRECTORY_NAME)) {
+          IFolder folder = (IFolder) proxy.requestResource();
+          if (DartCore.isBuildDirectory(folder)) {
+            folder.setDerived(true, null);
+            try {
+              DartCore.addToIgnores(folder);
+            } catch (IOException e) {
+
+            }
+          }
+          return false;
+        }
+        return true;
+      }
+      return true;
+    }
+  }
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open"; //$NON-NLS-1$
 
@@ -99,6 +132,11 @@ public class OpenExternalFolderDialogAction extends InstrumentedAction implement
       instrumentation.data("ProjectName", projectName);
       // show analysis progress dialog for open folder
       ScanCallbackProvider.setNewProjectName(projectName);
+      try {
+        project.accept(new BuildDirectoryFinder(), IResource.DEPTH_INFINITE);
+      } catch (CoreException e) {
+        DartCore.logError(e);
+      }
     }
   }
 }
