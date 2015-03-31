@@ -148,6 +148,12 @@ public class UriToFileResolver {
         return url;
       }
 
+      // for windows filepaths
+      // C:\Users\dgluxjs_light2\dgluxjs_light2\lib\designer\dg_designer_mediators.dart
+      if (DartCore.isWindows() && url.matches("(?i)[A-Z]:.*")) {
+        return url;
+      }
+
       URI uri = new URI(url);
       String uriScheme = uri.getScheme();
 
