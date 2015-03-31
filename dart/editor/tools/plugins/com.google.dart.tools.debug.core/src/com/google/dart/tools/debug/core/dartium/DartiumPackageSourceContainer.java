@@ -53,7 +53,6 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       UriToFileResolver resolver = DartiumDebugTarget.getActiveTarget().getUriToFileResolver();
       String filePath = resolver.getFileForUri(name);
-      System.out.println("");
       for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
         String projectLocation = project.getLocation().toString();
 
