@@ -38,6 +38,8 @@ import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -235,6 +237,12 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
         packagePath = packagePath.substring(FILE_SPEC.length());
         if (DartCore.isWindows() && packagePath.startsWith("/")) {
           packagePath = packagePath.substring(1);
+        }
+        try {
+          // server returns a url encoded string, so decode before matching
+          packagePath = URLDecoder.decode(packagePath, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          DartCore.logError(e);
         }
         if (new Path(packagePath).equals(new Path(fileLocation))) {
           return null;
