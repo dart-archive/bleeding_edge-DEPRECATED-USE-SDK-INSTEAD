@@ -144,7 +144,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     dartiumDownloadButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser("http://www.dartlang.org/dartium/");
+        ExternalBrowserUtil.openInExternalBrowser("https://www.dartlang.org/dartium/");
       }
     });
 

@@ -186,7 +186,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
     link.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser("http://www.google.com/intl/en/policies/privacy/");
+        ExternalBrowserUtil.openInExternalBrowser("https://www.google.com/intl/en/policies/privacy/");
       }
     });
 
