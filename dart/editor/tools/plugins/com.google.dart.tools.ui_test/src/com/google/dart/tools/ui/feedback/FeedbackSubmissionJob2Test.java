@@ -198,7 +198,6 @@ public class FeedbackSubmissionJob2Test extends TestCase {
   public void test_getDataAsText() throws Exception {
     FeedbackSubmissionJob2 job = newTestFeedbackClient(true, FEEDBACK_LOG_1, true, true);
     String text = job.getDataAsText();
-    System.out.println(text);
     assertTrue(text.contains("OS"));
     assertTrue(text.contains("altKeyBindings"));
     assertTrue(text.contains("!SESSION"));
