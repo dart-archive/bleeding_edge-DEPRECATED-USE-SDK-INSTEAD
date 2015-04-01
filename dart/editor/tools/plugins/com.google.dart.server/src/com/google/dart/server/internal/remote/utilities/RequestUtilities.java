@@ -233,11 +233,20 @@ public class RequestUtilities {
    * request: {
    *   "id": String
    *   "method": "analysis.reanalyze"
+   *   "params": {
+   *     "roots": optional List<FilePath>
+   *    }
    * }
    * </pre>
    */
-  public static JsonObject generateAnalysisReanalyze(String id) {
-    return buildJsonObjectRequest(id, METHOD_ANALYSIS_REANALYZE);
+  public static JsonObject generateAnalysisReanalyze(String id, List<String> roots) {
+    if (roots != null) {
+      JsonObject params = new JsonObject();
+      params.add("roots", buildJsonElement(roots));
+      return buildJsonObjectRequest(id, METHOD_ANALYSIS_REANALYZE, params);
+    } else {
+      return buildJsonObjectRequest(id, METHOD_ANALYSIS_REANALYZE);
+    }
   }
 
   /**

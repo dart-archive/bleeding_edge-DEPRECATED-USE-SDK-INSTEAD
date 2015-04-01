@@ -56,12 +56,14 @@ public class CleanFoldersAction extends InstrumentedSelectionDispatchAction {
 
     if (!selection.isEmpty()) {
       List<IProject> projects = new ArrayList<IProject>();
+      List<String> projectLoc = new ArrayList<String>();
       for (Object sel : selection.toArray()) {
         projects.add((IProject) sel);
+        projectLoc.add(((IProject) sel).getLocation().toOSString());
       }
 
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        DartCore.getAnalysisServer().analysis_reanalyze(null);
+        DartCore.getAnalysisServer().analysis_reanalyze(projectLoc);
       } else {
         CleanLibrariesJob job = new CleanLibrariesJob(projects);
         job.schedule();

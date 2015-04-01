@@ -22,6 +22,8 @@ import com.google.dart.tools.core.builder.CleanEvent;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.util.Arrays;
+
 /**
  * Performs a reanalyze sources for clean build
  */
@@ -35,7 +37,8 @@ public class DartBuildParticipant implements BuildParticipant {
   @Override
   public void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartCore.getAnalysisServer().analysis_reanalyze(null);
+      DartCore.getAnalysisServer().analysis_reanalyze(
+          Arrays.asList(event.getProject().getLocation().toOSString()));
     }
   }
 }

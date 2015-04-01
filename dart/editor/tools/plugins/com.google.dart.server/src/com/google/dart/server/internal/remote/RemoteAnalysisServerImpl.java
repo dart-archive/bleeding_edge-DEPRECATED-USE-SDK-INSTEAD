@@ -297,7 +297,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void analysis_reanalyze(List<String> roots) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
+    sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id, roots));
   }
 
   @Override
