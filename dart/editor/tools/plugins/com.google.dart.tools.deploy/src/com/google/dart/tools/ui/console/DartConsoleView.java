@@ -32,6 +32,8 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.internal.ui.DebugUIPlugin;
+import org.eclipse.debug.internal.ui.preferences.IDebugPreferenceConstants;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.action.Action;
@@ -63,6 +65,7 @@ import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.io.IOException;
 
@@ -457,6 +460,17 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   protected void updateColors() {
+    // update DebugUI preferences
+    {
+      String themeColorStr = getPreferences().getString(
+          AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+      if (themeColorStr != null) {
+        DebugUIPlugin.getDefault().getPreferenceStore().setValue(
+            IDebugPreferenceConstants.CONSOLE_BAKGROUND_COLOR,
+            themeColorStr);
+      }
+    }
+    // update the control
     if (page != null && page.getControl() != null) {
       SWTUtil.setColors((StyledText) page.getControl(), getPreferences());
     }
