@@ -45,25 +45,30 @@ public class AnalysisOptions {
   public static final List<AnalysisOptions> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   private final Boolean enableAsync;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
   private final Boolean enableDeferredLoading;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   private final Boolean enableEnums;
+
+  /**
+   * True if the client wants to enable support for the proposed "null aware operators" feature.
+   */
+  private final Boolean enableNullAwareOperators;
 
   /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
@@ -84,10 +89,11 @@ public class AnalysisOptions {
   /**
    * Constructor for {@link AnalysisOptions}.
    */
-  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints) {
+  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean enableNullAwareOperators, Boolean generateDart2jsHints, Boolean generateHints, Boolean generateLints) {
     this.enableAsync = enableAsync;
     this.enableDeferredLoading = enableDeferredLoading;
     this.enableEnums = enableEnums;
+    this.enableNullAwareOperators = enableNullAwareOperators;
     this.generateDart2jsHints = generateDart2jsHints;
     this.generateHints = generateHints;
     this.generateLints = generateLints;
@@ -101,6 +107,7 @@ public class AnalysisOptions {
         ObjectUtilities.equals(other.enableAsync, enableAsync) &&
         ObjectUtilities.equals(other.enableDeferredLoading, enableDeferredLoading) &&
         ObjectUtilities.equals(other.enableEnums, enableEnums) &&
+        ObjectUtilities.equals(other.enableNullAwareOperators, enableNullAwareOperators) &&
         ObjectUtilities.equals(other.generateDart2jsHints, generateDart2jsHints) &&
         ObjectUtilities.equals(other.generateHints, generateHints) &&
         ObjectUtilities.equals(other.generateLints, generateLints);
@@ -112,10 +119,11 @@ public class AnalysisOptions {
     Boolean enableAsync = jsonObject.get("enableAsync") == null ? null : jsonObject.get("enableAsync").getAsBoolean();
     Boolean enableDeferredLoading = jsonObject.get("enableDeferredLoading") == null ? null : jsonObject.get("enableDeferredLoading").getAsBoolean();
     Boolean enableEnums = jsonObject.get("enableEnums") == null ? null : jsonObject.get("enableEnums").getAsBoolean();
+    Boolean enableNullAwareOperators = jsonObject.get("enableNullAwareOperators") == null ? null : jsonObject.get("enableNullAwareOperators").getAsBoolean();
     Boolean generateDart2jsHints = jsonObject.get("generateDart2jsHints") == null ? null : jsonObject.get("generateDart2jsHints").getAsBoolean();
     Boolean generateHints = jsonObject.get("generateHints") == null ? null : jsonObject.get("generateHints").getAsBoolean();
     Boolean generateLints = jsonObject.get("generateLints") == null ? null : jsonObject.get("generateLints").getAsBoolean();
-    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, generateDart2jsHints, generateHints, generateLints);
+    return new AnalysisOptions(enableAsync, enableDeferredLoading, enableEnums, enableNullAwareOperators, generateDart2jsHints, generateHints, generateLints);
   }
 
   public static List<AnalysisOptions> fromJsonArray(JsonArray jsonArray) {
@@ -131,7 +139,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -140,7 +148,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
@@ -149,12 +157,19 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   public Boolean getEnableEnums() {
     return enableEnums;
+  }
+
+  /**
+   * True if the client wants to enable support for the proposed "null aware operators" feature.
+   */
+  public Boolean getEnableNullAwareOperators() {
+    return enableNullAwareOperators;
   }
 
   /**
@@ -185,6 +200,7 @@ public class AnalysisOptions {
     builder.append(enableAsync);
     builder.append(enableDeferredLoading);
     builder.append(enableEnums);
+    builder.append(enableNullAwareOperators);
     builder.append(generateDart2jsHints);
     builder.append(generateHints);
     builder.append(generateLints);
@@ -201,6 +217,9 @@ public class AnalysisOptions {
     }
     if (enableEnums != null) {
       jsonObject.addProperty("enableEnums", enableEnums);
+    }
+    if (enableNullAwareOperators != null) {
+      jsonObject.addProperty("enableNullAwareOperators", enableNullAwareOperators);
     }
     if (generateDart2jsHints != null) {
       jsonObject.addProperty("generateDart2jsHints", generateDart2jsHints);
@@ -224,6 +243,8 @@ public class AnalysisOptions {
     builder.append(enableDeferredLoading + ", ");
     builder.append("enableEnums=");
     builder.append(enableEnums + ", ");
+    builder.append("enableNullAwareOperators=");
+    builder.append(enableNullAwareOperators + ", ");
     builder.append("generateDart2jsHints=");
     builder.append(generateDart2jsHints + ", ");
     builder.append("generateHints=");

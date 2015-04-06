@@ -51,6 +51,7 @@ com.google.dart.tools.core/experimental/analysisServer/path =
 com.google.dart.tools.core/experimental/analysisServer/printToConsole = false
 com.google.dart.tools.core/experimental/analysisServer/profile = false
 com.google.dart.tools.core/experimental/noPubPackages = false
+com.google.dart.tools.core/experimental/nullAwareOperators = false
 com.google.dart.tools.core/experimental/enableUnionTypes = false
 com.google.dart.tools.core/experimental/strictUnionTypes = false
 
