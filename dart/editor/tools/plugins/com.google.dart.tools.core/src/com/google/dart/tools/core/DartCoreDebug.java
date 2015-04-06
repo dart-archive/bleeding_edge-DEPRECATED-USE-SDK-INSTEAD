@@ -56,8 +56,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
 
-  public static final Boolean ENABLE_DEFERRED_LOADING = isOptionTrue("experimental/deferred_loading");
-
   public static final boolean ASK_FOR_USER_ANALYTICS = isOptionTrue("experimental/analytics");
   public static final boolean ENABLE_NEW_FEEDBACK = isOptionTrue("experimental/feedback");
   public static final Boolean ENABLE_NULL_AWARE_OPERATORS = isOptionTrue("experimental/nullAwareOperators");
