@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
@@ -61,7 +62,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     implements IRemoteConnectionDelegate {
   private static final int DEFAULT_PORT_NUMBER = 5858;
 
-  private IPackageRootProvider packageRootProvider;
+//  private IPackageRootProvider packageRootProvider;
 
   private int observatoryPort = -1;
 
@@ -73,7 +74,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   public DartServerLaunchConfigurationDelegate(IPackageRootProvider packageRootProvider) {
-    this.packageRootProvider = packageRootProvider;
+//    this.packageRootProvider = packageRootProvider;
   }
 
   @Override
@@ -202,14 +203,13 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
       commandsList.add("--coverage_dir=" + coverageTempDir);
     }
 
-    File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
+    String packageRoot = DartCore.getPlugin().getVmPackageRoot(launchConfig.getProject());
     if (packageRoot != null) {
-      String packageRootString = packageRoot.getAbsolutePath();
       String fileSeparator = System.getProperty("file.separator");
-      if (!packageRootString.endsWith(fileSeparator)) {
-        packageRootString += fileSeparator;
+      if (!packageRoot.endsWith(fileSeparator)) {
+        packageRoot += fileSeparator;
       }
-      commandsList.add("--package-root=" + packageRootString);
+      commandsList.add("--package-root=" + packageRoot);
     }
 
     commandsList.add(scriptPath);

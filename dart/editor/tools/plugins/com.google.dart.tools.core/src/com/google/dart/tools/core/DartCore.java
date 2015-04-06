@@ -206,6 +206,11 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public static final String PROJECT_PREF_PACKAGE_ROOT = "projectPackageRoot";
 
+  /**
+   * Project package root for VM launches
+   */
+  public static final String PROJECT_PREF_VM_PACKAGE_ROOT = "projectVmPackageRoot";
+
   public static final String PREFS_DART2JS_FLAGS = "dart2jsFlags";
 
   /**
@@ -1809,6 +1814,23 @@ public class DartCore extends Plugin implements DartSdkListener {
     return getPrefs().getBoolean(PREFS_SHOW_ANALYTICS_DIALOG, true);
   }
 
+  /**
+   * Given an IProject, return string representing a package root to be used for all VM launches.
+   * This can be null if a package root should not be used.
+   * 
+   * @param project the IProject
+   * @return the String for the package root, or null if none
+   */
+  public String getVmPackageRoot(IProject project) {
+    if (project != null) {
+      String setting = getProjectPreferences(project).get(PROJECT_PREF_VM_PACKAGE_ROOT, "");
+      if (!setting.isEmpty()) {
+        return setting;
+      }
+    }
+    return null;
+  }
+
   public boolean isAutoRunPubEnabled() {
     return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
   }
@@ -1897,6 +1919,16 @@ public class DartCore extends Plugin implements DartSdkListener {
       getPrefs().flush();
     } catch (BackingStoreException exception) {
       logError(exception);
+    }
+  }
+
+  public void setVmPackageRoot(IProject project, String packageRootPath) throws CoreException {
+    try {
+      IEclipsePreferences prefs = getProjectPreferences(project);
+      prefs.put(PROJECT_PREF_VM_PACKAGE_ROOT, packageRootPath);
+      prefs.flush();
+    } catch (BackingStoreException ex) {
+      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));
     }
   }
 

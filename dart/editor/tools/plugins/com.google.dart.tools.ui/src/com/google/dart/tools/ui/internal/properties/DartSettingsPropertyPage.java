@@ -47,6 +47,7 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   private Text packageRootText;
   private Button packageRootBrowseButton;
+  private Text vmPackageRootText;
 
   /**
    * Create a new DartSettingsPropertyPage.
@@ -75,6 +76,8 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
             job.schedule();
           }
         }
+
+        DartCore.getPlugin().setVmPackageRoot(project, vmPackageRootText.getText().trim());
       } catch (CoreException ce) {
         DartToolsPlugin.log(ce);
       }
@@ -85,7 +88,7 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   @Override
   protected Control createContents(Composite parent) {
-    final int indentAmount = 15;
+    final int indentAmount = 20;
 
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(composite);
@@ -94,13 +97,14 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     Group group = new Group(composite, SWT.NONE);
     group.setText("Package root settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 5;
 
+    Label label = new Label(group, SWT.NONE);
+    label.setText("Project:");
     packageRootText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().indent(indentAmount, 0).align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(
-        true,
-        false).applyTo(packageRootText);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(true, false).applyTo(
+        packageRootText);
 
     packageRootBrowseButton = new Button(group, SWT.PUSH);
     packageRootBrowseButton.setText("Select...");
@@ -111,13 +115,32 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     packageRootBrowseButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        handlePackageRootBrowse();
+        packageRootText.setText(handlePackageRootBrowse());
       }
     });
 
-    Label label = new Label(group, SWT.NONE);
-    label.setText("The package root setting will override the use of local packages directories.");
-    GridDataFactory.swtDefaults().indent(indentAmount, 0).span(2, 1).applyTo(label);
+    label = new Label(group, SWT.NONE);
+    label.setText("The project package root setting will override the use of local packages directories.");
+    GridDataFactory.swtDefaults().indent(indentAmount, 0).span(3, 1).applyTo(label);
+
+    label = new Label(group, SWT.NONE);
+    label.setText("VM launch:");
+    vmPackageRootText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(true, false).applyTo(
+        vmPackageRootText);
+
+    packageRootBrowseButton = new Button(group, SWT.PUSH);
+    packageRootBrowseButton.setText("Select...");
+    converter = new PixelConverter(packageRootBrowseButton);
+    widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
+        packageRootBrowseButton);
+    packageRootBrowseButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        vmPackageRootText.setText(handlePackageRootBrowse());
+      }
+    });
 
     initializeFromSettings();
 
@@ -127,6 +150,7 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
   @Override
   protected void performDefaults() {
     packageRootText.setText("");
+    vmPackageRootText.setText("");
     super.performDefaults();
   }
 
@@ -134,15 +158,16 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     return (IProject) getElement().getAdapter(IProject.class);
   }
 
-  private void handlePackageRootBrowse() {
+  private String handlePackageRootBrowse() {
     DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.APPLICATION_MODAL | SWT.OPEN);
     dialog.setText("Select the package root path");
 
     String path = dialog.open();
 
     if (path != null) {
-      packageRootText.setText(path);
+      return path;
     }
+    return "";
   }
 
   private void initializeFromSettings() {
@@ -155,6 +180,11 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
           "");
 
       packageRootText.setText(pref);
+
+      pref = DartCore.getPlugin().getVmPackageRoot(project);
+      if (pref != null) {
+        vmPackageRootText.setText(pref);
+      }
     }
   }
 
