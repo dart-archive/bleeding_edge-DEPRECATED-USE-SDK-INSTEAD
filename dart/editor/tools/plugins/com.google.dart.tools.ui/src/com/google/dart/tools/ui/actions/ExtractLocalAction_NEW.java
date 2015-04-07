@@ -41,7 +41,7 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction_NEW {
       return;
     }
     ServerExtractLocalRefactoring refactoring = new ServerExtractLocalRefactoring(
-        file,
+        getFile(),
         selectionOffset,
         selectionLength);
     try {

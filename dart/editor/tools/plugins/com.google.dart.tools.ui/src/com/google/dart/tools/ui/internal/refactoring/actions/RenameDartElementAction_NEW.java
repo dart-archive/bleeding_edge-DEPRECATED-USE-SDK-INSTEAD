@@ -38,7 +38,7 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
     AnalysisServerNavigationListener {
   public RenameDartElementAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -48,7 +48,7 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
@@ -58,7 +58,7 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
       return;
     }
     ServerRenameRefactoring refactoring = new ServerRenameRefactoring(
-        file,
+        getFile(),
         selectionOffset,
         selectionLength);
     try {
@@ -84,7 +84,7 @@ public class RenameDartElementAction_NEW extends AbstractRefactoringAction_NEW i
   }
 
   private void updateSelectedElement() {
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     setEnabled(targets.length != 0);
   }
 }

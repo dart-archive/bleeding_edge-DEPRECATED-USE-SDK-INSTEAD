@@ -40,7 +40,7 @@ public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW impleme
     AnalysisServerNavigationListener {
   public InlineLocalAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -50,14 +50,14 @@ public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW impleme
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
   @Override
   public void run() {
     ServerInlineLocalRefactoring refactoring = new ServerInlineLocalRefactoring(
-        file,
+        getFile(),
         selectionOffset,
         selectionLength);
     try {
@@ -85,7 +85,7 @@ public class InlineLocalAction_NEW extends AbstractRefactoringAction_NEW impleme
 
   private void updateSelectedElement() {
     setEnabled(false);
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     if (targets.length != 0) {
       NavigationTarget target = targets[0];
       setEnabled(target.getKind().equals(ElementKind.LOCAL_VARIABLE));

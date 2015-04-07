@@ -38,7 +38,7 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
     AnalysisServerNavigationListener {
   public InlineMethodAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -48,14 +48,14 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
   @Override
   public void run() {
     ServerInlineMethodRefactoring refactoring = new ServerInlineMethodRefactoring(
-        file,
+        getFile(),
         selectionOffset,
         selectionLength);
     try {
@@ -81,7 +81,7 @@ public class InlineMethodAction_NEW extends AbstractRefactoringAction_NEW implem
 
   private void updateSelectedElement() {
     setEnabled(false);
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     if (targets.length != 0) {
       NavigationTarget target = targets[0];
       String kind = target.getKind();

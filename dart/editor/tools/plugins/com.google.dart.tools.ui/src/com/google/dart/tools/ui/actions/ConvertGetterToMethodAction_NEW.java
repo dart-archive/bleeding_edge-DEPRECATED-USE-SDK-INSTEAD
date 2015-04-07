@@ -40,7 +40,7 @@ public class ConvertGetterToMethodAction_NEW extends AbstractRefactoringAction_N
     AnalysisServerNavigationListener {
   public ConvertGetterToMethodAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -50,14 +50,14 @@ public class ConvertGetterToMethodAction_NEW extends AbstractRefactoringAction_N
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
   @Override
   public void run() {
     ServerConvertGetterToMethodRefactoring refactoring = new ServerConvertGetterToMethodRefactoring(
-        file,
+        getFile(),
         selectionOffset);
     try {
       new RefactoringStarter().activate(
@@ -86,7 +86,7 @@ public class ConvertGetterToMethodAction_NEW extends AbstractRefactoringAction_N
 
   private void updateSelectedElement() {
     setEnabled(false);
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     if (targets.length != 0) {
       NavigationTarget target = targets[0];
       String kind = target.getKind();

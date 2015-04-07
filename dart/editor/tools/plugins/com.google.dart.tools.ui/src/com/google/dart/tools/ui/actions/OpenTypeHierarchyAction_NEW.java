@@ -35,7 +35,7 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
     AnalysisServerNavigationListener {
   public OpenTypeHierarchyAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -45,14 +45,14 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
   @Override
   public void run() {
     IWorkbenchWindow window = getWorkbenchWindow();
-    PositionElement element = new PositionElement(file, selectionOffset);
+    PositionElement element = new PositionElement(getFile(), selectionOffset);
     OpenTypeHierarchyUtil.open(element, window);
   }
 
@@ -73,7 +73,7 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction_NEW
   }
 
   private void updateSelectedElement() {
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     setEnabled(targets.length != 0);
   }
 }

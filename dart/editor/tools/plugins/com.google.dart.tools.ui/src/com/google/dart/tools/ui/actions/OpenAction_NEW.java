@@ -57,7 +57,7 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
 
   public OpenAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -67,13 +67,13 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
   @Override
   public void run() {
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     if (targets.length != 0) {
       NavigationTarget target = targets[0];
       open(target);
@@ -106,7 +106,7 @@ public class OpenAction_NEW extends AbstractDartSelectionAction_NEW implements
   }
 
   private void updateSelectedElement() {
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     setEnabled(targets.length != 0);
   }
 }

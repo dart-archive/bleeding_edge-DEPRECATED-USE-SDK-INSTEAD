@@ -135,7 +135,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
 
   public FindReferencesAction_NEW(DartEditor editor) {
     super(editor);
-    DartCore.getAnalysisServerData().addNavigationListener(file, this);
+    DartCore.getAnalysisServerData().addNavigationListener(getFile(), this);
   }
 
   @Override
@@ -145,7 +145,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
 
   @Override
   public void dispose() {
-    DartCore.getAnalysisServerData().removeNavigationListener(file, this);
+    DartCore.getAnalysisServerData().removeNavigationListener(getFile(), this);
     super.dispose();
   }
 
@@ -183,7 +183,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
         final List<SearchResult> allResults = Lists.newArrayList();
         final CountDownLatch latch = new CountDownLatch(1);
         DartCore.getAnalysisServer().search_findElementReferences(
-            file,
+            getFile(),
             offset,
             true,
             new FindElementReferencesConsumer() {
@@ -236,7 +236,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction_NEW im
   }
 
   private void updateSelectedElement() {
-    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, selectionOffset);
+    NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(getFile(), selectionOffset);
     setEnabled(targets.length != 0);
   }
 }

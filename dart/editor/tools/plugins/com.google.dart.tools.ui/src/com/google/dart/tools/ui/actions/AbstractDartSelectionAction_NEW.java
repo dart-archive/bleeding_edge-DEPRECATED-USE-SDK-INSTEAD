@@ -30,13 +30,11 @@ import org.eclipse.ui.IWorkbenchWindow;
 public abstract class AbstractDartSelectionAction_NEW extends Action implements
     ISelectionChangedListener {
   protected final DartEditor editor;
-  protected final String file;
   protected int selectionOffset;
   protected int selectionLength;
 
   public AbstractDartSelectionAction_NEW(DartEditor editor) {
     this.editor = editor;
-    file = editor.getInputFilePath();
     init();
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
@@ -56,6 +54,13 @@ public abstract class AbstractDartSelectionAction_NEW extends Action implements
   public void selectionChanged(SelectionChangedEvent event) {
     ISelection selection = event.getSelection();
     selectionChanged(selection);
+  }
+
+  /**
+   * Returns the full path of the file being displayed in this editor or {@code null} if none.
+   */
+  protected String getFile() {
+    return editor.getInputFilePath();
   }
 
   protected Shell getShell() {

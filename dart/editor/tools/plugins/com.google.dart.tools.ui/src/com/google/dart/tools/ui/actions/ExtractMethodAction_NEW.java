@@ -41,7 +41,7 @@ public class ExtractMethodAction_NEW extends AbstractRefactoringAction_NEW {
       return;
     }
     ServerExtractMethodRefactoring refactoring = new ServerExtractMethodRefactoring(
-        file,
+        getFile(),
         selectionOffset,
         selectionLength);
     try {
