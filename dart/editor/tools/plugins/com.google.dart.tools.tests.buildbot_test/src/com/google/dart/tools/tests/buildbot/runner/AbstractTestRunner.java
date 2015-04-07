@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.tests.buildbot.runner;
 
+import com.google.dart.tools.core.test.IgnoreLoggedErrors;
+
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -88,22 +90,22 @@ public abstract class AbstractTestRunner {
   private Test mainTest;
   private static final long ONE_SEC_MILLIS = 1000;
 
-  private static boolean isAnnotationIgnored(TestCase test) {
+  protected static <T extends Annotation> boolean hasAnnotation(TestCase test,
+      Class<? extends T> annotationClass) {
     try {
       Method m = test.getClass().getMethod(test.getName());
-      Annotation a = m.getAnnotation(Ignore.class);
-
+      T a = m.getAnnotation(annotationClass);
       return a != null;
-    } catch (SecurityException e) {
-
-    } catch (NoSuchMethodException e) {
-
+    } catch (Throwable e) {
     }
-
     return false;
   }
 
-  private boolean failCurrentTest;
+  private static boolean hasAnnotationIgnored(TestCase test) {
+    return hasAnnotation(test, Ignore.class);
+  }
+
+  private boolean currentTestLoggedError;
 
   public AbstractTestRunner(Test test) {
     this.mainTest = test;
@@ -125,7 +127,7 @@ public abstract class AbstractTestRunner {
     List<TestTime> slowTests = new ArrayList<TestTime>();
 
     for (TestCase test : tests) {
-      failCurrentTest = false;
+      currentTestLoggedError = false;
 
       testStarted(test);
 
@@ -133,7 +135,8 @@ public abstract class AbstractTestRunner {
       TestResult result = test.run();
       long elapsedTimeMS = (System.nanoTime() - startTime) / (1000 * 1000);
 
-      if (failCurrentTest && result.wasSuccessful()) {
+      if (currentTestLoggedError && result.wasSuccessful()
+          && !hasAnnotation(test, IgnoreLoggedErrors.class)) {
         result.addFailure(test, new AssertionFailedError("IStatus.ERROR written to eclipse log"));
       }
 
@@ -168,12 +171,12 @@ public abstract class AbstractTestRunner {
 
   }
 
-  protected void failCurrentTest() {
-    this.failCurrentTest = true;
+  protected void markCurrentTestLoggedError() {
+    this.currentTestLoggedError = true;
   }
 
   protected boolean filterTest(TestCase test) {
-    if (isAnnotationIgnored(test)) {
+    if (hasAnnotationIgnored(test)) {
       return true;
     }
 

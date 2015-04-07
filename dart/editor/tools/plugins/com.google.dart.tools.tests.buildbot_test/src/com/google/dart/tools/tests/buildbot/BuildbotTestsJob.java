@@ -57,7 +57,7 @@ class BuildbotTestsJob extends Job {
     @Override
     public void logging(IStatus status, String plugin) {
       if (status.getSeverity() == IStatus.ERROR) {
-        failCurrentTest();
+        markCurrentTestLoggedError();
       }
     }
 

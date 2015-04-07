@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.util;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.dart.tools.core.test.IgnoreLoggedErrors;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
@@ -34,6 +35,7 @@ public class ResourceServerTest extends TestCase {
   private ResourceServer server;
   private TestProject project;
 
+  @IgnoreLoggedErrors
   public void test_404MissingResource() throws Exception {
     IFile file = project.setFileContent("foo.txt", "foo");
     String url = server.getUrlForResource(file) + "s";
@@ -45,6 +47,7 @@ public class ResourceServerTest extends TestCase {
     connection.disconnect();
   }
 
+  @IgnoreLoggedErrors
   public void test_canServeResource() throws Exception {
     IFile file = project.setFileContent("foo.txt", "foo");
     String url = server.getUrlForResource(file);
@@ -62,6 +65,7 @@ public class ResourceServerTest extends TestCase {
     connection.getInputStream().close();
   }
 
+  @IgnoreLoggedErrors
   public void test_onlyServeWorkspaceFiles() throws Exception {
     File file = File.createTempFile("foo", ".txt");
     Files.write("foo", file, Charsets.UTF_8);
@@ -81,6 +85,7 @@ public class ResourceServerTest extends TestCase {
     file.delete();
   }
 
+  @IgnoreLoggedErrors
   public void test_onlyServeWorkspaceFilesBadPath() throws Exception {
     File file = File.createTempFile("foo", ".txt");
     Files.write("foo", file, Charsets.UTF_8);
