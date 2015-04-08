@@ -830,9 +830,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     };
 
-    FormatElementAction() {
+    private boolean runNow;
+
+    FormatElementAction(boolean runNow) {
       setEnabled(isEditorInputModifiable());
       setText("Format");
+      this.runNow = runNow;
     }
 
     @Override
@@ -843,7 +846,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     @Override
     public void run() {
       IFile file = getInputResourceFile();
-      new FormatElementJob(file).schedule();
+      if (runNow) {
+        new FormatElementJob(file).run(getProgressMonitor());
+      } else {
+        new FormatElementJob(file).schedule();
+      }
     }
 
     @Override
@@ -2668,7 +2675,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
     setAction(GoToNextPreviousMemberAction.PREVIOUS_MEMBER, action);
 
-    action = new FormatElementAction();
+    action = new FormatElementAction(false);
     action.setActionDefinitionId(DartEditorActionDefinitionIds.QUICK_FORMAT);
     setAction(DartEditorActionDefinitionIds.QUICK_FORMAT, action);
     markAsStateDependentAction(DartEditorActionDefinitionIds.QUICK_FORMAT, true);
@@ -4123,6 +4130,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return PreferenceConstants.EDITOR_TEXT_HOVER_MODIFIERS.equals(property);
   }
 
+  private boolean isFormatOnSaveEnabled() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_FORMAT_ON_SAVES);
+  }
+
   private boolean isOutlinePageActive() {
     IWorkbenchPart part = getActivePart();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
@@ -4153,6 +4165,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       } catch (InvocationTargetException e) {
         DartToolsPlugin.log(e);
       }
+    }
+    if (isFormatOnSaveEnabled()) {
+      new FormatElementAction(true).run();
     }
   }
 

@@ -50,6 +50,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.IOException;
 
@@ -70,6 +71,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
   private boolean runPubChanged = false;
+
+  private Button formatCheck;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -112,6 +115,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
+
+    toolsPreferenceStore.setValue(
+        PreferenceConstants.EDITOR_FORMAT_ON_SAVES,
+        formatCheck.getSelection());
 
     handleSave(editorPreferences);
     handleSave(toolsPreferenceStore);
@@ -251,6 +258,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().applyTo(removeTrailingWhitespaceCheck);
 
+    formatCheck = createCheckBox(
+        saveGroup,
+        PreferencesMessages.DartBasePreferencePage_format_label,
+        PreferencesMessages.DartBasePreferencePage_format_details);
+    GridDataFactory.fillDefaults().applyTo(formatCheck);
+
     // Pub group
     Group pubGroup = new Group(composite, SWT.NONE);
     pubGroup.setText(PreferencesMessages.DartBasePreferencePage_pub);
@@ -314,6 +327,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
     }
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
+    formatCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FORMAT_ON_SAVES));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
@@ -361,6 +375,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     boolean oldValue = prefs.getBoolean(prefKey, def);
     boolean newValue = button.getSelection();
     prefs.putBoolean(prefKey, newValue);
+    try {
+      prefs.flush();
+    } catch (BackingStoreException e) {
+
+    }
     return oldValue != newValue;
   }
 }

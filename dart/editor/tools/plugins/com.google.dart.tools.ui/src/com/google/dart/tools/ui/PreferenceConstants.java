@@ -649,6 +649,14 @@ public class PreferenceConstants {
       + ".removeTrailingWhitespace";
 
   /**
+   * A named preference that controls whether the editor should format on saves.
+   * <p>
+   * Value is of type <code>Boolean</code>.
+   * </p>
+   */
+  public static final String EDITOR_FORMAT_ON_SAVES = DartCore.PLUGIN_ID + ".format";
+
+  /**
    * A named preference that controls whether the outline view selection should stay in sync with
    * with the element at the current cursor position.
    * <p>

@@ -814,6 +814,8 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_pub_auto_details;
   public static String DartBasePreferencePage_trailing_ws_label;
   public static String DartBasePreferencePage_update_group_label;
+  public static String DartBasePreferencePage_format_details;
+  public static String DartBasePreferencePage_format_label;
 
   public static String DartKeyBindingPref_Export;
   public static String DartKeyBindingPref_Import;
