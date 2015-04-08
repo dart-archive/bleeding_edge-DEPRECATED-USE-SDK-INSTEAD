@@ -932,7 +932,7 @@ def PostProcessEditorBuilds(out_dir, buildos, gsu):
     # Create a editor.properties
     editor_properties = os.path.join(scratch_dir, 'editor.properties')
     with open(editor_properties, 'w') as fd:
-      fd.write("com.dart.tools.update.core.url=http://dartlang.org"
+      fd.write("com.dart.tools.update.core.url=https://dartlang.org"
                "/editor/update/channels/%s/\n" % CHANNEL)
 
     for zipFile in _FindRcpZipFiles(out_dir):
