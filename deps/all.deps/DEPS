@@ -7,6 +7,12 @@ vars = {
   # simply dart, but if using special gclient specs it can be different.
   "dart_root": "dart",
 
+  # The svn location to pull out dependencies from
+  "third_party": "/third_party",
+
+  # The svn location for pulling pinned revisions of bleeding edge dependencies.
+  "bleeding_edge": "/branches/bleeding_edge",
+
   # Use this googlecode_url variable only if there is an internal mirror for it.
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
@@ -138,59 +144,64 @@ deps = {
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
       Var("idl_parser_rev"),
 
-  Var("dart_root") + "/third_party/7zip": "/third_party/7zip" + Var("7zip_rev"),
+  Var("dart_root") + "/third_party/7zip":
+     Var("third_party") + "/7zip" + Var("7zip_rev"),
   Var("dart_root") + "/third_party/android_adb":
-      "/third_party/android_adb" + Var("android_adb_rev"),
+      Var("third_party") + "/android_adb" + Var("android_adb_rev"),
   Var("dart_root") + "/third_party/android_content_shell":
-      "/third_party/android_content_shell" + Var("android_content_shell_rev"),
+      Var("third_party") + "/android_content_shell" + Var("android_content_shell_rev"),
   Var("dart_root") + "/third_party/apache_ant":
-      "/third_party/apache_ant" + Var("apache_ant_rev"),
+      Var("third_party") + "/apache_ant" + Var("apache_ant_rev"),
   Var("dart_root") + "/third_party/apache_compress":
-      "/third_party/apache_compress" + Var("apache_compress_rev"),
+      Var("third_party") + "/apache_compress" + Var("apache_compress_rev"),
   Var("dart_root") + "/third_party/apache_http":
-      "/third_party/apache_http" + Var("apache_http_rev"),
+      Var("third_party") + "/apache_http" + Var("apache_http_rev"),
   Var("dart_root") + "/third_party/args4j":
-      "/third_party/args4j" + Var("args4j_rev"),
+      Var("third_party") + "/args4j" + Var("args4j_rev"),
   Var("dart_root") + "/third_party/bzip2":
-      "/third_party/bzip2" + Var("bzip2_rev"),
+      Var("third_party") + "/bzip2" + Var("bzip2_rev"),
   Var("dart_root") + "/third_party/chrome":
-      "/third_party/chrome" + Var("chrome_rev"),
+      Var("third_party") + "/chrome" + Var("chrome_rev"),
   Var("dart_root") + "/third_party/commons-io":
-      "/third_party/commons-io" + Var("commons-io_rev"),
+      Var("third_party") + "/commons-io" + Var("commons-io_rev"),
   Var("dart_root") + "/third_party/commons-lang":
-      "/third_party/commons-lang" + Var("commons-lang_rev"),
+      Var("third_party") + "/commons-lang" + Var("commons-lang_rev"),
   Var("dart_root") + "/third_party/eclipse":
-      "/third_party/eclipse" + Var("eclipse_rev"),
-  Var("dart_root") + "/third_party/fest": "/third_party/fest" + Var("fest_rev"),
+      Var("third_party") + "/eclipse" + Var("eclipse_rev"),
+  Var("dart_root") + "/third_party/fest":
+      Var("third_party") + "/fest" + Var("fest_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
-      "/third_party/firefox_jsshell" + Var("firefox_jsshell_rev"),
-  Var("dart_root") + "/third_party/gson": "/third_party/gson" + Var("gson_rev"),
+      Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
+  Var("dart_root") + "/third_party/gson":
+      Var("third_party") + "/gson" + Var("gson_rev"),
   Var("dart_root") + "/third_party/gsutil":
-      "/third_party/gsutil" + Var("gsutil_rev"),
+      Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/guava":
-      "/third_party/guava" + Var("guava_rev"),
+      Var("third_party") + "/guava" + Var("guava_rev"),
   Var("dart_root") + "/third_party/hamcrest":
-      "/third_party/hamcrest" + Var("hamcrest_rev"),
-  Var("dart_root") + "/third_party/json": "/third_party/json" + Var("json_rev"),
+      Var("third_party") + "/hamcrest" + Var("hamcrest_rev"),
+  Var("dart_root") + "/third_party/json":
+      Var("third_party") + "/json" + Var("json_rev"),
   Var("dart_root") + "/third_party/junit":
-      "/third_party/junit" + Var("junit_rev"),
+      Var("third_party") + "/junit" + Var("junit_rev"),
   Var("dart_root") + "/third_party/mockito":
-      "/third_party/mockito" + Var("mockito_rev"),
+      Var("third_party") + "/mockito" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/snakeyaml":
-      "/third_party/snakeyaml" + Var("snakeyaml_rev"),
+      Var("third_party") + "/snakeyaml" + Var("snakeyaml_rev"),
   Var("dart_root") + "/third_party/websocket":
-      "/third_party/websocket" + Var("websocket_rev"),
-  Var("dart_root") + "/third_party/d8": "/third_party/d8" + Var("d8_rev"),
+      Var("third_party") + "/websocket" + Var("websocket_rev"),
+  Var("dart_root") + "/third_party/d8":
+      Var("third_party") + "/d8" + Var("d8_rev"),
   Var("dart_root") + "/third_party/WebCore":
-      "/third_party/WebCore" + Var("WebCore_rev"),
+      Var("third_party") + "/WebCore" + Var("WebCore_rev"),
   Var("dart_root") + "/third_party/weberknecht":
-      "/third_party/weberknecht" + Var("weberknecht_rev"),
+      Var("third_party") + "/weberknecht" + Var("weberknecht_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
-      "/third_party/observatory_pub_packages" +
+      Var("third_party") + "/observatory_pub_packages" +
       Var("observatory_pub_packages_rev"),
 
   Var("dart_root") + "/third_party/font-awesome":
-      "/third_party/font-awesome" + Var("font_awesome_rev"),
+      Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_rev"),
   Var("dart_root") + "/third_party/pkg/async_await":
@@ -284,13 +295,13 @@ deps = {
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.
   Var("dart_root") + "/third_party/pkg/barback-0.13.0":
-      "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.13.0_rev"),
+      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.13.0_rev"),
   Var("dart_root") + "/third_party/pkg/barback-0.14.0+3":
-      "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.14.0_rev"),
+      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.0_rev"),
   Var("dart_root") + "/third_party/pkg/barback-0.14.1+4":
-      "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.14.1_rev"),
+      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.1_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps-0.9.4":
-      "/branches/bleeding_edge/dart/pkg/source_maps" +
+      Var("bleeding_edge") + "/dart/pkg/source_maps" +
       Var("source_maps-0.9.4_rev"),
 }
 
