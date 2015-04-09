@@ -160,7 +160,7 @@ public class UriToFileResolver {
       // handle dart:lib/lib.dart in DartSdkSourceContainer,
       // exclude "_patch.dart" files, they don't exist as files in sdk/lib folder
       if (uri != null && "dart".equals(uriScheme)) {
-        if (!url.endsWith("_patch.dart")) {
+        if (!url.endsWith("_patch.dart") && !(url.contains("-patch"))) {
           return url;
         }
       }
