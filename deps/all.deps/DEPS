@@ -149,7 +149,8 @@ deps = {
   Var("dart_root") + "/third_party/android_adb":
       Var("third_party") + "/android_adb" + Var("android_adb_rev"),
   Var("dart_root") + "/third_party/android_content_shell":
-      Var("third_party") + "/android_content_shell" + Var("android_content_shell_rev"),
+      Var("third_party") + "/android_content_shell" +
+      Var("android_content_shell_rev"),
   Var("dart_root") + "/third_party/apache_ant":
       Var("third_party") + "/apache_ant" + Var("apache_ant_rev"),
   Var("dart_root") + "/third_party/apache_compress":
@@ -168,10 +169,14 @@ deps = {
       Var("third_party") + "/commons-lang" + Var("commons-lang_rev"),
   Var("dart_root") + "/third_party/eclipse":
       Var("third_party") + "/eclipse" + Var("eclipse_rev"),
+  Var("dart_root") + "/third_party/pkg/fake_async":
+      Var("third_party") + "/fake_async" + Var("fake_async_rev"),
   Var("dart_root") + "/third_party/fest":
       Var("third_party") + "/fest" + Var("fest_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
+  Var("dart_root") + "/third_party/font-awesome":
+      Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/gson":
       Var("third_party") + "/gson" + Var("gson_rev"),
   Var("dart_root") + "/third_party/gsutil":
@@ -200,8 +205,6 @@ deps = {
       Var("third_party") + "/observatory_pub_packages" +
       Var("observatory_pub_packages_rev"),
 
-  Var("dart_root") + "/third_party/font-awesome":
-      Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_rev"),
   Var("dart_root") + "/third_party/pkg/async_await":
@@ -216,8 +219,6 @@ deps = {
       "https://github.com/dart-lang/csslib.git" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       "https://github.com/dart-lang/dart_style.git" + Var("dart_style_tag"),
-  Var("dart_root") + "/third_party/pkg/fake_async":
-      "/third_party/fake_async" + Var("fake_async_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html5lib":
