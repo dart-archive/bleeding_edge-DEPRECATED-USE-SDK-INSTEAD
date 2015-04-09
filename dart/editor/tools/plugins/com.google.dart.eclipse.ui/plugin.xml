@@ -151,6 +151,12 @@
             contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.eclipse.ui.open.find.uses"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+       <key
+             commandId="com.google.dart.eclipse.ui.edit.format.source"
+             contextId="com.google.dart.tools.ui.dartEditorScope"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+M2+F">
+       </key>
    </extension>
    
    <extension
@@ -618,6 +624,12 @@
             defaultHandler="com.google.dart.eclipse.ui.internal.handler.PubBuildDebugHandler"
             id="com.google.dart.eclipse.ui.commands.pub.build.debug"
             name="Pub Build Debug">
+      </command>
+      <command
+            defaultHandler="com.google.dart.eclipse.ui.internal.handler.FormatSourceHandler"
+            description="Format the source in the active editor"
+            id="com.google.dart.eclipse.ui.edit.format.source"
+            name="Format source">
       </command> 
    </extension>
 
