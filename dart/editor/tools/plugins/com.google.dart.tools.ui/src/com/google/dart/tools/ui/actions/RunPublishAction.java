@@ -164,6 +164,12 @@ public class RunPublishAction extends RunPubAction {
     }
   }
 
+  @Override
+  protected void runPubJob(IContainer container, IContainer sourceFolder) {
+    // publish does not need source folder
+    runPubJob(container);
+  }
+
   private List<String> buildPublishCommand(String arg) {
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();

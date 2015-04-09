@@ -209,7 +209,11 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
   }
 
   protected void runPubJob(IContainer container) {
-    runPubJob(container, null);
+    runJob(container, null);
+  }
+
+  protected void runPubJob(IContainer container, IContainer sourceFolder) {
+    runJob(container, sourceFolder);
   }
 
   private void copy(InputStream in, MessageConsole console) throws IOException {
@@ -224,7 +228,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     }
   }
 
-  private void runPubJob(IContainer container, IContainer sourceFolder) {
+  private void runJob(IContainer container, IContainer sourceFolder) {
     if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
       RunPubJob runPubJob;
       if (command.equals(RunPubJob.BUILD_COMMAND) && container != sourceFolder) {
