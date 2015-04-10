@@ -322,7 +322,7 @@ deps_os = {
   },
   "unix": {
     Var("dart_root") + "/third_party/clang":
-      "/third_party/clang" + Var("clang_rev"),
+      Var("third_party") + "/clang" + Var("clang_rev"),
   },
 }
 
