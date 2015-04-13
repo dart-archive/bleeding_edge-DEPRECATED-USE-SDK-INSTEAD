@@ -191,6 +191,8 @@ deps = {
       Var("third_party") + "/junit" + Var("junit_rev"),
   Var("dart_root") + "/third_party/mockito":
       Var("third_party") + "/mockito" + Var("mockito_rev"),
+  Var("dart_root") + "/third_party/pkg/petitparser":
+      Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/snakeyaml":
       Var("third_party") + "/snakeyaml" + Var("snakeyaml_rev"),
   Var("dart_root") + "/third_party/websocket":
@@ -251,8 +253,6 @@ deps = {
       "https://github.com/dart-lang/observe.git" + Var("observe_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       "https://github.com/dart-lang/path.git" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/petitparser":
-      "/third_party/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
