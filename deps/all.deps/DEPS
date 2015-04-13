@@ -41,6 +41,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_rev" : "@994d20b90038fedd2aa7ad31f2a31456da96b225",
   "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
+  "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag" : "@0.1.7",
   "d8_rev" : "@39739",
   "eclipse_rev" : "@38742",
@@ -206,6 +207,10 @@ deps = {
   Var("dart_root") + "/third_party/observatory_pub_packages":
       Var("third_party") + "/observatory_pub_packages" +
       Var("observatory_pub_packages_rev"),
+
+  Var("dart_root") + "/third_party/dart-services":
+      "https://github.com/dart-lang/dart-services.git" +
+      Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_rev"),
