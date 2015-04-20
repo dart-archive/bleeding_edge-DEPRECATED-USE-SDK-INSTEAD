@@ -51,6 +51,10 @@ public class CompletionSuggestionKind {
    */
   public static final String KEYWORD = "KEYWORD";
 
+  /**
+   * A named argument for the current callsite is being suggested. For suggestions of this kind, the
+   * completion is the named argument identifier including a trailing ':' and space.
+   */
   public static final String NAMED_ARGUMENT = "NAMED_ARGUMENT";
 
   public static final String OPTIONAL_ARGUMENT = "OPTIONAL_ARGUMENT";

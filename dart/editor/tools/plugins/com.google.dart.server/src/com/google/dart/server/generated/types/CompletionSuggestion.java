@@ -149,9 +149,15 @@ public class CompletionSuggestion {
   private final String parameterType;
 
   /**
+   * The import to be added if the suggestion is out of scope and needs an import to be added to be
+   * in scope.
+   */
+  private final String importUri;
+
+  /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -170,6 +176,7 @@ public class CompletionSuggestion {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
+    this.importUri = importUri;
   }
 
   @Override
@@ -194,7 +201,8 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
         ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
         ObjectUtilities.equals(other.parameterName, parameterName) &&
-        ObjectUtilities.equals(other.parameterType, parameterType);
+        ObjectUtilities.equals(other.parameterType, parameterType) &&
+        ObjectUtilities.equals(other.importUri, importUri);
     }
     return false;
   }
@@ -218,7 +226,8 @@ public class CompletionSuggestion {
     Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
+    String importUri = jsonObject.get("importUri") == null ? null : jsonObject.get("importUri").getAsString();
+    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -279,6 +288,14 @@ public class CompletionSuggestion {
    */
   public Boolean getHasNamedParameters() {
     return hasNamedParameters;
+  }
+
+  /**
+   * The import to be added if the suggestion is out of scope and needs an import to be added to be
+   * in scope.
+   */
+  public String getImportUri() {
+    return importUri;
   }
 
   /**
@@ -394,6 +411,7 @@ public class CompletionSuggestion {
     builder.append(hasNamedParameters);
     builder.append(parameterName);
     builder.append(parameterType);
+    builder.append(importUri);
     return builder.toHashCode();
   }
 
@@ -447,6 +465,9 @@ public class CompletionSuggestion {
     if (parameterType != null) {
       jsonObject.addProperty("parameterType", parameterType);
     }
+    if (importUri != null) {
+      jsonObject.addProperty("importUri", importUri);
+    }
     return jsonObject;
   }
 
@@ -489,7 +510,9 @@ public class CompletionSuggestion {
     builder.append("parameterName=");
     builder.append(parameterName + ", ");
     builder.append("parameterType=");
-    builder.append(parameterType);
+    builder.append(parameterType + ", ");
+    builder.append("importUri=");
+    builder.append(importUri);
     builder.append("]");
     return builder.toString();
   }

@@ -118,6 +118,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
+        null,
         null));
     completions1.add(new CompletionSuggestion(
         "kind",
@@ -129,6 +130,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         false,
         "",
         "",
+        null,
         null,
         null,
         null,
@@ -194,6 +196,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
+        null,
         null));
     completions1.add(new CompletionSuggestion(
         "kind",
@@ -213,6 +216,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         null,
         null,
         null,
+        null,
         null));
     completions2.add(new CompletionSuggestion(
         "kind",
@@ -224,6 +228,7 @@ public class DartSuggestionReceiverTest extends TestCase {
         false,
         "",
         "",
+        null,
         null,
         null,
         null,
