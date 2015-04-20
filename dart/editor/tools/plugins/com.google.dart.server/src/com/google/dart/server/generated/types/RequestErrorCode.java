@@ -36,6 +36,11 @@ public class RequestErrorCode {
   public static final String FORMAT_INVALID_FILE = "FORMAT_INVALID_FILE";
 
   /**
+   * An "edit.format" request specified a file that contains syntax errors.
+   */
+  public static final String FORMAT_WITH_ERRORS = "FORMAT_WITH_ERRORS";
+
+  /**
    * An "analysis.getErrors" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */

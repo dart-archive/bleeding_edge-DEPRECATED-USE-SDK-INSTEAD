@@ -263,7 +263,8 @@ public interface AnalysisServer {
    *
    * If a request is made for a file which does not exist, or which is not currently subject to
    * analysis (e.g. because it is not associated with any analysis root specified to
-   * analysis.setAnalysisRoots), an error of type FORMAT_INVALID_FILE will be generated.
+   * analysis.setAnalysisRoots), an error of type FORMAT_INVALID_FILE will be generated. If the
+   * source contains syntax errors, an error of type FORMAT_WITH_ERRORS will be generated.
    *
    * @param file The file containing the code to be formatted.
    * @param selectionOffset The offset of the current selection in the file.
