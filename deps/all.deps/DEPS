@@ -91,7 +91,7 @@ vars = {
   "stack_trace_tag": "@1.2.1",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_reflective_loader_tag": "@0.0.2",
+  "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.5+4",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
