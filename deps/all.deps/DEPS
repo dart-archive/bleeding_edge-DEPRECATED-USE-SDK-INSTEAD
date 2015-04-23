@@ -78,6 +78,7 @@ vars = {
   "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
+  "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
   "pub_semver_rev": "@182d55d7207e3af5e76e96834fa7cf63c55ce09a",
   "scheduled_test_tag": "@0.11.8",
@@ -262,6 +263,8 @@ deps = {
       "https://github.com/dart-lang/observe.git" + Var("observe_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       "https://github.com/dart-lang/path.git" + Var("path_rev"),
+  Var("dart_root") + "/third_party/pkg/plugin":
+      "https://github.com/dart-lang/plugin.git" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
