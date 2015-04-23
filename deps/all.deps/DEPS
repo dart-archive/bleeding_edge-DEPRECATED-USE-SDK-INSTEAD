@@ -30,7 +30,7 @@ vars = {
   "apache_ant_rev" : "@19997",
   "apache_compress_rev" : "@19997",
   "apache_http_rev" : "@37872",
-  "args_rev" : "@2699ca11b09158ab23ff4cb464ab255e89cc2f27",
+  "args_tag": "@0.13.0",
   "args4j_rev" : "@19997",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "bzip2_rev" : "@19997",
@@ -218,7 +218,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
       "https://github.com/dart-lang/analyzer_cli.git" + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
-      "https://github.com/dart-lang/args.git" + Var("args_rev"),
+      "https://github.com/dart-lang/args.git" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":
       "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
