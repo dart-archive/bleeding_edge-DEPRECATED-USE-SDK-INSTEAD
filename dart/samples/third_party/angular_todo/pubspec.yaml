@@ -1,6 +1,0 @@
-name: angular_todo
-version: 0.12.0
-dependencies:
-  angular: '>=0.12.0 <0.13.0'
-transformers:
-- angular
