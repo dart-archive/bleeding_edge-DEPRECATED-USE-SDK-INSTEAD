@@ -24,7 +24,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@ccc093fb57da302c27966ba3321bc6f273cce7ae",
+  "analyzer_cli_tag" : "@1.0.1",
   "android_adb_rev" : "@36744",
   "android_content_shell_rev" : "@37275",
   "apache_ant_rev" : "@19997",
@@ -216,7 +216,7 @@ deps = {
       Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
-      "https://github.com/dart-lang/analyzer_cli.git" + Var("analyzer_cli_rev"),
+      "https://github.com/dart-lang/analyzer_cli.git" + Var("analyzer_cli_tag"),
   Var("dart_root") + "/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":
