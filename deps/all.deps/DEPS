@@ -40,7 +40,7 @@ vars = {
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@33092",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
-  "csslib_rev" : "@994d20b90038fedd2aa7ad31f2a31456da96b225",
+  "csslib_tag" : "@0.12.0",
   "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag" : "@0.1.7",
@@ -228,7 +228,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/crypto":
       "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
-      "https://github.com/dart-lang/csslib.git" + Var("csslib_rev"),
+      "https://github.com/dart-lang/csslib.git" + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       "https://github.com/dart-lang/dart_style.git" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
