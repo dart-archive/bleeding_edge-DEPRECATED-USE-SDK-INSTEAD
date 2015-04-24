@@ -54,7 +54,7 @@ vars = {
   "gsutil_rev" : "@33376",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
-  "html5lib_rev" : "@faeb31061fcf60c952cc551902739c7d864cb0cd",
+  "html5lib_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@1.3.2",
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
@@ -234,7 +234,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html5lib":
-      "https://github.com/dart-lang/html5lib.git" + Var("html5lib_rev"),
+      "https://github.com/dart-lang/html5lib.git" + Var("html5lib_tag"),
   Var("dart_root") + "/third_party/pkg/http":
       "https://github.com/dart-lang/http.git" + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
