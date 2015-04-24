@@ -11,6 +11,9 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+# https://github.com/dart-lang/analyzer_cli/issue/15
+analyzer_cli/test/options_test: Skip
+
 [ $compiler == dart2dart ]
 dart_style/*: SkipByDesign # Tests spawn Dart processes and read files.
 
