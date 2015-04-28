@@ -80,6 +80,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
+  "protobuf_rev": "@12d2e2a30a65ffaff2151719b06f52a739a2c1f7",
   "pub_semver_rev": "@182d55d7207e3af5e76e96834fa7cf63c55ce09a",
   "scheduled_test_tag": "@0.11.8",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
@@ -267,6 +268,8 @@ deps = {
       "https://github.com/dart-lang/plugin.git" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
+  Var("dart_root") + "/third_party/pkg/protobuf":
+      "https://github.com/dart-lang/dart-protobuf.git" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
