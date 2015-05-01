@@ -68,7 +68,7 @@ public class Stagehand {
       int retValue = runner.runSync(null);
 
       if (retValue != 0) {
-        throw new StagehandException(runner.getStdErr());
+        throw new StagehandException(runner.getStdOut() + "\n" + runner.getStdErr());
       }
     } catch (IOException e) {
       throw new StagehandException(e);

@@ -77,6 +77,6 @@ public class StagehandSample extends AbstractSample {
 
   @Override
   public boolean shouldBeDefault() {
-    return getStagehandId().equals("consoleapp");
+    return getStagehandId().equals("console-full");
   }
 }
