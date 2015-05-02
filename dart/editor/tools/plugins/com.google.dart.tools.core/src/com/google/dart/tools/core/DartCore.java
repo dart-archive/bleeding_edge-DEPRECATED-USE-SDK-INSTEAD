@@ -556,6 +556,9 @@ public class DartCore extends Plugin implements DartSdkListener {
                 additionalArguments,
                 "--enable-incremental-resolution-api");
           }
+          if (DartCoreDebug.ANALYSIS_SERVER_NEW_TASK_MODEL) {
+            additionalArguments = ArrayUtils.add(additionalArguments, "--enable-new-task-model");
+          }
           {
             String log = DartCoreDebug.ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_LOG;
             if (!StringUtils.isEmpty(log)) {

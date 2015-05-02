@@ -47,6 +47,7 @@ com.google.dart.tools.core/experimental/analysisServer/incrementalResolutionLog 
 com.google.dart.tools.core/experimental/analysisServer/incrementalResolutionValidation = false
 com.google.dart.tools.core/experimental/analysisServer/instrumentationLogFile =
 com.google.dart.tools.core/experimental/analysisServer/logFile =
+com.google.dart.tools.core/experimental/analysisServer/newTaskModel = false
 com.google.dart.tools.core/experimental/analysisServer/path =
 com.google.dart.tools.core/experimental/analysisServer/printToConsole = false
 com.google.dart.tools.core/experimental/analysisServer/profile = false

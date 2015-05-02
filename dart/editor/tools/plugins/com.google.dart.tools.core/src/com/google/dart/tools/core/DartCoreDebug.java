@@ -75,6 +75,8 @@ public class DartCoreDebug {
 
   public static final String ANALYSIS_SERVER_INSTRUMENTATION_LOG_FILE = getOptionValue("experimental/analysisServer/instrumentationLogFile");
 
+  public static final boolean ANALYSIS_SERVER_NEW_TASK_MODEL = isOptionTrue("experimental/analysisServer/newTaskModel");
+
   // http diagnostic port 
   public static final String ANALYSIS_SERVER_HTTP_PORT_PREF = "analysisServerHttpPort";
   public static final String ANALYSIS_SERVER_HTTP_PORT = getOptionOrPrefValue(
