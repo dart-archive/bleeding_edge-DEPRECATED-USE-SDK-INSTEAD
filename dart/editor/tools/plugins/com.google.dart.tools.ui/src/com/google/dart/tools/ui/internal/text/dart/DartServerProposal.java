@@ -320,7 +320,7 @@ public class DartServerProposal implements ICompletionProposal, ICompletionPropo
         // If Enter or '(' (when blind typing), then use linked mode.
       } else {
         // Insert the trigger and stop completion.
-        selectionOffset = completion.length();
+        selectionOffset = suggestion.getSelectionOffset();
         selectionLength = 0;
         if (!isTriggerEnter) {
           doc.replace(
