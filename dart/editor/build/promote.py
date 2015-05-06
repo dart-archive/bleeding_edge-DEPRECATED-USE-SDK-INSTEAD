@@ -150,30 +150,6 @@ def _PromoteDartArchiveBuild(channel, revision):
     remove_gs_directory(to_loc)
     Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
-    # Copy editor zip files.
-    target_editor_dir = release_namer.editor_directory(to_revision)
-    remove_gs_directory(target_editor_dir)
-    for system in ['windows', 'macos', 'linux']:
-      for arch in ['ia32', 'x64']:
-        from_namer = raw_namer
-        # We have signed versions of the editor for windows and macos.
-        if system == 'windows' or system == 'macos':
-          from_namer = signed_namer
-        from_loc = from_namer.editor_zipfilepath(revision, system, arch)
-        to_loc = release_namer.editor_zipfilepath(to_revision, system, arch)
-        Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
-        Gsutil(['cp', '-a', 'public-read', from_loc + '.md5sum',
-                 to_loc + '.md5sum'])
-
-    # Copy signed editor installers for macos/windows.
-    for system, extension in [('windows', 'msi'), ('macos', 'dmg')]:
-      for arch in ['ia32', 'x64']:
-        from_loc = signed_namer.editor_installer_filepath(
-            revision, system, arch, extension)
-        to_loc = release_namer.editor_installer_filepath(
-            to_revision, system, arch, extension)
-        Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
-
     # Copy wheezy linux deb and src packages.
     from_loc = raw_namer.linux_packages_directory(revision, 'debian_wheezy')
     to_loc = release_namer.linux_packages_directory(to_revision,
