@@ -53,6 +53,7 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
   private Button enableHintsButton;
 
   private Button enableDart2jsHintsButton;
+  private Button enableLintsButton;
 
   public HintPreferencePage() {
     setPreferenceStore(null);
@@ -71,12 +72,18 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
     if (prefs != null) {
       boolean hintsEnabled = DartCore.getPlugin().isHintsEnabled();
       boolean hintsDart2JSEnabled = DartCore.getPlugin().isHintsDart2JSEnabled();
+      boolean lintsEnabled = DartCoreDebug.ENABLE_ANALYSIS_SERVER
+          && prefs.getBoolean(DartCore.ENABLE_LINTS_PREFERENCE, false);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        prefs.putBoolean(DartCore.ENABLE_LINTS_PREFERENCE, enableLintsButton.getSelection());
+      }
       prefs.putBoolean(DartCore.ENABLE_HINTS_PREFERENCE, enableHintsButton.getSelection());
       prefs.putBoolean(
           DartCore.ENABLE_HINTS_DART2JS_PREFERENCE,
           enableDart2jsHintsButton.getSelection());
       if (hintsEnabled != enableHintsButton.getSelection()
-          || hintsDart2JSEnabled != enableDart2jsHintsButton.getSelection()) {
+          || hintsDart2JSEnabled != enableDart2jsHintsButton.getSelection()
+          || lintsEnabled != enableLintsButton.getSelection()) {
         // trigger processing for hints
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
           DartCore.getAnalysisServerData().updateOptions();
@@ -124,6 +131,15 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
     });
     GridDataFactory.fillDefaults().applyTo(enableHintsButton);
 
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // Enable Lints checkbox
+      enableLintsButton = createCheckBox(
+          composite,
+          PreferencesMessages.HintPreferencePage_enable_lints,
+          PreferencesMessages.HintPreferencePage_enable_lints_tooltip);
+      GridDataFactory.fillDefaults().applyTo(enableLintsButton);
+    }
+
     // Separator
     {
       Label separatorLabel = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -160,6 +176,10 @@ public class HintPreferencePage extends PreferencePage implements IWorkbenchPref
           true));
       enableDart2jsHintsButton.setEnabled(enableHintsButtonSelection);
       hintGroup.setEnabled(enableHintsButtonSelection);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        boolean enableLints = prefs.getBoolean(DartCore.ENABLE_LINTS_PREFERENCE, true);
+        enableLintsButton.setSelection(enableLints);
+      }
     }
   }
 

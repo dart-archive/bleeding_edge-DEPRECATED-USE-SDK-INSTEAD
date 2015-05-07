@@ -798,6 +798,9 @@ public final class PreferencesMessages extends NLS {
 
   public static String HintPreferencePage_enable_hints;
   public static String HintPreferencePage_enable_hints_tooltip;
+  public static String HintPreferencePage_enable_lints;
+  public static String HintPreferencePage_enable_lints_tooltip;
+
   public static String HintPreferencePage_hints_group;
   public static String HintPreferencePage_enable_dart2js_hints;
   public static String HintPreferencePage_enable_dart2js_hints_tooltip;

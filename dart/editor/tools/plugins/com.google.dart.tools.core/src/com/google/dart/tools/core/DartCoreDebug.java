@@ -67,6 +67,8 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer")
       || DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANALYSIS_SERVER_PREF, true);
 
+  public static final String ENABLE_LINTING_PREF = "enableLinting";
+
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
 
   public static final boolean ANALYSIS_SERVER_INCREMENTAL_RESOLUTION_API = isOptionTrue("experimental/analysisServer/incrementalResolutionApi");
