@@ -13,14 +13,11 @@ import subprocess
 import sys
 import time
 import urllib
+import bots.bot_utils as bot_utils
 
 from os.path import join
 
-DART_PATH = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
-BOT_UTILS = os.path.abspath(os.path.join(
-    DART_PATH,  'tools', 'bots', 'bot_utils.py'))
-
-bot_utils = imp.load_source('bot_utils', BOT_UTILS)
+DART_PATH = os.path.abspath(os.path.join(__file__, '..', '..'))
 
 def BuildOptions():
   usage = """usage: %prog promote [options]
