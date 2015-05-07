@@ -511,11 +511,11 @@
             class="com.google.dart.tools.debug.ui.internal.preferences.MobilePreferencePage"
             id="com.google.dart.tools.debug.mbilePreferencePage">
       </page>
-      <page
+      <!--page
             class="com.google.dart.tools.ui.update.UpdatePreferencePage"
             id="com.google.dart.tools.ui.update.updatePreferencePage"
             name="%updatePrefPageName">
-      </page>
+      </page-->
    </extension>
 
    <extension

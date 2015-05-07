@@ -222,12 +222,12 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
     Label separator = new Label(this, SWT.SEPARATOR | SWT.SHADOW_OUT | SWT.HORIZONTAL);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(separator);
 
-    @SuppressWarnings("unused")
-    UpdateStatusControl updateStatus = new UpdateStatusControl(
-        this,
-        Display.getDefault().getSystemColor(SWT.COLOR_WHITE),
-        new Point(24, 4),
-        false);
+//    @SuppressWarnings("unused")
+//    UpdateStatusControl updateStatus = new UpdateStatusControl(
+//        this,
+//        Display.getDefault().getSystemColor(SWT.COLOR_WHITE),
+//        new Point(24, 4),
+//        false);
 
     setLocation(getInitialLocation(getSize()));
 

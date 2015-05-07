@@ -148,7 +148,7 @@ public class Activator extends AbstractUIPlugin {
     plugin = this;
 
     scheduleInstallationCleanup();
-    scheduleManagerStart();
+//    scheduleManagerStart();
 
     DartConsoleManager.initialize();
 
@@ -160,7 +160,7 @@ public class Activator extends AbstractUIPlugin {
     try {
 
       DartConsoleManager.shutdown();
-      stopUpdateManager();
+//      stopUpdateManager();
 
     } finally {
 
