@@ -14,9 +14,6 @@
 # https://github.com/dart-lang/analyzer_cli/issue/15
 analyzer_cli/test/options_test: Skip
 
-[ $compiler == dart2dart ]
-dart_style/*: SkipByDesign # Tests spawn Dart processes and read files.
-
 [ $browser ]
 analyzer_cli/*: SkipByDesign # Uses dart:io.
 dart_style/*: SkipByDesign
