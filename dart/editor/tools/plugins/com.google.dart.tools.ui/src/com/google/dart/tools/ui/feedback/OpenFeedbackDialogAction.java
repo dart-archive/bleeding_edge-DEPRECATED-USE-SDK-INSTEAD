@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.IShellProvider;
@@ -38,6 +39,7 @@ import org.eclipse.swt.widgets.Shell;
  * @see FeedbackSubmissionJob
  */
 public class OpenFeedbackDialogAction extends Action implements IShellProvider {
+  private static final String FEEDBACK_URL = "https://github.com/dart-lang/eclipse3/issues";
   private IShellProvider shellProvider;
 
   //the dialog shell, cached in case we want to ensure there is only one
@@ -68,6 +70,12 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
   @Override
   public void run() {
+
+    if (FEEDBACK_URL != null) {
+      ExternalBrowserUtil.openInExternalBrowser(FEEDBACK_URL);
+      return;
+    }
+
     HealthUtils.ReportHealth("FeedbackDialog.ctor");
     Image screenshot = captureScreen();
 
