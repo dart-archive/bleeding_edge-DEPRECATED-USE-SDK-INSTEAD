@@ -351,10 +351,6 @@ hooks = [
   },
   {
     "pattern": ".",
-    "action": ["python", Var("dart_root") + "/editor/build/generate_sources.py"],
-  },
-  {
-    "pattern": ".",
     "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
   },
 ]
