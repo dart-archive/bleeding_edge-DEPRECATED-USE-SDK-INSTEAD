@@ -480,7 +480,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * Answer the unique {@link AnalysisServer} used for analysis of anything in the workspace.
    * 
-   * @return the {@link AnalysisServer} (not {@code null})
+   * @return the {@link AnalysisServer}
    */
   public static AnalysisServer getAnalysisServer() {
     synchronized (analysisServerLock) {
@@ -488,7 +488,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         DartSdkManager sdkManager = DartSdkManager.getManager();
         if (!sdkManager.hasSdk()) {
           DartCore.logError("Add the dart sdk (com.google.dart.sdk) as a JVM argument");
-          System.exit(1);
+          return null;
         }
 
         boolean isRunningFromSource = false;
@@ -504,7 +504,7 @@ public class DartCore extends Plugin implements DartSdkListener {
             if (!analysisServerSnapshot.exists()) {
               DartCore.logError("Analysis Server snapshot was not found in "
                   + analysisServerSnapshot.getAbsolutePath() + ", SDK is corrupt.");
-              System.exit(1);
+              return null;
             }
           } else {
             analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
@@ -518,7 +518,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         if (packageRoot == null && isRunningFromSource) {
           DartCore.logError("To run analysis server from source, a package root must be "
               + "supplied using -Dcom.google.dart.packageRoot.");
-          System.exit(1);
+          return null;
         }
 
         try {
@@ -594,7 +594,7 @@ public class DartCore extends Plugin implements DartSdkListener {
               httpPort = Integer.parseInt(DartCoreDebug.ANALYSIS_SERVER_HTTP_PORT);
             } catch (NumberFormatException e) {
               DartCore.logError("Analysis server HTTP port must be an integer.");
-              System.exit(1);
+              return null;
             }
           }
           // create server, if "com.google.dart.svnRoot" flag was not set then use snapshot
@@ -632,7 +632,7 @@ public class DartCore extends Plugin implements DartSdkListener {
           analysisServerDataImpl.updateOptions();
         } catch (Throwable e) {
           DartCore.logError("Enable to start stdio server", e);
-          System.exit(1);
+          return null;
         }
       }
     }

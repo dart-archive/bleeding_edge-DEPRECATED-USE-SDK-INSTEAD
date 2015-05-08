@@ -1,6 +1,7 @@
 package com.google.dart.tools.ui.server;
 
 import com.google.dart.server.AnalysisServerStatusListener;
+import com.google.dart.server.generated.AnalysisServer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.themes.Fonts;
@@ -36,7 +37,12 @@ public class AnalysisServerControlContribution implements AnalysisServerStatusLi
   public Control createControl(Composite parent) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       control = createLabel(parent);
-      DartCore.getAnalysisServer().addStatusListener(this);
+      AnalysisServer server = DartCore.getAnalysisServer();
+      if (server != null) {
+        server.addStatusListener(this);
+      } else {
+        isAliveServer(false);
+      }
       hookupLabelListeners();
     } else {
       control = new Composite(parent, SWT.NONE);

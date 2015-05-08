@@ -248,7 +248,9 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     if (launchDataListeners.add(listener)) {
       if (executionSubscriptions.add(ExecutionService.LAUNCH_DATA)) {
         executionSubscriptions.add(ExecutionService.LAUNCH_DATA);
-        server.execution_setSubscriptions(executionSubscriptions);
+        if (server != null) {
+          server.execution_setSubscriptions(executionSubscriptions);
+        }
       }
     }
   }

@@ -68,7 +68,9 @@ public class DartPriorityFilesHelper_NEW {
         subscriptions.put(AnalysisService.OCCURRENCES, visibleFiles);
         subscriptions.put(AnalysisService.OUTLINE, visibleFiles);
         subscriptions.put(AnalysisService.OVERRIDES, visibleFiles);
-        analysisServer.analysis_setSubscriptions(subscriptions);
+        if (analysisServer != null) {
+          analysisServer.analysis_setSubscriptions(subscriptions);
+        }
         // done
         test_hasPendingJob = false;
       }
