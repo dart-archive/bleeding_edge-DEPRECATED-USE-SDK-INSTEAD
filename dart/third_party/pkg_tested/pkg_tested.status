@@ -11,9 +11,6 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
-# https://github.com/dart-lang/analyzer_cli/issue/15
-analyzer_cli/test/options_test: Skip
-
 [ $browser ]
 analyzer_cli/*: SkipByDesign # Uses dart:io.
 dart_style/*: SkipByDesign
