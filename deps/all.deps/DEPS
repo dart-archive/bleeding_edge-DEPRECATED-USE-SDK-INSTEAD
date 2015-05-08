@@ -55,7 +55,6 @@ vars = {
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
   "junit_rev" : "@19997",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
-  "matcher_tag": "@0.11.4+4",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mockito_rev" : "@19997",
@@ -83,7 +82,7 @@ vars = {
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
-  "unittest_tag": "@0.11.5+4",
+  "unittest_tag": "@0.11.6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "watcher_tag": "@0.9.5",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
@@ -217,8 +216,6 @@ deps = {
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
-  Var("dart_root") + "/third_party/pkg/matcher":
-      "https://github.com/dart-lang/matcher.git" + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
@@ -260,7 +257,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       "https://github.com/dart-lang/test_reflective_loader.git" + Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/unittest":
-      "https://github.com/dart-lang/unittest.git" + Var("unittest_tag"),
+      "https://github.com/dart-lang/test.git" + Var("unittest_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       "https://github.com/dart-lang/usage.git" + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":

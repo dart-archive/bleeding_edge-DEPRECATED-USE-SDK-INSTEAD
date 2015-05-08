@@ -27,7 +27,6 @@ vars.update({
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
-  "matcher_tag": "@0.11.4+4",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
@@ -41,7 +40,7 @@ vars.update({
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_tag": "@1.2.1",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
-  "unittest_tag": "@0.11.5+4",
+  "unittest_tag": "@0.11.6",
   "watcher_tag": "@0.9.5",
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
@@ -127,8 +126,6 @@ deps.update({
       "https://github.com/dart-lang/args.git" + Var("args_tag"),
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
-  "src/dart/third_party/pkg/matcher":
-      "https://github.com/dart-lang/matcher.git" + Var("matcher_tag"),
   "src/dart/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   "src/dart/third_party/pkg/path":
@@ -142,7 +139,7 @@ deps.update({
       Var("string_scanner_rev"),
   # TODO(sigmund): should be src/dart/third_party/pkg/unittest (dartbug.com/21949)
   "src/dart/pkg/unittest":
-      "https://github.com/dart-lang/unittest.git" + Var("unittest_tag"),
+      "https://github.com/dart-lang/test.git" + Var("unittest_tag"),
   "src/dart/third_party/pkg/web_components":
       "https://github.com/dart-lang/web-components.git" +
       Var("web_components_rev"),
