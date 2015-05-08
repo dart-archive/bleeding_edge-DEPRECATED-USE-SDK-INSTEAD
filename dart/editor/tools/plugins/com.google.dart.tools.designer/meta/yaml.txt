@@ -1,4 +1,0 @@
-dependencies
-description
-name
-version

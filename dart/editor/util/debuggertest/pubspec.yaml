@@ -1,4 +1,0 @@
-name: debuggertest
-dependencies:
-  browser: any
-  unittest: any

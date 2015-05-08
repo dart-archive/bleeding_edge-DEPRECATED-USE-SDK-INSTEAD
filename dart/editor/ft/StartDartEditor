@@ -1,8 +1,0 @@
-#!/bin/bash
-export BUILD_DIR=/b/build/slave/dart2js-linux-debug-checked-be/build/dart
-rm -rf ~/dart ~/.dartEditor ~/.pub-cache
-mkdir ~/dart
-cd ~/dart
-tar xfz $BUILD_DIR/editor/ft/io-2013-dart-codelab.tar.gz
-cd
-~/Desktop/dart/DartEditor

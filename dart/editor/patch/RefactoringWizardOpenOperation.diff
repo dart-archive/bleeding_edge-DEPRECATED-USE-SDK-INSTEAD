@@ -1,4 +1,0 @@
-193c193
-<     BusyIndicator.showWhile(parent != null ? parent.getDisplay() : null, r);
----
->     BusyIndicator.showWhile(parent != null && !parent.isDisposed() ? parent.getDisplay() : null, r);

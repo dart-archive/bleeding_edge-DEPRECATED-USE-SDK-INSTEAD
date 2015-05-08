@@ -1,4 +1,0 @@
-
-class %className%%extends%%implements% {
-
-}

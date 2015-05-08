@@ -1,9 +1,0 @@
-#!/bin/bash
-
-export SUT="kyodai"
-export LOC=~/src/dart-git/dart/editor/ft
-export EGG=/Applications/Eggplant.app
-
-$EGG/runscript "$LOC/Samples.suite/Scripts/exec.script" -params $SUT
-$EGG/runscript "$LOC/DartEditor.suite/Scripts/exec.script" -params $SUT
-$EGG/runscript "$LOC/EditorFeatures.suite/Scripts/exec.script" -params $SUT

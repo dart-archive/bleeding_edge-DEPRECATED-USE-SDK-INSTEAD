@@ -1,8 +1,0 @@
-name: {name}
-description: A sample Chrome packaged application
-dependencies:
-  chrome: any
-transformers:
-- chrome
-- $dart2js:
-    csp: true

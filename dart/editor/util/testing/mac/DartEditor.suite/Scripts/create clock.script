@@ -1,4 +1,0 @@
-Click(Text:"Tools",CaseSensitive:"Yes")
-Click(Text:"Welcome Page",CaseSensitive:"Yes")
-Click "clock icon"
-Wait 3

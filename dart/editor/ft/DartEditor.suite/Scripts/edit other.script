@@ -1,8 +1,0 @@
-﻿util.newline
-TypeText "t() {"
-util.newline
-TypeText "reverseText(null);" (* add ref to function in sample.dart *)
-util.saveFile (* save *)
-util.xWait 5
-Click "problems tab"
-util.xWaitFor 1, (Text:"is not") (* confirm warning *)
