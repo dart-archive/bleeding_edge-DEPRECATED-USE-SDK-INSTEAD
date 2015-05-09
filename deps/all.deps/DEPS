@@ -55,6 +55,7 @@ vars = {
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
   "junit_rev" : "@19997",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
+  "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mockito_rev" : "@19997",
@@ -216,6 +217,8 @@ deps = {
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
+  Var("dart_root") + "/third_party/pkg/markdown":
+      "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
