@@ -52,6 +52,7 @@ vars = {
   "linter_tag": "@0.0.2+2",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
+  "matcher_tag": "@0.12.0",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
@@ -75,6 +76,7 @@ vars = {
   "stack_trace_tag": "@1.2.1",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
+  "test_tag": "@0.12.1",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.6",
@@ -195,6 +197,8 @@ deps = {
       "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
+  Var("dart_root") + "/third_party/pkg/matcher":
+      "https://github.com/dart-lang/matcher.git" + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
@@ -233,6 +237,8 @@ deps = {
   Var("dart_root") + "/third_party/sunflower":
       "https://github.com/dart-lang/sample-sunflower.git" +
       Var("sunflower_rev"),
+  Var("dart_root") + "/third_party/pkg/test":
+      "https://github.com/dart-lang/test.git" + Var("test_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       "https://github.com/dart-lang/test_reflective_loader.git" + Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/unittest":
