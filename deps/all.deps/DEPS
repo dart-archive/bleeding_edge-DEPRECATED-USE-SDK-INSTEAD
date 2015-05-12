@@ -40,7 +40,6 @@ vars = {
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "gsutil_rev" : "@33376",
-  "guava_rev" : "@19997",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@1.3.2",
@@ -142,8 +141,6 @@ deps = {
       Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/gsutil":
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
-  Var("dart_root") + "/third_party/guava":
-      Var("third_party") + "/guava" + Var("guava_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/d8":
