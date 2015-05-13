@@ -178,4 +178,18 @@ hooks = [
     "pattern": ".",
     "action": ["python", "dart/tools/gyp_dart.py", "runtime"],
   },
+  {
+    'name': 'checked_in_dart_binaries',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies',
+      '-d',
+      '-r',
+      'dart/tools/testing/bin',
+    ],
+  },
 ]
