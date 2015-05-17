@@ -8,11 +8,15 @@ See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into gcl.
 """
 
+MOVED_TO_GITHUB = ("The dart svn repo is no more, and is only here for a "
+    "grace period until dependent projects have moved off. The new repo "
+    "is located at https://github.com/dart-lang/sdk, alongside the rest "
+    "of the dart-lang repos. Commits to this repo will have no effect "
+    "and you should not do it.")
+
 def CheckChangeOnCommit(input_api, output_api):
-  results = []
-  status_check = input_api.canned_checks.CheckTreeIsOpen(
-      input_api,
-      output_api,
-      json_url='http://dart-status.appspot.com/current?format=json')
-  results.extend(status_check)
-  return results
+  return [output_api.PresubmitError(MOVED_TO_GITHUB)]
+
+def CheckChangeOnUpload(input_api, output_api):
+  return [output_api.PresubmitError(MOVED_TO_GITHUB)]
+
